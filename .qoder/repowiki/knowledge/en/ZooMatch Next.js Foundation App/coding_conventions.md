@@ -1,5 +1,0 @@
-- Environment variables are validated at runtime through a Zod schema in `src/lib/env.ts`, with `getPublicEnv` returning `null` on failure so callers can gracefully degrade rather than throwing.
-- Supabase clients are exposed as factory functions (`createClient`) that return `null` when environment variables are missing, instead of constructing clients eagerly.
-- Client-only components and modules are explicitly marked with the `'use client'` directive at the top of the file.
-- Framer Motion animations honor user preference by reading `useReducedMotion()` and disabling transitions when reduced motion is requested.
-- Archetype-related TypeScript types are kept in a dedicated `src/types` module and imported across components and libraries rather than redefined inline.

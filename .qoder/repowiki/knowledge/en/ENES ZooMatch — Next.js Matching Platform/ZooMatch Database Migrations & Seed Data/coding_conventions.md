@@ -1,0 +1,6 @@
+- Mutating database state is exposed exclusively through `SECURITY DEFINER` functions in the `public` schema, with `REVOKE ALL ... FROM anon, authenticated` followed by explicit `GRANT EXECUTE TO service_role` or `authenticated` to enforce least-privilege access.
+- Sensitive helpers live in the `private` schema (e.g. `private.is_admin`, `private.cosine_similarity`, `private.assign_archetype_and_alias`, `private.dimension_badges_v2`) and are referenced by public RPCs rather than being called directly by clients.
+- RLS policies follow a consistent pattern: enable RLS on every table, grant `SELECT` to `anon`/`authenticated` only for read-only catalogs, and restrict row visibility to `auth.uid()` ownership plus `private.is_admin(auth.uid())` for sensitive tables.
+- Timestamps are kept in sync via `BEFORE UPDATE` triggers invoking a `touch_updated_at()` function, applied per-table so each table owns its own trigger.
+- Migration files are strictly additive: new versions use `_v2` suffixed tables/functions and `CREATE TABLE IF NOT EXISTS` / `CREATE OR REPLACE FUNCTION`, never dropping or altering v1 objects, with an explicit comment declaring the additive intent.
+- Seed scripts use `INSERT ... ON CONFLICT (id) DO UPDATE SET ...` to make them safe to rerun without producing duplicate catalog rows.

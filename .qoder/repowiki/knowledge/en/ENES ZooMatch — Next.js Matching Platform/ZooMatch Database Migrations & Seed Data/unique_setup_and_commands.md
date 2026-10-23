@@ -1,0 +1,1 @@
+`promote_admin.sql` is not run via the migration runner — it must be executed manually in the Supabase SQL Editor after creating the target user in Authentication > Users, then editing the `admin_email` constant at the top.

@@ -1,0 +1,1 @@
+PostgreSQL with Supabase extensions (`pgcrypto`, `auth.users`), PL/pgSQL stored procedures, Row Level Security policies, JSONB columns for traits/scores/justifications, and fixed-length `double precision[]` vectors (13-dim v1, 26-dim romance + 16-dim friendship v2).

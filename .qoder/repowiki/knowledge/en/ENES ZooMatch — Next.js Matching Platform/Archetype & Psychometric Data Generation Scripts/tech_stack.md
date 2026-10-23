@@ -1,0 +1,1 @@
+Python 3 with `requests` + `BeautifulSoup` for HTTP scraping of 16personalities.com and pigments.is; SQLite with WAL journaling for the item pipeline; Node.js / TypeScript for deterministic profile generation using a custom LCG PRNG seeded by `0x5a4f4f4d`.

@@ -1,0 +1,6 @@
+- Every Python script exposes a `main() -> int` function invoked via `if __name__ == "__main__": raise SystemExit(main())`, with argument parsing centralized in a `crear_parser()` helper returning an `argparse.ArgumentParser`.
+- Network access goes through a shared `crear_sesion()` factory that mounts a `HTTPAdapter` backed by `urllib3.util.Retry` with status_forcelist `(429, 500, 502, 503, 504)` and a Chrome-like User-Agent header.
+- All JSON output is written atomically via a private `escribir_json_atomico()` helper that writes to a `tempfile.NamedTemporaryFile` with `.tmp` suffix and finalizes with `os.replace`, followed by `fsync`.
+- Data contracts are enforced by dedicated `ErrorValidacion(ValueError)` exceptions raised inside `validar_*` functions that check counts, ID uniqueness, hex patterns, enum membership, and value ranges before any file is committed.
+- Remote sources are paired with embedded fallback constants (e.g. `PERSONALIDADES_FALLBACK`, `ANIMALES_FALLBACK`, `FUENTES_APROCADAS`) so every network path has a deterministic offline alternative, and the chosen source is recorded in document `metadatos.fuentes[*].estado`.
+- Deterministic generation uses a seeded custom PRNG (`createRandom(seed)`) rather than `random.random`, ensuring reproducible synthetic profiles and aliases derived from SHA-256 digests of seed+matricula+archetype.

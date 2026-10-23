@@ -3,22 +3,45 @@ schema_version: 1
 locale: en-US
 branch: main
 nodes_managed: true
-exported_at: "2026-10-23T02:37:34Z"
+exported_at: "2026-10-23T07:34:25Z"
 modules:
     "":
-        dir_name: ZooMatch Next.js Foundation App
-        title: ZooMatch Next.js Foundation App
+        dir_name: ENES ZooMatch — Next.js Matching Platform
+        title: ENES ZooMatch — Next.js Matching Platform
         scope:
-            - .
-            - eslint.config.mjs
-            - next-env.d.ts
-            - next.config.ts
+            - CONTEXTO_PROYECTO.md
+            - .gitignore
             - package.json
-            - postcss.config.mjs
-            - requirements.txt
+            - next.config.ts
             - tsconfig.json
+            - eslint.config.mjs
+            - postcss.config.mjs
             - vitest.config.ts
+            - requirements.txt
+        source_files: []
+        children:
+            - scripts_and_data
+            - supabase_migrations
+        depends_on: []
+        related_to: []
+    scripts_and_data:
+        dir_name: Archetype & Psychometric Data Generation Scripts
+        title: Archetype & Psychometric Data Generation Scripts
+        scope:
+            - scripts/
+            - data/
         source_files: []
         children: []
         depends_on: []
-        related_to: []
+        related_to:
+            - path: supabase_migrations
+    supabase_migrations:
+        dir_name: ZooMatch Database Migrations & Seed Data
+        title: ZooMatch Database Migrations & Seed Data
+        scope:
+            - supabase/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: scripts_and_data

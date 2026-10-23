@@ -12,6 +12,15 @@
 - [202610220001_secure_matching.sql](file://supabase/migrations/202610220001_secure_matching.sql)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated core components section to reflect multidimensional personality vectors and MBTI integration
+- Enhanced architecture overview with new dual-track matching workflow
+- Added detailed analysis of enhanced profile structure with hard filters
+- Updated server-side functions documentation to include badge generation and explainability features
+- Expanded dependency analysis to cover new vector relationships
+- Enhanced troubleshooting guide with new validation rules and error scenarios
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -95,6 +104,8 @@ Key constraints and behaviors:
 - Hard filters are stored as text arrays with GIN indexing for fast overlap checks.
 - Row-level security restricts access to sensitive data; public read is allowed only for catalogs and quiz items.
 - Server-side RPCs enforce service-role authorization and validate inputs before mutating state.
+
+**Updated** Enhanced with multidimensional personality vectors supporting both Big Five and MBTI personality frameworks, plus comprehensive hard filtering for identity and relationship preferences.
 
 **Section sources**
 - [202610230001_multidimensional_v2.sql:18-121](file://supabase/migrations/202610230001_multidimensional_v2.sql#L18-L121)
@@ -195,17 +206,20 @@ Key fields:
 - Romance vector: 26 dimensions including personality, identity soft, cultural, intimacy, and values.
 - Friendship vector: 16 dimensions excluding intimacy and identity soft.
 - Dimension scores: full JSONB object for explainability and analysis.
-- MBTI code: validated four-letter code.
+- MBTI code: validated four-letter code following IE/NS/TJ/JP pattern.
 
 Constraints:
 - Vector length constraints ensure romance vector is 26 and friendship vector is 16 when non-empty.
 - Matricula hash is a unique 64-character hex string.
+- MBTI code follows strict regex pattern for valid personality type codes.
 
 Timestamps:
 - Trigger updates updated_at automatically.
 
 Security:
 - RLS allows own data read or admin access.
+
+**Updated** Enhanced with comprehensive MBTI personality typing support alongside Big Five traits, providing richer personality profiling capabilities.
 
 **Section sources**
 - [202610230001_multidimensional_v2.sql:56-80](file://supabase/migrations/202610230001_multidimensional_v2.sql#L56-L80)
@@ -285,6 +299,8 @@ Cosine similarity reuse:
 
 Badge generation:
 - private.dimension_badges_v2 computes top dimension affinities per track and returns JSONB badges.
+
+**Updated** Enhanced with comprehensive explainability features including dimension-specific affinity badges and improved match explanation capabilities.
 
 **Section sources**
 - [202610230001_multidimensional_v2.sql:204-282](file://supabase/migrations/202610230001_multidimensional_v2.sql#L204-L282)
@@ -368,11 +384,15 @@ Common issues and resolutions:
 - Invalid thresholds: Romance and friendship thresholds must be within [0.5, 1.0).
 - Missing profile: compute_dual_matches requires a completed profile; ensure quiz_completed_at is set.
 - Notification duplicates: notify_matches_v2 deletes old unread notifications before inserting new ones.
+- Invalid MBTI code: MBTI code must follow IE/NS/TJ/JP pattern (e.g., INTJ, ENFP).
 
 Debugging steps:
 - Verify RLS policies allow expected reads/writes for authenticated users.
 - Check that catalog references (animal_id, color_id) exist in animals/colors tables.
 - Inspect badges JSONB to confirm dimension affinity computation.
+- Validate hard filter arrays contain expected values for compatibility checks.
+
+**Updated** Added troubleshooting for MBTI code validation and hard filter array validation.
 
 **Section sources**
 - [202610230001_multidimensional_v2.sql:224-236](file://supabase/migrations/202610230001_multidimensional_v2.sql#L224-L236)
@@ -382,5 +402,7 @@ Debugging steps:
 
 ## Conclusion
 The ZooMatch v2 database schema introduces a robust, multidimensional, dual-track matching system with strong security, clear separation of concerns, and explainability. By combining typed configuration, structured questionnaires, and server-side functions, it enables precise romance and friendship compatibility calculations while maintaining privacy through hard filters and row-level security. The additive design preserves v1 functionality during transition, and the comprehensive indexing and validation strategies support scalable performance.
+
+The enhanced system now supports comprehensive personality profiling through both Big Five and MBTI frameworks, providing richer insights into user compatibility while maintaining the privacy-first approach that characterizes the ZooMatch platform.
 
 [No sources needed since this section summarizes without analyzing specific files]

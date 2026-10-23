@@ -1,0 +1,5 @@
+- Dual-version coexistence: every domain artifact exists in parallel v1 and v2 forms (tables `*_v2`, RPCs suffixed `_v2`, routes `/cuestionario-v2`, configs `matching-config-v2.json`) rather than replacing v1.
+- Sensitive identifiers (UNAM matricula) are never stored or transmitted in plaintext; they are hashed deterministically with HMAC-SHA-256 using `MATRICULA_HMAC_SECRET` before any persistence or API exposure.
+- Heavy computation (vector scoring, cosine similarity, match computation) lives in PostgreSQL functions/RPCs invoked from Next.js API routes via the Supabase service role, keeping the matching core pure and testable.
+- All user-facing copy is Spanish-MX inclusive and generated deterministically by explainability modules, with literal strings asserted by tests so spelling and emoticons cannot drift.
+- API handlers are wrapped in `withApiSecurity` to enforce CORS allowlisting, per-route rate limiting (Upstash Redis when available, fail-open otherwise), and hard security headers.

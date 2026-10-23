@@ -14,6 +14,14 @@
 - [202610240001_matches_v2_explainability.sql](file://supabase/migrations/202610240001_matches_v2_explainability.sql)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated to reflect the new 835-line explainability system integrated with the result endpoint
+- Added comprehensive documentation for the human-readable explanation generation pipeline
+- Enhanced architecture diagrams to show the complete explainability flow
+- Updated component analysis to include the new Spanish-language warm summaries
+- Expanded troubleshooting guide to cover explainability-specific scenarios
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -43,13 +51,14 @@ The explainability and analytics features span server routes, pure library modul
 graph TB
 Client["Client Pages<br/>PublicQuizV2 / PublicResultViewV2"] --> ResultAPI["GET /api/result-v2"]
 AdminUI["Admin Dashboard"] --> MetricsAPI["GET /api/admin/metrics-v2"]
-ResultAPI --> Explainability["Explainability Engine"]
+ResultAPI --> Explainability["Explainability Engine (835 lines)"]
 ResultAPI --> MatchingCore["Matching Core"]
 ResultAPI --> Database["Supabase Profiles + Matches"]
 MetricsAPI --> AdminAggregates["Admin Aggregates Parser"]
 AdminAggregates --> Database
 Explainability --> Types["Shared v2 Types"]
 MatchingCore --> Types
+Database --> Migration["Explainability Migration"]
 ```
 
 **Diagram sources**
@@ -59,6 +68,7 @@ MatchingCore --> Types
 - [matching-v2.ts:517-579](file://src/lib/matching-v2.ts#L517-L579)
 - [metrics-v2\route.ts:33-61](file://src/app/api/admin/metrics-v2/route.ts#L33-L61)
 - [admin-dashboard-v2.ts:40-63](file://src/lib/admin-dashboard-v2.ts#L40-L63)
+- [202610240001_matches_v2_explainability.sql:17-54](file://supabase/migrations/202610240001_matches_v2_explainability.sql#L17-L54)
 
 **Section sources**
 - [public-experience-v2.tsx:105-237](file://src/components/public-experience-v2.tsx#L105-L237)
@@ -67,12 +77,12 @@ MatchingCore --> Types
 - [metrics-v2\route.ts:1-73](file://src/app/api/admin/metrics-v2/route.ts#L1-L73)
 
 ## Core Components
-- **Explainability engine**: Converts raw cosine-similarity results into a chemistry summary, category breakdown, personality summary, and headline.
+- **Explainability engine**: Converts raw cosine-similarity results into a chemistry summary, category breakdown, personality summary, and headline. This 835-line module provides deterministic, side-effect-free transformation with warm Spanish-language output.
 - **Matching core**: Scores quiz answers into normalized dimensions, derives MBTI codes, applies hard filters, computes weighted track similarity, and generates compatibility badges.
-- **Result API**: Authenticates users, fetches their profile and matches, loads counterpart profiles via a service-role client, and builds affective explanations.
+- **Result API**: Authenticates users, fetches their profile and matches, loads counterpart profiles via a service-role client, and builds affective explanations using the explainability engine.
 - **Admin metrics route**: Enforces admin authorization, calls a database RPC with configured thresholds, normalizes aggregates, validates them, and returns safe metrics.
 - **Shared types**: Define dimension categories, vector orders, scoring shapes, badge structures, and configuration contracts.
-- **Migration**: Extends the public matches RPC to include the matched user’s identifier so the result API can look up their vectors and scores for explanation generation.
+- **Migration**: Extends the public matches RPC to include the matched user's identifier so the result API can look up their vectors and scores for explanation generation.
 
 **Section sources**
 - [explainability.ts:1-85](file://src/lib/explainability.ts#L1-L85)
@@ -83,7 +93,7 @@ MatchingCore --> Types
 - [202610240001_matches_v2_explainability.sql:1-59](file://supabase/migrations/202610240001_matches_v2_explainability.sql#L1-L59)
 
 ## Architecture Overview
-The end-to-end flow for explainable results is:
+The end-to-end flow for explainable results integrates the new explainability engine with the existing matching infrastructure:
 
 ```mermaid
 sequenceDiagram
@@ -112,12 +122,12 @@ Page-->>User : Chemistry rings, badges, narrative, explanation
 ## Detailed Component Analysis
 
 ### Explainability Engine
-The explainability module is a deterministic, side-effect-free transformer. It receives:
+The explainability module is a deterministic, side-effect-free transformer spanning 835 lines of code. It receives:
 - A raw similarity score between 0 and 1.
 - Two ordered dimension vectors for the active track.
 - Track identity (`romance` or `amistad`).
-- Matched user’s animal, color, MBTI code, and Big Five scores.
-- Querying user’s animal and Big Five scores.
+- Matched user's animal, color, MBTI code, and Big Five scores.
+- Querying user's animal and Big Five scores.
 
 It produces:
 - `ChemistrySummary`: integer percentage, display text, machine-readable level, and Spanish label.
@@ -127,7 +137,7 @@ It produces:
 
 Key implementation characteristics:
 - Category mapping uses dimension prefixes such as `personalidad_`, `cultural_`, `intimidad_`, `valores_`, and `identidad_`.
-- Affinity per category is computed as `1 - mean(|a[i] - b[i]|)` over the category’s indices.
+- Affinity per category is computed as `1 - mean(|a[i] - b[i]|)` over the category's indices.
 - Phrase selection uses predefined ladders evaluated from highest minimum threshold to lowest.
 - Personality summary composes identity, MBTI descriptor, and a complementary trait clause derived from Big Five comparisons.
 - Headline selection hashes the combination of user animal, match animal, track, and top category to pick deterministically from category-specific and animal-metaphor pools.
@@ -231,17 +241,17 @@ ScoredProfileV2 --> DualMatchResult : "produces matches"
 - [matching-v2.ts:461-579](file://src/lib/matching-v2.ts#L461-L579)
 
 ### Result API and Explanation Integration
-The result API:
+The result API now integrates seamlessly with the explainability engine:
 - Authenticates the current user.
-- Fetches the user’s profile and matches using the authenticated client.
+- Fetches the user's profile and matches using the authenticated client.
 - Parses and validates match rows.
-- Loads matched users’ vectors and scores using a service-role client because profiles are RLS-restricted.
+- Loads matched users' vectors and scores using a service-role client because profiles are RLS-restricted.
 - Builds a short narrative per match.
 - Calls the explainability engine when both user and match have valid track vectors.
 - Returns a structured public result including romance and amistad matches.
 
 Graceful degradation:
-- If either user’s vector data is missing or malformed, the explanation is set to `null` instead of throwing.
+- If either user's vector data is missing or malformed, the explanation is set to `null` instead of throwing.
 - If RPC or profile queries fail, the API returns appropriate error responses.
 
 ```mermaid
@@ -312,16 +322,18 @@ Matching thresholds are loaded from a JSON configuration file and validated at r
 - [metrics-v2\route.ts:3-5](file://src/app/api/admin/metrics-v2/route.ts#L3-L5)
 
 ### Client-Side Result Presentation
-The client component:
+The client component now displays the rich explanations generated by the explainability engine:
 - Submits the questionnaire and navigates to the results page.
 - Fetches `/api/result-v2` with a minimum analysis delay and maximum timeout.
 - Parses the response into `PublicResultV2`.
 - Displays chemistry rings, badges, narratives, and optional explanations.
 - Supports romance and amistad tabs.
+- Shows expandable "¿Por qué hicimos match?" sections with detailed explanations.
 
 **Section sources**
 - [public-experience-v2.tsx:105-237](file://src/components/public-experience-v2.tsx#L105-L237)
 - [public-experience-v2.tsx:500-755](file://src/components/public-experience-v2.tsx#L500-L755)
+- [public-experience-v2.tsx:645-687](file://src/components/public-experience-v2.tsx#L645-L687)
 - [public-experience-utils-v2.ts:21-41](file://src/components/public-experience-utils-v2.ts#L21-L41)
 - [public-experience-utils-v2.ts:183-227](file://src/components/public-experience-utils-v2.ts#L183-L227)
 
@@ -367,8 +379,7 @@ Client["public-experience-v2.tsx"] --> ResultAPI
 - Badge generation sorts by affinity and slices to a fixed limit, keeping output bounded.
 - The result API batches profile and match fetching and only loads counterpart profiles when needed.
 - Admin metrics use a single RPC call and validate once before exposing data.
-
-[No sources needed since this section provides general guidance]
+- The explainability engine uses deterministic hashing for headline selection to ensure consistent output.
 
 ## Troubleshooting Guide
 Common issues and where they surface:
@@ -382,8 +393,9 @@ Common issues and where they surface:
   - Ensure track vectors correspond to the expected romance or friendship dimension order.
 
 - No explanation generated:
-  - If either user’s vector data is missing or malformed, the result API sets explanation to `null`.
+  - If either user's vector data is missing or malformed, the result API sets explanation to `null`.
   - Verify that `dimension_scores`, `romance_vector`, and `amistad_vector` exist for both users.
+  - Check that the migration added the `other_user` column to the matches RPC.
 
 - Admin metrics unavailable:
   - RPC failure or invalid payload returns null or error paths.
@@ -393,15 +405,20 @@ Common issues and where they surface:
   - Public result parsing rejects malformed animal/color objects or invalid hex values.
   - Confirm that the API response conforms to `PublicResultV2`.
 
+- Explainability-specific issues:
+  - The explainability engine requires both users to have valid track vectors for explanation generation.
+  - Warm Spanish-language phrases are selected based on predefined ladders; check phrase thresholds if output seems inconsistent.
+  - Personality summaries rely on MBTI codes and Big Five scores; fallback behavior uses generic descriptors when data is incomplete.
+
 **Section sources**
 - [matching-v2.ts:220-240](file://src/lib/matching-v2.ts#L220-L240)
 - [matching-v2.ts:368-387](file://src/lib/matching-v2.ts#L368-L387)
 - [explainability.ts:605-613](file://src/lib/explainability.ts#L605-L613)
 - [result-v2\route.ts:71-108](file://src/app/api/result-v2/route.ts#L71-L108)
+- [result-v2\route.ts:110-220](file://src/app/api/result-v2/route.ts#L110-L220)
 - [metrics-v2\route.ts:33-61](file://src/app/api/admin/metrics-v2/route.ts#L33-L61)
 - [public-experience-utils-v2.ts:183-227](file://src/components/public-experience-utils-v2.ts#L183-L227)
+- [202610240001_matches_v2_explainability.sql:17-54](file://supabase/migrations/202610240001_matches_v2_explainability.sql#L17-L54)
 
 ## Conclusion
-ZooMatch v2’s explainability and analytics layer separates mathematical matching from human-readable interpretation. The matching core computes robust, weighted similarities across romance and friendship tracks, while the explainability engine translates those scores into empathetic, deterministic Spanish explanations. The result API integrates both layers safely, and the admin analytics pipeline provides validated, secure aggregates for operational insight. Together, they deliver transparent, user-friendly match explanations and trustworthy administrative visibility.
-
-[No sources needed since this section summarizes without analyzing specific files]
+ZooMatch v2's explainability and analytics layer separates mathematical matching from human-readable interpretation. The matching core computes robust, weighted similarities across romance and friendship tracks, while the new 835-line explainability engine translates those scores into empathetic, deterministic Spanish explanations. The result API integrates both layers safely, and the admin analytics pipeline provides validated, secure aggregates for operational insight. Together, they deliver transparent, user-friendly match explanations with warm, inclusive language and trustworthy administrative visibility.

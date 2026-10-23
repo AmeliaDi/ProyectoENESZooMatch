@@ -1,1 +1,0 @@
-Next.js 16 with React 19, TypeScript 6, Tailwind CSS v4 via `@tailwindcss/postcss`, Framer Motion for animations, Recharts for charts, Zod 4 for runtime env/schema validation, Supabase JS SDK with SSR helpers, Vitest + Vite for tests, ESLint 10, and Python scripts for data generation.

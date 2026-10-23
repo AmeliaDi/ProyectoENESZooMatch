@@ -1,0 +1,1 @@
+Next.js 16 + React 19 + TypeScript 6 as the runtime; Supabase (PostgreSQL + Auth + RLS) as the backend; Tailwind CSS v4 via PostCSS; Vitest 5 (Vite 8) for tests; Python (requests, beautifulsoup4) exclusively for the offline data-generation pipeline under `scripts/`; Zod 4 for environment, payload, and config validation across both JS and SQL-adjacent code paths.

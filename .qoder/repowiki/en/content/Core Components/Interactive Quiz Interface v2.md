@@ -13,10 +13,20 @@
 - [src/app/api/quiz-v2/route.ts](file://src/app/api/quiz-v2/route.ts)
 - [src/app/api/result-v2/route.ts](file://src/app/api/result-v2/route.ts)
 - [src/lib/matching-v2.ts](file://src/lib/matching-v2.ts)
+- [src/lib/validation-v2.ts](file://src/lib/validation-v2.ts)
 - [data/microtest_v2.json](file://data/microtest_v2.json)
 - [data/matching-config-v2.json](file://data/matching-config-v2.json)
 - [src/types/microtest-v2.ts](file://src/types/microtest-v2.ts)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Enhanced Framer Motion animations throughout the quiz interface with smooth transitions and accessibility features
+- Improved Likert-scale response handling with better UX and validation
+- Enhanced multiple-choice filter selection with improved visual feedback
+- Implemented comprehensive Zod validation for all API payloads
+- Upgraded local storage persistence system with QUIZ_STORAGE_KEY_V2
+- Added sophisticated loading states and error handling with animated feedback
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -30,11 +40,11 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
-Interactive Quiz Interface v2 is the user-facing experience for ZooMatch’s multidimensional psychometric questionnaire and dual-track matching system. It guides users through 60 Likert and multi-selection items, persists their draft locally, submits validated answers to a secure API, computes scores and matches server-side, and renders an animated result page with romance and friendship tracks, badges, and affective narratives.
+Interactive Quiz Interface v2 is the user-facing experience for ZooMatch's multidimensional psychometric questionnaire and dual-track matching system. It guides users through 60 Likert and multi-selection items with modern animated transitions, persists their draft locally, submits validated answers to a secure API, computes scores and matches server-side, and renders an animated result page with romance and friendship tracks, badges, and affective narratives.
 
 At a high level:
-- The client renders a step-by-step quiz with progress tracking and local draft persistence.
-- The server validates payloads, scores dimensions, derives MBTI codes, stores vectors, computes matches, and returns structured results.
+- The client renders a step-by-step quiz with smooth Framer Motion animations, progress tracking, and local draft persistence.
+- The server validates payloads with comprehensive Zod schemas, scores dimensions, derives MBTI codes, stores vectors, computes matches, and returns structured results.
 - Matching uses weighted cosine similarity across personality, cultural affinity, intimacy, values, and identity categories, with hard filters only for romance.
 - Results are presented as animal + color identities with badges explaining top compatible dimensions.
 
@@ -63,6 +73,7 @@ end
 subgraph "Server APIs"
 QuizAPI["POST /api/quiz-v2<br/>route.ts"]
 ResultAPI["GET /api/result-v2<br/>route.ts"]
+Validation["Zod Validation<br/>validation-v2.ts"]
 end
 subgraph "Matching Core"
 MatchingLib["matching-v2.ts"]
@@ -76,6 +87,7 @@ ResultPage --> PublicResultV2
 RootLayout --> PublicResultV2
 PublicQuizV2 --> QuizAPI
 PublicResultV2 --> ResultAPI
+QuizAPI --> Validation
 QuizAPI --> MatchingLib
 ResultAPI --> MatchingLib
 MatchingLib --> MicrotestJSON
@@ -94,6 +106,7 @@ PublicQuizV2 --> UtilsV2
 - [src/components/public-experience-utils-v2.ts:1-231](file://src/components/public-experience-utils-v2.ts#L1-L231)
 - [src/app/api/quiz-v2/route.ts:1-129](file://src/app/api/quiz-v2/route.ts#L1-L129)
 - [src/app/api/result-v2/route.ts:1-232](file://src/app/api/result-v2/route.ts#L1-L232)
+- [src/lib/validation-v2.ts:1-72](file://src/lib/validation-v2.ts#L1-L72)
 - [src/lib/matching-v2.ts:1-580](file://src/lib/matching-v2.ts#L1-L580)
 - [data/microtest_v2.json:1-67](file://data/microtest_v2.json#L1-L67)
 - [data/matching-config-v2.json:1-77](file://data/matching-config-v2.json#L1-L77)
@@ -105,21 +118,23 @@ PublicQuizV2 --> UtilsV2
 
 ## Core Components
 The interactive interface consists of:
-- `PublicQuizV2`: Renders the 60-item questionnaire, manages draft state, validates completion, and submits answers.
+- `PublicQuizV2`: Renders the 60-item questionnaire with Framer Motion animations, manages draft state, validates completion, and submits answers.
 - `PublicResultViewV2`: Loads profile and matches, animates analysis, and displays romance/friendship results with badges and narratives.
-- `/api/quiz-v2`: Validates submission, scores the quiz, generates profile identity, persists data via Supabase RPCs, computes matches, and sends notifications.
+- `/api/quiz-v2`: Validates submission with Zod schemas, scores the quiz, generates profile identity, persists data via Supabase RPCs, computes matches, and sends notifications.
 - `/api/result-v2`: Fetches authenticated user profile and matches, builds explanations, and returns structured result data.
 - `matching-v2.ts`: Pure mathematical core that scores dimensions, applies hard filters, computes weighted cosine similarity, and generates badges.
+- `validation-v2.ts`: Comprehensive Zod validation schemas for quiz submissions ensuring data integrity.
 - `public-experience-utils-v2.ts`: Client-side utilities for draft parsing, result parsing, category labels, and no-match messaging.
 - `microtest_v2.json` and `matching-config-v2.json`: Canonical question definitions and matching thresholds/weights.
 - `microtest-v2.ts`: Strongly typed domain model for dimensions, tracks, submissions, and results.
 
 Key responsibilities:
-- Draft persistence: LocalStorage key `zoomatch:quiz-draft:v2`.
+- Draft persistence: LocalStorage key `zoomatch:quiz-draft:v2` (QUIZ_STORAGE_KEY_V2).
 - Validation: Zod-based payload validation; Likert values 1–5; required multi-selection options.
 - Scoring: Reverse-scoring negative items, normalization to `[0,1]`, neutral score for missing dimensions.
 - Matching: Romance (26 dimensions, hard filters, threshold > 0.80), Friendship (16 dimensions, no hard filters, threshold > 0.75).
 - Badges: Top 5 romance, top 3 friendship by affinity `1 - |a - b|`.
+- Animations: Smooth Framer Motion transitions with accessibility support via `useReducedMotion`.
 
 **Section sources**
 - [src/components/public-experience-v2.tsx:105-404](file://src/components/public-experience-v2.tsx#L105-L404)
@@ -130,28 +145,31 @@ Key responsibilities:
 - [src/lib/matching-v2.ts:416-448](file://src/lib/matching-v2.ts#L416-L448)
 - [src/lib/matching-v2.ts:461-488](file://src/lib/matching-v2.ts#L461-L488)
 - [src/lib/matching-v2.ts:517-579](file://src/lib/matching-v2.ts#L517-L579)
+- [src/lib/validation-v2.ts:1-72](file://src/lib/validation-v2.ts#L1-L72)
 - [src/components/public-experience-utils-v2.ts:1-231](file://src/components/public-experience-utils-v2.ts#L1-L231)
 - [data/microtest_v2.json:1-67](file://data/microtest_v2.json#L1-L67)
 - [data/matching-config-v2.json:1-77](file://data/matching-config-v2.json#L1-L77)
 - [src/types/microtest-v2.ts:1-303](file://src/types/microtest-v2.ts#L1-L303)
 
 ## Architecture Overview
-The v2 quiz flow connects client UI, API security, Supabase RPCs, and deterministic matching math.
+The v2 quiz flow connects client UI with advanced animations, API security, Supabase RPCs, and deterministic matching math.
 
 ```mermaid
 sequenceDiagram
 participant User as "User"
 participant QuizUI as "PublicQuizV2"
 participant QuizAPI as "/api/quiz-v2"
+participant Validator as "Zod Schema"
 participant Supabase as "Supabase RPCs"
 participant Matching as "matching-v2.ts"
 participant ResultAPI as "/api/result-v2"
 participant ResultUI as "PublicResultViewV2"
 User->>QuizUI : Answer Likert / Multi-select items
-QuizUI->>QuizUI : Persist draft to localStorage
+QuizUI->>QuizUI : Persist draft to localStorage (QUIZ_STORAGE_KEY_V2)
 User->>QuizUI : Submit last item
 QuizUI->>QuizAPI : POST { likert, filters }
-QuizAPI->>QuizAPI : Validate payload (Zod)
+QuizAPI->>Validator : Validate payload (Zod)
+Validator-->>QuizAPI : Validated QuizSubmissionV2
 QuizAPI->>Matching : scoreQuizV2()
 Matching-->>QuizAPI : normalizedScores, mbtiCode, vectors, hardFilters
 QuizAPI->>Supabase : submit_quiz_result_v2()
@@ -168,41 +186,42 @@ ResultUI-->>User : Romance/Friendship cards, badges, narratives
 **Diagram sources**
 - [src/components/public-experience-v2.tsx:185-237](file://src/components/public-experience-v2.tsx#L185-L237)
 - [src/app/api/quiz-v2/route.ts:16-118](file://src/app/api/quiz-v2/route.ts#L16-L118)
+- [src/lib/validation-v2.ts:40-67](file://src/lib/validation-v2.ts#L40-L67)
 - [src/lib/matching-v2.ts:220-281](file://src/lib/matching-v2.ts#L220-L281)
 - [src/app/api/result-v2/route.ts:110-221](file://src/app/api/result-v2/route.ts#L110-L221)
 - [src/components/public-experience-v2.tsx:500-550](file://src/components/public-experience-v2.tsx#L500-L550)
 
 ## Detailed Component Analysis
 
-### PublicQuizV2: Questionnaire Flow
-`PublicQuizV2` drives the interactive quiz:
+### PublicQuizV2: Questionnaire Flow with Advanced Animations
+`PublicQuizV2` drives the interactive quiz with sophisticated Framer Motion animations:
 - Loads items from `microtest_v2.json`.
-- Maintains draft state (`likert` and `filters`) and persists it under `zoomatch:quiz-draft:v2`.
-- Shows current category label, counter, and animated progress bar.
-- Supports Likert radio buttons and multi-select checkboxes.
+- Maintains draft state (`likert` and `filters`) and persists it under `zoomatch:quiz-draft:v2` (QUIZ_STORAGE_KEY_V2).
+- Shows current category label, counter, and animated progress bar with smooth transitions.
+- Supports Likert radio buttons (1-5 scale) and multi-select checkboxes with enhanced visual feedback.
 - Validates all items answered before submission; jumps to first unanswered item if incomplete.
 - Submits to `/api/quiz-v2` with structured payload and navigates to `/resultado-v2` on success.
-- Handles session errors and generic failures gracefully.
+- Handles session errors and generic failures gracefully with animated error messages.
 
 ```mermaid
 flowchart TD
-Start(["Load Quiz"]) --> RestoreDraft["Restore draft from localStorage"]
-RestoreDraft --> ShowItem["Render current item"]
+Start(["Load Quiz"]) --> RestoreDraft["Restore draft from localStorage (QUIZ_STORAGE_KEY_V2)"]
+RestoreDraft --> ShowItem["Render current item with animation"]
 ShowItem --> Answer{"Answer provided?"}
 Answer --> |No| HighlightMissing["Highlight missing answer"]
 HighlightMissing --> ShowItem
 Answer --> |Yes| NextOrSubmit{"Last item?"}
-NextOrSubmit --> |No| NextItem["Go to next item"]
+NextOrSubmit --> |No| NextItem["Go to next item with transition"]
 NextItem --> ShowItem
 NextOrSubmit --> |Yes| ValidateAll["Validate all items answered"]
 ValidateAll --> AllAnswered{"All answered?"}
 AllAnswered --> |No| JumpToFirstMissing["Jump to first missing"]
 JumpToFirstMissing --> ShowItem
-AllAnswered --> |Yes| Submit["POST /api/quiz-v2"]
+AllAnswered --> |Yes| Submit["POST /api/quiz-v2 with Zod validation"]
 Submit --> Success{"Response ok?"}
 Success --> |Yes| ClearDraft["Clear localStorage draft"]
 ClearDraft --> Navigate["Navigate to /resultado-v2"]
-Success --> |No| ShowError["Show error message"]
+Success --> |No| ShowError["Show animated error message"]
 ShowError --> ShowItem
 ```
 
@@ -214,13 +233,13 @@ ShowError --> ShowItem
 - [src/components/public-experience-v2.tsx:105-237](file://src/components/public-experience-v2.tsx#L105-L237)
 - [src/components/public-experience-utils-v2.ts:1-231](file://src/components/public-experience-utils-v2.ts#L1-L231)
 
-### PublicResultViewV2: Results and Tracks
-`PublicResultViewV2` loads the user’s profile and matches:
+### PublicResultViewV2: Results and Tracks with Animated Transitions
+`PublicResultViewV2` loads the user's profile and matches with smooth animations:
 - Fetches `/api/result-v2` with a minimum analysis delay and maximum timeout.
 - Parses response using `parsePublicResultV2`.
-- Displays profile header (alias, animal, color, narrative, MBTI code).
-- Provides track tabs for romance and friendship.
-- Renders match cards with chemistry rings, badges, and narratives.
+- Displays profile header (alias, animal, color, narrative, MBTI code) with animated entrance.
+- Provides track tabs for romance and friendship with smooth transitions.
+- Renders match cards with chemistry rings, badges, and narratives using staggered animations.
 - Shows a friendly no-match message when no connections exist.
 
 ```mermaid
@@ -232,9 +251,9 @@ UI->>API : GET /api/result-v2
 API-->>UI : JSON { alias, animal, color, narrative, matches }
 UI->>Parser : Parse response
 Parser-->>UI : Validated PublicResultV2
-UI->>UI : Render profile header
+UI->>UI : Render profile header with animation
 UI->>UI : Switch active track (romance/amistad)
-UI->>UI : Render match cards or NoMatchCard
+UI->>UI : Render match cards or NoMatchCard with staggered animations
 ```
 
 **Diagram sources**
@@ -245,9 +264,9 @@ UI->>UI : Render match cards or NoMatchCard
 - [src/components/public-experience-v2.tsx:500-755](file://src/components/public-experience-v2.tsx#L500-L755)
 - [src/components/public-experience-utils-v2.ts:186-231](file://src/components/public-experience-utils-v2.ts#L186-L231)
 
-### API: Quiz Submission
-`/api/quiz-v2` orchestrates submission:
-- Validates payload with `quizSubmissionV2Schema`.
+### API: Quiz Submission with Comprehensive Validation
+`/api/quiz-v2` orchestrates submission with robust Zod validation:
+- Validates payload with `quizSubmissionV2Schema` ensuring all required fields are present.
 - Authenticates user via Supabase Auth.
 - Scores quiz using `scoreQuizV2`.
 - Generates profile identity (animal + color + alias + narrative).
@@ -281,6 +300,7 @@ Route-->>Client : { ok, profile }
 
 **Diagram sources**
 - [src/app/api/quiz-v2/route.ts:16-118](file://src/app/api/quiz-v2/route.ts#L16-L118)
+- [src/lib/validation-v2.ts:40-67](file://src/lib/validation-v2.ts#L40-L67)
 - [src/lib/matching-v2.ts:220-281](file://src/lib/matching-v2.ts#L220-L281)
 
 **Section sources**
@@ -314,7 +334,7 @@ Route-->>Client : { alias, animal, color, narrative, matches }
 - [src/app/api/result-v2/route.ts:110-221](file://src/app/api/result-v2/route.ts#L110-L221)
 
 **Section sources**
-- [src/app/api/result-v2/route.ts:1-232](file://src/app/api/result-v2/route.ts#L1-L232)
+- [src/app/api/result-v2/route.ts:1-267](file://src/app/api/result-v2/route.ts#L1-L267)
 
 ### Matching Engine: Scoring, Filters, Similarity, Badges
 `matching-v2.ts` implements the deterministic core:
@@ -428,9 +448,10 @@ MATCHING_CONFIG_V2 ||--o{ TRACK_CONFIG : "contains"
 
 ## Dependency Analysis
 The interactive quiz interface depends on:
-- Client components for rendering and state management.
+- Client components for rendering and state management with Framer Motion animations.
 - API routes for secure submission and result retrieval.
 - Matching library for pure mathematical operations.
+- Zod validation schemas for data integrity.
 - JSON fixtures for canonical question definitions and configuration.
 - TypeScript types for strong contracts across layers.
 
@@ -438,6 +459,7 @@ The interactive quiz interface depends on:
 graph LR
 PublicQuizV2["PublicQuizV2"] --> QuizAPI["/api/quiz-v2"]
 PublicResultViewV2["PublicResultViewV2"] --> ResultAPI["/api/result-v2"]
+QuizAPI --> Validation["Zod Validation"]
 QuizAPI --> MatchingLib["matching-v2.ts"]
 ResultAPI --> MatchingLib
 MatchingLib --> MicrotestJSON["microtest_v2.json"]
@@ -450,7 +472,8 @@ PublicQuizV2 --> UtilsV2["public-experience-utils-v2.ts"]
 - [src/components/public-experience-v2.tsx:105-404](file://src/components/public-experience-v2.tsx#L105-L404)
 - [src/components/public-experience-v2.tsx:500-755](file://src/components/public-experience-v2.tsx#L500-L755)
 - [src/app/api/quiz-v2/route.ts:1-129](file://src/app/api/quiz-v2/route.ts#L1-L129)
-- [src/app/api/result-v2/route.ts:1-232](file://src/app/api/result-v2/route.ts#L1-L232)
+- [src/app/api/result-v2/route.ts:1-267](file://src/app/api/result-v2/route.ts#L1-L267)
+- [src/lib/validation-v2.ts:1-72](file://src/lib/validation-v2.ts#L1-L72)
 - [src/lib/matching-v2.ts:1-580](file://src/lib/matching-v2.ts#L1-L580)
 - [data/microtest_v2.json:1-67](file://data/microtest_v2.json#L1-L67)
 - [data/matching-config-v2.json:1-77](file://data/matching-config-v2.json#L1-L77)
@@ -460,7 +483,8 @@ PublicQuizV2 --> UtilsV2["public-experience-utils-v2.ts"]
 **Section sources**
 - [src/components/public-experience-v2.tsx:105-755](file://src/components/public-experience-v2.tsx#L105-L755)
 - [src/app/api/quiz-v2/route.ts:1-129](file://src/app/api/quiz-v2/route.ts#L1-L129)
-- [src/app/api/result-v2/route.ts:1-232](file://src/app/api/result-v2/route.ts#L1-L232)
+- [src/app/api/result-v2/route.ts:1-267](file://src/app/api/result-v2/route.ts#L1-L267)
+- [src/lib/validation-v2.ts:1-72](file://src/lib/validation-v2.ts#L1-L72)
 - [src/lib/matching-v2.ts:1-580](file://src/lib/matching-v2.ts#L1-L580)
 - [data/microtest_v2.json:1-67](file://data/microtest_v2.json#L1-L67)
 - [data/matching-config-v2.json:1-77](file://data/matching-config-v2.json#L1-L77)
@@ -468,13 +492,13 @@ PublicQuizV2 --> UtilsV2["public-experience-utils-v2.ts"]
 - [src/components/public-experience-utils-v2.ts:1-231](file://src/components/public-experience-utils-v2.ts#L1-L231)
 
 ## Performance Considerations
-- Client-side draft persistence avoids re-typing and improves UX.
+- Client-side draft persistence avoids re-typing and improves UX with smooth animations.
 - Minimum analysis delay and maximum timeout balance perceived performance with network reliability.
 - Weighted cosine similarity groups dimensions by category to prevent large categories from dominating small ones.
 - Server-side RPCs offload heavy computation to PostgreSQL functions where possible.
 - Rate limiting protects endpoints without blocking legitimate traffic.
-
-[No sources needed since this section provides general guidance]
+- Framer Motion animations respect `useReducedMotion` for accessibility.
+- Optimized re-renders with memoization for complex calculations.
 
 ## Troubleshooting Guide
 Common issues and resolutions:
@@ -483,6 +507,8 @@ Common issues and resolutions:
 - Result loading failure: Retry button available; check network and session.
 - No matches found: Friendly message displayed; matches may appear later as more users join.
 - Invalid payload: Ensure all Likert values are 1–5 and all multi-selection items have at least one option selected.
+- Animation issues: Check browser compatibility with Framer Motion and reduced motion preferences.
+- Storage persistence problems: Verify localStorage availability and QUIZ_STORAGE_KEY_V2 usage.
 
 **Section sources**
 - [src/components/public-experience-v2.tsx:353-370](file://src/components/public-experience-v2.tsx#L353-L370)
@@ -491,6 +517,4 @@ Common issues and resolutions:
 - [src/app/api/result-v2/route.ts:140-143](file://src/app/api/result-v2/route.ts#L140-L143)
 
 ## Conclusion
-Interactive Quiz Interface v2 delivers a polished, mobile-first experience for ZooMatch’s multidimensional psychometric assessment. It combines robust client-side state management, secure API orchestration, deterministic matching mathematics, and engaging visual feedback. The dual-track design supports both romantic and friendship compatibility, while hard filters ensure respectful and aligned pairings. With clear validation, graceful error handling, and rich result presentation, the interface balances technical rigor with approachable storytelling.
-
-[No sources needed since this section summarizes without analyzing specific files]
+Interactive Quiz Interface v2 delivers a polished, mobile-first experience for ZooMatch's multidimensional psychometric assessment with modern Framer Motion animations. It combines robust client-side state management, secure API orchestration with comprehensive Zod validation, deterministic matching mathematics, and engaging visual feedback. The dual-track design supports both romantic and friendship compatibility, while hard filters ensure respectful and aligned pairings. With clear validation, graceful error handling, rich result presentation, and smooth animations that respect accessibility preferences, the interface balances technical rigor with approachable storytelling.

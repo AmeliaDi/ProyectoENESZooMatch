@@ -7,12 +7,22 @@
 - [microtest-v2.ts](file://src/types/microtest-v2.ts)
 - [matching-config-v2.json](file://data/matching-config-v2.json)
 - [microtest_v2.json](file://data/microtest_v2.json)
+- [catalogo_arquetipos_v2.json](file://data/catalogo_arquetipos_v2.json)
 - [route.ts](file://src/app/api/quiz-v2/route.ts)
 - [route.ts](file://src/app/api/result-v2/route.ts)
 - [explainability.ts](file://src/lib/explainability.ts)
 - [profile-generator.ts](file://src/lib/profile-generator.ts)
 - [202610230001_multidimensional_v2.sql](file://supabase/migrations/202610230001_multidimensional_v2.sql)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Complete rewrite of matching engine from single-dimension to sophisticated multidimensional scoring system
+- Implementation of vector mathematics with cosine similarity calculations
+- Addition of configurable thresholds for romance (0.80) and friendship (0.75) tracks
+- Integration of 61 animal archetypes with personality trait affinities
+- Enhanced explainability engine with affective Spanish-language summaries
+- Updated database schema to support dual-track vectors and hard filters
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -26,11 +36,11 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
-ZooMatch v2 is a dual-track matching engine that turns a completed multidimensional questionnaire into two independent compatibility profiles: romance and friendship. The system scores user answers, derives MBTI-style personality codes, applies hard filters for romance, computes weighted cosine similarity across psychological and cultural dimensions, and returns explainable match results with badges, narratives, and affective summaries.
+ZooMatch v2 is a sophisticated dual-track matching engine that transforms completed multidimensional questionnaires into two independent compatibility profiles: romance and friendship. The system implements advanced vector mathematics, configurable thresholds, and personality trait affinities mapped to 61 animal archetypes. It scores user answers across 30 psychological dimensions, derives MBTI-style personality codes, applies hard filters for romance gating, computes weighted cosine similarity across categorized dimensions, and returns explainable match results with badges, narratives, and affective summaries.
 
 At a high level:
 - Users complete the v2 questionnaire through a Next.js API route.
-- The backend scores answers, generates a profile identity (animal, color, alias, narrative), stores vectors and dimension scores, and computes matches.
+- The backend scores answers using multidimensional vectors, generates profile identities (animal, color, alias, narrative), stores vectors and dimension scores, and computes matches.
 - A second API endpoint retrieves stored matches and enriches them with human-readable explanations.
 
 The core matching logic is intentionally deterministic, side-effect free, and separated from I/O so it can be tested independently.
@@ -39,10 +49,10 @@ The core matching logic is intentionally deterministic, side-effect free, and se
 The v2 matching engine spans several layers:
 
 - Types and configuration define the data model, track dimensions, thresholds, and calibration settings.
-- The pure matching core transforms quiz submissions into scored profiles and computes dual-track matches.
+- The pure matching core transforms quiz submissions into scored profiles and computes dual-track matches using vector mathematics.
 - API routes handle authentication, validation, persistence, RPC calls, and response formatting.
 - Explainability translates raw similarity into warm Spanish-language summaries.
-- Profile generation assigns animal archetypes, colors, aliases, and empowering narratives.
+- Profile generation assigns animal archetypes, colors, aliases, and empowering narratives based on personality affinities.
 - Database migrations define tables, constraints, indexes, row-level security policies, and server-side matching procedures.
 
 ```mermaid
@@ -61,9 +71,9 @@ ResultRoute --> ProfilesDB["profiles_v2"]
 
 **Diagram sources**
 - [route.ts:1-129](file://src/app/api/quiz-v2/route.ts#L1-L129)
-- [route.ts:1-232](file://src/app/api/result-v2/route.ts#L1-L232)
+- [route.ts:1-267](file://src/app/api/result-v2/route.ts#L1-L267)
 - [matching-v2.ts:1-580](file://src/lib/matching-v2.ts#L1-L580)
-- [profile-generator.ts:1-704](file://src/lib/profile-generator.ts#L1-L704)
+- [profile-generator.ts:483-704](file://src/lib/profile-generator.ts#L483-L704)
 - [explainability.ts:1-836](file://src/lib/explainability.ts#L1-L836)
 - [202610230001_multidimensional_v2.sql:1-200](file://supabase/migrations/202610230001_multidimensional_v2.sql#L1-L200)
 
@@ -75,11 +85,11 @@ ResultRoute --> ProfilesDB["profiles_v2"]
 ## Core Components
 The v2 engine is built around five main responsibilities:
 
-1. **Questionnaire scoring**: Converts Likert and filter answers into normalized dimension scores, MBTI code, hard filters, and romance/friendship vectors.
-2. **Hard-filter compatibility**: Validates orientation, gender identity, and relationship-type preferences for romance gating.
-3. **Similarity computation**: Applies category-weighted cosine similarity over ordered dimension vectors.
-4. **Dual-match discovery**: Finds romance and friendship matches above configured thresholds, generating badges and short narratives.
-5. **Explainability and identity**: Produces human-friendly chemistry summaries, affinity breakdowns, personality summaries, connection headlines, and user identity artifacts.
+1. **Multidimensional Questionnaire Scoring**: Converts Likert and filter answers into normalized dimension scores across 30 psychological dimensions, MBTI code, hard filters, and separate romance/friendship vectors.
+2. **Hard-filter Compatibility**: Validates orientation, gender identity, and relationship-type preferences for romance gating.
+3. **Vector Similarity Computation**: Applies category-weighted cosine similarity over ordered dimension vectors with sophisticated mathematical operations.
+4. **Dual-match Discovery**: Finds romance and friendship matches above configured thresholds, generating badges and short narratives.
+5. **Explainability and Identity**: Produces human-friendly chemistry summaries, affinity breakdowns, personality summaries, connection headlines, and user identity artifacts tied to 61 animal archetypes.
 
 Key exported capabilities include:
 - `scoreQuizV2`
@@ -102,7 +112,7 @@ Key exported capabilities include:
 ## Architecture Overview
 The v2 architecture separates pure math from application flow:
 
-- **Pure matching layer**: Functions in the matching module do not access databases or networks. They accept typed inputs and return deterministic outputs.
+- **Pure matching layer**: Functions in the matching module do not access databases or networks. They accept typed inputs and return deterministic outputs using vector mathematics.
 - **Configuration layer**: JSON configuration defines track dimensions, weights, thresholds, and calibration metadata; Zod validates it at runtime.
 - **API layer**: Next.js routes authenticate users, validate payloads, call the matching core, persist results via Supabase RPCs, and format responses.
 - **Persistence layer**: PostgreSQL tables store profiles, quiz items, responses, matches, and notifications, with RLS policies and GIN indexes for performance.
@@ -164,9 +174,9 @@ MatchExplanation --> ScoredProfileV2 : "consumes vectors/scores"
 
 ## Detailed Component Analysis
 
-### Questionnaire Scoring and Profile Construction
-The scoring function processes two kinds of answers:
-- Likert answers mapped to dimension weights.
+### Multidimensional Questionnaire Scoring and Profile Construction
+The scoring function processes two kinds of answers across 30 psychological dimensions:
+- Likert answers mapped to dimension weights with reverse scoring support.
 - Filter answers extracted as hard filters for romance gating.
 
 Scoring steps:
@@ -175,7 +185,7 @@ Scoring steps:
 3. Normalize each dimension by its minimum and maximum possible range, clamping to `[0, 1]`.
 4. Derive an MBTI code using a threshold on four MBTI-related dimensions.
 5. Extract hard filters from items marked as hard filters.
-6. Construct romance and friendship vectors by selecting ordered dimension subsets.
+6. Construct romance (26 dimensions) and friendship (16 dimensions) vectors by selecting ordered dimension subsets.
 
 Complexity:
 - Time: proportional to the number of scored items and dimensions.
@@ -197,7 +207,7 @@ KeepValue --> Accumulate
 Accumulate --> Normalize["Normalize Each Dimension"]
 Normalize --> MBTIDerive["Derive MBTI Code"]
 MBTIDerive --> ExtractFilters["Extract Hard Filters"]
-ExtractFilters --> BuildVectors["Build Romance and Friendship Vectors"]
+ExtractFilters --> BuildVectors["Build Romance (26D) and Friendship (16D) Vectors"]
 BuildVectors --> End(["Return Scored Profile"])
 ```
 
@@ -238,8 +248,8 @@ AllPass --> |No| Block["Block Romance Gate"]
 **Section sources**
 - [matching-v2.ts:285-358](file://src/lib/matching-v2.ts#L285-L358)
 
-### Similarity Computation
-The engine computes similarity in two stages:
+### Vector Mathematics and Similarity Computation
+The engine computes similarity using advanced vector mathematics in two stages:
 
 1. **Cosine similarity**: Standard vector cosine between equal-length arrays. Returns zero when either magnitude is zero.
 2. **Weighted track similarity**: Groups dimensions by category, computes cosine similarity within each category sub-vector, then combines results as a weighted mean. Categories absent from the track or with zero weight are ignored.
@@ -266,8 +276,8 @@ Finalize --> End(["Return Weighted Similarity"])
 
 ### Dual-Match Discovery
 For each candidate profile:
-- Romance track: apply hard filters, compute weighted track similarity, compare strictly above the configured threshold, generate up to five badges, and create a short narrative.
-- Friendship track: skip hard filters, compute weighted track similarity, compare strictly above the configured threshold, generate up to three badges, and create a short narrative.
+- Romance track: apply hard filters, compute weighted track similarity, compare strictly above the configured threshold (0.80), generate up to five badges, and create a short narrative.
+- Friendship track: skip hard filters, compute weighted track similarity, compare strictly above the configured threshold (0.75), generate up to three badges, and create a short narrative.
 
 A single other user may appear twice in the result set: once for romance and once for friendship.
 
@@ -278,17 +288,17 @@ participant Pool as "Candidate Pool"
 participant Engine as "Matching Engine"
 participant Config as "Matching Config"
 User->>Engine : findDualMatches(user, pool, config)
-Engine->>Config : read romance and friendship thresholds
+Engine->>Config : read romance (0.80) and friendship (0.75) thresholds
 loop For each candidate
 Engine->>Engine : checkHardFilters()
 alt Romance gate passes
 Engine->>Engine : weightedTrackSimilarity(romance)
 Engine->>Engine : generateBadges(romance)
-Engine-->>User : romance match if above threshold
+Engine-->>User : romance match if > 0.80
 end
 Engine->>Engine : weightedTrackSimilarity(friendship)
 Engine->>Engine : generateBadges(friendship)
-Engine-->>User : friendship match if above threshold
+Engine-->>User : friendship match if > 0.75
 end
 ```
 
@@ -303,8 +313,8 @@ end
 The quiz submission route performs these steps:
 1. Parse and validate the request body.
 2. Authenticate the user.
-3. Score the quiz using the pure matching core.
-4. Generate profile identity (animal, color, alias, narrative).
+3. Score the quiz using the pure matching core with multidimensional vectors.
+4. Generate profile identity (animal, color, alias, narrative) based on personality affinities.
 5. Upsert the user's profile and vectors into the database.
 6. Trigger server-side match computation RPCs.
 7. Optionally insert a welcome notification for first-time submissions.
@@ -366,7 +376,7 @@ Route-->>Client : romance + amistad matches
 ```
 
 **Diagram sources**
-- [route.ts:1-232](file://src/app/api/result-v2/route.ts#L1-L232)
+- [route.ts:1-267](file://src/app/api/result-v2/route.ts#L1-L267)
 - [explainability.ts:71-108](file://src/lib/explainability.ts#L71-L108)
 
 **Section sources**
@@ -385,21 +395,21 @@ It is designed to be deterministic and side-effect free, producing consistent Sp
 - [explainability.ts:1-84](file://src/lib/explainability.ts#L1-L84)
 - [explainability.ts:572-836](file://src/lib/explainability.ts#L572-L836)
 
-### Profile Identity Generator
+### Profile Identity Generator with Animal Archetypes
 The profile generator selects:
-- An animal archetype by comparing the user's Big Five vector to catalog affinities using cosine similarity.
+- An animal archetype from 61 animals by comparing the user's Big Five vector to catalog affinities using cosine similarity.
 - A color by computing emotional temperature and preferred texture, then deterministically selecting among candidates.
 - Top dimensions, narrative sentences, community phrases, and closing affirmations.
 - A unique alias combining animal diminutive, color name, and hash.
 
-This produces a warm, empowering public identity tied to the user's psychological profile.
+This produces a warm, empowering public identity tied to the user's psychological profile and personality affinities.
 
 **Section sources**
 - [profile-generator.ts:483-704](file://src/lib/profile-generator.ts#L483-L704)
 
 ### Database Schema and Server-Side Matching
 The migration defines:
-- Catalog tables for animals and colors.
+- Catalog tables for animals and colors supporting 61 animal archetypes.
 - Quiz items and responses for v2.
 - Profiles storing vectors, dimension scores, MBTI code, and hard filters.
 - Matches table for dual-track results.
@@ -429,10 +439,11 @@ Types["types/microtest-v2.ts"] --> Matching["lib/matching-v2.ts"]
 ConfigJSON["data/matching-config-v2.json"] --> MatchingConfig["lib/matching-config-v2.ts"]
 MatchingConfig --> Matching
 MicrotestJSON["data/microtest_v2.json"] --> Matching
+CatalogJSON["data/catalogo_arquetipos_v2.json"] --> ProfileGen["lib/profile-generator.ts"]
 Matching --> QuizRoute["app/api/quiz-v2/route.ts"]
 Matching --> ResultRoute["app/api/result-v2/route.ts"]
 Explainability["lib/explainability.ts"] --> ResultRoute
-ProfileGen["lib/profile-generator.ts"] --> QuizRoute
+ProfileGen --> QuizRoute
 Migration["supabase migrations"] --> QuizRoute
 Migration --> ResultRoute
 ```
@@ -441,7 +452,7 @@ Migration --> ResultRoute
 - [matching-v2.ts:15-38](file://src/lib/matching-v2.ts#L15-L38)
 - [matching-config-v2.ts:1-6](file://src/lib/matching-config-v2.ts#L1-L6)
 - [route.ts:1-129](file://src/app/api/quiz-v2/route.ts#L1-L129)
-- [route.ts:1-232](file://src/app/api/result-v2/route.ts#L1-L232)
+- [route.ts:1-267](file://src/app/api/result-v2/route.ts#L1-L267)
 - [explainability.ts:20-25](file://src/lib/explainability.ts#L20-L25)
 - [profile-generator.ts:6-8](file://src/lib/profile-generator.ts#L6-L8)
 - [202610230001_multidimensional_v2.sql:1-200](file://supabase/migrations/202610230001_multidimensional_v2.sql#L1-L200)
@@ -450,7 +461,7 @@ Migration --> ResultRoute
 - [matching-v2.ts:15-38](file://src/lib/matching-v2.ts#L15-L38)
 - [matching-config-v2.ts:1-67](file://src/lib/matching-config-v2.ts#L1-L67)
 - [route.ts:1-129](file://src/app/api/quiz-v2/route.ts#L1-L129)
-- [route.ts:1-232](file://src/app/api/result-v2/route.ts#L1-L232)
+- [route.ts:1-267](file://src/app/api/result-v2/route.ts#L1-L267)
 
 ## Performance Considerations
 - **Vector operations**: Cosine similarity and weighted track similarity are linear in vector length. Romance vectors have 26 dimensions; friendship vectors have 16.
@@ -459,8 +470,6 @@ Migration --> ResultRoute
 - **Threshold gates**: Strictly greater-than thresholds reduce unnecessary badge and explanation computation for low-similarity pairs.
 - **Server-side matching**: Storing precomputed vectors allows PostgreSQL to perform efficient cosine similarity calculations without transferring full dimension bags repeatedly.
 - **Deterministic selection**: Hash-based tie-breaking avoids randomness and ensures stable results across runs.
-
-[No sources needed since this section provides general guidance]
 
 ## Troubleshooting Guide
 Common issues and how to diagnose them:
@@ -480,6 +489,4 @@ Common issues and how to diagnose them:
 - [route.ts:71-108](file://src/app/api/result-v2/route.ts#L71-L108)
 
 ## Conclusion
-ZooMatch v2 implements a clean, testable matching engine that separates mathematical core logic from application concerns. It supports dual-track compatibility, configurable thresholds, robust hard filtering, and rich explainability. The system is designed for deterministic behavior, secure data access, and scalable matching through precomputed vectors and server-side procedures. Future tuning should focus on calibration thresholds, category weights, and explanation phrasing while preserving the purity and safety guarantees of the core matching functions.
-
-[No sources needed since this section summarizes without analyzing specific files]
+ZooMatch v2 implements a clean, testable matching engine that separates mathematical core logic from application concerns. It supports dual-track compatibility with sophisticated vector mathematics, configurable thresholds, robust hard filtering, and rich explainability. The system integrates 61 animal archetypes with personality trait affinities and is designed for deterministic behavior, secure data access, and scalable matching through precomputed vectors and server-side procedures. Future tuning should focus on calibration thresholds, category weights, and explanation phrasing while preserving the purity and safety guarantees of the core matching functions.
