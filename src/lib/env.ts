@@ -7,9 +7,9 @@ const publicEnvSchema = z.object({
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;
 
-export function getPublicEnv(
-  source: NodeJS.ProcessEnv = process.env,
-): PublicEnv | null {
+type EnvSource = Record<string, string | undefined>;
+
+export function getPublicEnv(source: EnvSource = process.env): PublicEnv | null {
   const result = publicEnvSchema.safeParse({
     NEXT_PUBLIC_SUPABASE_URL: source.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
@@ -19,8 +19,6 @@ export function getPublicEnv(
   return result.success ? result.data : null;
 }
 
-export function isSupabaseConfigured(
-  source: NodeJS.ProcessEnv = process.env,
-): boolean {
+export function isSupabaseConfigured(source: EnvSource = process.env): boolean {
   return getPublicEnv(source) !== null;
 }

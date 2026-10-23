@@ -8,9 +8,9 @@ const serverEnvSchema = z.object({
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
-export function getServerEnv(
-  source: NodeJS.ProcessEnv = process.env,
-): ServerEnv | null {
+type EnvSource = Record<string, string | undefined>;
+
+export function getServerEnv(source: EnvSource = process.env): ServerEnv | null {
   const result = serverEnvSchema.safeParse({
     NEXT_PUBLIC_SUPABASE_URL: source.NEXT_PUBLIC_SUPABASE_URL,
     SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY,

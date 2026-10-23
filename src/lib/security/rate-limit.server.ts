@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-export type RateLimitState = "allowed" | "limited" | "unavailable" | "development-bypass";
+export type RateLimitState = "allowed" | "limited" | "unavailable" | "bypass";
 
 export interface RateLimitDecision {
   state: RateLimitState;
@@ -43,10 +43,20 @@ export function evaluateRateLimit(
   };
 }
 
-function fallbackDecision(policy: RateLimitPolicy): RateLimitDecision {
+function bypassDecision(policy: RateLimitPolicy): RateLimitDecision {
+  return {
+    state: "bypass",
+    limit: policy.limit,
+    remaining: policy.limit,
+    retryAfter: 0,
+    resetAt: Math.floor(Date.now() / 1000) + policy.windowSeconds,
+  };
+}
+
+function failureDecision(policy: RateLimitPolicy): RateLimitDecision {
   const development = process.env.NODE_ENV === "development";
   return {
-    state: development ? "development-bypass" : "unavailable",
+    state: development ? "bypass" : "unavailable",
     limit: policy.limit,
     remaining: development ? policy.limit : 0,
     retryAfter: development ? 0 : 30,
@@ -69,7 +79,7 @@ export async function checkRateLimit(
 ): Promise<RateLimitDecision> {
   const endpoint = process.env.UPSTASH_REDIS_REST_URL?.replace(/\/$/, "");
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!endpoint || !token) return fallbackDecision(policy);
+  if (!endpoint || !token) return bypassDecision(policy);
 
   const key = `zoomatch:limit:${policy.name}:${requestFingerprint(request, policy.name)}`;
 
@@ -85,7 +95,7 @@ export async function checkRateLimit(
       signal: AbortSignal.timeout(2500),
     });
 
-    if (!response.ok) return fallbackDecision(policy);
+    if (!response.ok) return failureDecision(policy);
 
     const payload: unknown = await response.json();
     if (
@@ -96,11 +106,11 @@ export async function checkRateLimit(
       || typeof payload.result[0] !== "number"
       || typeof payload.result[1] !== "number"
     ) {
-      return fallbackDecision(policy);
+      return failureDecision(policy);
     }
 
     return evaluateRateLimit(payload.result[0], policy, payload.result[1]);
   } catch {
-    return fallbackDecision(policy);
+    return failureDecision(policy);
   }
 }

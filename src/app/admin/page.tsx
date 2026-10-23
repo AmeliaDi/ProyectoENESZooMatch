@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const context = await getAdminContext();

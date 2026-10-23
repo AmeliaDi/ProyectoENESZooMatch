@@ -45,8 +45,8 @@ function applyRateHeaders(headers: Headers, decision: RateLimitDecision): void {
   if (decision.retryAfter > 0) {
     headers.set("Retry-After", String(decision.retryAfter));
   }
-  if (decision.state === "development-bypass") {
-    headers.set("X-RateLimit-Policy", "development-fail-open");
+  if (decision.state === "bypass") {
+    headers.set("X-RateLimit-Policy", "fail-open");
   }
 }
 
