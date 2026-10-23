@@ -1,0 +1,1192 @@
+{
+  "metadatos": {
+    "version": "2.0",
+    "generado": "2026-10-22T00:00:00Z",
+    "total_animales": 61,
+    "total_colores": 55,
+    "total_combinaciones": 3355,
+    "script": "scripts/generar_catalogo_v2.py"
+  },
+  "animales": [
+    {
+      "id": "ajolotito",
+      "nombre_fuente": "Axolotl",
+      "diminutivo_es": "ajolotito",
+      "categoria_fauna": "anfibio",
+      "personality_affinity": {
+        "personalidad_apertura": 0.9,
+        "personalidad_extraversion": 0.2,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.3,
+        "personalidad_estabilidad_emocional": 0.8
+      }
+    },
+    {
+      "id": "mantisita",
+      "nombre_fuente": "Mantis",
+      "diminutivo_es": "mantisita",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.2,
+        "personalidad_responsabilidad": 0.8,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "cuervito",
+      "nombre_fuente": "Crow",
+      "diminutivo_es": "cuervito",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.95,
+        "personalidad_extraversion": 0.5,
+        "personalidad_amabilidad": 0.4,
+        "personalidad_responsabilidad": 0.7,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "colibrito",
+      "nombre_fuente": "Hummingbird",
+      "diminutivo_es": "colibrito",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.8,
+        "personalidad_extraversion": 0.9,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "erizito",
+      "nombre_fuente": "Hedgehog",
+      "diminutivo_es": "erizito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.2,
+        "personalidad_amabilidad": 0.4,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "mariposita",
+      "nombre_fuente": "Butterfly",
+      "diminutivo_es": "mariposita",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.85,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.3,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "caballito",
+      "nombre_fuente": "Seahorse",
+      "diminutivo_es": "caballito",
+      "categoria_fauna": "pez",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "delfincito",
+      "nombre_fuente": "Dolphin",
+      "diminutivo_es": "delfincito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.85,
+        "personalidad_extraversion": 0.95,
+        "personalidad_amabilidad": 0.8,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "pulpito",
+      "nombre_fuente": "Octopus",
+      "diminutivo_es": "pulpito",
+      "categoria_fauna": "molusco",
+      "personality_affinity": {
+        "personalidad_apertura": 0.95,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.3,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "buhito",
+      "nombre_fuente": "Owl",
+      "diminutivo_es": "buhito",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.8,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.7,
+        "personalidad_estabilidad_emocional": 0.8
+      }
+    },
+    {
+      "id": "lobito",
+      "nombre_fuente": "Wolf",
+      "diminutivo_es": "lobito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.8,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "zorrito",
+      "nombre_fuente": "Fox",
+      "diminutivo_es": "zorrito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.9,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.4,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "gatito",
+      "nombre_fuente": "Cat",
+      "diminutivo_es": "gatito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.8
+      }
+    },
+    {
+      "id": "perrito",
+      "nombre_fuente": "Dog",
+      "diminutivo_es": "perrito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.95,
+        "personalidad_amabilidad": 0.9,
+        "personalidad_responsabilidad": 0.7,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "leoncito",
+      "nombre_fuente": "Lion",
+      "diminutivo_es": "leoncito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.85,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.8
+      }
+    },
+    {
+      "id": "tigrito",
+      "nombre_fuente": "Tiger",
+      "diminutivo_es": "tigrito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.5,
+        "personalidad_amabilidad": 0.3,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.8
+      }
+    },
+    {
+      "id": "osito",
+      "nombre_fuente": "Bear",
+      "diminutivo_es": "osito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.5,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.85
+      }
+    },
+    {
+      "id": "pandita",
+      "nombre_fuente": "Panda",
+      "diminutivo_es": "pandita",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.9,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.9
+      }
+    },
+    {
+      "id": "koalita",
+      "nombre_fuente": "Koala",
+      "diminutivo_es": "koalita",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.4,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.8,
+        "personalidad_responsabilidad": 0.3,
+        "personalidad_estabilidad_emocional": 0.95
+      }
+    },
+    {
+      "id": "suricatita",
+      "nombre_fuente": "Meerkat",
+      "diminutivo_es": "suricatita",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.9,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.8,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "nutria",
+      "nombre_fuente": "Otter",
+      "diminutivo_es": "nutria",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.8,
+        "personalidad_extraversion": 0.9,
+        "personalidad_amabilidad": 0.8,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "castorcito",
+      "nombre_fuente": "Beaver",
+      "diminutivo_es": "castorcito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.95,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "ardillita",
+      "nombre_fuente": "Squirrel",
+      "diminutivo_es": "ardillita",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.8,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "conejito",
+      "nombre_fuente": "Rabbit",
+      "diminutivo_es": "conejito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.5,
+        "personalidad_amabilidad": 0.8,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.4
+      }
+    },
+    {
+      "id": "venadito",
+      "nombre_fuente": "Deer",
+      "diminutivo_es": "venadito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.8,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "jaguarito",
+      "nombre_fuente": "Jaguar",
+      "diminutivo_es": "jaguarito",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.8,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.3,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.9
+      }
+    },
+    {
+      "id": "pumita",
+      "nombre_fuente": "Puma",
+      "diminutivo_es": "pumita",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.75,
+        "personalidad_extraversion": 0.5,
+        "personalidad_amabilidad": 0.3,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.85
+      }
+    },
+    {
+      "id": "guacamayito",
+      "nombre_fuente": "Macaw",
+      "diminutivo_es": "guacamayito",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.8,
+        "personalidad_extraversion": 0.9,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "tucancito",
+      "nombre_fuente": "Toucan",
+      "diminutivo_es": "tucancito",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.75,
+        "personalidad_extraversion": 0.7,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "quetzalito",
+      "nombre_fuente": "Quetzal",
+      "diminutivo_es": "quetzalito",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.85,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "pelicanito",
+      "nombre_fuente": "Pelican",
+      "diminutivo_es": "pelicanito",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "flamenco",
+      "nombre_fuente": "Flamingo",
+      "diminutivo_es": "flamenco",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.8,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "garcita",
+      "nombre_fuente": "Heron",
+      "diminutivo_es": "garcita",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.65,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.8,
+        "personalidad_estabilidad_emocional": 0.85
+      }
+    },
+    {
+      "id": "patito",
+      "nombre_fuente": "Duckling",
+      "diminutivo_es": "patito",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.7,
+        "personalidad_amabilidad": 0.8,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "cisnecito",
+      "nombre_fuente": "Swan",
+      "diminutivo_es": "cisnecito",
+      "categoria_fauna": "ave",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.5,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.8
+      }
+    },
+    {
+      "id": "focita",
+      "nombre_fuente": "Seal",
+      "diminutivo_es": "focita",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.7,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "morsita",
+      "nombre_fuente": "Walrus",
+      "diminutivo_es": "morsita",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.4,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.8
+      }
+    },
+    {
+      "id": "ballenita",
+      "nombre_fuente": "Whale",
+      "diminutivo_es": "ballenita",
+      "categoria_fauna": "mamifero",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.8,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.9
+      }
+    },
+    {
+      "id": "tiburoncito",
+      "nombre_fuente": "Shark",
+      "diminutivo_es": "tiburoncito",
+      "categoria_fauna": "pez",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.5,
+        "personalidad_amabilidad": 0.2,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.9
+      }
+    },
+    {
+      "id": "medusita",
+      "nombre_fuente": "Jellyfish",
+      "diminutivo_es": "medusita",
+      "categoria_fauna": "cnidario",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.2,
+        "personalidad_amabilidad": 0.3,
+        "personalidad_responsabilidad": 0.2,
+        "personalidad_estabilidad_emocional": 0.9
+      }
+    },
+    {
+      "id": "estrellita",
+      "nombre_fuente": "Starfish",
+      "diminutivo_es": "estrellita",
+      "categoria_fauna": "equinodermo",
+      "personality_affinity": {
+        "personalidad_apertura": 0.4,
+        "personalidad_extraversion": 0.2,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.3,
+        "personalidad_estabilidad_emocional": 0.9
+      }
+    },
+    {
+      "id": "cangrejito",
+      "nombre_fuente": "Crab",
+      "diminutivo_es": "cangrejito",
+      "categoria_fauna": "crustaceo",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.3,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "langostita",
+      "nombre_fuente": "Lobster",
+      "diminutivo_es": "langostita",
+      "categoria_fauna": "crustaceo",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.4,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "caracolito",
+      "nombre_fuente": "Snail",
+      "diminutivo_es": "caracolito",
+      "categoria_fauna": "molusco",
+      "personality_affinity": {
+        "personalidad_apertura": 0.4,
+        "personalidad_extraversion": 0.2,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.95
+      }
+    },
+    {
+      "id": "luciernita",
+      "nombre_fuente": "Firefly",
+      "diminutivo_es": "luciernita",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.75,
+        "personalidad_extraversion": 0.5,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "abejita",
+      "nombre_fuente": "Bee",
+      "diminutivo_es": "abejita",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.7,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.95,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "avispita",
+      "nombre_fuente": "Wasp",
+      "diminutivo_es": "avispita",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.2,
+        "personalidad_responsabilidad": 0.7,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "hormiguita",
+      "nombre_fuente": "Ant",
+      "diminutivo_es": "hormiguita",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.4,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.98,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "escarabajito",
+      "nombre_fuente": "Beetle",
+      "diminutivo_es": "escarabajito",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.4,
+        "personalidad_responsabilidad": 0.7,
+        "personalidad_estabilidad_emocional": 0.8
+      }
+    },
+    {
+      "id": "libelula",
+      "nombre_fuente": "Dragonfly",
+      "diminutivo_es": "libelula",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.8,
+        "personalidad_extraversion": 0.7,
+        "personalidad_amabilidad": 0.4,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "polillita",
+      "nombre_fuente": "Moth",
+      "diminutivo_es": "polillita",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.3,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "grillito",
+      "nombre_fuente": "Cricket",
+      "diminutivo_es": "grillito",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.5,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.6
+      }
+    },
+    {
+      "id": "saltamontes",
+      "nombre_fuente": "Grasshopper",
+      "diminutivo_es": "saltamontes",
+      "categoria_fauna": "insecto",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.4,
+        "personalidad_responsabilidad": 0.3,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "camaleoncito",
+      "nombre_fuente": "Chameleon",
+      "diminutivo_es": "camaleoncito",
+      "categoria_fauna": "reptil",
+      "personality_affinity": {
+        "personalidad_apertura": 0.9,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.3,
+        "personalidad_responsabilidad": 0.5,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "iguanita",
+      "nombre_fuente": "Iguana",
+      "diminutivo_es": "iguanita",
+      "categoria_fauna": "reptil",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.85
+      }
+    },
+    {
+      "id": "lagartijita",
+      "nombre_fuente": "Lizard",
+      "diminutivo_es": "lagartijita",
+      "categoria_fauna": "reptil",
+      "personality_affinity": {
+        "personalidad_apertura": 0.6,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.4,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "geckito",
+      "nombre_fuente": "Gecko",
+      "diminutivo_es": "geckito",
+      "categoria_fauna": "reptil",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.4,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.3,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    },
+    {
+      "id": "tortuguita",
+      "nombre_fuente": "Turtle",
+      "diminutivo_es": "tortuguita",
+      "categoria_fauna": "reptil",
+      "personality_affinity": {
+        "personalidad_apertura": 0.4,
+        "personalidad_extraversion": 0.2,
+        "personalidad_amabilidad": 0.7,
+        "personalidad_responsabilidad": 0.6,
+        "personalidad_estabilidad_emocional": 0.98
+      }
+    },
+    {
+      "id": "ranita",
+      "nombre_fuente": "Frog",
+      "diminutivo_es": "ranita",
+      "categoria_fauna": "anfibio",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.6,
+        "personalidad_amabilidad": 0.6,
+        "personalidad_responsabilidad": 0.3,
+        "personalidad_estabilidad_emocional": 0.5
+      }
+    },
+    {
+      "id": "sapito",
+      "nombre_fuente": "Toad",
+      "diminutivo_es": "sapito",
+      "categoria_fauna": "anfibio",
+      "personality_affinity": {
+        "personalidad_apertura": 0.5,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.8
+      }
+    },
+    {
+      "id": "salamandrita",
+      "nombre_fuente": "Salamander",
+      "diminutivo_es": "salamandrita",
+      "categoria_fauna": "anfibio",
+      "personality_affinity": {
+        "personalidad_apertura": 0.7,
+        "personalidad_extraversion": 0.3,
+        "personalidad_amabilidad": 0.5,
+        "personalidad_responsabilidad": 0.4,
+        "personalidad_estabilidad_emocional": 0.7
+      }
+    }
+  ],
+  "colores": [
+    {
+      "id": "verde-esmeralda",
+      "nombre": "Verde esmeralda",
+      "hex": "#50C878",
+      "textura": "cristalina",
+      "temperatura": "frio"
+    },
+    {
+      "id": "rosa-pastel",
+      "nombre": "Rosa pastel",
+      "hex": "#FFB6C1",
+      "textura": "sedosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "negro-obsidiana",
+      "nombre": "Negro obsidiana",
+      "hex": "#0B1304",
+      "textura": "mate",
+      "temperatura": "neutro"
+    },
+    {
+      "id": "azul-zafiro",
+      "nombre": "Azul zafiro",
+      "hex": "#0F52BA",
+      "textura": "cristalina",
+      "temperatura": "frio"
+    },
+    {
+      "id": "rojo-rubi",
+      "nombre": "Rojo rubí",
+      "hex": "#E0115F",
+      "textura": "cristalina",
+      "temperatura": "calido"
+    },
+    {
+      "id": "morado-amatista",
+      "nombre": "Morado amatista",
+      "hex": "#9966CC",
+      "textura": "cristalina",
+      "temperatura": "frio"
+    },
+    {
+      "id": "naranja-ambar",
+      "nombre": "Naranja ámbar",
+      "hex": "#FFBF00",
+      "textura": "luminosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "amarillo-topacio",
+      "nombre": "Amarillo topacio",
+      "hex": "#FFC87C",
+      "textura": "luminosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "blanco-perla",
+      "nombre": "Blanco perla",
+      "hex": "#F5F5F5",
+      "textura": "sedosa",
+      "temperatura": "neutro"
+    },
+    {
+      "id": "gris-plata",
+      "nombre": "Gris plata",
+      "hex": "#C0C0C0",
+      "textura": "metalica",
+      "temperatura": "frio"
+    },
+    {
+      "id": "dorado-miel",
+      "nombre": "Dorado miel",
+      "hex": "#EB9605",
+      "textura": "metalica",
+      "temperatura": "calido"
+    },
+    {
+      "id": "plateado-lunar",
+      "nombre": "Plateado lunar",
+      "hex": "#D6D6D6",
+      "textura": "metalica",
+      "temperatura": "frio"
+    },
+    {
+      "id": "turquesa-oceano",
+      "nombre": "Turquesa océano",
+      "hex": "#40E0D0",
+      "textura": "acuosa",
+      "temperatura": "frio"
+    },
+    {
+      "id": "coral-sunset",
+      "nombre": "Coral sunset",
+      "hex": "#FF7F50",
+      "textura": "sedosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "lavanda-suave",
+      "nombre": "Lavanda suave",
+      "hex": "#E6E6FA",
+      "textura": "aterciopelada",
+      "temperatura": "frio"
+    },
+    {
+      "id": "lila-nebulosa",
+      "nombre": "Lila nebulosa",
+      "hex": "#C8A2C8",
+      "textura": "aterciopelada",
+      "temperatura": "frio"
+    },
+    {
+      "id": "indigo-profundo",
+      "nombre": "Índigo profundo",
+      "hex": "#4B0082",
+      "textura": "aterciopelada",
+      "temperatura": "frio"
+    },
+    {
+      "id": "violeta-cosmos",
+      "nombre": "Violeta cosmos",
+      "hex": "#7F00FF",
+      "textura": "luminosa",
+      "temperatura": "frio"
+    },
+    {
+      "id": "magenta-vibrante",
+      "nombre": "Magenta vibrante",
+      "hex": "#FF00FF",
+      "textura": "luminosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "fucsia-tropical",
+      "nombre": "Fucsia tropical",
+      "hex": "#FF77A9",
+      "textura": "sedosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "cereza-intenso",
+      "nombre": "Cereza intenso",
+      "hex": "#DE3163",
+      "textura": "aterciopelada",
+      "temperatura": "calido"
+    },
+    {
+      "id": "vino-tinto",
+      "nombre": "Vino tinto",
+      "hex": "#722F37",
+      "textura": "aterciopelada",
+      "temperatura": "calido"
+    },
+    {
+      "id": "terracota-calida",
+      "nombre": "Terracota cálida",
+      "hex": "#E2725B",
+      "textura": "terrosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "arena-dorada",
+      "nombre": "Arena dorada",
+      "hex": "#C2B280",
+      "textura": "terrosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "marfil-antiguo",
+      "nombre": "Marfil antiguo",
+      "hex": "#FFFFF0",
+      "textura": "sedosa",
+      "temperatura": "neutro"
+    },
+    {
+      "id": "jade-misterioso",
+      "nombre": "Jade misterioso",
+      "hex": "#00A86B",
+      "textura": "cristalina",
+      "temperatura": "frio"
+    },
+    {
+      "id": "esmeralda-bosque",
+      "nombre": "Esmeralda bosque",
+      "hex": "#046307",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "zafiro-medianoche",
+      "nombre": "Zafiro medianoche",
+      "hex": "#191970",
+      "textura": "cristalina",
+      "temperatura": "frio"
+    },
+    {
+      "id": "rubi-pasion",
+      "nombre": "Rubí pasión",
+      "hex": "#9B111E",
+      "textura": "cristalina",
+      "temperatura": "calido"
+    },
+    {
+      "id": "ambar-solar",
+      "nombre": "Ámbar solar",
+      "hex": "#FF7E00",
+      "textura": "luminosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "citrino-brillante",
+      "nombre": "Citrino brillante",
+      "hex": "#E4D00A",
+      "textura": "cristalina",
+      "temperatura": "calido"
+    },
+    {
+      "id": "perla-iridiscente",
+      "nombre": "Perla iridiscente",
+      "hex": "#FDEEF4",
+      "textura": "sedosa",
+      "temperatura": "neutro"
+    },
+    {
+      "id": "opalo-multicolor",
+      "nombre": "Ópalo multicolor",
+      "hex": "#A8C3BC",
+      "textura": "cristalina",
+      "temperatura": "neutro"
+    },
+    {
+      "id": "onix-profundo",
+      "nombre": "Ónix profundo",
+      "hex": "#353839",
+      "textura": "mate",
+      "temperatura": "neutro"
+    },
+    {
+      "id": "cuarzo-rosa",
+      "nombre": "Cuarzo rosa",
+      "hex": "#F7CAC9",
+      "textura": "cristalina",
+      "temperatura": "calido"
+    },
+    {
+      "id": "aguamarina",
+      "nombre": "Aguamarina",
+      "hex": "#7FFFD4",
+      "textura": "acuosa",
+      "temperatura": "frio"
+    },
+    {
+      "id": "cian-electrico",
+      "nombre": "Cian eléctrico",
+      "hex": "#00FFFF",
+      "textura": "luminosa",
+      "temperatura": "frio"
+    },
+    {
+      "id": "chartreuse-luminoso",
+      "nombre": "Chartreuse luminoso",
+      "hex": "#7FFF00",
+      "textura": "luminosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "bermellon-fuego",
+      "nombre": "Bermellón fuego",
+      "hex": "#E34234",
+      "textura": "luminosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "carmesi-noble",
+      "nombre": "Carmesí noble",
+      "hex": "#DC143C",
+      "textura": "aterciopelada",
+      "temperatura": "calido"
+    },
+    {
+      "id": "malva-delicado",
+      "nombre": "Malva delicado",
+      "hex": "#E0B0FF",
+      "textura": "sedosa",
+      "temperatura": "frio"
+    },
+    {
+      "id": "salvia-serena",
+      "nombre": "Salvia serena",
+      "hex": "#BCB88A",
+      "textura": "mate",
+      "temperatura": "neutro"
+    },
+    {
+      "id": "musgo-profundo",
+      "nombre": "Musgo profundo",
+      "hex": "#8A9A5B",
+      "textura": "terrosa",
+      "temperatura": "frio"
+    },
+    {
+      "id": "oliva-dorado",
+      "nombre": "Oliva dorado",
+      "hex": "#808000",
+      "textura": "terrosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "canela-calida",
+      "nombre": "Canela cálida",
+      "hex": "#D2691E",
+      "textura": "terrosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "chocolate-rico",
+      "nombre": "Chocolate rico",
+      "hex": "#7B3F00",
+      "textura": "terrosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "cafe-suave",
+      "nombre": "Café suave",
+      "hex": "#C4A484",
+      "textura": "terrosa",
+      "temperatura": "calido"
+    },
+    {
+      "id": "bronce-antiguo",
+      "nombre": "Bronce antiguo",
+      "hex": "#CD7F32",
+      "textura": "metalica",
+      "temperatura": "calido"
+    },
+    {
+      "id": "cobre-brillante",
+      "nombre": "Cobre brillante",
+      "hex": "#B87333",
+      "textura": "metalica",
+      "temperatura": "calido"
+    },
+    {
+      "id": "oro-rosa",
+      "nombre": "Oro rosa",
+      "hex": "#B76E79",
+      "textura": "metalica",
+      "temperatura": "calido"
+    },
+    {
+      "id": "titanio-oscuro",
+      "nombre": "Titanio oscuro",
+      "hex": "#878681",
+      "textura": "metalica",
+      "temperatura": "frio"
+    },
+    {
+      "id": "acero-azul",
+      "nombre": "Acero azul",
+      "hex": "#4682B4",
+      "textura": "metalica",
+      "temperatura": "frio"
+    },
+    {
+      "id": "platino-frio",
+      "nombre": "Platino frío",
+      "hex": "#E5E4E2",
+      "textura": "metalica",
+      "temperatura": "frio"
+    },
+    {
+      "id": "iridio-raro",
+      "nombre": "Iridio raro",
+      "hex": "#5C5B57",
+      "textura": "metalica",
+      "temperatura": "neutro"
+    },
+    {
+      "id": "tungsteno-noble",
+      "nombre": "Tungsteno noble",
+      "hex": "#4A4A4A",
+      "textura": "metalica",
+      "temperatura": "neutro"
+    }
+  ]
+}

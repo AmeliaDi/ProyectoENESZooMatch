@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  type ChangeEvent,
   type CSSProperties,
   type FormEvent,
   useEffect,
@@ -78,19 +79,28 @@ export function PublicRegistration() {
   const normalized = normalizePublicMatricula(matricula);
   const valid = isPublicMatriculaValid(matricula);
 
-  useEffect(() => {
+  function handleMatriculaChange(event: ChangeEvent<HTMLInputElement>) {
+    const next = event.target.value.toUpperCase();
+    setMatricula(next);
+    // Reset the submit error and derive the immediate availability state in the
+    // event that changes `matricula`, rather than synchronously inside the
+    // debounced-check effect (which would cause a cascading render).
     setSubmitError(false);
-    if (!matricula) {
+    if (!next) {
       setAvailability("idle");
       return;
     }
-    if (!valid) {
+    if (!isPublicMatriculaValid(next)) {
       setAvailability("invalid");
       return;
     }
+    setAvailability("checking");
+  }
+
+  useEffect(() => {
+    if (!matricula || !valid) return;
 
     const controller = new AbortController();
-    setAvailability("checking");
     const timer = window.setTimeout(async () => {
       try {
         const response = await fetch("/api/availability", {
@@ -208,7 +218,7 @@ export function PublicRegistration() {
               id="matricula"
               name="matricula"
               value={matricula}
-              onChange={(event) => setMatricula(event.target.value.toUpperCase())}
+              onChange={handleMatriculaChange}
               autoComplete="off"
               autoCapitalize="characters"
               spellCheck={false}
@@ -271,11 +281,22 @@ export function PublicQuiz() {
   const isLast = index === microtestData.items.length - 1;
   const progress = ((index + 1) / microtestData.items.length) * 100;
 
+  // Restore the saved draft after mount from a deferred callback (not
+  // synchronously in the effect body) so the external-store sync doesn't cause a
+  // cascading render; `loaded` keeps the first client render on <LoadingFrame>,
+  // preserving SSR/hydration output.
   useEffect(() => {
-    const draft = parseQuizDraft(window.localStorage.getItem(QUIZ_STORAGE_KEY));
-    setAnswers(draft);
-    setIndex(answeredIndex(draft));
-    setLoaded(true);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      const draft = parseQuizDraft(window.localStorage.getItem(QUIZ_STORAGE_KEY));
+      setAnswers(draft);
+      setIndex(answeredIndex(draft));
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -478,8 +499,6 @@ export function PublicResultView() {
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
-    setLoading(true);
-    setError(null);
 
     let minimumTimer = 0;
     const minimumAnalysis = new Promise<void>((resolve) => {
@@ -575,7 +594,7 @@ export function PublicResultView() {
                 Volver al acceso
               </Link>
             ) : (
-              <button onClick={() => setAttempt((value) => value + 1)} className="bg-ink px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-paper focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-3">
+              <button onClick={() => { setAttempt((value) => value + 1); setLoading(true); setError(null); }} className="bg-ink px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-paper focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-3">
                 Reintentar
               </button>
             )}

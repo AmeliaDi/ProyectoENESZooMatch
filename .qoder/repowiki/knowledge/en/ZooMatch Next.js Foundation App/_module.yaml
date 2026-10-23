@@ -1,0 +1,16 @@
+schema_version: 1
+module_path: ""
+title: ZooMatch Next.js Foundation App
+scope:
+    - .
+    - eslint.config.mjs
+    - next-env.d.ts
+    - next.config.ts
+    - package.json
+    - postcss.config.mjs
+    - requirements.txt
+    - tsconfig.json
+    - vitest.config.ts
+source_files: []
+depends_on: []
+related_to: []

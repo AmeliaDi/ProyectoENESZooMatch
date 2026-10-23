@@ -1,0 +1,1 @@
+Next.js 16 application scaffolding for ZooMatch, providing the root layout, a motion-rich hero landing page, Supabase client factories, and shared archetype type definitions.

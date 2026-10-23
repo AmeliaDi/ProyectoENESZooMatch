@@ -9,6 +9,18 @@
   --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
   --font-sans: "Avenir Next", "Century Gothic", sans-serif;
   --font-mono: "IBM Plex Mono", "Courier New", monospace;
+  /* v2 — Dual track colors */
+  --color-romance: #e8a0bf;
+  --color-romance-deep: #9b2c5e;
+  --color-friendship: #7ec8a9;
+  --color-friendship-deep: #2d6a4f;
+  /* v2 — Notifications */
+  --color-notification-warm: #fff4e6;
+  --color-notification-glow: #ffd700;
+  /* v2 — Badges */
+  --color-badge-bg: #f5f0ff;
+  --color-badge-border: #d4c5f9;
+  --color-badge-text: #4a3670;
 }
 
 :root {
@@ -321,6 +333,115 @@ label {
   70% {
     box-shadow: 0 0 0 0.65rem rgb(199 232 121 / 0%);
   }
+}
+
+/* ─── v2: Notification toast ─────────────────────────────────── */
+.notification-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  max-width: 24rem;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.notification-toast--romance {
+  background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #ede7f6 100%);
+}
+
+.notification-toast--amistad {
+  background: linear-gradient(135deg, #e8f5e9 0%, #e0f7fa 50%, #e3f2fd 100%);
+}
+
+.notification-toast--welcome {
+  background: linear-gradient(135deg, #fff8e1 0%, #fff3e0 50%, #fbe9e7 100%);
+}
+
+.notification-toast--no-match {
+  background: linear-gradient(135deg, #f3e5f5 0%, #e8eaf6 50%, #e0f2f1 100%);
+}
+
+/* ─── v2: Compatibility badges ───────────────────────────────── */
+.compatibility-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--color-badge-bg);
+  border: 1px solid var(--color-badge-border);
+  color: var(--color-badge-text);
+  white-space: nowrap;
+}
+
+/* ─── v2: Track tabs ─────────────────────────────────────────── */
+.track-tab {
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.track-tab--romance {
+  color: var(--color-romance-deep);
+}
+.track-tab--romance[data-active="true"] {
+  background: var(--color-romance);
+  border-color: var(--color-romance-deep);
+  color: white;
+}
+
+.track-tab--amistad {
+  color: var(--color-friendship-deep);
+}
+.track-tab--amistad[data-active="true"] {
+  background: var(--color-friendship);
+  border-color: var(--color-friendship-deep);
+  color: white;
+}
+
+/* ─── v2: Chemistry percentage ───────────────────────────────── */
+.chemistry-ring {
+  position: relative;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.chemistry-ring--romance {
+  background: conic-gradient(var(--color-romance-deep) var(--fill), transparent var(--fill));
+}
+
+.chemistry-ring--amistad {
+  background: conic-gradient(var(--color-friendship-deep) var(--fill), transparent var(--fill));
+}
+
+.chemistry-ring::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--color-paper);
+}
+
+.chemistry-ring span {
+  position: relative;
+  z-index: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
