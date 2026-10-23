@@ -1,0 +1,591 @@
+{
+  "metadatos": {
+    "version_esquema": "1.0",
+    "total_arquetipos": 16,
+    "modo": "offline",
+    "fuentes": {
+      "personalidades": {
+        "url": "https://www.16personalities.com/for-ai.json",
+        "estado": "fallback_local_modo_offline",
+        "campos": [
+          "codigo",
+          "sobrenombre",
+          "rol",
+          "rasgos"
+        ]
+      },
+      "animales": {
+        "url": "https://pigment.is/blogs/blogs/mbti-test-animal-version",
+        "estado": "fallback_local_modo_offline",
+        "metodo": "tabla HTML con fallback local completo"
+      },
+      "paletas": {
+        "origen": "curadas_localmente",
+        "extraidas": false,
+        "nota": "Paletas creadas para este proyecto; paletadecolores.org no fue consultado ni scrapeado."
+      }
+    }
+  },
+  "arquetipos": [
+    {
+      "id": "pulpito-azul-abisal",
+      "codigo_mbti": "INTJ",
+      "sobrenombre": "Architect",
+      "rol": "Analysts",
+      "rasgos": [
+        "Introverted",
+        "Intuitive",
+        "Thinking",
+        "Judging"
+      ],
+      "animal": {
+        "nombre_fuente": "Octopus",
+        "diminutivo_es": "pulpito"
+      },
+      "paleta": [
+        {
+          "nombre": "Azul abisal",
+          "hex": "#123B5D"
+        },
+        {
+          "nombre": "Tinta marina",
+          "hex": "#0B1F33"
+        },
+        {
+          "nombre": "Coral lúcido",
+          "hex": "#FF7A59"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Azul abisal",
+        "hex": "#123B5D"
+      },
+      "combinacion_legible": "pulpito azul abisal"
+    },
+    {
+      "id": "buhito-indigo-nocturno",
+      "codigo_mbti": "INTP",
+      "sobrenombre": "Logician",
+      "rol": "Analysts",
+      "rasgos": [
+        "Introverted",
+        "Intuitive",
+        "Thinking",
+        "Prospecting"
+      ],
+      "animal": {
+        "nombre_fuente": "Owl",
+        "diminutivo_es": "buhíto"
+      },
+      "paleta": [
+        {
+          "nombre": "Índigo nocturno",
+          "hex": "#3943B7"
+        },
+        {
+          "nombre": "Niebla lavanda",
+          "hex": "#C9C7F2"
+        },
+        {
+          "nombre": "Pergamino",
+          "hex": "#F3E9D2"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Índigo nocturno",
+        "hex": "#3943B7"
+      },
+      "combinacion_legible": "buhíto índigo nocturno"
+    },
+    {
+      "id": "leoncito-granate-imperial",
+      "codigo_mbti": "ENTJ",
+      "sobrenombre": "Commander",
+      "rol": "Analysts",
+      "rasgos": [
+        "Extraverted",
+        "Intuitive",
+        "Thinking",
+        "Judging"
+      ],
+      "animal": {
+        "nombre_fuente": "Lion",
+        "diminutivo_es": "leoncito"
+      },
+      "paleta": [
+        {
+          "nombre": "Granate imperial",
+          "hex": "#7A1E2C"
+        },
+        {
+          "nombre": "Oro viejo",
+          "hex": "#C89B3C"
+        },
+        {
+          "nombre": "Carbón",
+          "hex": "#242124"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Granate imperial",
+        "hex": "#7A1E2C"
+      },
+      "combinacion_legible": "leoncito granate imperial"
+    },
+    {
+      "id": "zorrito-mandarina-electrica",
+      "codigo_mbti": "ENTP",
+      "sobrenombre": "Debater",
+      "rol": "Analysts",
+      "rasgos": [
+        "Extraverted",
+        "Intuitive",
+        "Thinking",
+        "Prospecting"
+      ],
+      "animal": {
+        "nombre_fuente": "Fox",
+        "diminutivo_es": "zorrito"
+      },
+      "paleta": [
+        {
+          "nombre": "Mandarina eléctrica",
+          "hex": "#F05D23"
+        },
+        {
+          "nombre": "Azul cobalto",
+          "hex": "#2255A4"
+        },
+        {
+          "nombre": "Crema",
+          "hex": "#FFF1D0"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Mandarina eléctrica",
+        "hex": "#F05D23"
+      },
+      "combinacion_legible": "zorrito mandarina eléctrica"
+    },
+    {
+      "id": "lobito-verde-bosque",
+      "codigo_mbti": "INFJ",
+      "sobrenombre": "Advocate",
+      "rol": "Diplomats",
+      "rasgos": [
+        "Introverted",
+        "Intuitive",
+        "Feeling",
+        "Judging"
+      ],
+      "animal": {
+        "nombre_fuente": "Wolf",
+        "diminutivo_es": "lobito"
+      },
+      "paleta": [
+        {
+          "nombre": "Verde bosque",
+          "hex": "#245C43"
+        },
+        {
+          "nombre": "Malva",
+          "hex": "#9B7E9B"
+        },
+        {
+          "nombre": "Luz lunar",
+          "hex": "#E8E4D9"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Verde bosque",
+        "hex": "#245C43"
+      },
+      "combinacion_legible": "lobito verde bosque"
+    },
+    {
+      "id": "venadito-rosa-brezo",
+      "codigo_mbti": "INFP",
+      "sobrenombre": "Mediator",
+      "rol": "Diplomats",
+      "rasgos": [
+        "Introverted",
+        "Intuitive",
+        "Feeling",
+        "Prospecting"
+      ],
+      "animal": {
+        "nombre_fuente": "Deer",
+        "diminutivo_es": "venadito"
+      },
+      "paleta": [
+        {
+          "nombre": "Rosa brezo",
+          "hex": "#B85C7A"
+        },
+        {
+          "nombre": "Salvia",
+          "hex": "#8AA17B"
+        },
+        {
+          "nombre": "Marfil",
+          "hex": "#FFF8E7"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Rosa brezo",
+        "hex": "#B85C7A"
+      },
+      "combinacion_legible": "venadito rosa brezo"
+    },
+    {
+      "id": "perrito-frambuesa",
+      "codigo_mbti": "ENFJ",
+      "sobrenombre": "Protagonist",
+      "rol": "Diplomats",
+      "rasgos": [
+        "Extraverted",
+        "Intuitive",
+        "Feeling",
+        "Judging"
+      ],
+      "animal": {
+        "nombre_fuente": "Dog",
+        "diminutivo_es": "perrito"
+      },
+      "paleta": [
+        {
+          "nombre": "Frambuesa",
+          "hex": "#C73558"
+        },
+        {
+          "nombre": "Ámbar cálido",
+          "hex": "#E6A33D"
+        },
+        {
+          "nombre": "Azul abrazo",
+          "hex": "#3E6B89"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Frambuesa",
+        "hex": "#C73558"
+      },
+      "combinacion_legible": "perrito frambuesa"
+    },
+    {
+      "id": "delfincito-amarillo-sol",
+      "codigo_mbti": "ENFP",
+      "sobrenombre": "Campaigner",
+      "rol": "Diplomats",
+      "rasgos": [
+        "Extraverted",
+        "Intuitive",
+        "Feeling",
+        "Prospecting"
+      ],
+      "animal": {
+        "nombre_fuente": "Dolphin",
+        "diminutivo_es": "delfincito"
+      },
+      "paleta": [
+        {
+          "nombre": "Amarillo sol",
+          "hex": "#F4C430"
+        },
+        {
+          "nombre": "Turquesa viva",
+          "hex": "#1FA6A0"
+        },
+        {
+          "nombre": "Coral fiesta",
+          "hex": "#F26B5B"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Amarillo sol",
+        "hex": "#F4C430"
+      },
+      "combinacion_legible": "delfincito amarillo sol"
+    },
+    {
+      "id": "hormiguita-azul-pizarra",
+      "codigo_mbti": "ISTJ",
+      "sobrenombre": "Logistician",
+      "rol": "Sentinels",
+      "rasgos": [
+        "Introverted",
+        "Observant",
+        "Thinking",
+        "Judging"
+      ],
+      "animal": {
+        "nombre_fuente": "Ant",
+        "diminutivo_es": "hormiguita"
+      },
+      "paleta": [
+        {
+          "nombre": "Azul pizarra",
+          "hex": "#40566B"
+        },
+        {
+          "nombre": "Gris acero",
+          "hex": "#788896"
+        },
+        {
+          "nombre": "Blanco papel",
+          "hex": "#F5F3EE"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Azul pizarra",
+        "hex": "#40566B"
+      },
+      "combinacion_legible": "hormiguita azul pizarra"
+    },
+    {
+      "id": "elefantito-verde-eucalipto",
+      "codigo_mbti": "ISFJ",
+      "sobrenombre": "Defender",
+      "rol": "Sentinels",
+      "rasgos": [
+        "Introverted",
+        "Observant",
+        "Feeling",
+        "Judging"
+      ],
+      "animal": {
+        "nombre_fuente": "Elephant",
+        "diminutivo_es": "elefantito"
+      },
+      "paleta": [
+        {
+          "nombre": "Verde eucalipto",
+          "hex": "#5F7F6A"
+        },
+        {
+          "nombre": "Rosa arcilla",
+          "hex": "#C98F83"
+        },
+        {
+          "nombre": "Avena",
+          "hex": "#E8DCC4"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Verde eucalipto",
+        "hex": "#5F7F6A"
+      },
+      "combinacion_legible": "elefantito verde eucalipto"
+    },
+    {
+      "id": "suricatita-azul-uniforme",
+      "codigo_mbti": "ESTJ",
+      "sobrenombre": "Executive",
+      "rol": "Sentinels",
+      "rasgos": [
+        "Extraverted",
+        "Observant",
+        "Thinking",
+        "Judging"
+      ],
+      "animal": {
+        "nombre_fuente": "Meerkat",
+        "diminutivo_es": "suricatita"
+      },
+      "paleta": [
+        {
+          "nombre": "Azul uniforme",
+          "hex": "#214E78"
+        },
+        {
+          "nombre": "Rojo sello",
+          "hex": "#A33A32"
+        },
+        {
+          "nombre": "Arena",
+          "hex": "#D8C3A5"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Azul uniforme",
+        "hex": "#214E78"
+      },
+      "combinacion_legible": "suricatita azul uniforme"
+    },
+    {
+      "id": "ballenita-coral-amable",
+      "codigo_mbti": "ESFJ",
+      "sobrenombre": "Consul",
+      "rol": "Sentinels",
+      "rasgos": [
+        "Extraverted",
+        "Observant",
+        "Feeling",
+        "Judging"
+      ],
+      "animal": {
+        "nombre_fuente": "Whale",
+        "diminutivo_es": "ballenita"
+      },
+      "paleta": [
+        {
+          "nombre": "Coral amable",
+          "hex": "#E76F51"
+        },
+        {
+          "nombre": "Azul cielo",
+          "hex": "#63A4C5"
+        },
+        {
+          "nombre": "Miel",
+          "hex": "#E9B44C"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Coral amable",
+        "hex": "#E76F51"
+      },
+      "combinacion_legible": "ballenita coral amable"
+    },
+    {
+      "id": "gatito-grafito",
+      "codigo_mbti": "ISTP",
+      "sobrenombre": "Virtuoso",
+      "rol": "Explorers",
+      "rasgos": [
+        "Introverted",
+        "Observant",
+        "Thinking",
+        "Prospecting"
+      ],
+      "animal": {
+        "nombre_fuente": "Cat",
+        "diminutivo_es": "gatito"
+      },
+      "paleta": [
+        {
+          "nombre": "Grafito",
+          "hex": "#343A40"
+        },
+        {
+          "nombre": "Cobre",
+          "hex": "#B66A3C"
+        },
+        {
+          "nombre": "Hielo",
+          "hex": "#DCE6EA"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Grafito",
+        "hex": "#343A40"
+      },
+      "combinacion_legible": "gatito grafito"
+    },
+    {
+      "id": "pandita-jade-suave",
+      "codigo_mbti": "ISFP",
+      "sobrenombre": "Adventurer",
+      "rol": "Explorers",
+      "rasgos": [
+        "Introverted",
+        "Observant",
+        "Feeling",
+        "Prospecting"
+      ],
+      "animal": {
+        "nombre_fuente": "Panda",
+        "diminutivo_es": "pandita"
+      },
+      "paleta": [
+        {
+          "nombre": "Jade suave",
+          "hex": "#5B8E7D"
+        },
+        {
+          "nombre": "Melocotón",
+          "hex": "#F2B5A7"
+        },
+        {
+          "nombre": "Ciruela",
+          "hex": "#6D466B"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Jade suave",
+        "hex": "#5B8E7D"
+      },
+      "combinacion_legible": "pandita jade suave"
+    },
+    {
+      "id": "guepardito-rojo-cinetico",
+      "codigo_mbti": "ESTP",
+      "sobrenombre": "Entrepreneur",
+      "rol": "Explorers",
+      "rasgos": [
+        "Extraverted",
+        "Observant",
+        "Thinking",
+        "Prospecting"
+      ],
+      "animal": {
+        "nombre_fuente": "Cheetah",
+        "diminutivo_es": "guepardito"
+      },
+      "paleta": [
+        {
+          "nombre": "Rojo cinético",
+          "hex": "#D62828"
+        },
+        {
+          "nombre": "Negro pista",
+          "hex": "#1D1D1D"
+        },
+        {
+          "nombre": "Lima",
+          "hex": "#A7C957"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Rojo cinético",
+        "hex": "#D62828"
+      },
+      "combinacion_legible": "guepardito rojo cinético"
+    },
+    {
+      "id": "nutriita-fucsia-tropical",
+      "codigo_mbti": "ESFP",
+      "sobrenombre": "Entertainer",
+      "rol": "Explorers",
+      "rasgos": [
+        "Extraverted",
+        "Observant",
+        "Feeling",
+        "Prospecting"
+      ],
+      "animal": {
+        "nombre_fuente": "Otter",
+        "diminutivo_es": "nutriita"
+      },
+      "paleta": [
+        {
+          "nombre": "Fucsia tropical",
+          "hex": "#D1498B"
+        },
+        {
+          "nombre": "Aguamarina",
+          "hex": "#2FB5A9"
+        },
+        {
+          "nombre": "Mango",
+          "hex": "#FFB703"
+        }
+      ],
+      "color_principal": {
+        "nombre": "Fucsia tropical",
+        "hex": "#D1498B"
+      },
+      "combinacion_legible": "nutriita fucsia tropical"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+
+import { AdminDashboard } from "@/components/admin-dashboard";
+import { getAdminContext, loadAdminMetrics } from "@/lib/admin-auth.server";
+import { getMatchingThreshold } from "@/lib/matching-config";
+
+export const metadata: Metadata = {
+  title: "Observatorio administrativo · ZooMatch",
+  robots: { index: false, follow: false },
+};
+
+export const revalidate = 60;
+
+export default async function AdminPage() {
+  const context = await getAdminContext();
+  if (context.status !== "ok") redirect("/admin/login");
+
+  const metrics = await loadAdminMetrics(context);
+  return <AdminDashboard initialData={metrics} threshold={getMatchingThreshold()} />;
+}

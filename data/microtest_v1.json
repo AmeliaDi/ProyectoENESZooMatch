@@ -1,0 +1,273 @@
+{
+  "metadatos": {
+    "version": "1.0.0",
+    "idioma": "es-MX",
+    "total_items": 24,
+    "items_por_categoria": 6,
+    "categorias": ["BigFive", "MBTI", "Relaciones", "Genero"],
+    "uso": "Microtest educativo y de entretenimiento; no constituye diagnóstico psicológico.",
+    "puntuacion": "Multiplicar el valor Likert por cada componente del vector de pesos y sumar por dimensión.",
+    "trazabilidad": "Los ítems de BigFive son adaptaciones propias de constructos IPIP de dominio público. Los demás ítems son redacción original de ZooMatch; no se copiaron ítems OEJTS ni escalas de terceros."
+  },
+  "escala_likert": [
+    {"valor": 1, "etiqueta": "Totalmente en desacuerdo"},
+    {"valor": 2, "etiqueta": "En desacuerdo"},
+    {"valor": 3, "etiqueta": "De acuerdo"},
+    {"valor": 4, "etiqueta": "Totalmente de acuerdo"}
+  ],
+  "dimensiones": [
+    "bigfive_apertura",
+    "bigfive_responsabilidad",
+    "bigfive_extraversion",
+    "bigfive_amabilidad",
+    "bigfive_neuroticismo",
+    "mbti_extraversion",
+    "mbti_intuicion",
+    "mbti_pensamiento",
+    "mbti_juicio",
+    "relaciones_comunicacion",
+    "relaciones_confianza",
+    "relaciones_empatia",
+    "relaciones_gestion_conflicto",
+    "genero_igualdad",
+    "genero_flexibilidad_roles",
+    "genero_respeto_diversidad",
+    "genero_corresponsabilidad"
+  ],
+  "fuentes": [
+    {
+      "id": "ipip-50",
+      "nombre": "International Personality Item Pool: 50-item Sample Questionnaire",
+      "url": "https://ipip.ori.org/new_ipip-50-item-scale.htm",
+      "licencia": "Public Domain",
+      "atribucion": "International Personality Item Pool (IPIP); adaptaciones al español redactadas para ZooMatch.",
+      "automatizacion": "permitida"
+    },
+    {
+      "id": "oejts-referencia",
+      "nombre": "Open Extended Jungian Type Scales 1.2",
+      "url": "https://openpsychometrics.org/tests/OEJTS/development/",
+      "licencia": "CC BY-NC-SA",
+      "atribucion": "Eric Jorgenson (2014), Development of the Open Extended Jungian Type Scales.",
+      "automatizacion": "deshabilitada; referencia metodológica solamente, sin copiar ítems"
+    },
+    {
+      "id": "zoomatch-original-mbti",
+      "nombre": "Ítems MBTI originales de ZooMatch",
+      "url": null,
+      "licencia": "LicenseRef-ZooMatch-Original",
+      "atribucion": "ZooMatch, 2026; redacción original basada en las cuatro dicotomías jungianas, sin reproducir OEJTS.",
+      "automatizacion": "fallback local"
+    },
+    {
+      "id": "zoomatch-original-relaciones",
+      "nombre": "Ítems de relaciones originales de ZooMatch",
+      "url": null,
+      "licencia": "LicenseRef-ZooMatch-Original",
+      "atribucion": "ZooMatch, 2026; redacción original, no derivada de escalas cerradas.",
+      "automatizacion": "fallback local"
+    },
+    {
+      "id": "zoomatch-original-genero",
+      "nombre": "Ítems de género originales de ZooMatch",
+      "url": null,
+      "licencia": "LicenseRef-ZooMatch-Original",
+      "atribucion": "ZooMatch, 2026; redacción original, inclusiva y no derivada de escalas cerradas.",
+      "automatizacion": "fallback local"
+    }
+  ],
+  "items": [
+    {
+      "id": "BF01",
+      "categoria": "BigFive",
+      "texto": "Disfruto explorando ideas poco habituales.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 1, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "ipip-50"
+    },
+    {
+      "id": "BF02",
+      "categoria": "BigFive",
+      "texto": "Dejo tareas importantes para el último momento.",
+      "polaridad": "negativa",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": -1, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "ipip-50"
+    },
+    {
+      "id": "BF03",
+      "categoria": "BigFive",
+      "texto": "Inicio conversaciones con personas que acabo de conocer.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 1, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "ipip-50"
+    },
+    {
+      "id": "BF04",
+      "categoria": "BigFive",
+      "texto": "Procuro tratar con paciencia a quienes piensan distinto de mí.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 1, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "ipip-50"
+    },
+    {
+      "id": "BF05",
+      "categoria": "BigFive",
+      "texto": "Me preocupo durante mucho tiempo por errores pequeños.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 1, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "ipip-50"
+    },
+    {
+      "id": "BF06",
+      "categoria": "BigFive",
+      "texto": "Recupero la calma con rapidez después de una situación tensa.",
+      "polaridad": "negativa",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": -1, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "ipip-50"
+    },
+    {
+      "id": "MB01",
+      "categoria": "MBTI",
+      "texto": "Pienso con mayor claridad cuando intercambio ideas con otras personas.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 1, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-mbti"
+    },
+    {
+      "id": "MB02",
+      "categoria": "MBTI",
+      "texto": "Necesito estar a solas para recuperar energía después de convivir.",
+      "polaridad": "negativa",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": -1, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-mbti"
+    },
+    {
+      "id": "MB03",
+      "categoria": "MBTI",
+      "texto": "Me atrae imaginar posibilidades que todavía no existen.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 1, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-mbti"
+    },
+    {
+      "id": "MB04",
+      "categoria": "MBTI",
+      "texto": "Confío más en datos concretos que en interpretaciones generales.",
+      "polaridad": "negativa",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": -1, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-mbti"
+    },
+    {
+      "id": "MB05",
+      "categoria": "MBTI",
+      "texto": "Al decidir, priorizo criterios coherentes aunque la opción resulte incómoda.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 1, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-mbti"
+    },
+    {
+      "id": "MB06",
+      "categoria": "MBTI",
+      "texto": "Me siento mejor cuando los planes importantes quedan definidos con anticipación.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 1, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-mbti"
+    },
+    {
+      "id": "RE01",
+      "categoria": "Relaciones",
+      "texto": "Expreso con claridad lo que necesito en una relación cercana.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 1, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-relaciones"
+    },
+    {
+      "id": "RE02",
+      "categoria": "Relaciones",
+      "texto": "Evito hablar de un problema y espero que desaparezca por sí solo.",
+      "polaridad": "negativa",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": -1, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-relaciones"
+    },
+    {
+      "id": "RE03",
+      "categoria": "Relaciones",
+      "texto": "Puedo confiar sin exigir pruebas constantes de afecto.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 1, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-relaciones"
+    },
+    {
+      "id": "RE04",
+      "categoria": "Relaciones",
+      "texto": "Interpreto los silencios de la otra persona como señales de rechazo.",
+      "polaridad": "negativa",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": -1, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-relaciones"
+    },
+    {
+      "id": "RE05",
+      "categoria": "Relaciones",
+      "texto": "Intento comprender la emoción ajena antes de responder.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 1, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-relaciones"
+    },
+    {
+      "id": "RE06",
+      "categoria": "Relaciones",
+      "texto": "Durante un desacuerdo, busco una solución que cuide a ambas partes.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 1, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-relaciones"
+    },
+    {
+      "id": "GE01",
+      "categoria": "Genero",
+      "texto": "Todas las personas merecen las mismas oportunidades sin importar su género.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 1, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-genero"
+    },
+    {
+      "id": "GE02",
+      "categoria": "Genero",
+      "texto": "Hay actividades que deberían reservarse a un género específico.",
+      "polaridad": "negativa",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": -1, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-genero"
+    },
+    {
+      "id": "GE03",
+      "categoria": "Genero",
+      "texto": "Respeto la forma en que cada persona nombra y expresa su género.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 1, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-genero"
+    },
+    {
+      "id": "GE04",
+      "categoria": "Genero",
+      "texto": "Las identidades de género distintas de la mía me resultan menos válidas.",
+      "polaridad": "negativa",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": -1, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-genero"
+    },
+    {
+      "id": "GE05",
+      "categoria": "Genero",
+      "texto": "Las tareas de cuidado deben repartirse mediante acuerdos justos.",
+      "polaridad": "positiva",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": 0, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 1},
+      "fuente_id": "zoomatch-original-genero"
+    },
+    {
+      "id": "GE06",
+      "categoria": "Genero",
+      "texto": "Una persona debería ocultar intereses que no encajan con los estereotipos de su género.",
+      "polaridad": "negativa",
+      "pesos": {"bigfive_apertura": 0, "bigfive_responsabilidad": 0, "bigfive_extraversion": 0, "bigfive_amabilidad": 0, "bigfive_neuroticismo": 0, "mbti_extraversion": 0, "mbti_intuicion": 0, "mbti_pensamiento": 0, "mbti_juicio": 0, "relaciones_comunicacion": 0, "relaciones_confianza": 0, "relaciones_empatia": 0, "relaciones_gestion_conflicto": 0, "genero_igualdad": 0, "genero_flexibilidad_roles": -1, "genero_respeto_diversidad": 0, "genero_corresponsabilidad": 0},
+      "fuente_id": "zoomatch-original-genero"
+    }
+  ]
+}

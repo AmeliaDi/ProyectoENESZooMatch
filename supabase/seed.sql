@@ -1,0 +1,60 @@
+insert into public.archetypes (
+  id, mbti_code, nickname, role_name, traits, animal, palette, primary_color, readable_combination
+) values
+('pulpito-azul-abisal', 'INTJ', 'Architect', 'Analysts', '["Introverted","Intuitive","Thinking","Judging"]', '{"nombre_fuente":"Octopus","diminutivo_es":"pulpito"}', '[{"nombre":"Azul abisal","hex":"#123B5D"},{"nombre":"Tinta marina","hex":"#0B1F33"},{"nombre":"Coral lúcido","hex":"#FF7A59"}]', '{"nombre":"Azul abisal","hex":"#123B5D"}', 'pulpito azul abisal'),
+('buhito-indigo-nocturno', 'INTP', 'Logician', 'Analysts', '["Introverted","Intuitive","Thinking","Prospecting"]', '{"nombre_fuente":"Owl","diminutivo_es":"buhíto"}', '[{"nombre":"Índigo nocturno","hex":"#3943B7"},{"nombre":"Niebla lavanda","hex":"#C9C7F2"},{"nombre":"Pergamino","hex":"#F3E9D2"}]', '{"nombre":"Índigo nocturno","hex":"#3943B7"}', 'buhíto índigo nocturno'),
+('leoncito-granate-imperial', 'ENTJ', 'Commander', 'Analysts', '["Extraverted","Intuitive","Thinking","Judging"]', '{"nombre_fuente":"Lion","diminutivo_es":"leoncito"}', '[{"nombre":"Granate imperial","hex":"#7A1E2C"},{"nombre":"Oro viejo","hex":"#C89B3C"},{"nombre":"Carbón","hex":"#242124"}]', '{"nombre":"Granate imperial","hex":"#7A1E2C"}', 'leoncito granate imperial'),
+('zorrito-mandarina-electrica', 'ENTP', 'Debater', 'Analysts', '["Extraverted","Intuitive","Thinking","Prospecting"]', '{"nombre_fuente":"Fox","diminutivo_es":"zorrito"}', '[{"nombre":"Mandarina eléctrica","hex":"#F05D23"},{"nombre":"Azul cobalto","hex":"#2255A4"},{"nombre":"Crema","hex":"#FFF1D0"}]', '{"nombre":"Mandarina eléctrica","hex":"#F05D23"}', 'zorrito mandarina eléctrica'),
+('lobito-verde-bosque', 'INFJ', 'Advocate', 'Diplomats', '["Introverted","Intuitive","Feeling","Judging"]', '{"nombre_fuente":"Wolf","diminutivo_es":"lobito"}', '[{"nombre":"Verde bosque","hex":"#245C43"},{"nombre":"Malva","hex":"#9B7E9B"},{"nombre":"Luz lunar","hex":"#E8E4D9"}]', '{"nombre":"Verde bosque","hex":"#245C43"}', 'lobito verde bosque'),
+('venadito-rosa-brezo', 'INFP', 'Mediator', 'Diplomats', '["Introverted","Intuitive","Feeling","Prospecting"]', '{"nombre_fuente":"Deer","diminutivo_es":"venadito"}', '[{"nombre":"Rosa brezo","hex":"#B85C7A"},{"nombre":"Salvia","hex":"#8AA17B"},{"nombre":"Marfil","hex":"#FFF8E7"}]', '{"nombre":"Rosa brezo","hex":"#B85C7A"}', 'venadito rosa brezo'),
+('perrito-frambuesa', 'ENFJ', 'Protagonist', 'Diplomats', '["Extraverted","Intuitive","Feeling","Judging"]', '{"nombre_fuente":"Dog","diminutivo_es":"perrito"}', '[{"nombre":"Frambuesa","hex":"#C73558"},{"nombre":"Ámbar cálido","hex":"#E6A33D"},{"nombre":"Azul abrazo","hex":"#3E6B89"}]', '{"nombre":"Frambuesa","hex":"#C73558"}', 'perrito frambuesa'),
+('delfincito-amarillo-sol', 'ENFP', 'Campaigner', 'Diplomats', '["Extraverted","Intuitive","Feeling","Prospecting"]', '{"nombre_fuente":"Dolphin","diminutivo_es":"delfincito"}', '[{"nombre":"Amarillo sol","hex":"#F4C430"},{"nombre":"Turquesa viva","hex":"#1FA6A0"},{"nombre":"Coral fiesta","hex":"#F26B5B"}]', '{"nombre":"Amarillo sol","hex":"#F4C430"}', 'delfincito amarillo sol'),
+('hormiguita-azul-pizarra', 'ISTJ', 'Logistician', 'Sentinels', '["Introverted","Observant","Thinking","Judging"]', '{"nombre_fuente":"Ant","diminutivo_es":"hormiguita"}', '[{"nombre":"Azul pizarra","hex":"#40566B"},{"nombre":"Gris acero","hex":"#788896"},{"nombre":"Blanco papel","hex":"#F5F3EE"}]', '{"nombre":"Azul pizarra","hex":"#40566B"}', 'hormiguita azul pizarra'),
+('elefantito-verde-eucalipto', 'ISFJ', 'Defender', 'Sentinels', '["Introverted","Observant","Feeling","Judging"]', '{"nombre_fuente":"Elephant","diminutivo_es":"elefantito"}', '[{"nombre":"Verde eucalipto","hex":"#5F7F6A"},{"nombre":"Rosa arcilla","hex":"#C98F83"},{"nombre":"Avena","hex":"#E8DCC4"}]', '{"nombre":"Verde eucalipto","hex":"#5F7F6A"}', 'elefantito verde eucalipto'),
+('suricatita-azul-uniforme', 'ESTJ', 'Executive', 'Sentinels', '["Extraverted","Observant","Thinking","Judging"]', '{"nombre_fuente":"Meerkat","diminutivo_es":"suricatita"}', '[{"nombre":"Azul uniforme","hex":"#214E78"},{"nombre":"Rojo sello","hex":"#A33A32"},{"nombre":"Arena","hex":"#D8C3A5"}]', '{"nombre":"Azul uniforme","hex":"#214E78"}', 'suricatita azul uniforme'),
+('ballenita-coral-amable', 'ESFJ', 'Consul', 'Sentinels', '["Extraverted","Observant","Feeling","Judging"]', '{"nombre_fuente":"Whale","diminutivo_es":"ballenita"}', '[{"nombre":"Coral amable","hex":"#E76F51"},{"nombre":"Azul cielo","hex":"#63A4C5"},{"nombre":"Miel","hex":"#E9B44C"}]', '{"nombre":"Coral amable","hex":"#E76F51"}', 'ballenita coral amable'),
+('gatito-grafito', 'ISTP', 'Virtuoso', 'Explorers', '["Introverted","Observant","Thinking","Prospecting"]', '{"nombre_fuente":"Cat","diminutivo_es":"gatito"}', '[{"nombre":"Grafito","hex":"#343A40"},{"nombre":"Cobre","hex":"#B66A3C"},{"nombre":"Hielo","hex":"#DCE6EA"}]', '{"nombre":"Grafito","hex":"#343A40"}', 'gatito grafito'),
+('pandita-jade-suave', 'ISFP', 'Adventurer', 'Explorers', '["Introverted","Observant","Feeling","Prospecting"]', '{"nombre_fuente":"Panda","diminutivo_es":"pandita"}', '[{"nombre":"Jade suave","hex":"#5B8E7D"},{"nombre":"Melocotón","hex":"#F2B5A7"},{"nombre":"Ciruela","hex":"#6D466B"}]', '{"nombre":"Jade suave","hex":"#5B8E7D"}', 'pandita jade suave'),
+('guepardito-rojo-cinetico', 'ESTP', 'Entrepreneur', 'Explorers', '["Extraverted","Observant","Thinking","Prospecting"]', '{"nombre_fuente":"Cheetah","diminutivo_es":"guepardito"}', '[{"nombre":"Rojo cinético","hex":"#D62828"},{"nombre":"Negro pista","hex":"#1D1D1D"},{"nombre":"Lima","hex":"#A7C957"}]', '{"nombre":"Rojo cinético","hex":"#D62828"}', 'guepardito rojo cinético'),
+('nutriita-fucsia-tropical', 'ESFP', 'Entertainer', 'Explorers', '["Extraverted","Observant","Feeling","Prospecting"]', '{"nombre_fuente":"Otter","diminutivo_es":"nutriita"}', '[{"nombre":"Fucsia tropical","hex":"#D1498B"},{"nombre":"Aguamarina","hex":"#2FB5A9"},{"nombre":"Mango","hex":"#FFB703"}]', '{"nombre":"Fucsia tropical","hex":"#D1498B"}', 'nutriita fucsia tropical')
+on conflict (id) do update set
+  mbti_code = excluded.mbti_code,
+  nickname = excluded.nickname,
+  role_name = excluded.role_name,
+  traits = excluded.traits,
+  animal = excluded.animal,
+  palette = excluded.palette,
+  primary_color = excluded.primary_color,
+  readable_combination = excluded.readable_combination;
+
+insert into public.quiz_items (id, category, prompt, polarity, weights, source_id) values
+('BF01', 'BigFive', 'Disfruto explorando ideas poco habituales.', 'positiva', '{"bigfive_apertura":1}', 'ipip-50'),
+('BF02', 'BigFive', 'Dejo tareas importantes para el último momento.', 'negativa', '{"bigfive_responsabilidad":-1}', 'ipip-50'),
+('BF03', 'BigFive', 'Inicio conversaciones con personas que acabo de conocer.', 'positiva', '{"bigfive_extraversion":1}', 'ipip-50'),
+('BF04', 'BigFive', 'Procuro tratar con paciencia a quienes piensan distinto de mí.', 'positiva', '{"bigfive_amabilidad":1}', 'ipip-50'),
+('BF05', 'BigFive', 'Me preocupo durante mucho tiempo por errores pequeños.', 'positiva', '{"bigfive_neuroticismo":1}', 'ipip-50'),
+('BF06', 'BigFive', 'Recupero la calma con rapidez después de una situación tensa.', 'negativa', '{"bigfive_neuroticismo":-1}', 'ipip-50'),
+('MB01', 'MBTI', 'Pienso con mayor claridad cuando intercambio ideas con otras personas.', 'positiva', '{"mbti_extraversion":1}', 'zoomatch-original-mbti'),
+('MB02', 'MBTI', 'Necesito estar a solas para recuperar energía después de convivir.', 'negativa', '{"mbti_extraversion":-1}', 'zoomatch-original-mbti'),
+('MB03', 'MBTI', 'Me atrae imaginar posibilidades que todavía no existen.', 'positiva', '{"mbti_intuicion":1}', 'zoomatch-original-mbti'),
+('MB04', 'MBTI', 'Confío más en datos concretos que en interpretaciones generales.', 'negativa', '{"mbti_intuicion":-1}', 'zoomatch-original-mbti'),
+('MB05', 'MBTI', 'Al decidir, priorizo criterios coherentes aunque la opción resulte incómoda.', 'positiva', '{"mbti_pensamiento":1}', 'zoomatch-original-mbti'),
+('MB06', 'MBTI', 'Me siento mejor cuando los planes importantes quedan definidos con anticipación.', 'positiva', '{"mbti_juicio":1}', 'zoomatch-original-mbti'),
+('RE01', 'Relaciones', 'Expreso con claridad lo que necesito en una relación cercana.', 'positiva', '{"relaciones_comunicacion":1}', 'zoomatch-original-relaciones'),
+('RE02', 'Relaciones', 'Evito hablar de un problema y espero que desaparezca por sí solo.', 'negativa', '{"relaciones_comunicacion":-1}', 'zoomatch-original-relaciones'),
+('RE03', 'Relaciones', 'Puedo confiar sin exigir pruebas constantes de afecto.', 'positiva', '{"relaciones_confianza":1}', 'zoomatch-original-relaciones'),
+('RE04', 'Relaciones', 'Interpreto los silencios de la otra persona como señales de rechazo.', 'negativa', '{"relaciones_confianza":-1}', 'zoomatch-original-relaciones'),
+('RE05', 'Relaciones', 'Intento comprender la emoción ajena antes de responder.', 'positiva', '{"relaciones_empatia":1}', 'zoomatch-original-relaciones'),
+('RE06', 'Relaciones', 'Durante un desacuerdo, busco una solución que cuide a ambas partes.', 'positiva', '{"relaciones_gestion_conflicto":1}', 'zoomatch-original-relaciones'),
+('GE01', 'Genero', 'Todas las personas merecen las mismas oportunidades sin importar su género.', 'positiva', '{"genero_igualdad":1}', 'zoomatch-original-genero'),
+('GE02', 'Genero', 'Hay actividades que deberían reservarse a un género específico.', 'negativa', '{"genero_flexibilidad_roles":-1}', 'zoomatch-original-genero'),
+('GE03', 'Genero', 'Respeto la forma en que cada persona nombra y expresa su género.', 'positiva', '{"genero_respeto_diversidad":1}', 'zoomatch-original-genero'),
+('GE04', 'Genero', 'Las identidades de género distintas de la mía me resultan menos válidas.', 'negativa', '{"genero_respeto_diversidad":-1}', 'zoomatch-original-genero'),
+('GE05', 'Genero', 'Las tareas de cuidado deben repartirse mediante acuerdos justos.', 'positiva', '{"genero_corresponsabilidad":1}', 'zoomatch-original-genero'),
+('GE06', 'Genero', 'Una persona debería ocultar intereses que no encajan con los estereotipos de su género.', 'negativa', '{"genero_flexibilidad_roles":-1}', 'zoomatch-original-genero')
+on conflict (id) do update set
+  category = excluded.category,
+  prompt = excluded.prompt,
+  polarity = excluded.polarity,
+  weights = excluded.weights,
+  source_id = excluded.source_id;
