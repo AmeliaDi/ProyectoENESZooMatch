@@ -74,4 +74,19 @@ describe("sociocultural scoring and hard filters", () => {
     ).toBe(true);
     expect(isHardCompatible(null, null)).toBe(true);
   });
+
+  it("checks relationship filters without orientation and always excludes solo_amistad-only", () => {
+    expect(
+      isHardCompatible(
+        { tipoRelacion: ["solo_amistad"] },
+        { tipoRelacion: ["monogamia"] },
+      ),
+    ).toBe(false);
+    expect(
+      isHardCompatible(
+        { tipoRelacion: ["monogamia"] },
+        { tipoRelacion: ["poliamor"] },
+      ),
+    ).toBe(false);
+  });
 });

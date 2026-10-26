@@ -1,5 +1,5 @@
 import { SCORING_CONFIG } from "@/lib/scoring/config";
-import { checkHardFilters } from "@/lib/matching-v2";
+import { checkHardFilters, isRelationshipCompatible } from "@/lib/matching-v2";
 import type { HardFilters } from "@/types/microtest-v2";
 import type { Sociocultural } from "@/lib/scoring/types";
 
@@ -18,8 +18,27 @@ export function hasHardFilterData(a: Sociocultural | null, b: Sociocultural | nu
   );
 }
 
+export function hasRelationshipData(a: Sociocultural | null, b: Sociocultural | null): boolean {
+  return presentSelections(a?.tipoRelacion) && presentSelections(b?.tipoRelacion);
+}
+
+function isSoloAmistadOnly(values: string[] | undefined): boolean {
+  return values?.length === 1 && values[0] === "solo_amistad";
+}
+
 export function isHardCompatible(a: Sociocultural | null, b: Sociocultural | null): boolean {
-  if (!a || !b || !hasHardFilterData(a, b)) return true;
+  if (isSoloAmistadOnly(a?.tipoRelacion) || isSoloAmistadOnly(b?.tipoRelacion)) {
+    return false;
+  }
+  if (!a || !b) return true;
+
+  if (
+    hasRelationshipData(a, b) &&
+    !isRelationshipCompatible(a.tipoRelacion ?? [], b.tipoRelacion ?? [])
+  ) {
+    return false;
+  }
+  if (!hasHardFilterData(a, b)) return true;
 
   const hardFiltersA: HardFilters = {
     orientacion_sexual: a.orientacion ?? [],

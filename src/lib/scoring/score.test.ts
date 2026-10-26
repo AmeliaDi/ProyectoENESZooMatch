@@ -66,6 +66,24 @@ describe("scorePair", () => {
     expect(result.partial).toBe(true);
   });
 
+  it("marks missing relationship selections as partial", () => {
+    const result = scorePair(
+      makeProfile("a", {
+        sociocultural: {
+          orientacion: ["mujeres"],
+          identidadGenero: ["mujer"],
+          ordinal: { valores_empatia: 0.8 },
+        },
+      }),
+      makeProfile("b"),
+    );
+
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    expect(result.missing).toContain("sociocultural");
+    expect(result.partial).toBe(true);
+  });
+
   it("does not throw for null optional fields or invalid MBTI codes", () => {
     const result = scorePair(
       makeProfile("a", { mbti: "XXXX", sociocultural: null }),
@@ -109,6 +127,44 @@ describe("scorePair", () => {
       status: "excluded",
       reason: "hard_filter",
     });
+    expect(
+      scorePair(
+        makeProfile("c", {
+          sociocultural: { tipoRelacion: ["solo_amistad"] },
+        }),
+        makeProfile("d", {
+          sociocultural: { tipoRelacion: ["monogamia"] },
+        }),
+      ),
+    ).toEqual({ status: "excluded", reason: "hard_filter" });
+  });
+
+  it("requires each person's conscientiousness and agreeableness to meet the threshold", () => {
+    const high = scorePair(
+      makeProfile("a", {
+        bigFive: { ...BASE_BIG_FIVE, C: 65, A: 65 },
+      }),
+      makeProfile("b", {
+        bigFive: { ...BASE_BIG_FIVE, C: 65, A: 65 },
+      }),
+    );
+    const mixed = scorePair(
+      makeProfile("c", {
+        bigFive: { ...BASE_BIG_FIVE, C: 100, A: 100 },
+      }),
+      makeProfile("d", {
+        bigFive: { ...BASE_BIG_FIVE, C: 30, A: 30 },
+      }),
+    );
+
+    expect(high.status).toBe("ok");
+    if (high.status === "ok") {
+      expect(high.reasons).toContain("high_conscientious_agreeable");
+    }
+    expect(mixed.status).toBe("ok");
+    if (mixed.status === "ok") {
+      expect(mixed.reasons).not.toContain("high_conscientious_agreeable");
+    }
   });
 
   it("treats incomplete hard-filter data as partial without excluding the pair", () => {

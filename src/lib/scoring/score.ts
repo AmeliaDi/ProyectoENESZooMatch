@@ -4,6 +4,7 @@ import { explainPair } from "@/lib/scoring/explain";
 import { scoreMbti } from "@/lib/scoring/mbti";
 import {
   hasHardFilterData,
+  hasRelationshipData,
   isHardCompatible,
   scoreOrdinalSimilarity,
   scoreSociocultural,
@@ -59,7 +60,11 @@ function evaluatePair(a: ScoringProfile, b: ScoringProfile): PairEvaluation {
   const sociocultural = scoreSociocultural(a.sociocultural, b.sociocultural);
   const missing: Array<"mbti" | "sociocultural"> = [];
   if (mbti.score === null) missing.push("mbti");
-  if (sociocultural === null || !hasHardFilterData(a.sociocultural, b.sociocultural)) {
+  if (
+    sociocultural === null ||
+    !hasHardFilterData(a.sociocultural, b.sociocultural) ||
+    !hasRelationshipData(a.sociocultural, b.sociocultural)
+  ) {
     missing.push("sociocultural");
   }
 
@@ -85,17 +90,20 @@ function evaluatePair(a: ScoringProfile, b: ScoringProfile): PairEvaluation {
     (available.sociocultural === null
       ? 0
       : appliedWeights.sociocultural * available.sociocultural);
-  const positiveTraitsAverage =
-    (a.bigFive.C + b.bigFive.C + a.bigFive.A + b.bigFive.A) /
-    (SCORING_CONFIG.bigfive.maxValue * 4);
+  const conscientiousAgreeableThreshold =
+    SCORING_CONFIG.explanation.highConscientiousAgreeableThreshold;
+  const eachProfileHasHighConscientiousnessAndAgreeableness = [a, b].every(
+    (profile) =>
+      profile.bigFive!.C / SCORING_CONFIG.bigfive.maxValue >=
+        conscientiousAgreeableThreshold &&
+      profile.bigFive!.A / SCORING_CONFIG.bigfive.maxValue >=
+        conscientiousAgreeableThreshold,
+  );
   const reasons: ReasonCode[] = [];
   if (bigFive.stabilityPenalty) reasons.push("stability_penalty");
   if (bigFive.stabilityBonus) reasons.push("stability_bonus");
   reasons.push("close_traits");
-  if (
-    positiveTraitsAverage >=
-    SCORING_CONFIG.explanation.highConscientiousAgreeableThreshold
-  ) {
+  if (eachProfileHasHighConscientiousnessAndAgreeableness) {
     reasons.push("high_conscientious_agreeable");
   }
   if (mbti.sharedAxes.length > 0) reasons.push("mbti_shared");
