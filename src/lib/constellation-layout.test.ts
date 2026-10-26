@@ -97,11 +97,11 @@ function distanceBetween(state: SimulationState, a: string, b: string): number {
 // ─── getTrackThreshold ────────────────────────────────────────────────────────
 
 describe("getTrackThreshold", () => {
-  it("reads romance threshold from matching-config-v2.json", () => {
+  it("reads romance threshold from matching-config.json", () => {
     expect(ROMANCE_THRESHOLD).toBe(0.65);
   });
 
-  it("reads amistad threshold from matching-config-v2.json", () => {
+  it("reads amistad threshold from matching-config.json", () => {
     expect(AMISTAD_THRESHOLD).toBe(0.68);
   });
 });

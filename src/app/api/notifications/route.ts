@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
 import { createClient } from "@/lib/supabase/server";
-import { parseJsonBody } from "@/lib/validation";
-import { notificationIdsSchema } from "@/lib/validation-v2";
+import { parseJsonBody } from "@/lib/validation/common";
+import { notificationIdsSchema } from "@/lib/validation/quiz";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

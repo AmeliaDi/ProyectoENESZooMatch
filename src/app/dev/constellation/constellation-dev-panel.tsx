@@ -12,8 +12,8 @@
  *
  * ─── Umbral congelado (limitación importante) ────────────────────────────────
  * El lienzo filtra las conexiones con `getTrackThreshold(track)`, cuyos valores
- * están CONGELADOS en `data/matching-config-v2.json` (romance 0.80, amistad
- * 0.75). El deslizador de "umbral" de este panel NO cambia ese valor: sólo se
+ * se leen de `data/matching-config.json`. El deslizador de "umbral" de este panel
+ * NO cambia ese valor: sólo se
  * usa para GENERAR afinidades sintéticas alrededor del número elegido (una mezcla
  * arriba/abajo). Por eso una conexión generada "arriba del umbral del panel"
  * puede no pintarse si queda abajo del umbral real del motor. El panel muestra
@@ -29,7 +29,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import catalogoData from "../../../../data/catalogo_arquetipos_v2.json";
+import catalogoData from "../../../../data/arquetipos.json";
 import {
   ConstellationView,
   type ConstellationMatchInput,
@@ -37,7 +37,7 @@ import {
 } from "@/components/constellation";
 import { getTrackThreshold } from "@/lib/constellation-layout";
 import { getAllAnimalIds, getAllColorIds } from "@/lib/pixel-sprites";
-import type { MatchTrack } from "@/types/microtest-v2";
+import type { MatchTrack } from "@/types/microtest";
 
 // ─── Catálogo (sólo lectura) ─────────────────────────────────────────────────
 
@@ -379,7 +379,7 @@ export function ConstellationDevPanel() {
           <p className="border-t border-ink/15 pt-4 text-xs leading-relaxed text-ink/55">
             El umbral del motor está <strong>congelado</strong> en
             {" "}
-            <code>matching-config-v2.json</code> (romance
+            <code>matching-config.json</code> (romance
             {" "}
             {REAL_ROMANCE_THRESHOLD.toFixed(2)}, amistad {REAL_AMISTAD_THRESHOLD.toFixed(2)}).
             El deslizador de arriba sólo genera afinidades alrededor de ese valor

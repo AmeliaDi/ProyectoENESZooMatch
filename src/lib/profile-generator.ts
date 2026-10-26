@@ -1,29 +1,17 @@
 /**
- * ZooMatch v2 — Profile Identity Generator
+ * ZooMatch — Profile Identity Generator
  * Selects animal + color based on quiz scores, generates unique empowering narrative.
  */
 
-import type { DimensionScoresV2, ProfileIdentity } from "@/types/microtest-v2";
-import { BIG_FIVE_DIMENSIONS } from "@/types/microtest-v2";
-import catalogoData from "../../data/catalogo_arquetipos_v2.json";
+import type { ArchetypeAnimal, ArchetypeCatalog, ArchetypeColor } from "@/types/archetype";
+import type { DimensionScores, ProfileIdentity } from "@/types/microtest";
+import { BIG_FIVE_DIMENSIONS } from "@/types/microtest";
+import catalogoData from "../../data/arquetipos.json";
 
 // ─── Helper Types ─────────────────────────────────────────────────────────────
 
-export interface CatalogAnimal {
-  id: string;
-  nombre_fuente: string;
-  diminutivo_es: string;
-  categoria_fauna: string;
-  personality_affinity: Record<string, number>;
-}
-
-export interface CatalogColor {
-  id: string;
-  nombre: string;
-  hex: string;
-  textura: string;
-  temperatura: string;
-}
+export type CatalogAnimal = ArchetypeAnimal;
+export type CatalogColor = ArchetypeColor;
 
 export interface DimensionAffinity {
   dimension: string;
@@ -33,8 +21,9 @@ export interface DimensionAffinity {
 
 // ─── Catalog Data ─────────────────────────────────────────────────────────────
 
-const ANIMALES: CatalogAnimal[] = catalogoData.animales as CatalogAnimal[];
-const COLORES: CatalogColor[] = catalogoData.colores as CatalogColor[];
+const catalog = catalogoData as unknown as ArchetypeCatalog;
+const ANIMALES: CatalogAnimal[] = catalog.animales;
+const COLORES: CatalogColor[] = catalog.colores;
 
 // ─── Dimension Labels (human-readable) ────────────────────────────────────────
 
@@ -480,7 +469,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
  * 3. Return the animal with highest similarity
  * 4. Tie-break: deterministic by animal id (alphabetical)
  */
-export function selectAnimal(normalizedScores: DimensionScoresV2): CatalogAnimal {
+export function selectAnimal(normalizedScores: DimensionScores): CatalogAnimal {
   const userVector = BIG_FIVE_DIMENSIONS.map((dim) => normalizedScores[dim] ?? 0);
 
   let bestAnimal: CatalogAnimal | null = null;
@@ -513,7 +502,7 @@ export function selectAnimal(normalizedScores: DimensionScoresV2): CatalogAnimal
  * 2. Within the temperature group, select based on dominant aesthetic dimension
  * 3. Deterministic selection: hash(userId + scores) % candidates.length
  */
-export function selectColor(normalizedScores: DimensionScoresV2, userId: string): CatalogColor {
+export function selectColor(normalizedScores: DimensionScores, userId: string): CatalogColor {
   const extraversion = normalizedScores.personalidad_extraversion ?? 0;
   const openness = normalizedScores.personalidad_apertura ?? 0;
   const cultural = normalizedScores.cultural_estetica_visual ?? 0;
@@ -575,7 +564,7 @@ export function selectColor(normalizedScores: DimensionScoresV2, userId: string)
  * Returns the user's top N dimensions by score (for narrative generation).
  */
 export function getTopDimensions(
-  normalizedScores: DimensionScoresV2,
+  normalizedScores: DimensionScores,
   limit: number = 3
 ): DimensionAffinity[] {
   const entries = Object.entries(normalizedScores)
@@ -682,7 +671,7 @@ export function generateAlias(animal: CatalogAnimal, color: CatalogColor, userId
  * Called after quiz scoring to produce the user's public identity.
  */
 export function generateProfileIdentity(
-  normalizedScores: DimensionScoresV2,
+  normalizedScores: DimensionScores,
   userId: string
 ): ProfileIdentity {
   const animal = selectAnimal(normalizedScores);

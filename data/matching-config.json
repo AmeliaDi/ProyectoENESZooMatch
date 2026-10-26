@@ -1,3 +1,80 @@
 {
-  "minimum_similarity_exclusive": 0.9920196533203125
+  "version": "1.0",
+  "tracks": {
+    "romance": {
+      "minimum_similarity_exclusive": 0.65,
+      "centering": 0.5,
+      "max_matches": 5,
+      "dimensions": [
+        "personalidad_apertura",
+        "personalidad_responsabilidad",
+        "personalidad_extraversion",
+        "personalidad_amabilidad",
+        "personalidad_estabilidad_emocional",
+        "identidad_exclusividad",
+        "identidad_comunicacion_afectiva",
+        "cultural_musica_exploracion",
+        "cultural_estetica_visual",
+        "cultural_hobbies_creativos",
+        "cultural_vida_universitaria",
+        "cultural_humor",
+        "intimidad_palabras_afirmacion",
+        "intimidad_tiempo_calidad",
+        "intimidad_regalos_detalle",
+        "intimidad_contacto_fisico",
+        "intimidad_actos_servicio",
+        "intimidad_apertura_emocional",
+        "intimidad_comunicacion_deseos",
+        "intimidad_limites_respeto",
+        "valores_empatia",
+        "valores_confianza",
+        "valores_gestion_conflicto",
+        "valores_igualdad_genero",
+        "valores_corresponsabilidad",
+        "valores_respeto_diversidad"
+      ],
+      "hard_filters": ["orientacion_sexual", "identidad_genero", "tipo_relacion_busca"],
+      "weights": {
+        "personalidad": 0.25,
+        "identidad": 0.05,
+        "afinidad_cultural": 0.20,
+        "intimidad_afecto": 0.25,
+        "valores_relacionales": 0.25
+      }
+    },
+    "amistad": {
+      "minimum_similarity_exclusive": 0.68,
+      "centering": 0.5,
+      "max_matches": 5,
+      "dimensions": [
+        "personalidad_apertura",
+        "personalidad_responsabilidad",
+        "personalidad_extraversion",
+        "personalidad_amabilidad",
+        "personalidad_estabilidad_emocional",
+        "cultural_musica_exploracion",
+        "cultural_estetica_visual",
+        "cultural_hobbies_creativos",
+        "cultural_vida_universitaria",
+        "cultural_humor",
+        "valores_empatia",
+        "valores_confianza",
+        "valores_gestion_conflicto",
+        "valores_igualdad_genero",
+        "valores_corresponsabilidad",
+        "valores_respeto_diversidad"
+      ],
+      "hard_filters": [],
+      "weights": {
+        "personalidad": 0.40,
+        "afinidad_cultural": 0.35,
+        "valores_relacionales": 0.25
+      }
+    }
+  },
+  "calibration": {
+    "method": "bisection",
+    "target_coverage": 0.30,
+    "max_users": 300
+  }
 }

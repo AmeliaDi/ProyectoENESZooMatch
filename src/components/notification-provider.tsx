@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { AppNotification, NotificationType } from "@/types/microtest-v2";
+import type { AppNotification, NotificationType } from "@/types/microtest";
 
 // ─── Toast variant map ────────────────────────────────────────────────────────
 
@@ -139,7 +139,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             </div>
             {visibleToast.type !== "welcome" && (
               <a
-                href="/resultado-v2"
+                href="/resultado"
                 onClick={() => dismiss(visibleToast.id)}
                 className="mt-3 inline-block text-xs font-semibold text-clay transition-colors hover:text-clay/80"
               >

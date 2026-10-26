@@ -1,14 +1,22 @@
 import { createHash } from "node:crypto";
 
-import archetypeData from "../data/arquetipos.json";
-import { cosineSimilarity } from "../src/lib/matching";
-import { MATCHING_DIMENSIONS, type MatchingDimension } from "../src/types/microtest";
-import type { Archetype, ArchetypeCatalog, MbtiCode } from "../src/types/archetype";
+import catalogue from "../data/arquetipos.json";
+import { MATCHING_CONFIG, trackSimilarity } from "../src/lib/matching/engine";
+import {
+  FRIENDSHIP_VECTOR_DIMENSIONS,
+  ROMANCE_VECTOR_DIMENSIONS,
+  type Dimension,
+  type DimensionScores,
+  type HardFilters,
+  type MatchTrack,
+  type ScoredProfile,
+} from "../src/types/microtest";
+import type { ArchetypeCatalog, MbtiCode } from "../src/types/archetype";
 
 export const SYNTHETIC_PROFILE_COUNT = 500;
 export const SYNTHETIC_SEED = 0x5a4f4f4d;
-export const INITIAL_MATCH_THRESHOLD = 0.85;
 export const TARGET_COVERAGE_RATE = 0.2;
+export const COVERAGE_BAND = { minimum: 0.05, maximum: 0.4 } as const;
 
 const MBTI_CODES: readonly MbtiCode[] = [
   "INTJ", "INTP", "ENTJ", "ENTP",
@@ -17,23 +25,37 @@ const MBTI_CODES: readonly MbtiCode[] = [
   "ISTP", "ISFP", "ESTP", "ESFP",
 ];
 
-const archetypes = (archetypeData as unknown as ArchetypeCatalog).arquetipos;
-const archetypeByCode = new Map(archetypes.map((archetype) => [archetype.codigo_mbti, archetype]));
+const ANIMALS = (catalogue as unknown as ArchetypeCatalog).animales;
+const COLORS = (catalogue as unknown as ArchetypeCatalog).colores;
 
-type MbtiPreference = "extraversion" | "intuicion" | "pensamiento" | "juicio";
 type RandomSource = () => number;
+
+interface LatentFactors {
+  social: number;
+  exploration: number;
+  order: number;
+  empathy: number;
+  stability: number;
+  equality: number;
+  expression: number;
+  intimacy: number;
+}
 
 export interface SyntheticProfile {
   matricula: `SIM-${string}`;
   alias: string;
-  archetypeId: string;
+  animalId: string;
+  colorId: string;
   mbtiCode: MbtiCode;
-  mbtiPreferences: Record<MbtiPreference, number>;
-  dimensionScores: Record<MatchingDimension, number>;
-  matchingVector: number[];
+  dimensionScores: DimensionScores;
+  hardFilters: HardFilters;
+  romanceVector: number[];
+  friendshipVector: number[];
+  scoredProfile: ScoredProfile;
 }
 
 export interface PairAnalysis {
+  track: MatchTrack;
   pairCount: number;
   similarities: number[];
   maximumSimilarities: number[];
@@ -54,15 +76,6 @@ export interface CalibrationResult {
   final: CoverageMeasurement;
   targetCoverageRate: number;
   iterations: number;
-}
-
-interface LatentFactors {
-  social: number;
-  exploration: number;
-  order: number;
-  empathy: number;
-  stability: number;
-  equality: number;
 }
 
 function createRandom(seed: number): RandomSource {
@@ -94,63 +107,9 @@ function truncatedNormal(
   for (let attempt = 0; attempt < 10_000; attempt += 1) {
     const zScore = sharedComponent + residualWeight * standardNormal(random);
     const value = mean + standardDeviation * zScore;
-    if (value >= minimum && value <= maximum) {
-      return value;
-    }
+    if (value >= minimum && value <= maximum) return value;
   }
-
   throw new Error("Unable to sample the configured truncated normal distribution");
-}
-
-function shuffledBalancedMbtiCodes(random: RandomSource): MbtiCode[] {
-  const codes = Array.from(
-    { length: SYNTHETIC_PROFILE_COUNT },
-    (_, index) => MBTI_CODES[index % MBTI_CODES.length]!,
-  );
-
-  for (let index = codes.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(random() * (index + 1));
-    [codes[index], codes[swapIndex]] = [codes[swapIndex]!, codes[index]!];
-  }
-
-  return codes;
-}
-
-function getArchetype(code: MbtiCode): Archetype {
-  const archetype = archetypeByCode.get(code);
-  if (!archetype) {
-    throw new Error(`Missing archetype for ${code}`);
-  }
-  return archetype;
-}
-
-function preferenceFor(
-  random: RandomSource,
-  positive: boolean,
-  factor: number,
-): number {
-  const lower = positive ? 0.500_001 : 0;
-  const upper = positive ? 1 : 0.499_999;
-  return truncatedNormal(
-    random,
-    positive ? 0.68 : 0.32,
-    0.17,
-    0.48 * factor,
-    Math.sqrt(1 - 0.48 ** 2),
-    lower,
-    upper,
-  );
-}
-
-function generateLatentFactors(random: RandomSource): LatentFactors {
-  return {
-    social: standardNormal(random),
-    exploration: standardNormal(random),
-    order: standardNormal(random),
-    empathy: standardNormal(random),
-    stability: standardNormal(random),
-    equality: standardNormal(random),
-  };
 }
 
 function sampleScore(
@@ -169,75 +128,172 @@ function sampleScore(
     mean,
     standardDeviation,
     sharedComponent,
-    Math.sqrt(1 - sharedVariance),
+    Math.sqrt(Math.max(0, 1 - sharedVariance)),
   );
+}
+
+function preferenceFor(
+  random: RandomSource,
+  positive: boolean,
+  factor: number,
+): number {
+  return truncatedNormal(
+    random,
+    positive ? 0.68 : 0.32,
+    0.16,
+    0.5 * factor,
+    Math.sqrt(1 - 0.5 ** 2),
+    positive ? 0.500_001 : 0,
+    positive ? 1 : 0.499_999,
+  );
+}
+
+function generateLatentFactors(random: RandomSource): LatentFactors {
+  return {
+    social: standardNormal(random),
+    exploration: standardNormal(random),
+    order: standardNormal(random),
+    empathy: standardNormal(random),
+    stability: standardNormal(random),
+    equality: standardNormal(random),
+    expression: standardNormal(random),
+    intimacy: standardNormal(random),
+  };
+}
+
+function shuffledBalancedMbtiCodes(random: RandomSource): MbtiCode[] {
+  const codes = Array.from(
+    { length: SYNTHETIC_PROFILE_COUNT },
+    (_, index) => MBTI_CODES[index % MBTI_CODES.length]!,
+  );
+  for (let index = codes.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [codes[index], codes[swapIndex]] = [codes[swapIndex]!, codes[index]!];
+  }
+  return codes;
 }
 
 function generateDimensionScores(
   random: RandomSource,
   factors: LatentFactors,
-): Record<MatchingDimension, number> {
-  return {
-    bigfive_apertura: sampleScore(random, 0.56, 0.18, [
+  mbtiCode: MbtiCode,
+): DimensionScores {
+  const scores: Record<Dimension, number> = {
+    personalidad_apertura: sampleScore(random, 0.56, 0.17, [
       [0.58, factors.exploration],
       [0.16, factors.equality],
     ]),
-    bigfive_responsabilidad: sampleScore(random, 0.58, 0.17, [
+    personalidad_responsabilidad: sampleScore(random, 0.58, 0.16, [
       [0.57, factors.order],
       [0.18, factors.stability],
     ]),
-    bigfive_extraversion: sampleScore(random, 0.5, 0.2, [
-      [0.62, factors.social],
-    ]),
-    bigfive_amabilidad: sampleScore(random, 0.61, 0.16, [
+    personalidad_extraversion: sampleScore(random, 0.5, 0.19, [[0.62, factors.social]]),
+    personalidad_amabilidad: sampleScore(random, 0.61, 0.16, [
       [0.5, factors.empathy],
       [0.22, factors.stability],
     ]),
-    bigfive_neuroticismo: sampleScore(random, 0.43, 0.19, [
-      [-0.6, factors.stability],
+    personalidad_estabilidad_emocional: sampleScore(random, 0.62, 0.17, [
+      [0.6, factors.stability],
+      [0.15, factors.empathy],
     ]),
-    relaciones_comunicacion: sampleScore(random, 0.62, 0.16, [
-      [0.36, factors.social],
-      [0.38, factors.empathy],
-      [0.2, factors.stability],
+    mbti_extraversion: preferenceFor(random, mbtiCode[0] === "E", factors.social),
+    mbti_intuicion: preferenceFor(random, mbtiCode[1] === "N", factors.exploration),
+    mbti_pensamiento: preferenceFor(random, mbtiCode[2] === "T", -factors.empathy),
+    mbti_juicio: preferenceFor(random, mbtiCode[3] === "J", factors.order),
+    identidad_exclusividad: sampleScore(random, 0.55, 0.17, [
+      [0.4, factors.stability],
+      [0.3, factors.order],
     ]),
-    relaciones_confianza: sampleScore(random, 0.6, 0.17, [
+    identidad_comunicacion_afectiva: sampleScore(random, 0.6, 0.16, [
+      [0.45, factors.empathy],
+      [0.35, factors.expression],
+    ]),
+    cultural_musica_exploracion: sampleScore(random, 0.62, 0.17, [
+      [0.5, factors.exploration],
+      [0.25, factors.expression],
+    ]),
+    cultural_estetica_visual: sampleScore(random, 0.6, 0.17, [
+      [0.55, factors.exploration],
+      [0.2, factors.expression],
+    ]),
+    cultural_hobbies_creativos: sampleScore(random, 0.58, 0.18, [
+      [0.5, factors.exploration],
+      [0.25, factors.intimacy],
+    ]),
+    cultural_vida_universitaria: sampleScore(random, 0.6, 0.17, [
+      [0.45, factors.social],
+      [0.3, factors.exploration],
+    ]),
+    cultural_humor: sampleScore(random, 0.64, 0.16, [
+      [0.45, factors.social],
+      [0.3, factors.expression],
+    ]),
+    intimidad_palabras_afirmacion: sampleScore(random, 0.6, 0.16, [
+      [0.5, factors.expression],
+      [0.25, factors.empathy],
+    ]),
+    intimidad_tiempo_calidad: sampleScore(random, 0.62, 0.16, [
+      [0.5, factors.intimacy],
+      [0.25, factors.stability],
+    ]),
+    intimidad_regalos_detalle: sampleScore(random, 0.58, 0.17, [
+      [0.45, factors.expression],
+      [0.3, factors.empathy],
+    ]),
+    intimidad_contacto_fisico: sampleScore(random, 0.57, 0.18, [
+      [0.5, factors.intimacy],
+      [0.25, factors.social],
+    ]),
+    intimidad_actos_servicio: sampleScore(random, 0.6, 0.16, [
+      [0.45, factors.empathy],
+      [0.3, factors.order],
+    ]),
+    intimidad_apertura_emocional: sampleScore(random, 0.58, 0.17, [
+      [0.5, factors.expression],
+      [0.3, factors.stability],
+    ]),
+    intimidad_comunicacion_deseos: sampleScore(random, 0.58, 0.17, [
+      [0.5, factors.expression],
+      [0.25, factors.intimacy],
+    ]),
+    intimidad_limites_respeto: sampleScore(random, 0.66, 0.15, [
+      [0.45, factors.empathy],
+      [0.3, factors.stability],
+    ]),
+    valores_empatia: sampleScore(random, 0.64, 0.16, [[0.64, factors.empathy]]),
+    valores_confianza: sampleScore(random, 0.6, 0.17, [
       [0.56, factors.stability],
       [0.24, factors.empathy],
     ]),
-    relaciones_empatia: sampleScore(random, 0.64, 0.16, [
-      [0.64, factors.empathy],
-    ]),
-    relaciones_gestion_conflicto: sampleScore(random, 0.61, 0.16, [
+    valores_gestion_conflicto: sampleScore(random, 0.61, 0.16, [
       [0.4, factors.empathy],
       [0.38, factors.stability],
       [0.2, factors.order],
     ]),
-    genero_igualdad: sampleScore(random, 0.72, 0.14, [
+    valores_igualdad_genero: sampleScore(random, 0.72, 0.14, [
       [0.62, factors.equality],
       [0.2, factors.empathy],
     ]),
-    genero_flexibilidad_roles: sampleScore(random, 0.69, 0.15, [
-      [0.56, factors.equality],
-      [0.28, factors.exploration],
-    ]),
-    genero_respeto_diversidad: sampleScore(random, 0.73, 0.14, [
-      [0.58, factors.equality],
-      [0.26, factors.empathy],
-    ]),
-    genero_corresponsabilidad: sampleScore(random, 0.7, 0.14, [
+    valores_corresponsabilidad: sampleScore(random, 0.7, 0.14, [
       [0.56, factors.equality],
       [0.26, factors.order],
     ]),
+    valores_respeto_diversidad: sampleScore(random, 0.73, 0.14, [
+      [0.58, factors.equality],
+      [0.26, factors.empathy],
+    ]),
   };
+  return scores;
 }
 
-function deterministicAlias(seed: number, matricula: string, archetype: Archetype): string {
+function deterministicAlias(seed: number, matricula: string, index: number): string {
+  const animal = ANIMALS[index % ANIMALS.length]!;
+  const color = COLORS[(index * 7) % COLORS.length]!;
   const suffix = createHash("sha256")
-    .update(`${seed}:${matricula}:${archetype.id}`, "utf8")
+    .update(`${seed}:${matricula}:${animal.id}:${color.id}`, "utf8")
     .digest("hex")
-    .slice(0, 10);
-  return `${archetype.id}-${suffix}`;
+    .slice(0, 6);
+  return `${animal.diminutivo_es} ${color.nombre.toLowerCase()} · ${String(index + 1).padStart(3, "0")}${suffix}`;
 }
 
 export function generateSyntheticProfiles(seed = SYNTHETIC_SEED): SyntheticProfile[] {
@@ -246,40 +302,68 @@ export function generateSyntheticProfiles(seed = SYNTHETIC_SEED): SyntheticProfi
 
   return codes.map((mbtiCode, index) => {
     const factors = generateLatentFactors(random);
-    const archetype = getArchetype(mbtiCode);
+    const dimensionScores = generateDimensionScores(random, factors, mbtiCode);
     const matricula = `SIM-${String(index + 1).padStart(6, "0")}` as const;
-    const dimensionScores = generateDimensionScores(random, factors);
-    const mbtiPreferences = {
-      extraversion: preferenceFor(random, mbtiCode[0] === "E", factors.social),
-      intuicion: preferenceFor(random, mbtiCode[1] === "N", factors.exploration),
-      pensamiento: preferenceFor(random, mbtiCode[2] === "T", -factors.empathy),
-      juicio: preferenceFor(random, mbtiCode[3] === "J", factors.order),
+    const animal = ANIMALS[index % ANIMALS.length]!;
+    const color = COLORS[(index * 7) % COLORS.length]!;
+    const hardFilters: HardFilters = {
+      orientacion_sexual: ["todxs"],
+      identidad_genero: [index % 2 === 0 ? "mujer" : "hombre"],
+      tipo_relacion_busca: ["sin_definir"],
     };
+    const romanceVector = ROMANCE_VECTOR_DIMENSIONS.map(
+      (dimension) => dimensionScores[dimension],
+    );
+    const friendshipVector = FRIENDSHIP_VECTOR_DIMENSIONS.map(
+      (dimension) => dimensionScores[dimension],
+    );
 
     return {
       matricula,
-      alias: deterministicAlias(seed, matricula, archetype),
-      archetypeId: archetype.id,
+      alias: deterministicAlias(seed, matricula, index),
+      animalId: animal.id,
+      colorId: color.id,
       mbtiCode,
-      mbtiPreferences,
       dimensionScores,
-      matchingVector: MATCHING_DIMENSIONS.map((dimension) => dimensionScores[dimension]),
+      hardFilters,
+      romanceVector,
+      friendshipVector,
+      scoredProfile: {
+        rawScores: dimensionScores,
+        normalizedScores: dimensionScores,
+        mbtiCode,
+        hardFilters,
+        romanceVector,
+        friendshipVector,
+      },
     };
   });
 }
 
-export function analyzeProfilePairs(profiles: readonly SyntheticProfile[]): PairAnalysis {
+/**
+ * Computes every unordered pair once for a track. Synthetic profiles share
+ * compatible hard filters (orientation wildcard + `sin_definir`), so the
+ * analysis is purely dimensional.
+ */
+export function analyzeTrackPairs(
+  profiles: readonly SyntheticProfile[],
+  track: MatchTrack,
+): PairAnalysis {
   const similarities: number[] = [];
   const maximumSimilarities = Array.from({ length: profiles.length }, () => 0);
+  const config = MATCHING_CONFIG.tracks[track];
   let minimumSimilarity = Number.POSITIVE_INFINITY;
   let maximumSimilarity = Number.NEGATIVE_INFINITY;
 
   for (let firstIndex = 0; firstIndex < profiles.length; firstIndex += 1) {
+    const first = profiles[firstIndex]!;
+    const firstVector =
+      track === "romance" ? first.romanceVector : first.friendshipVector;
     for (let secondIndex = firstIndex + 1; secondIndex < profiles.length; secondIndex += 1) {
-      const similarity = cosineSimilarity(
-        profiles[firstIndex]!.matchingVector,
-        profiles[secondIndex]!.matchingVector,
-      );
+      const second = profiles[secondIndex]!;
+      const secondVector =
+        track === "romance" ? second.romanceVector : second.friendshipVector;
+      const similarity = trackSimilarity(firstVector, secondVector, config);
       similarities.push(similarity);
       maximumSimilarities[firstIndex] = Math.max(maximumSimilarities[firstIndex]!, similarity);
       maximumSimilarities[secondIndex] = Math.max(maximumSimilarities[secondIndex]!, similarity);
@@ -289,6 +373,7 @@ export function analyzeProfilePairs(profiles: readonly SyntheticProfile[]): Pair
   }
 
   return {
+    track,
     pairCount: similarities.length,
     similarities,
     maximumSimilarities,
@@ -314,13 +399,21 @@ export function measureCoverage(
   };
 }
 
-export function calibrateMatchingThreshold(
+/**
+ * If the active threshold lands outside the 5%–40% success band, bisects a new
+ * threshold that reaches {@link TARGET_COVERAGE_RATE}. The matching engine keeps
+ * its own configured threshold; this function reports the calibration only.
+ */
+export function calibrateThreshold(
   analysis: PairAnalysis,
-  initialThreshold = INITIAL_MATCH_THRESHOLD,
+  initialThreshold = MATCHING_CONFIG.tracks[analysis.track].minimum_similarity_exclusive,
   targetCoverageRate = TARGET_COVERAGE_RATE,
 ): CalibrationResult {
   const initial = measureCoverage(analysis, initialThreshold);
-  if (initial.userCoverageRate >= 0.05 && initial.userCoverageRate <= 0.4) {
+  if (
+    initial.userCoverageRate >= COVERAGE_BAND.minimum &&
+    initial.userCoverageRate <= COVERAGE_BAND.maximum
+  ) {
     return {
       calibrated: false,
       initial,
@@ -340,9 +433,7 @@ export function calibrateMatchingThreshold(
     const measurement = measureCoverage(analysis, threshold);
     const difference = Math.abs(measurement.userCoverageRate - targetCoverageRate);
     const bestDifference = Math.abs(best.userCoverageRate - targetCoverageRate);
-    if (difference < bestDifference) {
-      best = measurement;
-    }
+    if (difference < bestDifference) best = measurement;
 
     if (measurement.userCoverageRate > targetCoverageRate) {
       lowerThreshold = threshold;

@@ -9,7 +9,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ConstellationEdge, ConstellationNode, SimulationState } from "@/lib/constellation-layout";
-import type { CompatibilityBadge } from "@/types/microtest-v2";
+import type { CompatibilityBadge } from "@/types/microtest";
 
 import {
   AMBIENT_FRAME_DIVIDER,

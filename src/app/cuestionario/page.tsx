@@ -1,5 +1,8 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { PublicQuiz } from "@/components/public-experience";
 
-export default function QuizPage() {
-  redirect("/cuestionario-v2");
+export const metadata: Metadata = { title: "Microtest | ZooMatch" };
+
+export default function CuestionarioPage() {
+  return <PublicQuiz />;
 }

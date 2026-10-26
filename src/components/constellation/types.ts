@@ -4,7 +4,7 @@
  * This module is the ONLY data surface Phase C needs to care about. Everything
  * below is data-agnostic: the components never fetch, never read Supabase and
  * never import the matching engine directly. Phase C feeds them from
- * `GET /api/result-v2` (the same payload `PublicResultViewV2` already parses).
+ * `GET /api/result` (the same payload `PublicResultView` already parses).
  *
  * Design rules for this contract:
  * - All user-facing copy produced from these fields is es-MX, warm and inclusive.
@@ -14,11 +14,11 @@
  *   on purpose: the sprite engine needs ids, screen readers need words.
  * - `similarity` is the raw 0-1 track similarity, NOT a percentage.
  * - Thresholds are never part of this contract; the canvas reads them from
- *   `getTrackThreshold(track)` (which reads `data/matching-config-v2.json`).
+ *   `getTrackThreshold(track)` (which reads `data/matching-config.json`).
  */
 
 import type { MatchExplanation } from "@/lib/explainability";
-import type { CompatibilityBadge, MatchTrack } from "@/types/microtest-v2";
+import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 import type { CSSProperties } from "react";
 
 // ─── Node input (the unified shape) ──────────────────────────────────────────

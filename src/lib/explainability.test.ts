@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import { computeChemistrySummary } from "./explainability";
-import { getMatchingConfigV2 } from "./matching-config-v2";
-import type { MatchTrack } from "@/types/microtest-v2";
+import { getMatchingConfig } from "./matching/config";
+import type { MatchTrack } from "@/types/microtest";
 
-const config = getMatchingConfigV2();
+const config = getMatchingConfig();
 
 function similarityAt(track: MatchTrack, relative: number): number {
   const threshold = config.tracks[track].minimum_similarity_exclusive;

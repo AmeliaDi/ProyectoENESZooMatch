@@ -15,19 +15,19 @@ import {
 
 import {
   MBTI_CODES,
-  adminMetricsV2ToCsv,
-  parseAdminMetricsV2,
+  adminMetricsToCsv,
+  parseAdminMetrics,
   trackCoverageRate,
-  type AdminMetricsV2,
-} from "@/lib/admin-dashboard-v2";
+  type AdminMetrics,
+} from "@/lib/admin/dashboard";
 
 interface AdminDashboardProps {
-  initialData: AdminMetricsV2 | null;
+  initialData: AdminMetrics | null;
 }
 
 const chartColors = ["#c7e879", "#8fae66", "#ef936d", "#6aa6a0"];
 
-function emptyMetrics(): AdminMetricsV2 {
+function emptyMetrics(): AdminMetrics {
   return {
     generatedAt: new Date(0).toISOString(),
     romanceThreshold: 0.65,
@@ -51,7 +51,7 @@ function utcStamp(value: string): string {
 
 export function AdminDashboard({ initialData }: AdminDashboardProps) {
   const router = useRouter();
-  const [metrics, setMetrics] = useState<AdminMetricsV2 | null>(initialData);
+  const [metrics, setMetrics] = useState<AdminMetrics | null>(initialData);
   const [status, setStatus] = useState<"idle" | "refreshing" | "error">(
     initialData ? "idle" : "error",
   );
@@ -73,7 +73,7 @@ export function AdminDashboard({ initialData }: AdminDashboardProps) {
     if (!silent) setStatus("refreshing");
 
     try {
-      const response = await fetch("/api/admin/metrics-v2", {
+      const response = await fetch("/api/admin/metrics", {
         cache: "no-store",
         credentials: "same-origin",
         signal: AbortSignal.timeout(10000),
@@ -84,7 +84,7 @@ export function AdminDashboard({ initialData }: AdminDashboardProps) {
       }
       if (!response.ok) throw new Error("metrics_unavailable");
 
-      const parsed = parseAdminMetricsV2(await response.json());
+      const parsed = parseAdminMetrics(await response.json());
       if (!parsed) throw new Error("invalid_metrics");
       if (mounted.current) {
         setMetrics(parsed);
@@ -111,7 +111,7 @@ export function AdminDashboard({ initialData }: AdminDashboardProps) {
 
   function downloadCsv() {
     if (!metrics) return;
-    const blob = new Blob([adminMetricsV2ToCsv(metrics)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([adminMetricsToCsv(metrics)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -124,7 +124,7 @@ export function AdminDashboard({ initialData }: AdminDashboardProps) {
     if (recomputing) return;
     setRecomputing(true);
     try {
-      const response = await fetch("/api/admin/recompute-v2", {
+      const response = await fetch("/api/admin/recompute", {
         method: "POST",
         cache: "no-store",
         credentials: "same-origin",

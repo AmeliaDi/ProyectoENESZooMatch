@@ -11,10 +11,10 @@ import {
   type CatalogColor,
   type DimensionAffinity,
 } from "@/lib/profile-generator";
-import { ALL_DIMENSIONS_V2, BIG_FIVE_DIMENSIONS } from "@/types/microtest-v2";
-import type { DimensionScoresV2 } from "@/types/microtest-v2";
+import { ALL_DIMENSIONS, BIG_FIVE_DIMENSIONS } from "@/types/microtest";
+import type { DimensionScores } from "@/types/microtest";
 
-import catalogo from "../../data/catalogo_arquetipos_v2.json";
+import catalogo from "../../data/arquetipos.json";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -41,15 +41,15 @@ function colorById(id: string): CatalogColor {
 }
 
 /** Every one of the 30 scoring dimensions set to the same normalized value. */
-function uniformScores(value = 0.5): DimensionScoresV2 {
-  return Object.fromEntries(ALL_DIMENSIONS_V2.map((dimension) => [dimension, value])) as
-    DimensionScoresV2;
+function uniformScores(value = 0.5): DimensionScores {
+  return Object.fromEntries(ALL_DIMENSIONS.map((dimension) => [dimension, value])) as
+    DimensionScores;
 }
 
-function scored(overrides: Partial<Record<string, number>>, base = 0.5): DimensionScoresV2 {
+function scored(overrides: Partial<Record<string, number>>, base = 0.5): DimensionScores {
   return Object.fromEntries(
-    ALL_DIMENSIONS_V2.map((dimension) => [dimension, overrides[dimension] ?? base]),
-  ) as DimensionScoresV2;
+    ALL_DIMENSIONS.map((dimension) => [dimension, overrides[dimension] ?? base]),
+  ) as DimensionScores;
 }
 
 function bigFiveVector(animal: CatalogAnimal): number[] {
@@ -86,7 +86,7 @@ const TOP_DIMENSIONS: DimensionAffinity[] = [
 // ─── Animal selection ─────────────────────────────────────────────────────────
 
 describe("selectAnimal", () => {
-  it("returns a complete entry from the v2 catalog", () => {
+  it("returns a complete entry from the catalogue", () => {
     const animal = selectAnimal(uniformScores());
 
     expect(CATALOG_ANIMALS).toHaveLength(catalogo.metadatos.total_animales);
@@ -356,18 +356,18 @@ describe("getTopDimensions", () => {
   it("honours the requested limit and never exceeds the dimension count", () => {
     expect(getTopDimensions(uniformScores(), 1)).toHaveLength(1);
     expect(getTopDimensions(uniformScores(), 8)).toHaveLength(8);
-    expect(getTopDimensions(uniformScores(), ALL_DIMENSIONS_V2.length)).toHaveLength(
-      ALL_DIMENSIONS_V2.length,
+    expect(getTopDimensions(uniformScores(), ALL_DIMENSIONS.length)).toHaveLength(
+      ALL_DIMENSIONS.length,
     );
-    expect(getTopDimensions(uniformScores(), ALL_DIMENSIONS_V2.length + 25)).toHaveLength(
-      ALL_DIMENSIONS_V2.length,
+    expect(getTopDimensions(uniformScores(), ALL_DIMENSIONS.length + 25)).toHaveLength(
+      ALL_DIMENSIONS.length,
     );
     expect(getTopDimensions(uniformScores(), 0)).toHaveLength(0);
   });
 
   it("covers every scored dimension when nothing is filtered out", () => {
-    const all = getTopDimensions(uniformScores(), ALL_DIMENSIONS_V2.length);
+    const all = getTopDimensions(uniformScores(), ALL_DIMENSIONS.length);
 
-    expect(all.map((entry) => entry.dimension).sort()).toEqual([...ALL_DIMENSIONS_V2].sort());
+    expect(all.map((entry) => entry.dimension).sort()).toEqual([...ALL_DIMENSIONS].sort());
   });
 });

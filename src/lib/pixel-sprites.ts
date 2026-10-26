@@ -3,9 +3,8 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Pure TypeScript, zero runtime dependencies, zero randomness.
  *
- * Every animal in `catalogo_arquetipos_v2.json` (61) plus every v1 archetype in
- * `arquetipos.json` (16) is rendered as a 12×12 pixel sprite built from one of
- * 12 shape families. The whole pipeline is a pure function of
+ * Every animal in `arquetipos.json` (61) is rendered as a 12×12 pixel sprite
+ * built from one of 12 shape families. The whole pipeline is a pure function of
  * `(animalId, colorId, frame)`.
  *
  * Pipeline (steps 1-4 and 6 operate on the LEFT HALF only)
@@ -27,8 +26,7 @@
  * See the proof sketch above `enforceDistinctness`.
  */
 
-import arquetiposV1 from "../../data/arquetipos.json";
-import catalogoData from "../../data/catalogo_arquetipos_v2.json";
+import catalogoData from "../../data/arquetipos.json";
 
 // ─── Public constants ─────────────────────────────────────────────────────────
 
@@ -100,36 +98,22 @@ export const ALL_FRAMES: readonly AnimationFrame[] = [
 
 // ─── Catalogue shapes ─────────────────────────────────────────────────────────
 
-interface CatalogAnimalV2 {
+interface CatalogAnimal {
   id: string;
   nombre_fuente: string;
   diminutivo_es: string;
   categoria_fauna: string;
 }
 
-interface CatalogColorV2 {
+interface CatalogColor {
   id: string;
   nombre: string;
   hex: string;
   textura: string;
 }
 
-interface V1PaletteEntry {
-  nombre: string;
-  hex: string;
-}
-
-interface V1Archetype {
-  id: string;
-  codigo_mbti: string;
-  animal: { nombre_fuente: string; diminutivo_es: string };
-  paleta: V1PaletteEntry[];
-  color_principal: { nombre: string; hex: string };
-}
-
-const CATALOG_ANIMALS = catalogoData.animales as unknown as CatalogAnimalV2[];
-const CATALOG_COLORS = catalogoData.colores as unknown as CatalogColorV2[];
-const V1_ARCHETYPES = arquetiposV1.arquetipos as unknown as V1Archetype[];
+const CATALOG_ANIMALS = catalogoData.animales as unknown as CatalogAnimal[];
+const CATALOG_COLORS = catalogoData.colores as unknown as CatalogColor[];
 
 // ─── Internal cell vocabulary ─────────────────────────────────────────────────
 
@@ -482,29 +466,9 @@ const CATALOG_FAMILY: Record<string, ShapeFamily> = {
   flamenco: "exotico",
 };
 
-/** All 16 v1 archetypes, keyed by their archetype `id`. */
-const V1_FAMILY: Record<string, ShapeFamily> = {
-  "pulpito-azul-abisal": "marino",
-  "buhito-indigo-nocturno": "ave",
-  "leoncito-granate-imperial": "felino",
-  "zorrito-mandarina-electrica": "canino",
-  "lobito-verde-bosque": "canino",
-  "venadito-rosa-brezo": "ungulado",
-  "perrito-frambuesa": "canino",
-  "delfincito-amarillo-sol": "marino",
-  "hormiguita-azul-pizarra": "insecto",
-  "elefantito-verde-eucalipto": "exotico",
-  "suricatita-azul-uniforme": "canino",
-  "ballenita-coral-amable": "marino",
-  "gatito-grafito": "felino",
-  "pandita-jade-suave": "oso",
-  "guepardito-rojo-cinetico": "felino",
-  "nutriita-fucsia-tropical": "marino",
-};
-
 /**
- * Extra diminutives that only exist in v1 (or are plausible future entries),
- * used by the fuzzy fallback in `getAnimalFamily`.
+ * Extra diminutives that are plausible future entries, used by the fuzzy
+ * fallback in `getAnimalFamily`.
  */
 const EXTRA_DIMINUTIVE_FAMILY: Record<string, ShapeFamily> = {
   elefantito: "exotico",
@@ -631,21 +595,10 @@ const CATEGORY_BY_ID = new Map<string, string>(
   CATALOG_ANIMALS.map((animal) => [animal.id, animal.categoria_fauna]),
 );
 
-const V1_ARCHETYPE_IDS: string[] = V1_ARCHETYPES.map(
-  (archetype) => archetype.id,
-).filter((id) => !CATALOG_ANIMAL_IDS.includes(id));
+const ALL_ANIMAL_IDS: string[] = [...CATALOG_ANIMAL_IDS];
 
-const ALL_ANIMAL_IDS: string[] = [
-  ...CATALOG_ANIMAL_IDS,
-  ...V1_ARCHETYPE_IDS,
-];
-
-const COLOR_BY_ID = new Map<string, CatalogColorV2>(
+const COLOR_BY_ID = new Map<string, CatalogColor>(
   CATALOG_COLORS.map((color) => [color.id, color]),
-);
-
-const V1_BY_ID = new Map<string, V1Archetype>(
-  V1_ARCHETYPES.map((archetype) => [archetype.id, archetype]),
 );
 
 /** Deterministic, colour-independent fallbacks for unknown `colorId` values. */
@@ -1370,10 +1323,6 @@ const DIMINUTIVE_FAMILY: Record<string, ShapeFamily> = (() => {
     const family = CATALOG_FAMILY[animal.id];
     if (family) table[slugify(animal.diminutivo_es)] = family;
   }
-  for (const archetype of V1_ARCHETYPES) {
-    const family = V1_FAMILY[archetype.id];
-    if (family) table[slugify(archetype.animal.diminutivo_es)] = family;
-  }
   return table;
 })();
 
@@ -1383,7 +1332,7 @@ const DIMINUTIVE_KEYS: string[] = Object.keys(DIMINUTIVE_FAMILY).sort(
 );
 
 function resolveFamily(animalId: string): ShapeFamily {
-  const direct = CATALOG_FAMILY[animalId] ?? V1_FAMILY[animalId];
+  const direct = CATALOG_FAMILY[animalId];
   if (direct) return direct;
 
   // `categoria_fauna` is the catalogue's own coarse guide.
@@ -1479,16 +1428,16 @@ function shadeTones(rgb: [number, number, number]): Omit<Tones, "base"> {
   };
 }
 
-const COLOR_BY_SLUG = new Map<string, CatalogColorV2>(
+const COLOR_BY_SLUG = new Map<string, CatalogColor>(
   CATALOG_COLORS.map((color) => [slugify(color.nombre), color]),
 );
 
 /**
  * Resolves a `colorId` to a hex + textura pair.
  *
- * Accepts, in order: exact catalogue id, slugified catalogue `nombre`, the
- * v1 archetype's own palette (`"auto"` or a palette colour name), and finally a
- * deterministic fallback derived from the id so a sprite is always produced.
+ * Accepts, in order: exact catalogue id, slugified catalogue `nombre`, and
+ * finally a deterministic fallback derived from the id so a sprite is always
+ * produced.
  */
 function resolveColorEntry(colorId: string, animalId: string): ResolvedColor {
   const byId = COLOR_BY_ID.get(colorId);
@@ -1496,23 +1445,6 @@ function resolveColorEntry(colorId: string, animalId: string): ResolvedColor {
 
   const bySlug = COLOR_BY_SLUG.get(slugify(colorId));
   if (bySlug) return { hex: bySlug.hex, textura: bySlug.textura, key: colorId };
-
-  const archetype = V1_BY_ID.get(animalId);
-  if (archetype) {
-    if (colorId === "auto") {
-      return {
-        hex: archetype.color_principal.hex,
-        textura: "sedosa",
-        key: colorId,
-      };
-    }
-    const paletteMatch = archetype.paleta.find(
-      (entry) => slugify(entry.nombre) === slugify(colorId),
-    );
-    if (paletteMatch) {
-      return { hex: paletteMatch.hex, textura: "sedosa", key: colorId };
-    }
-  }
 
   const hash = simpleHash(`${colorId}|${animalId}`);
   return {
@@ -1650,12 +1582,12 @@ export function getAnimalFamily(animalId: string): ShapeFamily {
   return resolveFamily(animalId);
 }
 
-/** Every registered animal id: the 61 v2 catalogue animals plus the 16 v1 archetypes. */
+/** Every registered animal id from the catalogue. */
 export function getAllAnimalIds(): string[] {
   return ALL_ANIMAL_IDS.slice();
 }
 
-/** Every registered colour id from the v2 catalogue. */
+/** Every registered colour id from the catalogue. */
 export function getAllColorIds(): string[] {
   return CATALOG_COLORS.map((color) => color.id);
 }

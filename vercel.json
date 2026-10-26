@@ -1,10 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "src/app/api/quiz-v2/route.ts": {
+    "src/app/api/quiz/route.ts": {
       "maxDuration": 60
     },
-    "src/app/api/admin/recompute-v2/route.ts": {
+    "src/app/api/admin/recompute/route.ts": {
       "maxDuration": 60
     }
   }

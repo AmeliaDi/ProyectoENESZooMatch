@@ -12,7 +12,7 @@
  */
 
 import type { ConstellationEdge, SimulationState } from "@/lib/constellation-layout";
-import type { CompatibilityBadge, MatchTrack } from "@/types/microtest-v2";
+import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 
 import { CONSTELLATION_COPY } from "./types";
 import type { ConstellationMatchInput, ConstellationSelfInput } from "./types";
@@ -58,7 +58,7 @@ export const MAX_STEPS_PER_FRAME = 3;
  */
 export const SIZE_DEBOUNCE_MS = 220;
 
-/** Badge caps per track, mirroring the v2 matching engine's output. */
+/** Badge caps per track, mirroring the matching engine's output. */
 export const BADGE_LIMITS: Record<MatchTrack, number> = {
   romance: 5,
   amistad: 3,
@@ -190,7 +190,7 @@ export const GHOST_OPACITY = 0.34;
 
 // ─── Formatting ──────────────────────────────────────────────────────────────
 
-/** `0.873` → `"87"`. Used for visible copy (matches the v2 `%`-without-space style). */
+/** `0.873` → `"87"`. Used for visible copy (matches the `%`-without-space style). */
 export function formatAffinityPercent(similarity: number): string {
   return String(Math.round(clamp(similarity, 0, 1) * 100));
 }

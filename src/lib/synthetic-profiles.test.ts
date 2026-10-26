@@ -1,36 +1,48 @@
 import { describe, expect, it } from "vitest";
 
-import calibrationReport from "../../data/synthetic-calibration.json";
+import catalogue from "../../data/arquetipos.json";
 import {
-  INITIAL_MATCH_THRESHOLD,
+  COVERAGE_BAND,
   SYNTHETIC_PROFILE_COUNT,
   SYNTHETIC_SEED,
-  analyzeProfilePairs,
-  calibrateMatchingThreshold,
+  TARGET_COVERAGE_RATE,
+  analyzeTrackPairs,
+  calibrateThreshold,
   generateSyntheticProfiles,
   measureCoverage,
-  type SyntheticProfile,
 } from "../../scripts/generate-synthetic-profiles";
-import { cosineSimilarity } from "@/lib/matching";
-import { MATCHING_DIMENSIONS, type MatchingDimension } from "@/types/microtest";
+import { MATCHING_CONFIG, computeAllMatches } from "@/lib/matching";
+import {
+  ALL_DIMENSIONS,
+  FRIENDSHIP_VECTOR_DIMENSIONS,
+  ROMANCE_VECTOR_DIMENSIONS,
+  type Dimension,
+} from "@/types/microtest";
 
 const profiles = generateSyntheticProfiles();
-const pairAnalysis = analyzeProfilePairs(profiles);
+const romanceAnalysis = analyzeTrackPairs(profiles, "romance");
+const friendshipAnalysis = analyzeTrackPairs(profiles, "amistad");
+const pool = profiles.map((profile) => ({
+  userId: profile.matricula,
+  profile: profile.scoredProfile,
+}));
+const engineMatches = computeAllMatches(pool, MATCHING_CONFIG);
 
 function pearsonCorrelation(
-  values: readonly SyntheticProfile[],
-  first: MatchingDimension,
-  second: MatchingDimension,
+  first: Dimension,
+  second: Dimension,
 ): number {
-  const firstMean = values.reduce((sum, profile) => sum + profile.dimensionScores[first], 0)
-    / values.length;
-  const secondMean = values.reduce((sum, profile) => sum + profile.dimensionScores[second], 0)
-    / values.length;
+  const firstMean =
+    profiles.reduce((sum, profile) => sum + profile.dimensionScores[first], 0) /
+    profiles.length;
+  const secondMean =
+    profiles.reduce((sum, profile) => sum + profile.dimensionScores[second], 0) /
+    profiles.length;
   let covariance = 0;
   let firstVariance = 0;
   let secondVariance = 0;
 
-  for (const profile of values) {
+  for (const profile of profiles) {
     const firstDelta = profile.dimensionScores[first] - firstMean;
     const secondDelta = profile.dimensionScores[second] - secondMean;
     covariance += firstDelta * secondDelta;
@@ -44,164 +56,165 @@ function pearsonCorrelation(
 describe("synthetic profile generation", () => {
   it("generates exactly 500 deterministic profiles from the fixed seed", () => {
     expect(SYNTHETIC_PROFILE_COUNT).toBe(500);
-    expect(SYNTHETIC_SEED).toBe(calibrationReport.seed);
+    expect(SYNTHETIC_SEED).toBe(0x5a4f4f4d);
     expect(profiles).toHaveLength(500);
     expect(generateSyntheticProfiles()).toEqual(profiles);
     expect(generateSyntheticProfiles(SYNTHETIC_SEED + 1)).not.toEqual(profiles);
   });
 
-  it("uses unique simulated matriculas and archetype-derived SHA-256 aliases", () => {
+  it("uses unique simulated matriculas and catalogue-derived aliases", () => {
     const matriculas = new Set(profiles.map(({ matricula }) => matricula));
     const aliases = new Set(profiles.map(({ alias }) => alias));
+    const animalIds = new Set(catalogue.animales.map((animal) => animal.id));
+    const colorIds = new Set(catalogue.colores.map((color) => color.id));
 
     expect(matriculas.size).toBe(500);
     expect(aliases.size).toBe(500);
     for (const profile of profiles) {
       expect(profile.matricula).toMatch(/^SIM-\d{6}$/);
-      expect(profile.alias).toMatch(new RegExp(`^${profile.archetypeId}-[0-9a-f]{10}$`));
       expect(profile.alias).not.toContain(profile.matricula);
+      expect(animalIds.has(profile.animalId)).toBe(true);
+      expect(colorIds.has(profile.colorId)).toBe(true);
     }
   });
 
-  it("covers all 16 MBTI archetypes with a balanced distribution", () => {
+  it("covers all 16 MBTI types with a balanced distribution", () => {
     const distribution = Object.groupBy(profiles, ({ mbtiCode }) => mbtiCode);
     const counts = Object.values(distribution).map((group) => group?.length ?? 0);
 
     expect(counts).toHaveLength(16);
     expect(Math.min(...counts)).toBe(31);
     expect(Math.max(...counts)).toBe(32);
-    expect(Object.fromEntries(
-      Object.entries(distribution).map(([code, group]) => [code, group?.length ?? 0]),
-    )).toEqual(calibrationReport.mbti_distribution);
   });
 
-  it("keeps every truncated-normal score and preference in its valid range", () => {
+  it("keeps every dimension inside [0, 1] with consistent dual-track vectors", () => {
     for (const profile of profiles) {
-      expect(profile.matchingVector).toHaveLength(13);
-      expect(Object.keys(profile.dimensionScores)).toEqual(MATCHING_DIMENSIONS);
-      expect(profile.matchingVector).toEqual(
-        MATCHING_DIMENSIONS.map((dimension) => profile.dimensionScores[dimension]),
+      expect(Object.keys(profile.dimensionScores).sort()).toEqual(
+        [...ALL_DIMENSIONS].sort(),
       );
-      for (const value of [
-        ...profile.matchingVector,
-        ...Object.values(profile.mbtiPreferences),
-      ]) {
+      expect(profile.romanceVector).toHaveLength(26);
+      expect(profile.friendshipVector).toHaveLength(16);
+      expect(profile.romanceVector).toEqual(
+        ROMANCE_VECTOR_DIMENSIONS.map((dimension) => profile.dimensionScores[dimension]),
+      );
+      expect(profile.friendshipVector).toEqual(
+        FRIENDSHIP_VECTOR_DIMENSIONS.map((dimension) => profile.dimensionScores[dimension]),
+      );
+      for (const value of Object.values(profile.dimensionScores)) {
         expect(value).toBeGreaterThanOrEqual(0);
         expect(value).toBeLessThanOrEqual(1);
       }
-
-      expect(profile.mbtiPreferences.extraversion > 0.5).toBe(profile.mbtiCode[0] === "E");
-      expect(profile.mbtiPreferences.intuicion > 0.5).toBe(profile.mbtiCode[1] === "N");
-      expect(profile.mbtiPreferences.pensamiento > 0.5).toBe(profile.mbtiCode[2] === "T");
-      expect(profile.mbtiPreferences.juicio > 0.5).toBe(profile.mbtiCode[3] === "J");
+      expect(profile.dimensionScores.mbti_extraversion > 0.5).toBe(
+        profile.mbtiCode[0] === "E",
+      );
+      expect(profile.dimensionScores.mbti_intuicion > 0.5).toBe(
+        profile.mbtiCode[1] === "N",
+      );
+      expect(profile.dimensionScores.mbti_pensamiento > 0.5).toBe(
+        profile.mbtiCode[2] === "T",
+      );
+      expect(profile.dimensionScores.mbti_juicio > 0.5).toBe(
+        profile.mbtiCode[3] === "J",
+      );
     }
   });
 
-  it("produces moderate construct correlations without demographic identity fields", () => {
+  it("produces moderate construct correlations without demographic fields", () => {
     const relationshipCorrelation = pearsonCorrelation(
-      profiles,
-      "relaciones_empatia",
-      "relaciones_gestion_conflicto",
+      "valores_empatia",
+      "valores_gestion_conflicto",
     );
-    const genderAttitudeCorrelation = pearsonCorrelation(
-      profiles,
-      "genero_igualdad",
-      "genero_respeto_diversidad",
+    const equalityCorrelation = pearsonCorrelation(
+      "valores_igualdad_genero",
+      "valores_respeto_diversidad",
     );
-    const inverseStabilityCorrelation = pearsonCorrelation(
-      profiles,
-      "bigfive_neuroticismo",
-      "relaciones_confianza",
+    const stabilityCorrelation = pearsonCorrelation(
+      "personalidad_estabilidad_emocional",
+      "valores_confianza",
     );
 
     expect(relationshipCorrelation).toBeGreaterThan(0.15);
     expect(relationshipCorrelation).toBeLessThan(0.65);
-    expect(genderAttitudeCorrelation).toBeGreaterThan(0.15);
-    expect(genderAttitudeCorrelation).toBeLessThan(0.65);
-    expect(inverseStabilityCorrelation).toBeLessThan(-0.15);
-    expect(inverseStabilityCorrelation).toBeGreaterThan(-0.65);
-    expect(Object.keys(profiles[0]!).sort()).toEqual([
-      "alias",
-      "archetypeId",
-      "dimensionScores",
-      "matchingVector",
-      "matricula",
-      "mbtiCode",
-      "mbtiPreferences",
-    ]);
+    expect(equalityCorrelation).toBeGreaterThan(0.15);
+    expect(equalityCorrelation).toBeLessThan(0.65);
+    expect(stabilityCorrelation).toBeGreaterThan(0.15);
+    expect(stabilityCorrelation).toBeLessThan(0.65);
   });
 });
 
 describe("synthetic compatibility calibration", () => {
-  it("uses production cosine similarity symmetrically over the same 13 dimensions", () => {
-    for (let index = 1; index < 20; index += 1) {
-      const first = profiles[index - 1]!.matchingVector;
-      const second = profiles[index]!.matchingVector;
-      expect(cosineSimilarity(first, second)).toBeCloseTo(cosineSimilarity(second, first), 15);
+  it("calculates all 124,750 unordered pairs once per track", () => {
+    for (const analysis of [romanceAnalysis, friendshipAnalysis]) {
+      expect(analysis.pairCount).toBe((500 * 499) / 2);
+      expect(analysis.pairCount).toBe(124_750);
+      expect(analysis.similarities).toHaveLength(124_750);
+      expect(analysis.maximumSimilarities).toHaveLength(500);
+      expect(analysis.minimumSimilarity).toBeGreaterThanOrEqual(0);
+      expect(analysis.maximumSimilarity).toBeLessThanOrEqual(1);
     }
   });
 
-  it("calculates all 124,750 unordered pairs exactly once", () => {
-    expect(pairAnalysis.pairCount).toBe(500 * 499 / 2);
-    expect(pairAnalysis.pairCount).toBe(124_750);
-    expect(pairAnalysis.similarities).toHaveLength(124_750);
-    expect(pairAnalysis.maximumSimilarities).toHaveLength(500);
-    expect(pairAnalysis.minimumSimilarity).toBeGreaterThanOrEqual(0);
-    expect(pairAnalysis.maximumSimilarity).toBeLessThanOrEqual(1);
+  it("runs the canonical engine with per-track thresholds and caps", () => {
+    for (const track of ["romance", "amistad"] as const) {
+      const threshold = MATCHING_CONFIG.tracks[track].minimum_similarity_exclusive;
+      const trackMatches = engineMatches.filter((match) => match.track === track);
+      expect(trackMatches.length).toBeGreaterThan(0);
+      for (const match of trackMatches) {
+        expect(match.userA).not.toBe(match.userB);
+        expect(match.similarity).toBeGreaterThan(threshold);
+      }
+
+      // Each user contributes at most `max_matches` outbound selections, so the
+      // deduplicated global set can never exceed profiles × max_matches.
+      expect(trackMatches.length).toBeLessThanOrEqual(
+        profiles.length * MATCHING_CONFIG.tracks[track].max_matches,
+      );
+      const pairKeys = new Set(
+        trackMatches.map((match) => `${match.track}:${match.userA}:${match.userB}`),
+      );
+      expect(pairKeys.size).toBe(trackMatches.length);
+    }
   });
 
   it("applies the configured threshold strictly rather than inclusively", () => {
     const exactThresholdAnalysis = {
+      track: "romance" as const,
       pairCount: 1,
-      similarities: [INITIAL_MATCH_THRESHOLD],
-      maximumSimilarities: [INITIAL_MATCH_THRESHOLD, INITIAL_MATCH_THRESHOLD],
-      minimumSimilarity: INITIAL_MATCH_THRESHOLD,
-      maximumSimilarity: INITIAL_MATCH_THRESHOLD,
+      similarities: [MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive],
+      maximumSimilarities: [MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive],
+      minimumSimilarity: MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive,
+      maximumSimilarity: MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive,
     };
 
-    expect(measureCoverage(exactThresholdAnalysis, INITIAL_MATCH_THRESHOLD)).toMatchObject({
+    expect(
+      measureCoverage(
+        exactThresholdAnalysis,
+        MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive,
+      ),
+    ).toMatchObject({
       qualifyingPairCount: 0,
       usersWithMatch: 0,
       userCoverageRate: 0,
     });
   });
 
-  it("bisects an out-of-band initial rate to the 20 percent target", () => {
-    const calibration = calibrateMatchingThreshold(pairAnalysis);
+  it("calibrates an out-of-band synthetic population to the 20 percent target", () => {
+    for (const analysis of [romanceAnalysis, friendshipAnalysis]) {
+      const initialThreshold =
+        MATCHING_CONFIG.tracks[analysis.track].minimum_similarity_exclusive;
+      const initial = measureCoverage(analysis, initialThreshold);
+      const calibration = calibrateThreshold(analysis, initialThreshold);
 
-    expect(calibration.initial.thresholdExclusive).toBe(0.85);
-    expect(calibration.initial.usersWithMatch).toBe(500);
-    expect(calibration.initial.userCoverageRate).toBe(1);
-    expect(calibration.calibrated).toBe(true);
-    expect(calibration.final.thresholdExclusive).toBeGreaterThan(0.85);
-    expect(calibration.final.usersWithMatch).toBe(100);
-    expect(calibration.final.userCoverageRate).toBe(0.2);
-    expect(calibration.final.userCoverageRate).toBeGreaterThanOrEqual(0.05);
-    expect(calibration.final.userCoverageRate).toBeLessThanOrEqual(0.4);
-  });
-
-  it("matches the generated calibration report", () => {
-    const initial = measureCoverage(pairAnalysis, INITIAL_MATCH_THRESHOLD);
-    const calibration = calibrateMatchingThreshold(pairAnalysis);
-
-    expect(pairAnalysis.pairCount).toBe(calibrationReport.pair_count);
-    expect(initial.qualifyingPairCount).toBe(
-      calibrationReport.initial_measurement.qualifying_pair_count,
-    );
-    expect(calibration.final.thresholdExclusive).toBeCloseTo(
-      calibrationReport.calibration.threshold_exclusive,
-      15,
-    );
-    expect(calibration.final.qualifyingPairCount).toBe(
-      calibrationReport.calibration.qualifying_pair_count,
-    );
-    expect(pairAnalysis.minimumSimilarity).toBeCloseTo(
-      calibrationReport.similarity_range.minimum,
-      12,
-    );
-    expect(pairAnalysis.maximumSimilarity).toBeCloseTo(
-      calibrationReport.similarity_range.maximum,
-      12,
-    );
+      expect(initial.userCoverageRate).toBe(1);
+      expect(calibration.calibrated).toBe(true);
+      expect(calibration.final.thresholdExclusive).toBeGreaterThan(initialThreshold);
+      expect(calibration.final.userCoverageRate).toBe(TARGET_COVERAGE_RATE);
+      expect(calibration.final.userCoverageRate).toBeGreaterThanOrEqual(
+        COVERAGE_BAND.minimum,
+      );
+      expect(calibration.final.userCoverageRate).toBeLessThanOrEqual(
+        COVERAGE_BAND.maximum,
+      );
+    }
   });
 });

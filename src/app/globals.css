@@ -9,15 +9,15 @@
   --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
   --font-sans: "Avenir Next", "Century Gothic", sans-serif;
   --font-mono: "IBM Plex Mono", "Courier New", monospace;
-  /* v2 — Dual track colors */
+  /* Dual-track colours */
   --color-romance: #e8a0bf;
   --color-romance-deep: #9b2c5e;
   --color-friendship: #7ec8a9;
   --color-friendship-deep: #2d6a4f;
-  /* v2 — Notifications */
+  /* Notifications */
   --color-notification-warm: #fff4e6;
   --color-notification-glow: #ffd700;
-  /* v2 — Badges */
+  /* Compatibility badges */
   --color-badge-bg: #f5f0ff;
   --color-badge-border: #d4c5f9;
   --color-badge-text: #4a3670;
@@ -335,7 +335,7 @@ label {
   }
 }
 
-/* ─── v2: Notification toast ─────────────────────────────────── */
+/* ─── Notification toast ─────────────────────────────────── */
 .notification-toast {
   position: fixed;
   bottom: 1.5rem;
@@ -365,7 +365,7 @@ label {
   background: linear-gradient(135deg, #f3e5f5 0%, #e8eaf6 50%, #e0f2f1 100%);
 }
 
-/* ─── v2: Compatibility badges ───────────────────────────────── */
+/* ─── Compatibility badges ───────────────────────────────── */
 .compatibility-badge {
   display: inline-flex;
   align-items: center;
@@ -380,7 +380,7 @@ label {
   white-space: nowrap;
 }
 
-/* ─── v2: Track tabs ─────────────────────────────────────────── */
+/* ─── Track tabs ─────────────────────────────────────────── */
 .track-tab {
   padding: 0.5rem 1.25rem;
   border-radius: 9999px;
@@ -409,7 +409,7 @@ label {
   color: white;
 }
 
-/* ─── v2: Chemistry percentage ───────────────────────────────── */
+/* ─── Chemistry percentage ───────────────────────────────── */
 .chemistry-ring {
   position: relative;
   width: 5rem;

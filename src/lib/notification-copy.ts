@@ -1,9 +1,9 @@
 /**
- * ZooMatch v2 — Notification Copy Generator
+ * ZooMatch — Notification Copy Generator
  * Warm, poetic notification message templates for the affective notification system.
  */
 
-import type { NotificationType, MatchTrack } from "@/types/microtest-v2";
+import type { NotificationType, MatchTrack } from "@/types/microtest";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,11 +22,8 @@ export interface NotificationCopy {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-/**
- * The comforting no-match message. Used when no one exceeds the threshold.
- * This is the v2 replacement for NO_MATCH_LITERAL.
- */
-export const NO_MATCH_MESSAGE_V2 =
+/** The comforting no-match message. Used when no one exceeds the threshold. */
+export const NO_MATCH_MESSAGE =
   "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor \u003c3";
 
 // ─── Main Generator ───────────────────────────────────────────────────────────
@@ -113,7 +110,7 @@ function generateFriendshipMatchCopy(context: NotificationContext): Notification
 function generateNoMatchCopy(): NotificationCopy {
   return {
     title: "Tu momento llegar\u00e1 \ud83c\udf31",
-    body: NO_MATCH_MESSAGE_V2,
+    body: NO_MATCH_MESSAGE,
   };
 }
 

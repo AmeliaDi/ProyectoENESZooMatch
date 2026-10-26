@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { enterWithMatricula } from "@/lib/matricula-session.server";
+import { enterWithMatricula } from "@/lib/auth/matricula-session.server";
 import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
-import { availabilityRequestSchema, parseJsonBody } from "@/lib/validation";
+import { availabilityRequestSchema, parseJsonBody } from "@/lib/validation/common";
 
 export const runtime = "nodejs";
 

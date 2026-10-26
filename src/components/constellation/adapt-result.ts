@@ -1,8 +1,8 @@
 /**
- * Constellation data adapter — `GET /api/result-v2` → render-layer props.
+ * Constellation data adapter — `GET /api/result` → render-layer props.
  *
- * This is the ONLY bridge between the network payload (`PublicResultV2`, the
- * same shape `PublicResultViewV2` already parses) and the approved Phase B prop
+ * This is the ONLY bridge between the network payload (`PublicResult`, the
+ * same shape `PublicResultView` already parses) and the approved Phase B prop
  * contract (`ConstellationSelfInput` / `ConstellationMatchInput`). It is a pure,
  * DOM-free, side-effect-free function so it can be unit-tested in Vitest's
  * `node` environment and safely run during SSR.
@@ -33,10 +33,10 @@
  * detail sheet falls back to `explanation.breakdown`.
  */
 
-import catalogoData from "../../../data/catalogo_arquetipos_v2.json";
+import catalogoData from "../../../data/arquetipos.json";
 
-import type { PublicResultV2, ResultMatchV2 } from "@/components/public-experience-utils-v2";
-import type { MatchTrack } from "@/types/microtest-v2";
+import type { PublicResult, ResultMatch } from "@/components/public-experience-utils";
+import type { MatchTrack } from "@/types/microtest";
 
 import type { ConstellationMatchInput, ConstellationSelfInput } from "./types";
 
@@ -227,7 +227,7 @@ export interface AdaptedConstellation {
  * entry whose animal or colour cannot be resolved to a real catalogue id.
  */
 function adaptTrack(
-  entries: readonly ResultMatchV2[],
+  entries: readonly ResultMatch[],
   track: MatchTrack,
 ): ConstellationMatchInput[] {
   const adapted: ConstellationMatchInput[] = [];
@@ -262,7 +262,7 @@ function adaptTrack(
  * cannot be resolved (the sky always needs its centre star); an empty or partly
  * unresolvable match list simply yields fewer (or zero) matches.
  */
-export function adaptResult(result: PublicResultV2): AdaptedConstellation | null {
+export function adaptResult(result: PublicResult): AdaptedConstellation | null {
   const selfAnimalId = resolveAnimalId(result.animal?.id, result.animal?.diminutivo_es);
   const selfColor = resolveColor(result.color?.id, result.color?.nombre, result.color?.hex);
   if (!selfAnimalId || !selfColor) return null;

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import type { MatchExplanation } from "@/lib/explainability";
-import type { CompatibilityBadge } from "@/types/microtest-v2";
-import type { PublicResultV2, ResultMatchV2 } from "@/components/public-experience-utils-v2";
+import type { CompatibilityBadge } from "@/types/microtest";
+import type { PublicResult, ResultMatch } from "@/components/public-experience-utils";
 
 import {
   SELF_NODE_ID,
@@ -11,7 +11,7 @@ import {
   resolveColor,
 } from "./adapt-result";
 
-// ─── Fixtures (real catalogue ids from data/catalogo_arquetipos_v2.json) ──────
+// ─── Fixtures (real catalogue ids from data/arquetipos.json) ──────
 
 const BADGE: CompatibilityBadge = {
   dimension: "valores_empatia",
@@ -20,7 +20,7 @@ const BADGE: CompatibilityBadge = {
   icon: "💜",
 };
 
-function makeMatch(overrides: Partial<ResultMatchV2> = {}): ResultMatchV2 {
+function makeMatch(overrides: Partial<ResultMatch> = {}): ResultMatch {
   return {
     id: "11111111-1111-1111-1111-111111111111",
     alias: "mantisita rosa · 9QW2",
@@ -38,7 +38,7 @@ function makeMatch(overrides: Partial<ResultMatchV2> = {}): ResultMatchV2 {
   };
 }
 
-function makeResult(overrides: Partial<PublicResultV2> = {}): PublicResultV2 {
+function makeResult(overrides: Partial<PublicResult> = {}): PublicResult {
   return {
     alias: "ajolotito verde esmeralda · 4K2P",
     animal: { id: "ajolotito", diminutivo_es: "ajolotito", categoria_fauna: "anfibio" },

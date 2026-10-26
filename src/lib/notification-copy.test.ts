@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  NO_MATCH_MESSAGE_V2,
+  NO_MATCH_MESSAGE,
   generateNotificationCopy,
   generateWelcomeMessage,
   type NotificationContext,
 } from "@/lib/notification-copy";
-import type { NotificationType } from "@/types/microtest-v2";
+import type { NotificationType } from "@/types/microtest";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -78,38 +78,38 @@ const ALL_COPY: Array<{ type: NotificationType; title: string; body: string }> =
     ].map((ctx) => ({ type, ...generateNotificationCopy(type, ctx) })),
   ),
   { type: "welcome", ...generateWelcomeMessage(USER_ANIMAL, USER_COLOR) },
-  { type: "no_match", body: NO_MATCH_MESSAGE_V2, title: "Tu momento llegará 🌱" },
+  { type: "no_match", body: NO_MATCH_MESSAGE, title: "Tu momento llegará 🌱" },
 ];
 
 // ─── No-match message ─────────────────────────────────────────────────────────
 
-describe("NO_MATCH_MESSAGE_V2", () => {
+describe("NO_MATCH_MESSAGE", () => {
   it("keeps the exact product literal", () => {
-    expect(NO_MATCH_MESSAGE_V2).toBe(
+    expect(NO_MATCH_MESSAGE).toBe(
       "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor \u003c3",
     );
   });
 
   it("reassures with inclusive language", () => {
-    expect(NO_MATCH_MESSAGE_V2).toContain("tranquilx");
-    expect(NO_MATCH_MESSAGE_V2).toMatch(NEUTRAL_X_PATTERN);
+    expect(NO_MATCH_MESSAGE).toContain("tranquilx");
+    expect(NO_MATCH_MESSAGE).toMatch(NEUTRAL_X_PATTERN);
   });
 
   it("keeps the heart emoticon", () => {
-    expect(NO_MATCH_MESSAGE_V2).toContain("<3");
+    expect(NO_MATCH_MESSAGE).toContain("<3");
   });
 
   it("frames the result as a statistics project, not a verdict", () => {
-    expect(NO_MATCH_MESSAGE_V2).toContain("estadistica");
-    expect(NO_MATCH_MESSAGE_V2).toContain("amor");
+    expect(NO_MATCH_MESSAGE).toContain("estadistica");
+    expect(NO_MATCH_MESSAGE).toContain("amor");
   });
 
   it("stays under the 280-character notification budget", () => {
-    expect(NO_MATCH_MESSAGE_V2.length).toBeLessThan(MAX_BODY_LENGTH);
+    expect(NO_MATCH_MESSAGE.length).toBeLessThan(MAX_BODY_LENGTH);
   });
 
   it("avoids clinical vocabulary", () => {
-    expect(NO_MATCH_MESSAGE_V2).not.toMatch(CLINICAL_PATTERN);
+    expect(NO_MATCH_MESSAGE).not.toMatch(CLINICAL_PATTERN);
   });
 });
 
@@ -223,7 +223,7 @@ describe("generateNotificationCopy — no_match", () => {
   it("returns the shared comforting message verbatim", () => {
     const copy = generateNotificationCopy("no_match", context({ matchCount: 0, matches: [] }));
 
-    expect(copy.body).toBe(NO_MATCH_MESSAGE_V2);
+    expect(copy.body).toBe(NO_MATCH_MESSAGE);
     expect(copy.title.length).toBeGreaterThan(0);
     expect(copy.title).not.toBe(copy.body);
   });

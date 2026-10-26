@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { AdminDashboard } from "@/components/admin-dashboard";
-import { getAdminContext, loadAdminMetricsV2 } from "@/lib/admin-auth.server";
+import { getAdminContext, loadAdminMetrics } from "@/lib/auth/admin-auth.server";
 
 export const metadata: Metadata = {
   title: "Observatorio administrativo · ZooMatch",
@@ -15,6 +15,6 @@ export default async function AdminPage() {
   const context = await getAdminContext();
   if (context.status !== "ok") redirect("/admin/login");
 
-  const metrics = await loadAdminMetricsV2(context);
+  const metrics = await loadAdminMetrics(context);
   return <AdminDashboard initialData={metrics} />;
 }

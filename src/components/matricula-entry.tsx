@@ -99,6 +99,9 @@ export function MatriculaEntry() {
             60 preguntas sobre MBTI, Big Five, cultura, identidad y género. Descubre tu
             animalito, color y constelación.
           </p>
+          <p className="mt-5 max-w-md font-mono text-[0.6rem] uppercase tracking-[0.16em] text-ink/40">
+            Demo educativa de estadística · no es evaluación psicológica ni consejo profesional
+          </p>
         </motion.div>
 
         <motion.div

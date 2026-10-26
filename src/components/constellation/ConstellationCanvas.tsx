@@ -67,7 +67,7 @@ import {
   switchTrack,
   type SimulationState,
 } from "@/lib/constellation-layout";
-import type { MatchTrack } from "@/types/microtest-v2";
+import type { MatchTrack } from "@/types/microtest";
 
 import {
   buildNodeMeta,

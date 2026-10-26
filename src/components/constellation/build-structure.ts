@@ -15,7 +15,7 @@ import type {
   SelfIdentity,
   SimulationState,
 } from "@/lib/constellation-layout";
-import type { MatchTrack } from "@/types/microtest-v2";
+import type { MatchTrack } from "@/types/microtest";
 
 import {
   GHOST_ANIMAL_ID,

@@ -8,7 +8,7 @@
  *   • the selected node (drives both the happy-frame highlight and the sheet),
  *   • the resolved reduced-motion preference.
  *
- * Phase C only needs to map `GET /api/result-v2` onto `me` / `matches` and drop
+ * Phase C only needs to map `GET /api/result` onto `me` / `matches` and drop
  * this component on a page:
  *
  * ```tsx
@@ -22,7 +22,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { getTrackThreshold } from "@/lib/constellation-layout";
-import type { MatchTrack } from "@/types/microtest-v2";
+import type { MatchTrack } from "@/types/microtest";
 
 import { ConstellationCanvas } from "./ConstellationCanvas";
 import { useReducedMotionPreference } from "./hooks";

@@ -6,7 +6,7 @@
  * - Initial positions are seeded from node-id hashes (mulberry32), so the same
  *   inputs always produce the same layout (no Math.random, no clocks).
  * - `stepSimulation` never mutates its input; it returns a fresh state object.
- * - Similarity thresholds are READ from `data/matching-config-v2.json` via
+ * - Similarity thresholds are READ from `data/matching-config.json` via
  *   `getTrackThreshold` — they are never hardcoded.
  * - The floating drift is a positional sinusoidal offset applied only AFTER the
  *   system settles (velocity equilibrium). Kinetic energy is computed from
@@ -18,11 +18,11 @@
  *   detect clusters without needing the raw vectors.
  */
 
-import rawConfig from "../../data/matching-config-v2.json";
+import rawConfig from "../../data/matching-config.json";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-/** Local re-declaration (structurally identical to the microtest-v2 type) to
+/** Local re-declaration (structurally identical to the canonical microtest type) to
  *  keep this module dependency-free and avoid circular imports. */
 export type MatchTrack = "romance" | "amistad";
 
@@ -152,11 +152,11 @@ const MAX_GHOST_COUNT = 12;
  */
 export const MAX_REAL_MATCHES = 24;
 
-// ─── Threshold helper (reads data/matching-config-v2.json) ───────────────────
+// ─── Threshold helper (reads data/matching-config.json) ───────────────────
 
 /**
  * Returns the active exclusive similarity threshold for a track, read from
- * `data/matching-config-v2.json`. NEVER hardcode thresholds elsewhere.
+ * `data/matching-config.json`. NEVER hardcode thresholds elsewhere.
  */
 export function getTrackThreshold(track: MatchTrack): number {
   return rawConfig.tracks[track].minimum_similarity_exclusive;

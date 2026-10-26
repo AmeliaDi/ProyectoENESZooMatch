@@ -4,29 +4,32 @@ Fecha: 2026-10-25 · Auditado: rama `devin/1792976834-unify-v2-flow` @ `3434817`
 Cuando la documentación contradice al código, manda el código (ver §3, Área "Docs").
 Evidencia local: Supabase CLI 2.54 + Docker (`supabase db reset` con las 5 migraciones y los seeds), app en `next dev`, Node 24.19.
 
-## 0. Estado de ejecución — 2026-10-25
+## 0. Estado canónico — 2026-10-25
 
-Esta sección es la fotografía más reciente; el resto del documento conserva el análisis
-original y debe leerse como histórico.
+Esta sección es la fotografía más reciente. Las secciones 1–8 conservan el análisis
+original de la migración y deben leerse como histórico; cualquier ruta o nombre `*-v2`
+que aparezca allí describe la estructura anterior al refactor canónico.
 
-- **Base:** `main` @ `283a8a7`, sincronizada con `origin/main`. Los PRs #1–#3 ya están
-  mergeados, por lo que **B-01 queda cerrado**: lo desplegable es el flujo v2.
-- **Rama de cierre:** `audit/close-2026-10-25` (commits locales, aún sin push). Los
-  cambios descritos en esta sección viven en esa rama hasta que se revise y mergee.
-- **Verificación local:** `typecheck` ✓, `lint` ✓, `build` ✓ y **476/476 tests en 26
-  archivos** ✓. El build local se ejecutó con `next build --webpack` porque el shell no
-  tiene `node` en PATH; Turbopack falla únicamente al intentar lanzar un proceso hijo
-  `node` para PostCSS. En Vercel/CI, donde Node sí existe, el build estándar es válido.
-- **Cerrados en esta ejecución:** H-02 (submit tolerante a ráfagas con
-  `recomputePending`), H-03 (`maxDuration` + `vercel.json`), M-01 (bandas de química
-  relativas al umbral), M-02 (copy de constelación evolutiva), M-06 (APIs v1 → 410),
-  L-01 (grants de tablas v2), L-02 (IDs de match opacos), L-04 (CSP para Supabase
-  local/custom), L-05 (tope de nodos + guarda de clústeres), L-06 (timeout de test),
-  L-07 (NotificationProvider sólo en resultado), L-08 (CI) y M-05 parcial (README,
-  DESPLIEGUE y SCORING actualizados; la wiki `.qoder` sigue marcada como histórica).
+- **Base:** `main` @ `283a8a7`; el trabajo vive en la rama local `refactor/canonical`.
+- **Refactor canónico aplicado:** se eliminó el flujo v1 (24 ítems, matching plano, páginas
+  y APIs huérfanas) y se promovió la implementación multidimensional como única versión.
+  Ya no existen sufijos `-v2` en rutas, endpoints, archivos, funciones, tipos, scripts ni
+  datasets. La API canónica es `/api/quiz`, `/api/result`, `/api/admin/metrics` y
+  `/api/admin/recompute`; las páginas canónicas son `/cuestionario` y `/resultado`.
+- **Dominios:** `src/lib/matching/`, `src/lib/scoring/`, `src/lib/admin/`, `src/lib/auth/`
+  y `src/lib/validation/`. Datos canónicos: `data/microtest.json`, `data/arquetipos.json`
+  y `data/matching-config.json`. Semilla única: `supabase/seed.sql`.
+- **Verificación local:** `typecheck` ✓, `lint` ✓ y **463/463 tests en 24 archivos** ✓. El
+  build local se ejecutó con `next build --webpack` porque el shell no tiene `node` en
+  PATH; Turbopack falla únicamente al intentar lanzar un proceso hijo `node` para PostCSS.
+  En Vercel/CI, donde Node sí existe, el build estándar es válido.
+- **Cerrados en la ejecución de auditoría:** H-02, H-03, M-01, M-02, M-06, L-01, L-02,
+  L-04–L-08, M-05 parcial. **M-06 queda además eliminado**, no sólo mitigado: las rutas y
+  los módulos v1 ya no existen.
 - **Pendiente operativo (no verificable desde este entorno):**
-  1. **B-02:** aplicar la migración nueva `202610260001_table_grants_hygiene.sql` y
-     confirmar las 6 migraciones en el Supabase remoto con `supabase migration list`.
+  1. **B-02:** aplicar las migraciones `202610260001_table_grants_hygiene.sql` y
+     `202610270001_canonical_profile_identity.sql`, y confirmar las 7 migraciones en el
+     Supabase remoto con `supabase migration list`.
   2. **H-01:** crear Upstash y configurar `UPSTASH_REDIS_REST_URL`/`_TOKEN` en Vercel.
      Sin ellas el rate limit sigue en fail-open.
   3. **M-03:** ejecutar `supabase/purge_event.sql` al terminar el evento, después de
@@ -58,15 +61,15 @@ original y debe leerse como histórico.
 [1] Home /  ── MatriculaEntry ──► POST /api/enter (Zod, NFKC, rate-limit)
                                    └─ enterWithMatricula: HMAC-SHA256(matrícula) → auth.admin.createUser (email interno .invalid,
                                       password aleatorio) | existente → generateLink + verifyOtp → cookie Supabase Auth
-[2] /cuestionario-v2 ── 60 ítems Likert 1–5 + filtros (orientación, identidad, tipo de relación)
-                        borrador en localStorage `zoomatch:quiz-draft:v2` (sobrevive recarga)
-[3] POST /api/quiz-v2 ── scoreV2 (inversos 6-v, normaliza [0,1], MBTI por umbral .5) → RPC submit_quiz_result_v2 (service_role)
-                         → profiles_v2 / quiz_responses_v2 persistidos
-[4] recomputeAllMatchesV2 ── carga TODOS los perfiles (paginado 1000) → computeAllMatchesV2 (coseno ponderado centrado,
-                             filtros duros romance, top-5 por usuario) → RPC replace_matches_v2 (advisory lock, reintento ×3)
-                         → notify_matches_v2 (usuario + contrapartes)
-[5] /resultado-v2 ── GET /api/result-v2 → alias/animal/color/narrativa + matches por track + explicabilidad
-                  └─ Constelación (buildGraph + precomputeLayout determinista, sprites pixel 12×12)
+[2] /cuestionario ── 60 ítems Likert 1–5 + filtros (orientación, identidad, tipo de relación)
+                      borrador en localStorage `zoomatch:quiz-draft` (sobrevive recarga)
+[3] POST /api/quiz ── scoreQuiz (inversos 6-v, normaliza [0,1], MBTI por umbral .5) → RPC submit_quiz_result_v2 (service_role)
+                       → profiles_v2 / quiz_responses_v2 persistidos
+[4] recomputeAllMatches ── carga TODOS los perfiles (paginado 1000) → computeAllMatches (coseno ponderado centrado,
+                           filtros duros romance, top-5 por usuario) → RPC replace_matches_v2 (advisory lock, reintento ×3)
+                       → notify_matches_v2 (usuario + contrapartes)
+[5] /resultado ── GET /api/result → alias/animal/color/narrativa + matches por track + explicabilidad
+                └─ Constelación (buildGraph + precomputeLayout determinista, sprites pixel 12×12)
 ```
 
 **Dónde se corta:**
@@ -215,7 +218,7 @@ La firma exacta puede variar; se obtiene con `\df public.submit_quiz_result_v2`.
 | `npm run lint` | ✓ |
 | `npm run typecheck` | ✓ |
 | `npm run build` | ✓ |
-| `npm run test` | ✓ 424/424 en 16 archivos |
+| `npm run test` | ✓ 463/463 en 24 archivos |
 | `npm audit --omit=dev` | 0 vulnerabilidades |
 
 ## 7. Plan de acción priorizado
@@ -228,7 +231,7 @@ Cada fase es pequeña, verificable y deja el sistema desplegable.
 - **Pasos:**
   1. Revisar y mergear el PR #1.
   2. `supabase link` y luego `supabase db push`.
-  3. Aplicar `seed.sql` y `seed_v2.sql`.
+  3. Aplicar `seed.sql`.
   4. Configurar las envs de §5 en Vercel (Production + Preview).
   5. Redeploy.
 - **Done:** `supabase migration list` coincide en las 5. Una RPC con la llave anon devuelve 401 o 403. Un participante de prueba completa entrar → cuestionario → resultado en la URL de Vercel.

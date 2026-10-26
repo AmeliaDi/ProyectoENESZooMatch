@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
 import { createClient } from "@/lib/supabase/server";
-import { parseJsonBody } from "@/lib/validation";
+import { parseJsonBody } from "@/lib/validation/common";
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),

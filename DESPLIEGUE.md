@@ -30,30 +30,28 @@
    4. `202610240001_matches_v2_explainability.sql`
    5. `202610250001_global_matching_hardening.sql` (reemplazo global de matches y
       permisos de RPC endurecidos).
-   6. `202610260001_table_grants_hygiene.sql` (tablas v2 sólo `SELECT` para los
+   6. `202610260001_table_grants_hygiene.sql` (tablas sólo `SELECT` para los
       roles de API; escrituras únicamente por RPC/service role).
+   7. `202610270001_canonical_profile_identity.sql` (el submit lee el hash de
+      matrícula desde `profiles_v2`; **obligatoria** para el flujo canónico).
 
-   `202610250001_global_matching_hardening.sql` y `202610260001_table_grants_hygiene.sql`
-   son seguras de aplicar sobre una implementación existente. Después de `db push`,
-   confirma que local y remoto coinciden:
+   Las últimas tres migraciones son seguras de aplicar sobre una implementación
+   existente. Después de `db push`, confirma que local y remoto coinciden:
 
    ```bash
    supabase migration list
    ```
 
-   Las seis filas deben aparecer en la columna remota. Si falta la última, el submit v2
-   puede seguir funcionando pero las tablas conservan privilegios de más.
-4. Los seeds no se aplican con `db push`. Ejecútalos después de las migraciones, en
-   este orden:
+   Las siete filas deben aparecer en la columna remota. Si falta la última, el submit
+   del cuestionario falla con «Profile not initialized».
+4. Los seeds no se aplican con `db push`. Ejecútalo después de las migraciones:
 
    ```bash
    psql "<DATABASE_URL>" -v ON_ERROR_STOP=1 -f supabase/seed.sql
-   psql "<DATABASE_URL>" -v ON_ERROR_STOP=1 -f supabase/seed_v2.sql
    ```
 
-   También puedes ejecutar el contenido de ambos archivos en el SQL Editor, primero
-   `seed.sql` y luego `seed_v2.sql`. El archivo `supabase/config.toml` conserva este
-   mismo orden para los resets locales.
+   También puedes ejecutar el contenido del archivo en el SQL Editor. El archivo
+   `supabase/config.toml` aplica esta misma semilla en los resets locales.
 5. Crea la cuenta administrativa inicial desde **Authentication → Users** con correo y
    contraseña institucionales. Edita `admin_email` en `supabase/promote_admin.sql` y
    ejecuta el archivo en SQL Editor para asignarle el rol `admin`. El acceso de
@@ -98,7 +96,7 @@
    pool con matrículas ficticias y degradar los matches reales. El plan gratuito de
    Upstash alcanza para este volumen.
 6. La ruta de submit declara `maxDuration = 60` y `vercel.json` fija el mismo límite
-   para `quiz-v2` y el recálculo de administración. Si tu proyecto Supabase está en
+   para `quiz` y el recálculo de administración. Si tu proyecto Supabase está en
    otra región, fija la región de Vercel lo más cerca posible para reducir la latencia
    del recálculo global (H-03); no se hardcodea una región porque depende del proyecto.
 
@@ -107,10 +105,10 @@
 - PostgreSQL/Supabase conserva perfiles, hash HMAC de matrícula, respuestas, vectores,
   matches, notificaciones, catálogos sembrados y roles administrativos. La matrícula
   en texto plano no se almacena.
-- El borrador del cuestionario v2 se conserva temporalmente en `localStorage` del
+- El borrador del cuestionario se conserva temporalmente en `localStorage` del
   navegador para poder retomar respuestas en ese dispositivo.
 - Los catálogos psicométricos, configuración de matching e ítems viven en
-  `data/*.json` y se replican en Supabase mediante `seed.sql` y `seed_v2.sql`.
+  `data/*.json` y se replican en Supabase mediante `seed.sql`.
 
 ## Capacidad prevista
 

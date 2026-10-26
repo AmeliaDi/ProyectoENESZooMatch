@@ -22,8 +22,7 @@ import {
   type CSSProperties,
 } from "react";
 
-import catalogoData from "../../data/catalogo_arquetipos_v2.json";
-import arquetiposV1 from "../../data/arquetipos.json";
+import catalogoData from "../../data/arquetipos.json";
 import {
   ALL_FAMILIES,
   GRID_SIZE,
@@ -52,16 +51,8 @@ interface CatalogColor {
   temperatura: string;
 }
 
-interface V1Archetype {
-  id: string;
-  codigo_mbti: string;
-  animal: { nombre_fuente: string; diminutivo_es: string };
-  color_principal: { nombre: string; hex: string };
-}
-
 const ANIMALS = catalogoData.animales as unknown as CatalogAnimal[];
 const COLORS = catalogoData.colores as unknown as CatalogColor[];
-const V1_ARCHETYPES = arquetiposV1.arquetipos as unknown as V1Archetype[];
 
 // ─── Utilidades puras ──────────────────────────────────────────────────────────
 
@@ -72,34 +63,6 @@ function norm(value: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim();
-}
-
-function hexToRgb(hex: string): [number, number, number] {
-  const match = /^#?([0-9a-fA-F]{6})$/.exec(hex.trim());
-  if (!match) return [0, 0, 0];
-  const value = parseInt(match[1], 16);
-  return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
-}
-
-/** Distancia RGB² entre dos hex; menor = más parecidos. */
-function colorDistance(a: string, b: string): number {
-  const [ar, ag, ab] = hexToRgb(a);
-  const [br, bg, bb] = hexToRgb(b);
-  return (ar - br) ** 2 + (ag - bg) ** 2 + (ab - bb) ** 2;
-}
-
-/** Encuentra el id del color de catálogo más parecido a un hex dado. */
-function nearestColorId(hex: string): string {
-  let best = COLORS[0].id;
-  let bestDistance = Number.POSITIVE_INFINITY;
-  for (const color of COLORS) {
-    const distance = colorDistance(color.hex, hex);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = color.id;
-    }
-  }
-  return best;
 }
 
 /** Genera un sprite sin dejar que un fallo tumbe toda la galería. */
@@ -127,8 +90,6 @@ interface AnimalEntry {
   nombre: string;
   etiqueta: string;
   family: ShapeFamily;
-  /** Color fijo: sólo los arquetipos v1 lo llevan (su color principal). */
-  fixedColorId?: string;
   needle: string;
 }
 
@@ -139,7 +100,7 @@ function buildNeedle(
   return norm([family, ...parts].filter(Boolean).join(" "));
 }
 
-const V2_LIST: AnimalEntry[] = ANIMALS.map((animal) => {
+const ANIMALS_LIST: AnimalEntry[] = ANIMALS.map((animal) => {
   const family = getAnimalFamily(animal.id);
   return {
     id: animal.id,
@@ -157,26 +118,7 @@ const V2_LIST: AnimalEntry[] = ANIMALS.map((animal) => {
   };
 });
 
-const V1_LIST: AnimalEntry[] = V1_ARCHETYPES.map((archetype) => {
-  const family = getAnimalFamily(archetype.id);
-  return {
-    id: archetype.id,
-    diminutivo: archetype.animal.diminutivo_es,
-    nombre: archetype.animal.nombre_fuente,
-    etiqueta: archetype.codigo_mbti,
-    family,
-    fixedColorId: nearestColorId(archetype.color_principal.hex),
-    needle: buildNeedle(
-      family,
-      archetype.animal.diminutivo_es,
-      archetype.animal.nombre_fuente,
-      archetype.codigo_mbti,
-      archetype.id,
-    ),
-  };
-});
-
-const ANIMAL_TOTAL = V2_LIST.length + V1_LIST.length;
+const ANIMAL_TOTAL = ANIMALS_LIST.length;
 
 // ─── Fondos del escenario ────────────────────────────────────────────────────
 
@@ -405,8 +347,7 @@ export function SpriteGallery() {
     [needle],
   );
 
-  const visibleV2 = useMemo(() => V2_LIST.filter(matches), [matches]);
-  const visibleV1 = useMemo(() => V1_LIST.filter(matches), [matches]);
+  const visibleAnimals = useMemo(() => ANIMALS_LIST.filter(matches), [matches]);
 
   const px = SCALE_PX[scale];
   const activeColor = COLOR_MAP.get(colorId);
@@ -414,14 +355,8 @@ export function SpriteGallery() {
 
   /** Pares (animal, color) actualmente visibles — alimenta auditoría y export. */
   const visibleItems = useMemo(
-    () => [
-      ...visibleV2.map((entry) => ({ animalId: entry.id, colorId })),
-      ...visibleV1.map((entry) => ({
-        animalId: entry.id,
-        colorId: entry.fixedColorId ?? colorId,
-      })),
-    ],
-    [visibleV2, visibleV1, colorId],
+    () => visibleAnimals.map((entry) => ({ animalId: entry.id, colorId })),
+    [visibleAnimals, colorId],
   );
 
   // Auditoría: fallos de generación + colisiones de grid idéntico entre visibles.
@@ -528,7 +463,7 @@ export function SpriteGallery() {
           {/* Contador en vivo */}
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <p className="font-display text-lg font-semibold text-clay">
-              {visibleV2.length} animalitos × {COLOR_TOTAL} colores
+              {visibleAnimals.length} animalitos × {COLOR_TOTAL} colores
             </p>
             <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-leaf">
               {visibleItems.length} sprites en pantalla · {ANIMAL_TOTAL} en el
@@ -703,25 +638,25 @@ export function SpriteGallery() {
           )}
         </div>
 
-        {/* ── Cuadrícula v2 ──────────────────────────────────────────── */}
-        <section aria-label="Animalitos del catálogo v2" className="mt-8">
+        {/* ── Cuadrícula del catálogo ────────────────────────────────── */}
+        <section aria-label="Animalitos del catálogo" className="mt-8">
           <div className="mb-4 flex items-baseline gap-3">
             <h2 className="font-display text-xl font-semibold text-ink">
-              Catálogo v2
+              Catálogo
             </h2>
             <span className="font-mono text-[0.66rem] uppercase tracking-[0.14em] text-leaf">
-              {visibleV2.length} de {V2_LIST.length} · color {activeColor?.nombre ?? colorId}
+              {visibleAnimals.length} de {ANIMALS_LIST.length} · color {activeColor?.nombre ?? colorId}
             </span>
           </div>
 
-          {visibleV2.length === 0 ? (
+          {visibleAnimals.length === 0 ? (
             <p className="rounded-xl border border-dashed border-ink/20 px-4 py-8 text-center text-sm text-ink/60">
               Ningún animalito coincide con “{query}”. Prueba con otra palabra
               cariñosa.
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8">
-              {visibleV2.map((entry, index) => (
+              {visibleAnimals.map((entry, index) => (
                 <SpriteCard
                   key={entry.id}
                   entry={entry}
@@ -734,53 +669,6 @@ export function SpriteGallery() {
                   index={index}
                 />
               ))}
-            </div>
-          )}
-        </section>
-
-        {/* ── Sección v1 (arquetipos MBTI) ───────────────────────────── */}
-        <section
-          aria-label="Arquetipos v1 (MBTI)"
-          className="mt-12 border-t border-ink/15 pt-8"
-        >
-          <div className="mb-1 flex flex-wrap items-baseline gap-3">
-            <h2 className="font-display text-xl font-semibold text-ink">
-              Arquetipos v1 · MBTI
-            </h2>
-            <span className="font-mono text-[0.66rem] uppercase tracking-[0.14em] text-leaf">
-              {visibleV1.length} de {V1_LIST.length}
-            </span>
-          </div>
-          <p className="mb-4 max-w-2xl text-xs text-ink/60">
-            Los 16 tipos MBTI de la primera versión. Cada uno se dibuja con el
-            color de catálogo más cercano a su <code>color_principal</code>, así
-            que ignoran el selector de color de arriba y conservan su paleta
-            firma.
-          </p>
-
-          {visibleV1.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-ink/20 px-4 py-8 text-center text-sm text-ink/60">
-              Ningún arquetipo coincide con “{query}”.
-            </p>
-          ) : (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8">
-              {visibleV1.map((entry, index) => {
-                const fixedColorId = entry.fixedColorId ?? colorId;
-                const fixedColor = COLOR_MAP.get(fixedColorId);
-                return (
-                  <SpriteCard
-                    key={entry.id}
-                    entry={entry}
-                    colorId={fixedColorId}
-                    colorName={fixedColor?.nombre ?? fixedColorId}
-                    px={px}
-                    bgStyle={bgStyle}
-                    animate={animate}
-                    blink={effectiveBlink}
-                    index={index}
-                  />
-                );
-              })}
             </div>
           )}
         </section>

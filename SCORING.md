@@ -7,18 +7,18 @@ compatibles. No es una herramienta clínica, no diagnostica rasgos y no predice
 si una relación tendrá éxito. El puntaje es una comparación descriptiva entre
 dos perfiles, no una probabilidad.
 
-## Datos de entrada y mapeo desde v2
+## Datos de entrada y mapeo
 
-`toScoringProfile` transforma las dimensiones de `profiles_v2` a un perfil de
-puntuación:
+`toScoringProfile` transforma las dimensiones almacenadas en `profiles_v2` a un perfil de
+puntuación (el sufijo es el nombre físico de la tabla, congelado por las migraciones):
 
 - Las cinco dimensiones Big Five (`personalidad_apertura`,
   `personalidad_responsabilidad`, `personalidad_extraversion`,
   `personalidad_amabilidad` y `personalidad_estabilidad_emocional`) se
   convierten de `[0,1]` a una escala bruta de `0–100`.
-- La estabilidad emocional de v2 se invierte para obtener N: `N = (1 - estabilidad
+- La estabilidad emocional se invierte para obtener N: `N = (1 - estabilidad
   emocional) × 100`.
-- El cuestionario v2 tiene dos ítems por rasgo Big Five. Es una medida breve y
+- El cuestionario tiene dos ítems por rasgo Big Five. Es una medida breve y
   su fiabilidad es limitada; debe leerse con cautela, como ocurre con las
   medidas muy breves de personalidad (Gosling et al., 2003).
 - Estos valores de `0–100` son puntuaciones de la escala del cuestionario, **no
@@ -134,7 +134,7 @@ reales. Consulta `EXTERNAL_SIGNALS.md` para los conteos y la decisión de perfil
 ## Filtros duros
 
 La compatibilidad romántica reutiliza las reglas de `checkHardFilters` del
-matching v2: atracción mutua según orientación e identidad de género, y
+matching canónico: atracción mutua según orientación e identidad de género, y
 compatibilidad de tipo de relación. Una selección exactamente
 `solo_amistad` excluye la pareja romántica. Si falta orientación o identidad de
 género en cualquiera de los perfiles, no se excluye por ese filtro; el
@@ -166,15 +166,13 @@ validan las decisiones numéricas de este demo.
 
 ## Relación con el matching de la constelación
 
-`computeAllMatchesV2` sigue alimentando las parejas que aparecen en la UI de
-la constelación. `/api/best-match` es un motor nuevo e independiente para
-ordenar matches románticos; su integración en la UI queda pendiente.
+`computeAllMatches` alimenta las parejas que aparecen en la UI de la constelación.
 
 ## Bandas de química de la UI
 
 La etiqueta cualitativa que ve el usuario (`Almas gemelas`, `Química excepcional`,
 `Química fuerte`, `Buena química`, `Química moderada`) **no** usa cortes absolutos de
-80/85/90. El coseno v2 está centrado en 0.5 y ponderado por categorías, así que sus
+80/85/90. El coseno canónico está centrado en 0.5 y ponderado por categorías, así que sus
 valores útiles viven en una banda estrecha alrededor del umbral del track (0.65 romance,
 0.68 amistad). Un corte absoluto de 0.85 etiquetaría casi todo como "moderada" y
 desalinearía el mensaje con "tu mejor pareja".
@@ -196,12 +194,11 @@ presentación relativa al track, **no** un percentil poblacional ni una probabil
 match siempre supera el umbral, pero puede seguir siendo "moderado" si está apenas por
 encima. `src/lib/explainability.test.ts` fija este contrato.
 
-El requisito original de "0.85" se pensó para una similitud coseno sin centrar. En v2 la
+El requisito original de "0.85" se pensó para una similitud coseno sin centrar. La
 similitud centrada y ponderada se comporta en otra escala; aplicar 0.85 literal dejaría
-casi cero matches. Los umbrales activos viven en `data/matching-config-v2.json` y son la
-única fuente de verdad; el dashboard y el motor leen el mismo archivo. El valor 0.85
-sigue siendo el umbral inicial documentado del motor v1 (`data/matching-config.json`),
-no el del flujo v2.
+casi cero matches. Los umbrales activos viven en `data/matching-config.json` y son la
+única fuente de verdad; el dashboard y el motor leen el mismo archivo. `0.85` no es un
+umbral activo del motor canónico.
 
 ## Referencias
 

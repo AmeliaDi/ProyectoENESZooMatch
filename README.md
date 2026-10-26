@@ -15,23 +15,22 @@ cada capa, consulta [`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md) y el
 
 ## 🚦 Estado del proyecto (2026-10-25)
 
-- `main` está sincronizado con GitHub (`283a8a7`) e incluye el flujo v2 de punta a punta:
-  matrícula → microtest de 60 ítems → persistencia Supabase → matching dual → resultado y
-  constelación. Los cierres de esta sesión están en la rama local
-  `audit/close-2026-10-25` (commits locales, pendiente de push/PR).
-- Verificación local: **typecheck ✓ · lint ✓ · 476 tests en 26 archivos ✓ · build de
-  producción ✓**. El build local se corrió con `next build --webpack` porque este shell no
-  tiene `node` en PATH; CI y Vercel usan el build estándar con Node 24.
+- El repositorio está en la rama `refactor/canonical`, que elimina por completo el flujo v1
+  y deja una sola arquitectura: matrícula → microtest de 60 ítems → persistencia Supabase →
+  matching dual (romance/amistad) → resultado y constelación.
+- Verificación local: **typecheck ✓ · lint ✓ · 463 tests en 24 archivos ✓**. El build local
+  se corre con `next build --webpack` cuando el shell no tiene `node` en PATH; CI y Vercel
+  usan el build estándar con Node 24.
 - Hallazgos cerrados del [`AUDIT.md`](./AUDIT.md): submit tolerante a ráfagas
   (`recomputePending`), `maxDuration`/`vercel.json`, bandas de química relativas al
-  umbral, APIs v1 en 410, IDs de match opacos, grants higiénicos de tablas v2, CSP para
-  Supabase local/custom, tope de nodos, CI y documentación.
+  umbral, IDs de match opacos, grants higiénicos, CSP para Supabase local/custom, tope de
+  nodos, CI y documentación.
 - Pendientes operativos (no verificables sin credenciales/entorno remoto): aplicar la
   migración `202610260001_table_grants_hygiene.sql` al Supabase remoto, configurar Upstash
   para el evento, correr la prueba real de 50 submits concurrentes y ejecutar la purga al
   terminar. El detalle está en [`DESPLIEGUE.md`](./DESPLIEGUE.md) y [`AUDIT.md`](./AUDIT.md).
-- La wiki `.qoder/repowiki` es autogenerada y puede estar desactualizada; la fuente de
-  verdad es el código, `data/*.json`, `AUDIT.md`, `DESPLIEGUE.md` y `SCORING.md`.
+- La wiki `.qoder/repowiki` es autogenerada y puede describir la estructura anterior; la
+  fuente de verdad es el código, `data/*.json`, `AUDIT.md`, `DESPLIEGUE.md` y `SCORING.md`.
 
 ---
 
@@ -39,7 +38,7 @@ cada capa, consulta [`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md) y el
 
 1. [¿De qué trata el proyecto?](#-de-qué-trata-el-proyecto)
 2. [Intención y principios de diseño](#-intención-y-principios-de-diseño)
-3. [Dos versiones coexistentes (v1 / v2)](#-dos-versiones-coexistentes-v1--v2)
+3. [Arquitectura canónica](#-arquitectura-canónica)
 4. [Funcionalidades clave](#-funcionalidades-clave)
 5. [Stack tecnológico](#-stack-tecnológico)
 6. [Estructura del repositorio](#-estructura-del-repositorio)
@@ -86,48 +85,46 @@ Resultado: animalito + color + narrativa afectiva + constelación de matches
 | **Datos como fuente de verdad** | Umbrales, pesos, dimensiones, ítems y catálogos viven en JSON bajo `data/`, no en código. Operar el matching = editar JSON, no redesplegar lógica. |
 | **Degradación con gracia** | Zod valida entorno y configs; si algo falta o está mal, la app usa *fallbacks* seguros (`SAFE_FALLBACK*`) o degrada la UI, **nunca crashea**. |
 | **Seguridad en cada borde** | Todas las API routes se envuelven en `withApiSecurity` (CORS + rate limiting + headers duros). `next.config.ts` aplica CSP/HSTS en cada respuesta. |
-| **Aditivo, no destructivo** | v2 se construyó **encima** de v1 con migraciones SQL aditivas; ambas versiones conviven. |
+| **Una sola versión canónica** | No hay rutas, tipos ni módulos duplicados: el flujo multidimensional es la única implementación activa. |
 
 ---
 
-## 🔀 Dos versiones coexistentes (v1 / v2)
+## 🧩 Arquitectura canónica
 
-El producto evolucionó en **dos versiones que conviven** en el mismo repositorio:
+Una sola implementación, organizada por dominio:
 
-| | **v1 (legado)** | **v2 (producto vigente)** |
+| Capa | Módulo | Responsabilidad |
 |---|---|---|
-| Enfoque | Un solo track (romance/afinidad) | **Doble track: romance + amistad** |
-| Cuestionario | 24 ítems · 17 dimensiones (13 de matching + 4 MBTI) · Likert 1–4 | **60 ítems · 30 dimensiones · Likert 1–5** |
-| Categorías | BigFive, MBTI, Relaciones, Género | BigFive, MBTI, Identidad, Cultural, Intimidad, Valores |
-| Motor | Similitud coseno sobre vectores normalizados | Coseno **ponderado y centrado en 0.5**, filtros de atracción mutua en romance |
-| Umbral activo | `> 0.9920196533203125` (ver nota) | romance `> 0.65` · amistad `> 0.68`; top-5 por persona y track |
-| Catálogo | 16 arquetipos MBTI | **61 animales × 55 colores/texturas** |
-| Rutas | redirige al flujo vigente | `/` → `/cuestionario-v2` → `/resultado-v2` |
-| Visualización | Lista de matches | **Constelación interactiva** + badges |
+| Matching | `src/lib/matching/engine.ts` | Scoring de 60 ítems, filtros duros, cosine ponderado/centrado, matches duales |
+| Config | `src/lib/matching/config.ts` | Carga validada de `data/matching-config.json` |
+| Recompute | `src/lib/matching/recompute.server.ts` | Carga de perfiles y reemplazo atómico de matches |
+| Scoring | `src/lib/scoring/` | Big Five, MBTI, sociocultural, calibración literaria, ranking y explicación |
+| Admin | `src/lib/admin/dashboard.ts` | Agregados duales, validación Zod y export CSV |
+| Auth | `src/lib/auth/` | Hash de matrícula, sesión anónima y contexto admin |
+| Validación | `src/lib/validation/` | Zod estricto para matrícula, 60 ítems y filtros duros |
+| Datos | `data/microtest.json`, `data/arquetipos.json`, `data/matching-config.json` | Fuente de verdad de ítems, catálogo y umbrales |
 
-> **Nota sobre el umbral v1:** `data/matching-config.json` contiene hoy
-> `0.9920196533203125`, el resultado de **56 iteraciones de bisección** de
-> `scripts/generate-synthetic-profiles.ts` apuntando a una cobertura objetivo. El valor
-> `0.85` documentado históricamente es sólo el **punto de partida de calibración y el piso
-> del esquema** (`SAFE_FALLBACK_THRESHOLD` en `src/lib/matching-config.ts`), no el umbral
-> activo.
+El cuestionario tiene **60 ítems · 30 dimensiones · Likert 1–5**, catálogo de **61 animales ×
+55 colores/texturas** y dos tracks independientes:
 
-La similitud v2 centra cada vector según `centering: 0.5`, calcula el cosine ponderado
-por categoría y lo escala a `[0,1]`. Los pesos activos están versionados en
-`data/matching-config-v2.json`.
+- **Romance** (`> 0.65`): 26 dimensiones + filtros de atracción mutua y tipo de relación.
+- **Amistad** (`> 0.68`): 16 dimensiones, sin filtros duros.
 
-> **v1 retirado de la API:** las páginas `/cuestionario` y `/resultado` redirigen al flujo
-> v2, y `/api/quiz` y `/api/result` responden **410 Gone**. Las tablas v1 se conservan por
-> historial; ninguna UI activa las escribe.
+Ambos tracks conservan hasta cinco matches por persona. La similitud centra cada vector en
+`0.5`, calcula cosine por categoría con sus pesos y lo escala a `[0,1]`. Los umbrales y pesos
+viven en `data/matching-config.json`.
+
+Las rutas públicas canónicas son `/cuestionario` y `/resultado`; las APIs son `/api/quiz` y
+`/api/result`. El dashboard usa `/api/admin/metrics` y `/api/admin/recompute`.
 
 ---
 
 ## ✨ Funcionalidades clave
 
-- **Entrada pública por matrícula** (`/api/enter`, compatible en `/api/login`): crea o
-  recupera una cuenta anónima sin revelar si la matrícula ya existía.
-- **Cuestionario v2 de 60 ítems** como flujo público vigente, con borrador persistente
-  en `localStorage`; v1 se conserva como legado.
+- **Entrada pública por matrícula** (`/api/enter`): crea o recupera una cuenta anónima sin
+  revelar si la matrícula ya existía.
+- **Cuestionario de 60 ítems** como único flujo público, con borrador persistente en
+  `localStorage`.
 - **Motor de matching dual** con cosine ponderado y centrado, atracción mutua y filtros
   de relación sólo para **romance**, y hasta cinco matches por track y persona.
 - **Badges de afinidad**: top 5 dimensiones (romance) / top 3 (amistad) por afinidad
@@ -139,9 +136,9 @@ por categoría y lo escala a `[0,1]`. Los pesos activos están versionados en
   (resortes, repulsión por colisión, gravedad al centro, detección de equilibrio y deriva
   ambiental), arrastrables y con *join sparks*, etiquetas ARIA y soporte de
   `prefers-reduced-motion`.
-- **Sprites de pixeles generados por código** (`src/lib/pixel-sprites.ts`, 1700+ líneas):
-  cada uno de los 61 animales v2 + 16 v1 se renderiza como un sprite 12×12 determinista en
-  3 frames de animación, sin assets externos ni aleatoriedad.
+- **Sprites de pixeles generados por código** (`src/lib/pixel-sprites.ts`, 1600+ líneas):
+  cada uno de los 61 animales del catálogo se renderiza como un sprite 12×12 determinista
+  en 3 frames de animación, sin assets externos ni aleatoriedad.
 - **Notificaciones** de match y bienvenida (`/api/notifications` + `NotificationProvider`).
 - **Dashboard de admin** (`/admin`, Recharts): totales, distribución MBTI de 16 tipos,
   % de usuarios con al menos un match sobre el umbral, top 5 animalitos y export CSV.
@@ -159,14 +156,14 @@ por categoría y lo escala a `[0,1]`. Los pesos activos están versionados en
 - **Animación:** Framer Motion `^14`. **Gráficas admin:** Recharts `^3`.
 - **Validación:** Zod `^4` (entorno, payloads de API, configs JSON).
 - **Backend:** Supabase (PostgreSQL + Auth + RLS) vía `@supabase/supabase-js` +
-  `@supabase/ssr`. El matching v2 se calcula server-side en TypeScript
-  (`src/lib/matching-v2.ts`); el RPC SQL `compute_dual_matches` se conserva como legado y está
-  marcado como deprecated.
+  `@supabase/ssr`. El matching se calcula server-side en TypeScript
+  (`src/lib/matching/engine.ts`); los RPCs SQL actúan como capa de persistencia.
 - **Tests:** Vitest `^5` (corrido con Vite `^8`), sólo `src/**/*.test.ts`, entorno `node`,
   alias `@` → `./src`.
 - **Pipeline de datos:** Python (`requests` + `beautifulsoup4`) bajo `scripts/` para
   generar y curar los JSON de `data/`.
-- **CI / Docker:** no hay CI; Docker sólo se necesita para levantar Supabase local
+- **CI / Docker:** GitHub Actions corre lint, typecheck, tests y build con Node 24
+  (`.github/workflows/ci.yml`). Docker sólo se necesita para levantar Supabase local
   (`supabase start`).
 
 ---
@@ -176,48 +173,41 @@ por categoría y lo escala a `[0,1]`. Los pesos activos están versionados en
 ```
 ProyectoENESZooMatch/
 ├── data/                          # ⭐ fixtures JSON: única fuente de verdad psicométrica
-│   ├── arquetipos.json                # v1: 16 arquetipos MBTI (animalito + paleta de 3 colores)
-│   ├── catalogo_arquetipos_v2.json    # v2: 61 animales + 55 colores/texturas
-│   ├── microtest_v1.json              # v1: 24 ítems, Likert 1–4
-│   ├── microtest_v2.json              # v2: 60 ítems, 30 dimensiones, fuentes/licencias
-│   ├── matching-config.json           # v1: minimum_similarity_exclusive = 0.9920…
-│   ├── matching-config-v2.json        # v2: tracks romance/amistad, pesos, filtros, calibración
-│   └── synthetic-calibration.json     # salida de la calibración sintética
+│   ├── arquetipos.json                # 61 animales + 55 colores/texturas
+│   ├── microtest.json                 # 60 ítems, 30 dimensiones, fuentes/licencias
+│   ├── matching-config.json           # tracks romance/amistad, pesos, filtros, calibración
+│   └── external/                      # señales de literatura y normas Big Five
 ├── scripts/                       # 🔧 pipeline de datos (Python + TS), fuera de la app
-│   ├── generar_arquetipos.py          # genera data/arquetipos.json (ids SHA-256 anti-colisión)
-│   ├── generar_catalogo_v2.py         # genera catalogo_arquetipos_v2.json (validación + escritura atómica)
-│   ├── recopilar_items.py             # scrapea IPIP-50 (BeautifulSoup) → SQLite staging → items_curados
-│   └── generate-synthetic-profiles.ts # 500 perfiles sintéticos c/ semilla fija → 124 750 pares → calibra umbrales
+│   ├── generar_catalogo.py            # genera data/arquetipos.json (validación + escritura atómica)
+│   ├── crawl_external.py · extract_signals.py
+│   └── generate-synthetic-profiles.ts # 500 perfiles sintéticos → 124 750 pares → calibra umbrales
 ├── src/
 │   ├── app/                       # 🧭 rutas App Router (páginas + API)
 │   │   ├── page.tsx · layout.tsx · globals.css
-│   │   ├── login/ · cuestionario/ · resultado/            # redirecciones al flujo vigente
-│   │   ├── cuestionario-v2/ · resultado-v2/               # flujo v2
+│   │   ├── cuestionario/ · resultado/                     # flujo público canónico
 │   │   ├── admin/ · admin/login/                          # dashboard (protegido por proxy)
 │   │   ├── dev/constellation/ · dev/sprites/              # rutas de desarrollo (404 en prod)
-│   │   └── api/                                           # Route Handlers (enter, quiz-v2, result-v2, admin, notifications…)
+│   │   └── api/                                           # enter, quiz, result, admin, notifications
 │   ├── components/                # 🎨 experiencias cliente
-│   │   ├── public-experience.tsx / -v2.tsx     # quiz + resultado (v1 / v2)
-│   │   ├── public-experience-utils.ts / -v2.ts # lógica pura + literales protegidos por tests
+│   │   ├── public-experience.tsx · public-experience-utils.ts
 │   │   ├── constellation/                    # ⭐ sistema de visualización de constelación
 │   │   ├── admin-dashboard.tsx · admin-login.tsx · matricula-entry.tsx
 │   │   ├── foundation-hero.tsx · notification-provider.tsx · sprite-gallery.tsx
 │   ├── lib/                       # ⚙️ motores (matching, scoring, validación, seguridad, layout)
-│   │   ├── matching.ts / matching-v2.ts        # núcleos de matching (puros)
-│   │   ├── matching-config.ts / -v2.ts         # loaders de config con fallback seguro
-│   │   ├── explainability.ts                   # narrativa afectiva es-MX determinista
-│   │   ├── constellation-layout.ts             # motor de física determinista de la constelación
-│   │   ├── pixel-sprites.ts                    # generador de sprites 12×12 (puro)
-│   │   ├── profile-generator.ts · validation.ts · validation-v2.ts
-│   │   ├── identity.server.ts · env.ts · env.server.ts · admin-auth.server.ts
-│   │   ├── notification-copy.ts · admin-dashboard.ts / -v2.ts
+│   │   ├── matching/                           # engine, config, recompute, barrel
+│   │   ├── scoring/                            # bigfive, mbti, sociocultural, calibración, rank, explain
+│   │   ├── admin/dashboard.ts                  # agregados + CSV
+│   │   ├── auth/                               # identity, matrícula-session, admin-auth
+│   │   ├── validation/                         # common + quiz (Zod estricto)
+│   │   ├── explainability.ts · constellation-layout.ts · pixel-sprites.ts
+│   │   ├── profile-generator.ts · notification-copy.ts
 │   │   ├── security/                           # withApiSecurity, CORS, rate limiting
 │   │   └── supabase/                           # clientes browser / server / admin (service role)
-│   ├── types/                     # 📐 contratos TS del dominio (archetype, microtest, microtest-v2)
+│   ├── types/                     # 📐 contratos TS del dominio (archetype, microtest)
 │   └── proxy.ts                   # 🛡️ middleware que protege /admin/*
 ├── supabase/
 │   ├── migrations/                # 🗄️ SQL versionado: tablas, RLS, RPCs de matching
-│   ├── seed.sql / seed_v2.sql     # catálogos de animales/colores/ítems
+│   ├── seed.sql                   # catálogo de animales/colores/ítems
 │   └── promote_admin.sql          # alta manual del primer admin
 ├── .qoder/repowiki/               # 📚 documentación generada (ver mapa de lectura abajo)
 ├── .env.example                   # contrato de variables de entorno
@@ -236,17 +226,17 @@ ProyectoENESZooMatch/
 │  scripts/*.py + generate-synthetic-profiles.ts → data/*.json + Supabase  │
 └───────────────────────────────┬───────────────────────────────────────┘
                                  │ (JSON importados estáticamente en TS +
-                                 │  replicados con seed.sql / seed_v2.sql)
+                                 │  replicados con seed.sql)
 ┌───────────────────────────────▼───────────────────────────────────────┐
 │  FRONTEND (Next.js App Router)                                          │
-│  páginas (/cuestionario-v2, /resultado-v2, /admin)                      │
+│  páginas (/cuestionario, /resultado, /admin)                            │
 │  + componentes (public-experience*, constellation/, admin-dashboard)    │
 └───────────────────────────────┬───────────────────────────────────────┘
                                  │ fetch
 ┌───────────────────────────────▼───────────────────────────────────────┐
 │  API ROUTES  (todas envueltas en withApiSecurity: CORS + rate limit)    │
-│  /api/enter · quiz-v2 · result-v2 · notifications ·                    │
-│   admin/{login,logout,metrics-v2,recompute-v2}                          │
+│  /api/enter · quiz · result · notifications ·                           │
+│   admin/{login,logout,metrics,recompute}                                │
 └───────────────────────────────┬───────────────────────────────────────┘
                                  │ Supabase service-role client
 ┌───────────────────────────────▼───────────────────────────────────────┐
@@ -256,32 +246,23 @@ ProyectoENESZooMatch/
 ```
 
 ### 1. Pipeline de datos (fuera de la app)
-`recopilar_items.py` scrapea/normaliza/deduplica ítems IPIP por SHA-256 (tabla SQLite
-`staging_items` → `items_curados`, con modo `--offline`); `generar_arquetipos.py` /
-`generar_catalogo_v2.py` producen los catálogos con validación y escritura atómica;
-`generate-synthetic-profiles.ts` genera 500 perfiles con semilla fija (124 750 pares) y
-**calibra umbrales por bisección**. La calibración sólo escribe en `data/` o fixtures de
-prueba, **nunca reescribe código fuente**.
+`crawl_external.py` y `extract_signals.py` recopilan y normalizan señales de literatura
+abierta en `data/external/`; `generar_catalogo.py` produce el catálogo con validación y
+escritura atómica; `generate-synthetic-profiles.ts` genera 500 perfiles con semilla fija
+(124 750 pares por track) y **calibra umbrales por bisección**. La calibración se reporta en
+memoria y en tests; no reescribe código fuente.
 
-### 2. Entrada e identidad del producto (v2)
-La entrada pública pide únicamente la matrícula. `POST /api/enter` la normaliza y
-calcula su hash HMAC-SHA-256; crea un perfil anónimo si hace falta o recupera el
-existente, y abre sesión sin revelar si la matrícula estaba registrada. La primera
-entrada lleva al cuestionario de 60 ítems y las siguientes retoman el flujo v2.
-`/login`, `/cuestionario` y `/resultado` redirigen a la experiencia vigente; v1 queda
-como legado.
+### 2. Entrada e identidad
+La entrada pública pide únicamente la matrícula. `POST /api/enter` la normaliza y calcula
+su hash HMAC-SHA-256; crea un perfil anónimo si hace falta o recupera el existente, y abre
+sesión sin revelar si la matrícula estaba registrada. La primera entrada lleva al
+cuestionario de 60 ítems y las siguientes retoman el resultado.
 
-### 3. Cuestionario y matching v1 (retirado de la API)
-`POST /api/quiz` → RPC `submit_quiz_result` (guardaba respuestas y calculaba vectores en
-`score_vectors`). Hoy `/api/quiz` y `/api/result` responden **410 Gone** y las páginas v1
-redirigen a v2; este apartado queda como referencia histórica. Sin match, la UI v2 renderiza
-**literalmente** la constante `NO_MATCH_MESSAGE_V2` (ortografía y emoticon intocables,
-asertada por tests).
-
-### 4. Cuestionario y matching v2 (núcleo multidimensional)
-- **Validación** (`validation-v2.ts`): item IDs derivados directo de `microtest_v2.json`;
-  Zod exige todas las respuestas Likert (1–5) y multi-selección de filtros, sin duplicados.
-- **Scoring** (`matching-v2.ts::scoreQuizV2`): ítems negativos invertidos (`6 - valor`);
+### 3. Cuestionario y matching (núcleo multidimensional)
+- **Validación** (`validation/quiz.ts`): item IDs derivados directo de `microtest.json`;
+  Zod exige todas las respuestas Likert (1–5) y multi-selección de filtros, sin duplicados
+  y con opciones pertenecientes al ítem.
+- **Scoring** (`matching/engine.ts::scoreQuiz`): ítems negativos invertidos (`6 - valor`);
   cada dimensión normalizada a `[0,1]`; se deriva el código MBTI (`>= 0.5` → letra
   positiva); se extraen los 3 hard filters; se arman los vectores romance (26) y amistad (16).
 - **Filtros duros** (sólo romance): atracción mutua entre orientación e identidad de
@@ -290,12 +271,13 @@ asertada por tests).
 - **Similitud ponderada** (`trackSimilarity`): centra los vectores en `0.5`, calcula
   cosine por categoría con sus pesos y transforma el resultado a `[0,1]`. Cada track
   aplica su umbral exclusivo y conserva la unión top-5 por persona.
-- **Orquestación** `POST /api/quiz-v2`: `submit_quiz_result_v2` → recomputación global
+- **Orquestación** `POST /api/quiz`: `submit_quiz_result_v2` → recomputación global
   determinista en TypeScript → reemplazo atómico mediante `replace_matches_v2` →
-  notificaciones y bienvenida. Si el recálculo global falla por concurrencia, el resultado
-  se conserva y la respuesta devuelve `recomputePending: true`; las notificaciones nunca
-  convierten un guardado exitoso en error. `GET /api/result-v2`: `profiles_v2` +
-  `get_my_matches_v2`.
+  notificaciones y bienvenida. Los nombres `*_v2` son identificadores físicos de la base
+  de datos, congelados por el historial de migraciones. Si el recálculo global falla por
+  concurrencia, el resultado se conserva y la respuesta devuelve `recomputePending: true`;
+  las notificaciones nunca convierten un guardado exitoso en error. `GET /api/result`:
+  `profiles_v2` + `get_my_matches_v2`.
 
 ### 5. Explainability
 `src/lib/explainability.ts` traduce similitudes a lenguaje afectivo es-MX determinista:
@@ -310,19 +292,18 @@ sembradas con hashes de node-id vía mulberry32, sin `Math.random` ni relojes;
 convierte ese estado en un cielo SVG con sprite sheets memoizados, aristas, *join sparks*,
 etiquetas ARIA y soporte de movimiento reducido. **Nunca toca Supabase ni el motor de
 matching:** se alimenta sólo de props/contratos puros. Los umbrales se **leen** de
-`data/matching-config-v2.json` vía `getTrackThreshold`, nunca se hardcodean.
+`data/matching-config.json` vía `getTrackThreshold`, nunca se hardcodean.
 
 ### 7. Notificaciones
 Tabla `notifications` + RPCs `get_my_notifications` / `mark_notifications_read`.
 `GET|PATCH /api/notifications` (rate-limited). Copy centralizado en
-`notification-copy.ts`. `NotificationProvider` se monta sólo en `/resultado-v2` para evitar
+`notification-copy.ts`. `NotificationProvider` se monta sólo en `/resultado` para evitar
 un GET 401 en páginas públicas sin sesión.
 
 ### 8. Admin
 `src/proxy.ts` (matcher `/admin/:path*`) exige sesión Supabase Auth **y** fila
-`role='admin'` en `user_roles`; no-admin → `/admin/login`. Las métricas vienen de RPCs
-`SECURITY DEFINER` (`get_admin_dashboard`, `get_admin_dashboard_v2`) que **nunca** exponen
-matrículas, hashes, vectores ni respuestas crudas.
+`role='admin'` en `user_roles`; no-admin → `/admin/login`. Las métricas vienen de un RPC
+`SECURITY DEFINER` que **nunca** expone matrículas, hashes, vectores ni respuestas crudas.
 
 ### 9. Capa de seguridad (todas las API routes)
 `withApiSecurity` (`src/lib/security/api.server.ts`): **CORS** (allowlist mismo origen +
@@ -336,19 +317,19 @@ duros (`Cache-Control: no-store`, `X-Content-Type-Options: nosniff`).
 
 | Tabla | Migración | Rol |
 |---|---|---|
-| `archetypes`, `profiles`, `quiz_items`, `quiz_responses`, `score_vectors`, `matches` | `202610220001_secure_matching.sql` | v1: perfiles con hash de matrícula, vectores y matches |
 | `user_roles` + `private.is_admin` | `202610220002_admin_analytics.sql` | RBAC del dashboard |
-| `animals`, `colors`, `quiz_items_v2`, `profiles_v2`, `quiz_responses_v2`, `matches_v2`, `notifications` | `202610230001_multidimensional_v2.sql` | v2: catálogo expandido, doble track y notificaciones |
-| (recrea `get_my_matches_v2`) | `202610240001_matches_v2_explainability.sql` | añade `other_user` al RPC para que el resultado pueda construir la explicación afectiva |
+| `animals`, `colors`, `quiz_items_v2`, `profiles_v2`, `quiz_responses_v2`, `matches_v2`, `notifications` | `202610230001_multidimensional_v2.sql` | catálogo, doble track y notificaciones |
+| (recrea `get_my_matches_v2`) | `202610240001_matches_v2_explainability.sql` | añade `other_user` al RPC para construir la explicación afectiva |
 | `replace_matches_v2` y permisos de RPC | `202610250001_global_matching_hardening.sql` | reemplazo atómico de matches, control de snapshots obsoletos y cierre de permisos por defecto |
-| Grants de tablas v2 | `202610260001_table_grants_hygiene.sql` | deja las tablas v2 en sólo `SELECT` para los roles de API; escrituras sólo por RPC/service role |
+| Grants de tablas | `202610260001_table_grants_hygiene.sql` | deja las tablas en sólo `SELECT` para los roles de API; escrituras sólo por RPC/service role |
+| Submit canónico | `202610270001_canonical_profile_identity.sql` | el submit obtiene el hash de matrícula desde `profiles_v2`, no desde la tabla v1 |
 
 `profiles_v2` guarda `romance_vector double precision[26]` y
-`amistad_vector double precision[16]`. **RPCs clave:** `submit_quiz_result`,
-`refresh_matches`, `get_my_matches` (v1, legado) · `submit_quiz_result_v2`,
-`replace_matches_v2`, `get_my_matches_v2`, `notify_matches_v2`,
-`get_my_notifications`, `mark_notifications_read`, `get_admin_dashboard_v2` (v2).
-RLS activo en todo; **service role sólo en rutas API server-side**.
+`amistad_vector double precision[16]`. Los sufijos `_v2` son nombres físicos congelados en
+el historial de migraciones; la API y el código de aplicación son canónicos.
+**RPCs clave:** `submit_quiz_result_v2`, `replace_matches_v2`, `get_my_matches_v2`,
+`notify_matches_v2`, `get_my_notifications`, `mark_notifications_read`, y el RPC de métricas
+admin. RLS activo en todo; **service role sólo en rutas API server-side**.
 
 ---
 
@@ -406,23 +387,22 @@ pip install -r requirements.txt
 ## ✅ Tests
 
 Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Estado actual:
-**476 tests en 26 archivos** (2026-10-25). Cubren, entre otros:
+**463 tests en 24 archivos** (2026-10-25). Cubren, entre otros:
 
-- `matching.test.ts` (v1) · `matching-v2.test.ts` (~960 líneas: scoring, filtros duros,
-  similitud ponderada, badges, constante de "sin match").
-- `validation-v2.test.ts` · `profile-generator.test.ts` · `synthetic-profiles.test.ts`
-  (calibración).
+- `matching/engine.test.ts` (~960 líneas: scoring, filtros duros, similitud ponderada,
+  badges, constante de "sin match").
+- `validation/quiz.test.ts` · `profile-generator.test.ts` · `synthetic-profiles.test.ts`
+  (500 perfiles, 124 750 pares y calibración al 20%).
 - `explainability.test.ts` (bandas de química relativas al umbral) ·
-  `matching-recompute.server.test.ts` (reintentos con backoff) ·
-  `api/quiz-v2/route.test.ts` (camino `recomputePending`).
+  `matching/recompute.server.test.ts` (reintentos con backoff) ·
+  `api/quiz/route.test.ts` (camino `recomputePending`).
 - `constellation-layout.test.ts` · `constellation/*.test.ts` (`adapt-result`,
   `build-structure`, `render-helpers`) · `pixel-sprites.test.ts`.
-- `admin-dashboard.test.ts` · `env.test.ts` · `security/security-utils.test.ts` ·
-  `notification-copy.test.ts` · `public-experience-utils(.v2).test.ts`.
+- `admin/dashboard.test.ts` · `env.test.ts` · `security/security-utils.test.ts` ·
+  `notification-copy.test.ts` · `public-experience-utils.test.ts`.
 
-> Varios tests **fijan literales exactos** (p. ej. `NO_MATCH_LITERAL` en v1 y
-> `NO_MATCH_MESSAGE_V2` en v2). No corrijas su ortografía ni sus emoticons: están
-> asertados verbo a verbo.
+> Varios tests **fijan literales exactos** (p. ej. `NO_MATCH_MESSAGE`). No corrijas su
+> ortografía ni su emoticon: está asertado verbo a verbo.
 
 ---
 
@@ -439,10 +419,9 @@ Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Est
 - **Rate limiting + CORS** por ruta en todas las API. Sin Upstash el modo es *fail-open*;
   para el evento es **obligatorio configurarlo** (ver `DESPLIEGUE.md`).
 - **RLS** activo en todas las tablas; service role confinado a rutas server-side. La
-  migración `202610260001` deja las tablas v2 en sólo `SELECT` para los roles de API.
+  migración `202610260001` deja las tablas en sólo `SELECT` para los roles de API.
 - **Retención:** `supabase/purge_event.sql` borra participantes y sus datos en cascada al
   terminar el evento, conservando cuentas admin.
-- **APIs v1:** `/api/quiz` y `/api/result` responden 410; las páginas v1 redirigen a v2.
 
 ---
 
@@ -451,7 +430,7 @@ Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Est
 Este README es la puerta de entrada. Para profundizar:
 
 1. **[`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md)** — documento de contexto profundo,
-   capa por capa (pipeline, identidad, matching v1/v2, explainability, constelación,
+   capa por capa (pipeline, identidad, matching, explainability, constelación,
    notificaciones, admin, seguridad, modelo de datos, entorno, tests, glosario).
 2. **RepoWiki generado** en `.qoder/repowiki/en/content/` — documentación extensa con
    diagramas Mermaid y referencias a archivos/líneas:
@@ -460,9 +439,9 @@ Este README es la puerta de entrada. Para profundizar:
    |---|---|
    | `Project Overview.md` | visión general (nota: describe la app en su forma más simple de explorador de arquetipos) |
    | `Getting Started.md` | puesta en marcha |
-   | `Architecture Overview/` | `Architecture Overview`, `API Layer & Security`, `Component Architecture`, `ZooMatch v2 Matching Engine`, `Profile Generation System`, `Explainability & Analytics`, `Integration Patterns`, `Data Flow Patterns/` (incl. `Static Data Processing`, `Archetype Data Structure`, `Environment Configuration Flow`, `Type System Design`) |
-   | `Core Components/` | `Admin Dashboard System`, `Constellation Visualization System`, `Interactive Quiz Interface v2` |
-   | `Data Pipeline & Generation/` | `Data Pipeline & Generation`, `Database Schema v2` |
+   | `Architecture Overview/` | `Architecture Overview`, `API Layer & Security`, `Component Architecture`, `ZooMatch Matching Engine`, `Profile Generation System`, `Explainability & Analytics`, `Integration Patterns`, `Data Flow Patterns/` (incl. `Static Data Processing`, `Archetype Data Structure`, `Environment Configuration Flow`, `Type System Design`) |
+   | `Core Components/` | `Admin Dashboard System`, `Constellation Visualization System`, `Interactive Quiz Interface` |
+   | `Data Pipeline & Generation/` | `Data Pipeline & Generation`, `Database Schema` |
    | `Type System & Data Models.md` · `Styling & Design System.md` · `Testing Strategy.md` · `Environment Configuration.md` · `Build & Deployment.md` | temas transversales |
 
 3. **Knowledge cards** en `.qoder/repowiki/knowledge/en/` — fichas de conocimiento por
@@ -478,12 +457,12 @@ Este README es la puerta de entrada. Para profundizar:
 
 - **Alias de import:** usa `@/…` (→ `./src`) tanto en la app como en tests.
 - **Datos antes que código:** para cambiar umbrales, pesos, dimensiones o ítems, edita los
-  JSON de `data/` (y su espejo en `seed*.sql` si aplica), no la lógica TS.
-- **Motores puros:** `matching*.ts`, `constellation-layout.ts`, `pixel-sprites.ts`,
+  JSON de `data/` (y su espejo en `seed.sql` si aplica), no la lógica TS.
+- **Motores puros:** `matching/engine.ts`, `constellation-layout.ts`, `pixel-sprites.ts`,
   `explainability.ts` y `profile-generator.ts` no deben tener efectos secundarios, DOM, red
   ni `Math.random`. Mantén esa propiedad para preservar la testeabilidad.
-- **Literales protegidos:** no toques las cadencias/ortografía de `NO_MATCH_LITERAL` (v1) ni
-  `NO_MATCH_MESSAGE_V2` (v2); están fijadas por tests.
+- **Literales protegidos:** no toques la cadencia/ortografía de `NO_MATCH_MESSAGE`; está
+  fijada por tests.
 - **Server-only:** los módulos `*.server.ts` y el service role **nunca** se importan desde
   componentes de cliente.
 - **Migraciones aditivas:** los cambios de esquema van en un nuevo archivo bajo
@@ -495,9 +474,8 @@ Este README es la puerta de entrada. Para profundizar:
 
 ## 📖 Glosario
 
-- **arquetipos:** tipos MBTI con animalito diminutivo, rol, rasgos y paleta de colores
-  (v1: 16; v2: catálogo de 61 animales × 55 colores).
-- **microtest:** cuestionario canónico (v1: 24 ítems; v2: 60 ítems / 30 dimensiones).
+- **arquetipos:** animalito diminutivo + color del catálogo (61 animales × 55 colores).
+- **microtest:** cuestionario canónico de 60 ítems / 30 dimensiones.
 - **track:** canal de matching (`romance` con filtros duros, `amistad` sin ellos).
 - **hard filter:** pregunta multi-selección que habilita/bloquea emparejamientos romance
   (orientación sexual, identidad de género, tipo de relación buscada).
@@ -505,8 +483,6 @@ Este README es la puerta de entrada. Para profundizar:
 - **constelación:** visualización interactiva de los matches como cielo de sprites con
   física determinista.
 - **sprite:** animalito en pixel-art 12×12 generado por código, en 3 frames de animación.
-- **staging / items_curados:** tablas SQLite del pipeline de recopilación de ítems IPIP.
-- **modo offline:** ejecución del pipeline sin red, sólo ítems locales aprobados.
 - **explainability:** motor que convierte similitudes numéricas en narrativa afectiva es-MX.
 
 ---

@@ -1,5 +1,5 @@
 /**
- * ZooMatch v2 — Explainability Engine
+ * ZooMatch — Explainability Engine
  *
  * Translates raw cosine-similarity results into warm, human, affective Spanish
  * (es-MX) language. Every function here is deterministic and side-effect free:
@@ -17,13 +17,13 @@
  * characters per phrase, and is never clinical.
  */
 
-import type { MatchTrack } from "@/types/microtest-v2";
+import type { MatchTrack } from "@/types/microtest";
 import {
   BIG_FIVE_DIMENSIONS,
   FRIENDSHIP_VECTOR_DIMENSIONS,
   ROMANCE_VECTOR_DIMENSIONS,
-} from "@/types/microtest-v2";
-import { getMatchingConfigV2 } from "@/lib/matching-config-v2";
+} from "@/types/microtest";
+import { getMatchingConfig } from "@/lib/matching";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -100,7 +100,7 @@ const TRACK_DIMENSIONS: Record<MatchTrack, readonly string[]> = {
   amistad: FRIENDSHIP_VECTOR_DIMENSIONS,
 };
 
-const MATCHING_CONFIG = getMatchingConfigV2();
+const MATCHING_CONFIG = getMatchingConfig();
 const TRACK_THRESHOLDS: Record<MatchTrack, number> = {
   romance: MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive,
   amistad: MATCHING_CONFIG.tracks.amistad.minimum_similarity_exclusive,

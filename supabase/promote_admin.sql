@@ -13,14 +13,6 @@ begin
     raise exception 'No existe un usuario de Auth con el correo %', admin_email;
   end if;
 
-  insert into public.profiles (id, matricula_hash, role)
-  values (
-    admin_id,
-    encode(extensions.digest('admin:' || lower(admin_email), 'sha256'), 'hex'),
-    'admin'
-  )
-  on conflict (id) do update set role = 'admin';
-
   insert into public.user_roles (user_id, role)
   values (admin_id, 'admin')
   on conflict (user_id) do update set role = 'admin';

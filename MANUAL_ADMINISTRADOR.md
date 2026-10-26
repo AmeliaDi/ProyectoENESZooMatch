@@ -89,8 +89,8 @@ un perfil anónimo; no hay un paso separado de **"Crear mi perfil"**.
 
 1. Escribe la matrícula en `/` y pulsa **"Entrar al hábitat"**.
 2. El sistema abre o reabre la sesión de forma automática, **sin pedir contraseña**.
-3. Según su avance, la aplicación lo lleva a `/cuestionario-v2` si el cuestionario está
-   pendiente o a `/resultado-v2` si ya lo completó.
+3. Según su avance, la aplicación lo lleva a `/cuestionario` si el cuestionario está
+   pendiente o a `/resultado` si ya lo completó.
 
 Mensajes posibles:
 
@@ -98,9 +98,9 @@ Mensajes posibles:
   momento.
 - *"Algo salió mal. Intenta de nuevo."* → error genérico.
 
-> **Nota de navegación real:** `/login` redirige a `/`. La pantalla principal es la entrada por
-> matrícula; según el avance, dirige al cuestionario v2 o al resultado v2 (ver
-> [3.5](#35-módulo-cuestionario)).
+> **Nota de navegación real:** no existe una página pública de login separada. La pantalla
+> principal es la entrada por matrícula; según el avance, dirige al cuestionario o al
+> resultado (ver [3.5](#35-módulo-cuestionario)).
 
 ### 1.5 Requisitos de acceso (antes de que alguien pueda entrar)
 
@@ -110,7 +110,7 @@ Para que la plataforma funcione y se pueda entrar, se necesita:
   autenticación). Si las credenciales de Supabase no están configuradas, el panel **redirige a
   `/admin/login`** y las operaciones del estudiante responden como "no disponible".
 - **Base de datos preparada.** Aplicar, en orden, las migraciones y las semillas de datos
-  (`supabase/migrations/*.sql` → `seed.sql` → `seed_v2.sql`). Esto crea las tablas, los
+  (`supabase/migrations/*.sql` → `seed.sql`). Esto crea las tablas, los
   catálogos de animales/colores y los cuestionarios.
 - **Promoción del primer administrador.** No hay una pantalla para "dar de alta administradores".
   El alta se hace manualmente con el archivo `supabase/promote_admin.sql`:
@@ -231,15 +231,15 @@ lógico vs físico) y qué filtros o búsquedas ofrece.
 - **¿El administrador crea o edita coincidencias?** **No.** Las coincidencias se **generan solas**
   a partir de las respuestas; no hay pantalla para crearlas, editarlas, aprobarlas ni borrarlas
   manualmente.
-- **¿Dónde se ven?** Solo en la **pantalla de resultado del propio estudiante** (`/resultado` en
-  la versión 1, `/resultado-v2` en la versión 2). El administrador **no** ve coincidencias
-  individuales en el panel; solo el **porcentaje agregado** de usuarios con coincidencia.
-- **Dos "pistas" de coincidencia (versión 2):**
+- **¿Dónde se ven?** Solo en la **pantalla de resultado del propio estudiante** (`/resultado`).
+  El administrador **no** ve coincidencias individuales en el panel; solo el **porcentaje
+  agregado** de usuarios con coincidencia.
+- **Dos "pistas" de coincidencia:**
   - **💫 Almas Gemelas** (pista *romance*): compatibilidad romántica. Aplica **filtros duros**
     (orientación, identidad de género y tipo de relación buscada) además de la similitud.
   - **✨ Futuros Mejores Amigxs** (pista *amistad*): compatibilidad de amistad. **No** aplica esos
     filtros duros.
-- **Cómo se presenta cada coincidencia (v2):** una tarjeta con un **anillo de porcentaje de
+- **Cómo se presenta cada coincidencia:** una tarjeta con un **anillo de porcentaje de
   química**, el alias de la otra persona, su animalito y color, "insignias" (badges) de afinidad,
   una narrativa breve y un botón **"¿Por qué hicimos match?"** que despliega el desglose por
   categorías (Personalidad, Gustos culturales, Intimidad y afecto, Valores relacionales,
@@ -281,16 +281,13 @@ lógico vs físico) y qué filtros o búsquedas ofrece.
 ### 3.4 Módulo: Catálogos de animales y colores
 
 - **¿Para qué sirve?** Definir el "universo" de identidades visuales: los **animalitos** y los
-  **colores/texturas** que se asignan a cada perfil, y los **arquetipos MBTI** de la versión 1.
-- **Contenido real detectado:**
-  - Versión 1: **16 arquetipos MBTI**, cada uno con animalito, rol, rasgos y una paleta de 3
-    colores (archivo `data/arquetipos.json`).
-  - Versión 2: catálogo de **61 animales × 55 colores/texturas** (archivo
-    `data/catalogo_arquetipos_v2.json`).
+  **colores/texturas** que se asignan a cada perfil.
+- **Contenido real detectado:** catálogo de **61 animales × 55 colores/texturas** (archivo
+  `data/arquetipos.json`).
 - **¿Se crean/editan desde el panel?** **No.** No existe ninguna pantalla administrativa para
   agregar, renombrar, desactivar o eliminar animalitos o colores.
 - **Cómo se administran entonces:** editando los **archivos de datos** del catálogo y
-  **volviéndolos a cargar** en la base de datos (semillas `seed.sql` / `seed_v2.sql`). Estos
+  **volviéndolos a cargar** en la base de datos (semillas `seed.sql`). Estos
   catálogos se generan con utilidades del proyecto (no desde la interfaz). La asignación de
   animalito y color a cada perfil la hace el **sistema automáticamente**, no una persona.
 - **Impacto operativo:** si cambias el catálogo, los cambios afectan a las **nuevas**
@@ -299,14 +296,14 @@ lógico vs físico) y qué filtros o búsquedas ofrece.
 
 ### 3.5 Módulo: Cuestionario
 
-Comparación de versiones; la ruta del cuestionario v1 ahora redirige al flujo v2:
+El cuestionario canónico vive en `/cuestionario`:
 
-| | Versión 1 (legado; `/cuestionario` redirige a `/cuestionario-v2`) | Versión 2 (`/cuestionario-v2`) |
-|---|---|---|
-| **Cantidad de preguntas** | 24 ítems | 60 ítems |
-| **Escala de respuesta** | Likert de 4 opciones | Likert de 5 opciones |
-| **Tipos de pregunta** | Opción única (de acuerdo/en desacuerdo) | Opción única **+ selección múltiple** (los "filtros duros") |
-| **Resultado** | `/resultado` | `/resultado-v2` |
+| | Cuestionario canónico |
+|---|---|
+| **Cantidad de preguntas** | 60 ítems |
+| **Escala de respuesta** | Likert de 5 opciones |
+| **Tipos de pregunta** | Opción única **+ selección múltiple** (los "filtros duros") |
+| **Resultado** | `/resultado` |
 
 - **¿Para qué sirve?** Recopilar las respuestas anónimas que alimentan el cálculo de
   compatibilidad y la identidad (animalito + color + alias).
@@ -318,12 +315,12 @@ Comparación de versiones; la ruta del cuestionario v1 ahora redirige al flujo v
     servidor** hasta el envío final.
   - Al llegar al final y pulsar **"Descubrir resultado"**, se envía **una sola vez** y se limpia
     el borrador local.
-  - En la versión 2, algunas preguntas piden **"selecciona todas las que apliquen"** (por ejemplo
-    orientación, identidad de género o tipo de relación); esas respuestas alimentan los filtros
-    duros de la pista romance.
-- **¿El administrador crea o edita preguntas?** **No.** Las preguntas viven en archivos de datos
-  (`data/microtest_v1.json`, `data/microtest_v2.json`). Para cambiarlas se editan esos archivos y
-  se recargan; no hay pantalla de edición de cuestionario.
+  - Algunas preguntas piden **"selecciona todas las que apliquen"** (por ejemplo orientación,
+    identidad de género o tipo de relación); esas respuestas alimentan los filtros duros de la
+    pista romance.
+- **¿El administrador crea o edita preguntas?** **No.** Las preguntas viven en
+  `data/microtest.json`. Para cambiarlas se edita ese archivo y se recarga; no hay pantalla de
+  edición de cuestionario.
 - **Mensajes del cuestionario:**
   - Si la sesión caducó al enviar: *"Tu sesión ya no está disponible. Volver al acceso."*
   - Si falla el guardado: *"No pudimos guardar tus respuestas. Tu avance sigue en este
@@ -333,12 +330,9 @@ Comparación de versiones; la ruta del cuestionario v1 ahora redirige al flujo v
 
 - **¿Para qué sirve?** Mostrar al estudiante su identidad anónima y sus coincidencias.
 - **Qué ve el estudiante en su resultado:**
-  - **Versión 1 (`/resultado`):** su **alias**, el **arquetipo MBTI**, el **animalito**, la
-    **paleta de colores**, una **ficha de especie** con rasgos y la **lista de coincidencias**
-    (cada una con porcentaje de compatibilidad y en qué dimensiones coinciden).
-  - **Versión 2 (`/resultado-v2`):** su **alias**, **animalito + color**, una **narrativa
-    afectiva**, la **etiqueta MBTI**, y las coincidencias en **dos pestañas** (Almas Gemelas /
-    Futuros Mejores Amigxs). Además puede alternar entre dos formas de ver sus conexiones:
+  - Su **alias**, **animalito + color**, una **narrativa afectiva**, la **etiqueta MBTI**, y las
+    coincidencias en **dos pestañas** (Almas Gemelas / Futuros Mejores Amigxs). Además puede
+    alternar entre dos formas de ver sus conexiones:
     - **Lista:** tarjetas con detalle y desglose de afinidad.
     - **Constelación:** un "cielo" interactivo de animalitos en pixeles que se pueden arrastrar,
       con líneas entre personas compatibles y ficha de detalle por nodo.
@@ -403,17 +397,15 @@ sirve cada una**, sin revelar secretos:
 
 | Qué quieres ajustar | Archivo / lugar | Cómo se aplica |
 |---|---|---|
-| Umbral de compatibilidad **v1** | `data/matching-config.json` (campo `minimum_similarity_exclusive`) | Editar el valor y recargar el sistema. |
-| Umbrales y pesos **v2** (romance 0.65 / amistad 0.68, pesos por categoría, filtros duros, dimensiones) | `data/matching-config-v2.json` | Editar y recargar. |
-| Preguntas del cuestionario | `data/microtest_v1.json` (24 ítems) · `data/microtest_v2.json` (60 ítems) | Editar y recargar. |
-| Arquetipos / animalitos / colores | `data/arquetipos.json` · `data/catalogo_arquetipos_v2.json` | Editar/regenerar y **volver a sembrar** la base (`seed.sql` / `seed_v2.sql`). |
+| Umbrales y pesos (romance 0.65 / amistad 0.68, pesos por categoría, filtros duros, dimensiones) | `data/matching-config.json` | Editar y recargar. |
+| Preguntas del cuestionario | `data/microtest.json` (60 ítems) | Editar y recargar. |
+| Arquetipos / animalitos / colores | `data/arquetipos.json` | Editar/regenerar y **volver a sembrar** la base (`seed.sql`). |
 
 Notas para el operador:
 
-- **Umbrales actuales de referencia:** el umbral v1 vigente es un valor muy alto resultado de una
-  calibración (no el `0.85` de documentación histórica, que es solo el valor de respaldo). En v2,
-  romance usa `0.65` y amistad `0.68`; ambos viven en `data/matching-config-v2.json`. Un umbral
-  más alto = menos coincidencias; más bajo = más coincidencias.
+- **Umbrales actuales de referencia:** romance usa `0.65` y amistad `0.68`; ambos viven en
+  `data/matching-config.json`. Un umbral más alto = menos coincidencias; más bajo = más
+  coincidencias. `0.85` no es un umbral activo del motor canónico.
 - **No hay pantalla para editar nada de esto.** Los cambios se hacen sobre los archivos y se
   recargan; después conviene verificar en el panel que el umbral mostrado cambió.
 - Ciertos **textos fijos** (como el mensaje de "sin coincidencias") están **protegidos**: no deben

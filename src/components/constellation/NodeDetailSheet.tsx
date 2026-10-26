@@ -30,7 +30,7 @@ import {
   generateConnectionHeadline,
   type AffinityBreakdown,
 } from "@/lib/explainability";
-import type { MatchTrack } from "@/types/microtest-v2";
+import type { MatchTrack } from "@/types/microtest";
 
 import { PixelAnimal } from "./PixelAnimal";
 import { formatAffinityPercent, sliceBadges } from "./render-helpers";
@@ -41,7 +41,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Ring + label header, reusing the v2 `.chemistry-ring` conic-gradient class. */
+/** Ring + label header, reusing the `.chemistry-ring` conic-gradient class. */
 function ChemistryBand({
   percentage,
   levelLabel,

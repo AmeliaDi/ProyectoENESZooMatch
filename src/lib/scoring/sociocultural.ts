@@ -1,6 +1,6 @@
 import { SCORING_CONFIG } from "@/lib/scoring/config";
-import { checkHardFilters, isRelationshipCompatible } from "@/lib/matching-v2";
-import type { HardFilters } from "@/types/microtest-v2";
+import { checkHardFilters, isRelationshipCompatible } from "@/lib/matching";
+import type { HardFilters } from "@/types/microtest";
 import type { Sociocultural } from "@/lib/scoring/types";
 
 function presentSelections(value: string[] | undefined): value is string[] {

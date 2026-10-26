@@ -4,12 +4,12 @@
  * TrackToggle — the segmented Romance / Amistad switch.
  *
  * Deliberately reuses the existing `.track-tab` / `.track-tab--{track}` rules
- * from `globals.css` (the same ones `PublicResultViewV2` uses) so the
- * constellation feels like part of the v2 result experience and so the global
+ * from `globals.css` (the same ones `PublicResultView` uses) so the
+ * constellation feels like part of the result experience and so the global
  * `prefers-reduced-motion` block already in the stylesheet handles the
  * transition for us — no extra animation code, no new CSS.
  *
- * Semantics follow the ARIA tabs pattern used elsewhere in v2: a `tablist` with
+ * Semantics follow the ARIA tabs pattern used elsewhere in the result experience: a `tablist` with
  * two `tab`s, roving `tabIndex`, arrow-key movement and `aria-controls` on the
  * region being swapped. Changing the track does NOT unmount the canvas; it only
  * re-targets the simulation, so the stars physically glide to their new rest
@@ -18,7 +18,7 @@
 
 import { useCallback, useRef, type KeyboardEvent } from "react";
 
-import type { MatchTrack } from "@/types/microtest-v2";
+import type { MatchTrack } from "@/types/microtest";
 
 import { connectionsLabel } from "./render-helpers";
 import { CONSTELLATION_COPY, type TrackToggleProps } from "./types";

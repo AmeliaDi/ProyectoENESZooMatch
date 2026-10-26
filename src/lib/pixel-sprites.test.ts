@@ -3,13 +3,12 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Covers the 10 required invariants plus a handful of regression guards that
  * protect the design contract (determinism, symmetry budget, palette rules,
- * frame semantics, v1 archetype support).
+ * frame semantics).
  */
 
 import { describe, expect, it } from "vitest";
 
-import catalogoData from "../../data/catalogo_arquetipos_v2.json";
-import arquetiposV1 from "../../data/arquetipos.json";
+import catalogoData from "../../data/arquetipos.json";
 import {
   ALL_FAMILIES,
   EYE_COLOR,
@@ -31,7 +30,7 @@ import {
 
 const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
-/** Colour ids used throughout the suite; both exist in the v2 catalogue. */
+/** Colour ids used throughout the suite; both exist in the catalogue. */
 const PRIMARY_COLOR = "verde-esmeralda";
 const SECONDARY_COLOR = "rosa-pastel";
 
@@ -50,9 +49,6 @@ interface CatalogColor {
 
 const CATALOG_ANIMALS = catalogoData.animales as unknown as CatalogAnimal[];
 const CATALOG_COLORS = catalogoData.colores as unknown as CatalogColor[];
-const V1_IDS = (
-  arquetiposV1.arquetipos as unknown as Array<{ id: string }>
-).map((archetype) => archetype.id);
 
 const ALL_IDS = getAllAnimalIds();
 
@@ -89,7 +85,7 @@ function expectValidSprite(sprite: SpriteData, animalId: string): void {
 
 describe("getSprite — coverage", () => {
   it("generates a valid sprite for every registered animal", () => {
-    expect(ALL_IDS.length).toBe(77);
+    expect(ALL_IDS.length).toBe(61);
 
     const rendered: SpriteData[] = [];
     for (const animalId of ALL_IDS) {
@@ -108,15 +104,12 @@ describe("getSprite — coverage", () => {
     });
   });
 
-  it("registers all 61 catalogue animals plus all 16 v1 archetypes", () => {
+  it("registers all 61 catalogue animals exactly once", () => {
     expect(CATALOG_ANIMALS).toHaveLength(61);
-    expect(V1_IDS).toHaveLength(16);
+    expect(ALL_IDS).toHaveLength(61);
 
     for (const animal of CATALOG_ANIMALS) {
       expect(ALL_IDS, `catalogue animal ${animal.id}`).toContain(animal.id);
-    }
-    for (const id of V1_IDS) {
-      expect(ALL_IDS, `v1 archetype ${id}`).toContain(id);
     }
     expect(new Set(ALL_IDS).size).toBe(ALL_IDS.length);
   });
@@ -518,13 +511,9 @@ describe("colour handling", () => {
     }
   });
 
-  it("supports colour names, v1 palettes and 'auto' for v1 archetypes", () => {
+  it("supports colour names as aliases for catalogue ids", () => {
     const byName = getSprite("tigrito", "Verde Esmeralda");
     expect(byName.palette[0]).toBe(getSprite("tigrito", PRIMARY_COLOR).palette[0]);
-
-    const auto = getSprite("pulpito-azul-abisal", "auto");
-    expect(auto.palette[0]).toMatch(HEX_PATTERN);
-    expectValidSprite(auto, "pulpito-azul-abisal");
   });
 
   it("falls back deterministically for unknown colour ids", () => {

@@ -1,5 +1,14 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 
-export default function ResultPage() {
-  redirect("/resultado-v2");
+import { NotificationProvider } from "@/components/notification-provider";
+import { PublicResultView } from "@/components/public-experience";
+
+export const metadata: Metadata = { title: "Resultado | ZooMatch" };
+
+export default function ResultadoPage() {
+  return (
+    <NotificationProvider>
+      <PublicResultView />
+    </NotificationProvider>
+  );
 }
