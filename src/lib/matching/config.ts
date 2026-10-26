@@ -11,13 +11,22 @@ import rawConfig from "../../../data/matching-config.json";
  * similarity thresholds and per-track match limits.
  */
 
+const selectivitySchema = z.object({
+  intimacy_alignment_floor: z.number().min(0).max(1),
+  conflict_alignment_floor: z.number().min(0).max(1),
+  intimacy_penalty_weight: z.number().min(0).max(1),
+  conflict_penalty_weight: z.number().min(0).max(1),
+});
+
 const trackSchema = z.object({
   minimum_similarity_exclusive: z.number().min(0.5).max(0.999),
   centering: z.number().min(0).max(1),
   max_matches: z.number().int().positive(),
+  target_coverage_percentile: z.number().min(0).max(1),
   dimensions: z.array(z.string()),
   hard_filters: z.array(z.string()),
   weights: z.record(z.string(), z.number()),
+  selectivity: selectivitySchema.optional(),
 });
 
 const configSchema = z.object({

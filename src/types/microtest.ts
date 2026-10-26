@@ -256,14 +256,25 @@ export interface CategoryWeights {
   identidad?: number;
 }
 
+export interface RomanceSelectivityConfig {
+  intimacy_alignment_floor: number;
+  conflict_alignment_floor: number;
+  intimacy_penalty_weight: number;
+  conflict_penalty_weight: number;
+}
+
 // Matching configuration
 export interface TrackConfig {
   minimum_similarity_exclusive: number;
   centering: number;
   max_matches: number;
+  /** Expected share of users with at least one match on this track. */
+  target_coverage_percentile: number;
   dimensions: string[];
   hard_filters: HardFilterField[];
   weights: CategoryWeights;
+  /** Romance-only alignment penalties. */
+  selectivity?: RomanceSelectivityConfig;
 }
 
 export interface MatchingConfig {

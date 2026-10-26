@@ -25,6 +25,7 @@ import type {
   MatchingConfig,
   QuizItem,
   QuizSubmission,
+  RomanceSelectivityConfig,
   ScoredProfile,
   TrackConfig,
 } from "@/types/microtest";
@@ -53,9 +54,11 @@ interface RawTrackConfig {
   minimum_similarity_exclusive: number;
   centering: number;
   max_matches: number;
+  target_coverage_percentile: number;
   dimensions: string[];
   hard_filters: string[];
   weights: Record<string, number>;
+  selectivity?: RomanceSelectivityConfig;
 }
 
 interface RawMatchingConfig {
@@ -86,9 +89,11 @@ function normalizeTrack(track: RawTrackConfig): TrackConfig {
     minimum_similarity_exclusive: track.minimum_similarity_exclusive,
     centering: track.centering,
     max_matches: track.max_matches,
+    target_coverage_percentile: track.target_coverage_percentile,
     dimensions: [...track.dimensions],
     hard_filters: [...track.hard_filters] as HardFilterField[],
     weights: normalizeWeights(track.weights),
+    ...(track.selectivity ? { selectivity: { ...track.selectivity } } : {}),
   };
 }
 
@@ -459,6 +464,83 @@ export function trackSimilarity(
   return similarity;
 }
 
+/** Fallback used if a config predates the romance selectivity block. */
+const DEFAULT_ROMANCE_SELECTIVITY: RomanceSelectivityConfig = {
+  intimacy_alignment_floor: 0.6,
+  conflict_alignment_floor: 0.55,
+  intimacy_penalty_weight: 0.45,
+  conflict_penalty_weight: 0.35,
+};
+
+export interface RomanceSelectivityResult {
+  /** Similarity after the intimacy/conflict penalty. */
+  score: number;
+  /** Mean per-dimension affinity across the eight intimacy dimensions. */
+  intimacyAlignment: number;
+  /** Affinity on `valores_gestion_conflicto`. */
+  conflictAlignment: number;
+  /** Multiplicative penalty in [0, 1]; zero means perfectly aligned. */
+  penalty: number;
+}
+
+/**
+ * Applies the romance-only alignment penalties.
+ *
+ * Intimacy and conflict are the two places where two otherwise similar people
+ * tend to hurt each other, so a pair below either floor loses part of its
+ * score. Identical vectors are untouched, which keeps the base similarity
+ * meaningful and makes the penalty symmetric.
+ */
+export function applyRomanceSelectivity(
+  a: readonly number[],
+  b: readonly number[],
+  baseSimilarity: number,
+  trackConfig: TrackConfig,
+): RomanceSelectivityResult {
+  const config = trackConfig.selectivity ?? DEFAULT_ROMANCE_SELECTIVITY;
+  let intimacySum = 0;
+  let intimacyCount = 0;
+  let conflictSum = 0;
+  let conflictCount = 0;
+
+  for (let index = 0; index < trackConfig.dimensions.length; index += 1) {
+    const dimension = trackConfig.dimensions[index] ?? "";
+    const affinity = clamp01(1 - Math.abs((a[index] ?? 0) - (b[index] ?? 0)));
+    if (dimension.startsWith("intimidad_")) {
+      intimacySum += affinity;
+      intimacyCount += 1;
+    }
+    if (dimension === "valores_gestion_conflicto") {
+      conflictSum += affinity;
+      conflictCount += 1;
+    }
+  }
+
+  const intimacyAlignment = intimacyCount === 0 ? 1 : intimacySum / intimacyCount;
+  const conflictAlignment = conflictCount === 0 ? 1 : conflictSum / conflictCount;
+  const intimacyGap =
+    config.intimacy_alignment_floor > 0
+      ? Math.max(0, config.intimacy_alignment_floor - intimacyAlignment) /
+        config.intimacy_alignment_floor
+      : 0;
+  const conflictGap =
+    config.conflict_alignment_floor > 0
+      ? Math.max(0, config.conflict_alignment_floor - conflictAlignment) /
+        config.conflict_alignment_floor
+      : 0;
+  const penalty = clamp01(
+    intimacyGap * config.intimacy_penalty_weight +
+      conflictGap * config.conflict_penalty_weight,
+  );
+
+  return {
+    score: clamp01(baseSimilarity * (1 - penalty)),
+    intimacyAlignment,
+    conflictAlignment,
+    penalty,
+  };
+}
+
 // ─── Badges ───────────────────────────────────────────────────────────────────
 
 /**
@@ -533,16 +615,19 @@ export function findDualMatches(
 ): DualMatchResult[] {
   const romanceConfig = config.tracks.romance;
   const friendshipConfig = config.tracks.amistad;
-  const results: DualMatchResult[] = [];
+  const romanceResults: DualMatchResult[] = [];
+  const friendshipResults: DualMatchResult[] = [];
 
   for (const { userId, profile } of pool) {
-    // Romance track — gated by hard filters.
+    // Romance track — gated by bidirectional hard filters and the
+    // intimacy/conflict selectivity penalty.
     if (checkHardFilters(user.hardFilters, profile.hardFilters)) {
-      const similarity = trackSimilarity(
+      const similarity = applyRomanceSelectivity(
         user.romanceVector,
         profile.romanceVector,
+        trackSimilarity(user.romanceVector, profile.romanceVector, romanceConfig),
         romanceConfig,
-      );
+      ).score;
       if (similarity > romanceConfig.minimum_similarity_exclusive) {
         const badges = generateBadges(
           user.romanceVector,
@@ -551,7 +636,7 @@ export function findDualMatches(
           "romance",
           DEFAULT_ROMANCE_BADGES,
         );
-        results.push({
+        romanceResults.push({
           track: "romance",
           otherUserId: userId,
           similarity,
@@ -575,7 +660,7 @@ export function findDualMatches(
         "amistad",
         DEFAULT_FRIENDSHIP_BADGES,
       );
-      results.push({
+      friendshipResults.push({
         track: "amistad",
         otherUserId: userId,
         similarity: friendshipSimilarity,
@@ -585,7 +670,13 @@ export function findDualMatches(
     }
   }
 
-  return results;
+  const rank = (a: DualMatchResult, b: DualMatchResult): number =>
+    b.similarity - a.similarity || (a.otherUserId < b.otherUserId ? -1 : 1);
+
+  return [
+    ...romanceResults.sort(rank).slice(0, romanceConfig.max_matches),
+    ...friendshipResults.sort(rank).slice(0, friendshipConfig.max_matches),
+  ];
 }
 
 export interface GlobalMatch {
@@ -622,7 +713,16 @@ export function computeAllMatches(
 
         const vectorA = track === "romance" ? userA.profile.romanceVector : userA.profile.friendshipVector;
         const vectorB = track === "romance" ? userB.profile.romanceVector : userB.profile.friendshipVector;
-        const similarity = trackSimilarity(vectorA, vectorB, trackConfig);
+        const baseSimilarity = trackSimilarity(vectorA, vectorB, trackConfig);
+        const similarity =
+          track === "romance"
+            ? applyRomanceSelectivity(
+                vectorA,
+                vectorB,
+                baseSimilarity,
+                trackConfig,
+              ).score
+            : baseSimilarity;
         if (similarity <= trackConfig.minimum_similarity_exclusive) continue;
         candidates[indexA]!.push({ index: indexB, similarity });
         candidates[indexB]!.push({ index: indexA, similarity });

@@ -1,10 +1,10 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "tracks": {
     "romance": {
-      "minimum_similarity_exclusive": 0.65,
+      "minimum_similarity_exclusive": 0.78,
       "centering": 0.5,
-      "max_matches": 5,
+      "max_matches": 3,
       "dimensions": [
         "personalidad_apertura",
         "personalidad_responsabilidad",
@@ -33,17 +33,28 @@
         "valores_corresponsabilidad",
         "valores_respeto_diversidad"
       ],
-      "hard_filters": ["orientacion_sexual", "identidad_genero", "tipo_relacion_busca"],
+      "hard_filters": [
+        "orientacion_sexual",
+        "identidad_genero",
+        "tipo_relacion_busca"
+      ],
       "weights": {
         "personalidad": 0.25,
         "identidad": 0.05,
-        "afinidad_cultural": 0.20,
+        "afinidad_cultural": 0.2,
         "intimidad_afecto": 0.25,
         "valores_relacionales": 0.25
+      },
+      "target_coverage_percentile": 0.08,
+      "selectivity": {
+        "intimacy_alignment_floor": 0.6,
+        "conflict_alignment_floor": 0.55,
+        "intimacy_penalty_weight": 0.45,
+        "conflict_penalty_weight": 0.35
       }
     },
     "amistad": {
-      "minimum_similarity_exclusive": 0.68,
+      "minimum_similarity_exclusive": 0.65,
       "centering": 0.5,
       "max_matches": 5,
       "dimensions": [
@@ -66,15 +77,16 @@
       ],
       "hard_filters": [],
       "weights": {
-        "personalidad": 0.40,
+        "personalidad": 0.4,
         "afinidad_cultural": 0.35,
         "valores_relacionales": 0.25
-      }
+      },
+      "target_coverage_percentile": 0.35
     }
   },
   "calibration": {
     "method": "bisection",
-    "target_coverage": 0.30,
+    "target_coverage": 0.08,
     "max_users": 300
   }
 }

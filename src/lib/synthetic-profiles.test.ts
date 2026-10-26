@@ -2,10 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import catalogue from "../../data/arquetipos.json";
 import {
-  COVERAGE_BAND,
   SYNTHETIC_PROFILE_COUNT,
   SYNTHETIC_SEED,
-  TARGET_COVERAGE_RATE,
   analyzeTrackPairs,
   calibrateThreshold,
   generateSyntheticProfiles,
@@ -198,22 +196,23 @@ describe("synthetic compatibility calibration", () => {
     });
   });
 
-  it("calibrates an out-of-band synthetic population to the 20 percent target", () => {
+  it("calibrates the synthetic population to each track's coverage percentile", () => {
     for (const analysis of [romanceAnalysis, friendshipAnalysis]) {
-      const initialThreshold =
-        MATCHING_CONFIG.tracks[analysis.track].minimum_similarity_exclusive;
+      const trackConfig = MATCHING_CONFIG.tracks[analysis.track];
+      const initialThreshold = trackConfig.minimum_similarity_exclusive;
+      const targetCoverage = trackConfig.target_coverage_percentile;
       const initial = measureCoverage(analysis, initialThreshold);
-      const calibration = calibrateThreshold(analysis, initialThreshold);
+      const calibration = calibrateThreshold(
+        analysis,
+        initialThreshold,
+        targetCoverage,
+      );
 
-      expect(initial.userCoverageRate).toBe(1);
       expect(calibration.calibrated).toBe(true);
       expect(calibration.final.thresholdExclusive).toBeGreaterThan(initialThreshold);
-      expect(calibration.final.userCoverageRate).toBe(TARGET_COVERAGE_RATE);
-      expect(calibration.final.userCoverageRate).toBeGreaterThanOrEqual(
-        COVERAGE_BAND.minimum,
-      );
+      expect(calibration.final.userCoverageRate).toBeCloseTo(targetCoverage, 2);
       expect(calibration.final.userCoverageRate).toBeLessThanOrEqual(
-        COVERAGE_BAND.maximum,
+        initial.userCoverageRate,
       );
     }
   });

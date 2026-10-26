@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   MATCHING_CONFIG,
   MICROTEST_ITEMS,
+  applyRomanceSelectivity,
   checkHardFilters,
   computeAllMatches,
   cosineSimilarity,
@@ -599,6 +600,62 @@ describe("trackSimilarity", () => {
   });
 });
 
+// ─── Romance selectivity ──────────────────────────────────────────────────────
+
+describe("applyRomanceSelectivity", () => {
+  const conflictIndex = ROMANCE_VECTOR_DIMENSIONS.indexOf("valores_gestion_conflicto");
+
+  it("leaves perfectly aligned intimacy and conflict untouched", () => {
+    const vector = romanceVector(0.72);
+    const result = applyRomanceSelectivity(vector, vector, 0.91, ROMANCE_TRACK);
+
+    expect(result.intimacyAlignment).toBeCloseTo(1, 12);
+    expect(result.conflictAlignment).toBeCloseTo(1, 12);
+    expect(result.penalty).toBe(0);
+    expect(result.score).toBeCloseTo(0.91, 12);
+  });
+
+  it("penalizes misaligned intimacy and conflict symmetrically", () => {
+    const aligned = romanceVector(0.7);
+    const misaligned = romanceVector(0.7);
+    INTIMACY_INDICES.forEach((index, position) => {
+      misaligned[index] = position % 2 === 0 ? 0.95 : 0.1;
+    });
+    misaligned[conflictIndex] = 0.05;
+
+    const forward = applyRomanceSelectivity(aligned, misaligned, 0.9, ROMANCE_TRACK);
+    const reverse = applyRomanceSelectivity(misaligned, aligned, 0.9, ROMANCE_TRACK);
+
+    expect(forward.score).toBe(reverse.score);
+    expect(forward.penalty).toBeGreaterThan(0.1);
+    expect(forward.score).toBeLessThan(0.8);
+    expect(forward.intimacyAlignment).toBeLessThan(
+      ROMANCE_TRACK.selectivity!.intimacy_alignment_floor,
+    );
+    expect(forward.conflictAlignment).toBeLessThan(
+      ROMANCE_TRACK.selectivity!.conflict_alignment_floor,
+    );
+  });
+
+  it("does not penalize vectors that have no intimacy dimensions", () => {
+    const config: MatchingConfig = {
+      ...MATCHING_CONFIG,
+      tracks: {
+        ...MATCHING_CONFIG.tracks,
+        romance: {
+          ...ROMANCE_TRACK,
+          dimensions: ["personalidad_apertura", "personalidad_responsabilidad"],
+          weights: { ...ROMANCE_TRACK.weights },
+        },
+      },
+    };
+    const result = applyRomanceSelectivity([0.8, 0.2], [0.1, 0.9], 0.7, config.tracks.romance);
+
+    expect(result.penalty).toBe(0);
+    expect(result.score).toBeCloseTo(0.7, 12);
+  });
+});
+
 // ─── Badges ───────────────────────────────────────────────────────────────────
 
 describe("generateBadges", () => {
@@ -898,8 +955,50 @@ describe("computeAllMatches", () => {
     expect(romancePairs.every(({ userA, userB }) => userA < userB)).toBe(true);
     expect(romancePairs.every(({ userA, userB }) => userA !== userB)).toBe(true);
     expect(computeAllMatches(pool, config)).toEqual(results);
-    expect(getMaxMatches("romance")).toBe(5);
+    expect(getMaxMatches("romance")).toBe(3);
     expect(getMaxMatches("amistad")).toBe(5);
+  });
+
+  it("applies the intimacy/conflict penalty before the romance threshold", () => {
+    const conflictIndex = ROMANCE_VECTOR_DIMENSIONS.indexOf("valores_gestion_conflicto");
+    const aligned = makeProfile({ romanceVector: romanceVector(0.7) });
+    const misaligned = makeProfile({ romanceVector: romanceVector(0.7) });
+    INTIMACY_INDICES.forEach((index, position) => {
+      misaligned.romanceVector[index] = position % 2 === 0 ? 0.95 : 0.1;
+    });
+    misaligned.romanceVector[conflictIndex] = 0.05;
+
+    const base = trackSimilarity(
+      aligned.romanceVector,
+      misaligned.romanceVector,
+      ROMANCE_TRACK,
+    );
+    const adjusted = applyRomanceSelectivity(
+      aligned.romanceVector,
+      misaligned.romanceVector,
+      base,
+      ROMANCE_TRACK,
+    ).score;
+    const pool = [
+      { userId: "aligned", profile: aligned },
+      { userId: "misaligned", profile: misaligned },
+    ];
+
+    expect(base).toBeGreaterThan(adjusted);
+    expect(adjusted).toBeLessThan(base);
+
+    const blocked = computeAllMatches(
+      pool,
+      withThresholds((base + adjusted) / 2, 1),
+    ).filter((match) => match.track === "romance");
+    const allowed = computeAllMatches(
+      pool,
+      withThresholds(adjusted - 1e-6, 1),
+    ).filter((match) => match.track === "romance");
+
+    expect(blocked).toEqual([]);
+    expect(allowed).toHaveLength(1);
+    expect(allowed[0]!.similarity).toBeCloseTo(adjusted, 9);
   });
 
   it("applies romance hard filters only to the romance track", () => {
@@ -944,13 +1043,19 @@ describe("computeAllMatches", () => {
 
 describe("MATCHING_CONFIG", () => {
   it("publishes the calibrated dual thresholds", () => {
-    expect(MATCHING_CONFIG.version).toBe("1.0");
-    expect(ROMANCE_TRACK.minimum_similarity_exclusive).toBe(0.65);
-    expect(AMISTAD_TRACK.minimum_similarity_exclusive).toBe(0.68);
+    expect(MATCHING_CONFIG.version).toBe("1.1");
+    expect(ROMANCE_TRACK.minimum_similarity_exclusive).toBe(0.78);
+    expect(AMISTAD_TRACK.minimum_similarity_exclusive).toBe(0.65);
     expect(ROMANCE_TRACK.centering).toBe(0.5);
     expect(AMISTAD_TRACK.centering).toBe(0.5);
-    expect(ROMANCE_TRACK.max_matches).toBe(5);
+    expect(ROMANCE_TRACK.max_matches).toBe(3);
     expect(AMISTAD_TRACK.max_matches).toBe(5);
+    expect(ROMANCE_TRACK.target_coverage_percentile).toBe(0.08);
+    expect(AMISTAD_TRACK.target_coverage_percentile).toBe(0.35);
+    expect(ROMANCE_TRACK.selectivity).toMatchObject({
+      intimacy_alignment_floor: 0.6,
+      conflict_alignment_floor: 0.55,
+    });
   });
 
   it("lists exactly the vector dimensions of each track, in vector order", () => {
@@ -985,7 +1090,7 @@ describe("MATCHING_CONFIG", () => {
 
   it("exposes the calibration metadata", () => {
     expect(MATCHING_CONFIG.calibration.method).toBe("bisection");
-    expect(MATCHING_CONFIG.calibration.target_coverage).toBe(0.3);
+    expect(MATCHING_CONFIG.calibration.target_coverage).toBe(0.08);
     expect(MATCHING_CONFIG.calibration.max_users).toBe(300);
   });
 });

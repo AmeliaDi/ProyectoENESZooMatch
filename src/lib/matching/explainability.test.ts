@@ -42,10 +42,10 @@ describe("computeChemistrySummary", () => {
   );
 
   it("keeps the raw percentage and exposes the threshold used for the band", () => {
-    const summary = computeChemistrySummary(0.74, "romance");
+    const summary = computeChemistrySummary(0.86, "romance");
 
-    expect(summary.percentage).toBe(74);
-    expect(summary.displayText).toBe("74% de Compatibilidad");
+    expect(summary.percentage).toBe(86);
+    expect(summary.displayText).toBe("86% de Compatibilidad");
     expect(summary.levelLabel).toBe("Química fuerte");
     expect(summary.threshold).toBe(config.tracks.romance.minimum_similarity_exclusive);
     expect(summary.relativePosition).toBeGreaterThan(0);

@@ -20,18 +20,20 @@ import {
   trackCoverageRate,
   type AdminMetrics,
 } from "@/lib/admin/dashboard";
+import { getMatchingConfig } from "@/lib/matching/config";
 
 interface AdminDashboardProps {
   initialData: AdminMetrics | null;
 }
 
 const chartColors = ["#c7e879", "#8fae66", "#ef936d", "#6aa6a0"];
+const MATCHING_CONFIG = getMatchingConfig();
 
 function emptyMetrics(): AdminMetrics {
   return {
     generatedAt: new Date(0).toISOString(),
-    romanceThreshold: 0.65,
-    amistadThreshold: 0.68,
+    romanceThreshold: MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive,
+    amistadThreshold: MATCHING_CONFIG.tracks.amistad.minimum_similarity_exclusive,
     totalProfiles: 0,
     romanceMatches: 0,
     amistadMatches: 0,

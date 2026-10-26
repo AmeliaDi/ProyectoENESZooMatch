@@ -2,6 +2,7 @@ export {
   MATCHING_CONFIG,
   MICROTEST_ITEMS,
   attractedTo,
+  applyRomanceSelectivity,
   checkHardFilters,
   computeAllMatches,
   cosineSimilarity,
