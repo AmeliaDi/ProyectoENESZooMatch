@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "description": "Curated Enneagram wing coverage across the 103-animal catalogue. Overrides are design decisions; unlisted animals derive their profile from the nearest prototype.",
+  "assignments": {
+    "tortuguita": "1w9",
+    "hormiguita": "1w2",
+    "perrito": "2w1",
+    "pinguino": "2w1",
+    "flamenco": "2w3",
+    "delfincito": "3w2",
+    "quetzalito": "3w4",
+    "mariposita": "4w3",
+    "ajolotito": "4w5",
+    "cuervito": "4w5",
+    "pulpito": "5w4",
+    "buhito": "5w6",
+    "suricatita": "6w5",
+    "ardillita": "6w7",
+    "nutria": "7w6",
+    "tigrito": "7w8",
+    "lobito": "8w7",
+    "jaguarito": "8w9",
+    "leoncito": "8w9",
+    "ballenita": "9w8",
+    "capibarita": "9w1"
+  }
+}

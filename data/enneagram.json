@@ -1,0 +1,243 @@
+{
+  "version": "1.0",
+  "types": {
+    "1": {
+      "nombre": "El Reformador",
+      "miedo_basico": "ser corrupto, defectuoso o incorrecto",
+      "deseo_nuclear": "integridad y rectitud",
+      "triada": "instintiva"
+    },
+    "2": {
+      "nombre": "El Ayudador",
+      "miedo_basico": "no ser amado por sí mismo",
+      "deseo_nuclear": "sentirse querido y necesario",
+      "triada": "emocional"
+    },
+    "3": {
+      "nombre": "El Logrador",
+      "miedo_basico": "no valer sin éxito ni imagen",
+      "deseo_nuclear": "sentirse valioso y admirado",
+      "triada": "emocional"
+    },
+    "4": {
+      "nombre": "El Individualista",
+      "miedo_basico": "no tener identidad propia",
+      "deseo_nuclear": "ser auténtico y significativo",
+      "triada": "emocional"
+    },
+    "5": {
+      "nombre": "El Investigador",
+      "miedo_basico": "ser inútil o incompetente",
+      "deseo_nuclear": "comprender y dominar el conocimiento",
+      "triada": "mental"
+    },
+    "6": {
+      "nombre": "El Leal",
+      "miedo_basico": "quedarse sin apoyo ni orientación",
+      "deseo_nuclear": "seguridad y certeza",
+      "triada": "mental"
+    },
+    "7": {
+      "nombre": "El Entusiasta",
+      "miedo_basico": "quedar atrapado en el dolor o la carencia",
+      "deseo_nuclear": "satisfacción y libertad",
+      "triada": "mental"
+    },
+    "8": {
+      "nombre": "El Desafiador",
+      "miedo_basico": "ser controlado o herido",
+      "deseo_nuclear": "protegerse y proteger a los suyos",
+      "triada": "instintiva"
+    },
+    "9": {
+      "nombre": "El Pacificador",
+      "miedo_basico": "el conflicto y la pérdida de conexión",
+      "deseo_nuclear": "armonía y paz interior",
+      "triada": "instintiva"
+    }
+  },
+  "wings": {
+    "1w9": { "nombre": "El Perfeccionista Sereno", "triada": "instintiva" },
+    "1w2": { "nombre": "El Reformador Defensor", "triada": "instintiva" },
+    "2w1": { "nombre": "El Servidor Altruista", "triada": "emocional" },
+    "2w3": { "nombre": "El Anfitrión Cálido", "triada": "emocional" },
+    "3w2": { "nombre": "El Encantador Ambicioso", "triada": "emocional" },
+    "3w4": { "nombre": "El Profesional Auténtico", "triada": "emocional" },
+    "4w3": { "nombre": "El Creador Expresivo", "triada": "emocional" },
+    "4w5": { "nombre": "El Filósofo Individualista", "triada": "emocional" },
+    "5w4": { "nombre": "El Iconoclasta", "triada": "mental" },
+    "5w6": { "nombre": "El Investigador Solucionador", "triada": "mental" },
+    "6w5": { "nombre": "El Guardián Leal", "triada": "mental" },
+    "6w7": { "nombre": "El Compañero Entusiasta", "triada": "mental" },
+    "7w6": { "nombre": "El Animador Entusiasta", "triada": "mental" },
+    "7w8": { "nombre": "El Realizador Expansivo", "triada": "mental" },
+    "8w7": { "nombre": "El Líder Impulsor", "triada": "instintiva" },
+    "8w9": { "nombre": "El Guardián Protector", "triada": "instintiva" },
+    "9w8": { "nombre": "El Mediador Fuerte", "triada": "instintiva" },
+    "9w1": { "nombre": "El Mediador Pacifista", "triada": "instintiva" }
+  },
+  "prototypes": {
+    "1": {
+      "personalidad_apertura": 0.45,
+      "personalidad_responsabilidad": 0.9,
+      "personalidad_extraversion": 0.5,
+      "personalidad_amabilidad": 0.5,
+      "personalidad_estabilidad_emocional": 0.7,
+      "valores_empatia": 0.6,
+      "valores_gestion_conflicto": 0.85,
+      "valores_confianza": 0.7,
+      "identidad_comunicacion_afectiva": 0.5,
+      "cultural_estetica_visual": 0.4,
+      "cultural_humor": 0.3,
+      "intimidad_limites_respeto": 0.85,
+      "intimidad_comunicacion_deseos": 0.4
+    },
+    "2": {
+      "personalidad_apertura": 0.55,
+      "personalidad_responsabilidad": 0.6,
+      "personalidad_extraversion": 0.7,
+      "personalidad_amabilidad": 0.95,
+      "personalidad_estabilidad_emocional": 0.6,
+      "valores_empatia": 0.95,
+      "valores_gestion_conflicto": 0.5,
+      "valores_confianza": 0.7,
+      "identidad_comunicacion_afectiva": 0.9,
+      "cultural_estetica_visual": 0.5,
+      "cultural_humor": 0.6,
+      "intimidad_limites_respeto": 0.6,
+      "intimidad_comunicacion_deseos": 0.8
+    },
+    "3": {
+      "personalidad_apertura": 0.6,
+      "personalidad_responsabilidad": 0.9,
+      "personalidad_extraversion": 0.85,
+      "personalidad_amabilidad": 0.5,
+      "personalidad_estabilidad_emocional": 0.65,
+      "valores_empatia": 0.5,
+      "valores_gestion_conflicto": 0.6,
+      "valores_confianza": 0.75,
+      "identidad_comunicacion_afectiva": 0.7,
+      "cultural_estetica_visual": 0.7,
+      "cultural_humor": 0.7,
+      "intimidad_limites_respeto": 0.6,
+      "intimidad_comunicacion_deseos": 0.7
+    },
+    "4": {
+      "personalidad_apertura": 0.9,
+      "personalidad_responsabilidad": 0.4,
+      "personalidad_extraversion": 0.25,
+      "personalidad_amabilidad": 0.7,
+      "personalidad_estabilidad_emocional": 0.45,
+      "valores_empatia": 0.8,
+      "valores_gestion_conflicto": 0.5,
+      "valores_confianza": 0.4,
+      "identidad_comunicacion_afectiva": 0.95,
+      "cultural_estetica_visual": 0.95,
+      "cultural_humor": 0.4,
+      "intimidad_limites_respeto": 0.7,
+      "intimidad_comunicacion_deseos": 0.7
+    },
+    "5": {
+      "personalidad_apertura": 0.95,
+      "personalidad_responsabilidad": 0.65,
+      "personalidad_extraversion": 0.2,
+      "personalidad_amabilidad": 0.4,
+      "personalidad_estabilidad_emocional": 0.6,
+      "valores_empatia": 0.45,
+      "valores_gestion_conflicto": 0.45,
+      "valores_confianza": 0.45,
+      "identidad_comunicacion_afectiva": 0.3,
+      "cultural_estetica_visual": 0.75,
+      "cultural_humor": 0.3,
+      "intimidad_limites_respeto": 0.85,
+      "intimidad_comunicacion_deseos": 0.3
+    },
+    "6": {
+      "personalidad_apertura": 0.5,
+      "personalidad_responsabilidad": 0.75,
+      "personalidad_extraversion": 0.45,
+      "personalidad_amabilidad": 0.65,
+      "personalidad_estabilidad_emocional": 0.3,
+      "valores_empatia": 0.7,
+      "valores_gestion_conflicto": 0.55,
+      "valores_confianza": 0.85,
+      "identidad_comunicacion_afectiva": 0.6,
+      "cultural_estetica_visual": 0.4,
+      "cultural_humor": 0.45,
+      "intimidad_limites_respeto": 0.5,
+      "intimidad_comunicacion_deseos": 0.6
+    },
+    "7": {
+      "personalidad_apertura": 0.9,
+      "personalidad_responsabilidad": 0.3,
+      "personalidad_extraversion": 0.9,
+      "personalidad_amabilidad": 0.6,
+      "personalidad_estabilidad_emocional": 0.65,
+      "valores_empatia": 0.6,
+      "valores_gestion_conflicto": 0.35,
+      "valores_confianza": 0.55,
+      "identidad_comunicacion_afectiva": 0.5,
+      "cultural_estetica_visual": 0.8,
+      "cultural_humor": 0.95,
+      "intimidad_limites_respeto": 0.35,
+      "intimidad_comunicacion_deseos": 0.85
+    },
+    "8": {
+      "personalidad_apertura": 0.6,
+      "personalidad_responsabilidad": 0.7,
+      "personalidad_extraversion": 0.85,
+      "personalidad_amabilidad": 0.25,
+      "personalidad_estabilidad_emocional": 0.75,
+      "valores_empatia": 0.35,
+      "valores_gestion_conflicto": 0.85,
+      "valores_confianza": 0.7,
+      "identidad_comunicacion_afectiva": 0.5,
+      "cultural_estetica_visual": 0.4,
+      "cultural_humor": 0.55,
+      "intimidad_limites_respeto": 0.6,
+      "intimidad_comunicacion_deseos": 0.75
+    },
+    "9": {
+      "personalidad_apertura": 0.5,
+      "personalidad_responsabilidad": 0.5,
+      "personalidad_extraversion": 0.3,
+      "personalidad_amabilidad": 0.85,
+      "personalidad_estabilidad_emocional": 0.9,
+      "valores_empatia": 0.8,
+      "valores_gestion_conflicto": 0.35,
+      "valores_confianza": 0.6,
+      "identidad_comunicacion_afectiva": 0.6,
+      "cultural_estetica_visual": 0.5,
+      "cultural_humor": 0.5,
+      "intimidad_limites_respeto": 0.9,
+      "intimidad_comunicacion_deseos": 0.5
+    }
+  },
+  "integration": {
+    "1": 7,
+    "2": 4,
+    "3": 6,
+    "4": 1,
+    "5": 8,
+    "6": 9,
+    "7": 5,
+    "8": 2,
+    "9": 3
+  },
+  "stress": {
+    "1": 4,
+    "2": 8,
+    "3": 9,
+    "4": 2,
+    "5": 7,
+    "6": 3,
+    "7": 1,
+    "8": 5,
+    "9": 6
+  },
+  "operator_weights": {
+    "mbti": 0.4,
+    "enneagram": 0.35,
+    "attachment": 0.25
+  }
+}
