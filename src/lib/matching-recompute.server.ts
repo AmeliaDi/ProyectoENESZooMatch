@@ -37,16 +37,22 @@ function toScoredProfile(row: ProfileRow): ScoredProfileV2 {
 
 export async function recomputeAllMatchesV2(admin: SupabaseClient) {
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    const { data, error } = await admin
-      .from("profiles_v2")
-      .select(
-        "user_id, romance_vector, amistad_vector, dimension_scores, orientacion_sexual, identidad_genero, tipo_relacion_busca, mbti_code",
-      )
-      .not("quiz_completed_at", "is", null)
-      .order("user_id");
-    if (error || !data) throw new Error("Unable to load completed profiles for matching");
+    const profileRows: ProfileRow[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await admin
+        .from("profiles_v2")
+        .select(
+          "user_id, romance_vector, amistad_vector, dimension_scores, orientacion_sexual, identidad_genero, tipo_relacion_busca, mbti_code",
+        )
+        .not("quiz_completed_at", "is", null)
+        .order("user_id")
+        .range(from, from + 999);
+      if (error || !data) throw new Error("Unable to load completed profiles for matching");
+      profileRows.push(...(data as unknown as ProfileRow[]));
+      if (data.length < 1000) break;
+    }
 
-    const profiles = (data as unknown as ProfileRow[]).map((row) => ({
+    const profiles = profileRows.map((row) => ({
       userId: row.user_id,
       profile: toScoredProfile(row),
     }));

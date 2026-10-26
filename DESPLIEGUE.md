@@ -30,6 +30,8 @@
    4. `202610240001_matches_v2_explainability.sql`
    5. `202610250001_global_matching_hardening.sql` (reemplazo global de matches y
       permisos de RPC endurecidos).
+
+   `202610250001_global_matching_hardening.sql` es segura de aplicar sobre una implementación existente.
 4. Los seeds no se aplican con `db push`. Ejecútalos después de las migraciones, en
    este orden:
 
