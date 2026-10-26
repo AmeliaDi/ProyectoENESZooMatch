@@ -9,6 +9,8 @@
   una página de hasta 25 trabajos por consulta.
 - Datos crudos: `data/external/raw/openalex_works.jsonl`, excluido de Git.
 - Datos procesados: `data/external/processed/literature_signals.json`.
+- La extracción actual incluye 99 trabajos; 22 trabajos con resultados
+  vinculados a neuroticismo/estabilidad y 9 a similitud.
 - Se conservan identificadores OpenAlex, DOI, título, año, citas, acceso
   abierto, nombre de la fuente y resumen; los resúmenes se limpian de correos
   y URL.

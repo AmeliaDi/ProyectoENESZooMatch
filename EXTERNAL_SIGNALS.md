@@ -27,20 +27,21 @@ Resultados de `data/external/processed/literature_signals.json`:
 
 | Señal | Trabajos distintos | Trabajos con una oración que menciona un resultado |
 | --- | ---: | ---: |
-| Neuroticismo/estabilidad emocional | 35 | 25 |
-| Amabilidad | 19 | 10 |
-| Responsabilidad | 25 | 14 |
-| Extraversión | 22 | 12 |
-| Apertura | 18 | 11 |
+| Neuroticismo/estabilidad emocional | 35 | 22 |
+| Amabilidad | 19 | 8 |
+| Responsabilidad | 25 | 12 |
+| Extraversión | 22 | 10 |
+| Apertura | 18 | 8 |
 | Similitud | 10 | 9 |
 | MBTI | 23 | 2 |
 
 Los conjuntos se solapan: un trabajo puede contar para más de una señal. Para
-oraciones con resultados, la señal neuroticismo/estabilidad tuvo 12
-clasificadas como negativas, 2 positivas, 1 débil, 3 mixtas y 32 sin una
+oraciones con resultados, la señal neuroticismo/estabilidad tuvo 11
+clasificadas como negativas, 2 positivas, 1 débil, 3 mixtas y 28 sin una
 dirección detectada. Similitud tuvo 4 positivas, 1 débil, 1 mixta y 12 sin
-dirección detectada. Estas etiquetas son sólo coincidencias de palabras; no
-codifican una revisión humana del efecto.
+dirección detectada. La mención de "estabilidad emocional" como rasgo no se
+cuenta por sí sola como un resultado de estabilidad. Estas etiquetas son sólo
+coincidencias de palabras; no codifican una revisión humana del efecto.
 
 ## Pesos y decisión
 
@@ -52,7 +53,7 @@ pesos.
 
 La regla de activación requiere más trabajos distintos con resultados para
 neuroticismo/estabilidad que para similitud y NDCG@3 sintético calibrado al
-menos igual al baseline. El conjunto registró 25 frente a 9 trabajos con
+menos igual al baseline. El conjunto registró 22 frente a 9 trabajos con
 resultados. En la prueba sembrada, NDCG@3 fue `0.550461` para baseline y
 `0.563407` para el perfil calibrado; el solapamiento top-3 fue `0.853333`.
 Ambas condiciones se cumplieron, por lo que el perfil activo es

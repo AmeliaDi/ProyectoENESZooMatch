@@ -69,10 +69,14 @@ export function explainPair(reasons: ReasonCode[], context: ExplanationContext):
     sentences.push("La estimación es parcial porque faltan algunos datos opcionales.");
   }
 
-  const limitedSentences = sentences.slice(0, SCORING_CONFIG.explanation.maxSentences);
+  const partialSentence = active.has("partial_data") ? sentences.pop() : undefined;
+  const otherSentenceLimit =
+    SCORING_CONFIG.explanation.maxSentences - (partialSentence ? 1 : 0);
+  const limitedSentences = sentences.slice(0, otherSentenceLimit);
   if (limitedSentences.length === 1 && active.has("close_traits")) {
     limitedSentences.push("Esta cercanía describe respuestas del cuestionario y no garantiza compatibilidad.");
   }
+  if (partialSentence) limitedSentences.push(partialSentence);
 
   return limitedSentences
     .map((sentence) => sentence.charAt(0).toUpperCase() + sentence.slice(1))

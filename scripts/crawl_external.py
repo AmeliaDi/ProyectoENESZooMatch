@@ -183,6 +183,25 @@ def safe_work(work: dict[str, object], query: str, fetched_at: str) -> dict[str,
     }
 
 
+def fill_missing_work_metadata(
+    work: dict[str, object], previous: dict[str, object] | None
+) -> dict[str, object]:
+    if previous is None:
+        return work
+    for field in (
+        "doi",
+        "title",
+        "publication_year",
+        "cited_by_count",
+        "open_access",
+        "primary_location",
+        "abstract",
+    ):
+        if work.get(field) in (None, "") and previous.get(field) not in (None, ""):
+            work[field] = previous[field]
+    return work
+
+
 def load_jsonl_by_id(path: Path) -> dict[str, dict[str, object]]:
     existing: dict[str, dict[str, object]] = {}
     if not path.exists():
@@ -207,7 +226,8 @@ def run_openalex() -> None:
     client = PoliteClient(max_requests=12)
     client.check_robots(OPENALEX_URL)
     output_path = RAW_DIR / "openalex_works.jsonl"
-    works_by_id = load_jsonl_by_id(output_path)
+    previous_works_by_id = load_jsonl_by_id(output_path)
+    works_by_id: dict[str, dict[str, object]] = {}
     fetched_at = utc_now()
     for query in OPENALEX_QUERIES:
         response = client.get(
@@ -226,18 +246,19 @@ def run_openalex() -> None:
                 continue
             item = safe_work(work, query, fetched_at)
             work_id = str(item["id"])
-            previous = works_by_id.get(work_id)
-            if previous:
-                old_queries = previous.get("queries", [])
-                if not isinstance(old_queries, list):
-                    old_queries = []
-                item["queries"] = sorted(set(old_queries) | {query})
+            item = fill_missing_work_metadata(item, previous_works_by_id.get(work_id))
+            current_queries = works_by_id.get(work_id, {}).get("queries", [])
+            if not isinstance(current_queries, list):
+                current_queries = []
+            item["queries"] = sorted(set(current_queries) | {query})
             works_by_id[work_id] = item
         print(f"OpenAlex query complete: results={len(results)}")
-    with output_path.open("w", encoding="utf-8") as output_file:
+    temporary_path = output_path.with_suffix(output_path.suffix + ".tmp")
+    with temporary_path.open("w", encoding="utf-8") as output_file:
         for work_id in sorted(works_by_id):
             output_file.write(json.dumps(works_by_id[work_id], ensure_ascii=False, sort_keys=True))
             output_file.write("\n")
+    temporary_path.replace(output_path)
     print(
         f"OpenAlex unique works={len(works_by_id)} "
         f"requests={client.request_count} raw={output_path}"

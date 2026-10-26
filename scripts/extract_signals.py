@@ -33,7 +33,7 @@ TRAITS = {
     "mbti": re.compile(r"\b(?:MBTI|Myers[- ]Briggs)\b", re.I),
 }
 OUTCOMES = re.compile(
-    r"\b(?:satisfaction|quality|stability|divorce|dissolution)\b",
+    r"\b(?:satisfaction|quality|divorce|dissolution|(?<!emotional )stability)\b",
     re.I,
 )
 WEAK_CUES = re.compile(
@@ -60,6 +60,10 @@ def sanitize_text(value: object) -> str:
 
 def split_sentences(text: str) -> list[str]:
     return [sentence.strip() for sentence in SENTENCE_SPLIT.split(text) if sentence.strip()]
+
+
+def outcome_present(sentence: str) -> bool:
+    return OUTCOMES.search(sentence) is not None
 
 
 def direction(sentence: str) -> str:
@@ -123,7 +127,7 @@ def extract(works: list[dict[str, object]]) -> dict[str, object]:
             ]
             if not present_traits:
                 continue
-            has_outcome = OUTCOMES.search(sentence) is not None
+            has_outcome = outcome_present(sentence)
             sentence_direction = direction(sentence)
             for trait in present_traits:
                 trait_sentences[trait].append((has_outcome, sentence_direction))

@@ -205,15 +205,20 @@ describe("scorePair", () => {
   });
 
   it("keeps explanations deterministic and coherent with triggered stability reasons", () => {
+    const sociocultural = {
+      orientacion: ["mujeres"],
+      identidadGenero: ["mujer"],
+      tipoRelacion: ["monogamia"],
+    };
     const low = makeProfile("a", {
       bigFive: { O: 80, C: 50, E: 80, A: 50, N: 30 },
       mbti: "ENTP",
-      sociocultural: null,
+      sociocultural,
     });
     const otherLow = makeProfile("b", {
       bigFive: { O: 80, C: 50, E: 80, A: 50, N: 30 },
       mbti: "ENTP",
-      sociocultural: null,
+      sociocultural,
     });
     const first = scorePair(low, otherLow);
     const second = scorePair(low, otherLow);
@@ -315,5 +320,34 @@ describe("scorePair", () => {
     if (notAligned.status !== "ok") return;
     expect(notAligned.reasons).not.toContain("conflict_style_aligned");
     expect(notAligned.reasons).not.toContain("empathy_aligned");
+  });
+
+  it("reserves the last explanation sentence for partial data without changing complete pairs", () => {
+    const bigFive = { O: 50, C: 50, E: 50, A: 50, N: 30 };
+    const sociocultural = {
+      ...COMPLETE_SOCIOCULTURAL,
+      ordinal: { valores_empatia: 0.8, cultural_humor: 0.7 },
+    };
+    const complete = scorePair(
+      makeProfile("complete-a", { bigFive, sociocultural }),
+      makeProfile("complete-b", { bigFive, sociocultural }),
+    );
+    expect(complete.status).toBe("ok");
+    if (complete.status !== "ok") return;
+    expect(complete.explanation).toBe(
+      "Ambas personas muestran niveles bajos de neuroticismo, un patrón favorable para la estabilidad. En sus respuestas, las mayores cercanías aparecen en apertura y responsabilidad. En sus respuestas sobre empatía, sus valores muestran cercanía.",
+    );
+
+    const partial = scorePair(
+      makeProfile("partial-a", { bigFive, sociocultural }),
+      makeProfile("partial-b", { bigFive, mbti: null, sociocultural }),
+    );
+    expect(partial.status).toBe("ok");
+    if (partial.status !== "ok") return;
+    expect(partial.reasons).toContain("empathy_aligned");
+    expect(partial.reasons).toContain("partial_data");
+    expect(partial.explanation.split(".").filter(Boolean)).toHaveLength(3);
+    expect(partial.explanation.endsWith("La estimación es parcial porque faltan algunos datos opcionales."))
+      .toBe(true);
   });
 });

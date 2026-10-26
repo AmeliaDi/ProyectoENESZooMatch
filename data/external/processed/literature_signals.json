@@ -16,7 +16,7 @@
     {
       "direction": "none",
       "outcome_present": false,
-      "sentence_count": 8,
+      "sentence_count": 10,
       "trait": "agreeableness"
     },
     {
@@ -42,101 +42,107 @@
       "outcome_present": true,
       "sentence_count": 1,
       "trait": "agreeableness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 4,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": true,
+      "sentence_count": 3,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "mixed",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": false,
+      "sentence_count": 5,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": false,
+      "sentence_count": 14,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": false,
+      "sentence_count": 1,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": true,
+      "sentence_count": 3,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 9,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": true,
+      "sentence_count": 4,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "mixed",
+      "outcome_present": false,
+      "sentence_count": 1,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": false,
+      "sentence_count": 1,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "none",
+      "outcome_present": false,
+      "sentence_count": 11,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": false,
+      "sentence_count": 3,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": true,
+      "sentence_count": 1,
+      "trait": "extraversion"
     },
     {
       "direction": "none",
       "outcome_present": true,
       "sentence_count": 6,
-      "trait": "agreeableness"
-    },
-    {
-      "direction": "pos",
-      "outcome_present": true,
-      "sentence_count": 3,
-      "trait": "agreeableness"
-    },
-    {
-      "direction": "mixed",
-      "outcome_present": false,
-      "sentence_count": 2,
-      "trait": "conscientiousness"
-    },
-    {
-      "direction": "neg",
-      "outcome_present": false,
-      "sentence_count": 4,
-      "trait": "conscientiousness"
-    },
-    {
-      "direction": "none",
-      "outcome_present": false,
-      "sentence_count": 12,
-      "trait": "conscientiousness"
-    },
-    {
-      "direction": "pos",
-      "outcome_present": false,
-      "sentence_count": 2,
-      "trait": "conscientiousness"
-    },
-    {
-      "direction": "weak",
-      "outcome_present": false,
-      "sentence_count": 1,
-      "trait": "conscientiousness"
-    },
-    {
-      "direction": "neg",
-      "outcome_present": true,
-      "sentence_count": 4,
-      "trait": "conscientiousness"
-    },
-    {
-      "direction": "none",
-      "outcome_present": true,
-      "sentence_count": 11,
-      "trait": "conscientiousness"
-    },
-    {
-      "direction": "pos",
-      "outcome_present": true,
-      "sentence_count": 4,
-      "trait": "conscientiousness"
-    },
-    {
-      "direction": "mixed",
-      "outcome_present": false,
-      "sentence_count": 1,
-      "trait": "extraversion"
-    },
-    {
-      "direction": "none",
-      "outcome_present": false,
-      "sentence_count": 9,
-      "trait": "extraversion"
-    },
-    {
-      "direction": "pos",
-      "outcome_present": false,
-      "sentence_count": 3,
-      "trait": "extraversion"
-    },
-    {
-      "direction": "weak",
-      "outcome_present": false,
-      "sentence_count": 2,
-      "trait": "extraversion"
-    },
-    {
-      "direction": "neg",
-      "outcome_present": true,
-      "sentence_count": 2,
-      "trait": "extraversion"
-    },
-    {
-      "direction": "none",
-      "outcome_present": true,
-      "sentence_count": 8,
       "trait": "extraversion"
     },
     {
@@ -178,13 +184,13 @@
     {
       "direction": "neg",
       "outcome_present": false,
-      "sentence_count": 7,
+      "sentence_count": 8,
       "trait": "neuroticism_stability"
     },
     {
       "direction": "none",
       "outcome_present": false,
-      "sentence_count": 16,
+      "sentence_count": 20,
       "trait": "neuroticism_stability"
     },
     {
@@ -202,13 +208,13 @@
     {
       "direction": "neg",
       "outcome_present": true,
-      "sentence_count": 12,
+      "sentence_count": 11,
       "trait": "neuroticism_stability"
     },
     {
       "direction": "none",
       "outcome_present": true,
-      "sentence_count": 32,
+      "sentence_count": 28,
       "trait": "neuroticism_stability"
     },
     {
@@ -238,25 +244,25 @@
     {
       "direction": "none",
       "outcome_present": false,
-      "sentence_count": 5,
-      "trait": "openness"
-    },
-    {
-      "direction": "weak",
-      "outcome_present": false,
-      "sentence_count": 2,
-      "trait": "openness"
-    },
-    {
-      "direction": "neg",
-      "outcome_present": true,
-      "sentence_count": 2,
-      "trait": "openness"
-    },
-    {
-      "direction": "none",
-      "outcome_present": true,
       "sentence_count": 9,
+      "trait": "openness"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "openness"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": true,
+      "sentence_count": 2,
+      "trait": "openness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 5,
       "trait": "openness"
     },
     {
@@ -312,7 +318,7 @@
   "traits": {
     "agreeableness": {
       "distinct_works": 19,
-      "distinct_works_with_outcomes": 10,
+      "distinct_works_with_outcomes": 8,
       "top_works": [
         {
           "cited_by_count": 946,
@@ -348,7 +354,7 @@
     },
     "conscientiousness": {
       "distinct_works": 25,
-      "distinct_works_with_outcomes": 14,
+      "distinct_works_with_outcomes": 12,
       "top_works": [
         {
           "cited_by_count": 946,
@@ -384,7 +390,7 @@
     },
     "extraversion": {
       "distinct_works": 22,
-      "distinct_works_with_outcomes": 12,
+      "distinct_works_with_outcomes": 10,
       "top_works": [
         {
           "cited_by_count": 946,
@@ -456,7 +462,7 @@
     },
     "neuroticism_stability": {
       "distinct_works": 35,
-      "distinct_works_with_outcomes": 25,
+      "distinct_works_with_outcomes": 22,
       "top_works": [
         {
           "cited_by_count": 946,
@@ -492,7 +498,7 @@
     },
     "openness": {
       "distinct_works": 18,
-      "distinct_works_with_outcomes": 11,
+      "distinct_works_with_outcomes": 8,
       "top_works": [
         {
           "cited_by_count": 946,

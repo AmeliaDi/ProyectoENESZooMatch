@@ -122,6 +122,9 @@ estableció como `literature-2026-10`: en la prueba sintética NDCG@3 fue
 calibración, basta
 con cambiar ese valor a una clave existente de `profiles`. Las pruebas fijan
 explícitamente `baseline` para preservar las expectativas numéricas originales.
+La extracción revisada encontró 22 trabajos con resultados para
+neuroticismo/estabilidad y 9 para similitud; el NDCG calibrado también superó
+al baseline, por lo que se mantiene activo ese perfil.
 
 La comparación sintética de NDCG@3 es circular porque su verdad de referencia
 codifica la misma dirección de literatura que motiva el perfil alternativo.
