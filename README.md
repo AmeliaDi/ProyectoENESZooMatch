@@ -18,7 +18,7 @@ cada capa, consulta [`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md) y el
 - El repositorio está en la rama `refactor/canonical`, que elimina por completo el flujo v1
   y deja una sola arquitectura: matrícula → microtest de 60 ítems → persistencia Supabase →
   matching dual (romance/amistad) → resultado y constelación.
-- Verificación local: **typecheck ✓ · lint ✓ · 495 tests en 26 archivos ✓**. El build local
+- Verificación local: **typecheck ✓ · lint ✓ · 499 tests en 27 archivos ✓**. El build local
   se corre con `next build --webpack` cuando el shell no tiene `node` en PATH; CI y Vercel
   usan el build estándar con Node 24.
 - Hallazgos cerrados del [`AUDIT.md`](./AUDIT.md): submit tolerante a ráfagas
@@ -397,7 +397,7 @@ pip install -r requirements.txt
 ## ✅ Tests
 
 Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Estado actual:
-**495 tests en 26 archivos** (2026-10-25). Cubren, entre otros:
+**499 tests en 27 archivos** (2026-10-25). Cubren, entre otros:
 
 - `matching/engine.test.ts` (~960 líneas: scoring, filtros duros, similitud ponderada,
   badges, constante de "sin match").

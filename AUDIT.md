@@ -19,7 +19,7 @@ que aparezca allí describe la estructura anterior al refactor canónico.
 - **Dominios:** `src/lib/matching/`, `src/lib/scoring/`, `src/lib/admin/`, `src/lib/auth/`
   y `src/lib/validation/`. Datos canónicos: `data/microtest.json`, `data/arquetipos.json`
   y `data/matching-config.json`. Semilla única: `supabase/seed.sql`.
-- **Verificación local:** `typecheck` ✓, `lint` ✓ y **495/495 tests en 26 archivos** ✓. El
+- **Verificación local:** `typecheck` ✓, `lint` ✓ y **499/499 tests en 27 archivos** ✓. El
   build local se ejecutó con `next build --webpack` porque el shell no tiene `node` en
   PATH; Turbopack falla únicamente al intentar lanzar un proceso hijo `node` para PostCSS.
   En Vercel/CI, donde Node sí existe, el build estándar es válido.
@@ -218,7 +218,7 @@ La firma exacta puede variar; se obtiene con `\df public.submit_quiz_result_v2`.
 | `npm run lint` | ✓ |
 | `npm run typecheck` | ✓ |
 | `npm run build` | ✓ |
-| `npm run test` | ✓ 495/495 en 26 archivos |
+| `npm run test` | ✓ 499/499 en 27 archivos |
 | `npm audit --omit=dev` | 0 vulnerabilidades |
 
 ## 7. Plan de acción priorizado
