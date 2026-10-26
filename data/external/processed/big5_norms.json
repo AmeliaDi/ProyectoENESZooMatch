@@ -1,0 +1,8 @@
+{
+  "status": "skipped",
+  "reason": "No clear license permitting derivative aggregate analysis was found on the raw-data page.",
+  "source_url": "https://openpsychometrics.org/_rawdata/",
+  "license_line": null,
+  "dataset_url": "http://openpsychometrics.org/_rawdata/BIG5.zip",
+  "fetch_date": "2026-10-26"
+}
