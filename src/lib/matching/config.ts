@@ -24,6 +24,7 @@ const trackSchema = z.object({
   max_matches: z.number().int().positive(),
   target_coverage_percentile: z.number().min(0).max(1),
   maximum_pair_tail: z.number().min(0).max(1).optional(),
+  maximum_user_coverage: z.number().min(0).max(1).optional(),
   dimensions: z.array(z.string()),
   hard_filters: z.array(z.string()),
   weights: z.record(z.string(), z.number()),
@@ -32,6 +33,7 @@ const trackSchema = z.object({
 
 const configSchema = z.object({
   version: z.string(),
+  psychometric_mix: z.number().min(0).max(1),
   tracks: z.object({
     romance: trackSchema,
     amistad: trackSchema,

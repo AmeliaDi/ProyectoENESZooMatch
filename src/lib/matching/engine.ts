@@ -34,6 +34,11 @@ import {
   FRIENDSHIP_VECTOR_DIMENSIONS,
   ROMANCE_VECTOR_DIMENSIONS,
 } from "@/types/microtest";
+import {
+  derivePsychometricProfile,
+  psychometricCompatibility,
+  type PsychometricProfile,
+} from "@/lib/psychometrics";
 
 import matchingConfigRaw from "../../../data/matching-config.json";
 import microtest from "../../../data/microtest.json";
@@ -56,6 +61,7 @@ interface RawTrackConfig {
   max_matches: number;
   target_coverage_percentile: number;
   maximum_pair_tail?: number;
+  maximum_user_coverage?: number;
   dimensions: string[];
   hard_filters: string[];
   weights: Record<string, number>;
@@ -64,6 +70,7 @@ interface RawTrackConfig {
 
 interface RawMatchingConfig {
   version: string;
+  psychometric_mix: number;
   tracks: { romance: RawTrackConfig; amistad: RawTrackConfig };
   calibration: { method: string; target_coverage: number; max_users: number };
 }
@@ -94,6 +101,9 @@ function normalizeTrack(track: RawTrackConfig): TrackConfig {
     ...(track.maximum_pair_tail !== undefined
       ? { maximum_pair_tail: track.maximum_pair_tail }
       : {}),
+    ...(track.maximum_user_coverage !== undefined
+      ? { maximum_user_coverage: track.maximum_user_coverage }
+      : {}),
     dimensions: [...track.dimensions],
     hard_filters: [...track.hard_filters] as HardFilterField[],
     weights: normalizeWeights(track.weights),
@@ -108,6 +118,7 @@ function normalizeTrack(track: RawTrackConfig): TrackConfig {
  */
 export const MATCHING_CONFIG: MatchingConfig = {
   version: rawConfig.version,
+  psychometric_mix: rawConfig.psychometric_mix,
   tracks: {
     romance: normalizeTrack(rawConfig.tracks.romance),
     amistad: normalizeTrack(rawConfig.tracks.amistad),
@@ -548,12 +559,28 @@ export function trackSimilarity(
   return similarity;
 }
 
+/**
+ * Convexly mixes the base Hilbert similarity with the psychometric operator
+ * Φ ∈ [0, 1]. A mix of 0 recovers the raw similarity; a mix of 1 uses only
+ * MBTI/Enneagram/attachment compatibility.
+ */
+export function applyPsychometricMix(
+  baseSimilarity: number,
+  mix: number | undefined,
+  first: PsychometricProfile,
+  second: PsychometricProfile,
+): number {
+  const boundedMix = clamp01(mix ?? 0);
+  const phi = psychometricCompatibility(first, second).overall;
+  return clamp01(baseSimilarity * (1 - boundedMix + boundedMix * phi));
+}
+
 /** Fallback used if a config predates the romance selectivity block. */
 const DEFAULT_ROMANCE_SELECTIVITY: RomanceSelectivityConfig = {
   intimacy_alignment_floor: 0.6,
   intimacy_penalty_weight: 0.45,
-  conflict_tolerance: 0.4,
-  conflict_penalty_lambda: 3.5,
+  conflict_tolerance: 0.35,
+  conflict_penalty_lambda: 4.0,
 };
 
 export interface RomanceSelectivityResult {
@@ -706,6 +733,10 @@ export function findDualMatches(
   const friendshipConfig = config.tracks.amistad;
   const romanceResults: DualMatchResult[] = [];
   const friendshipResults: DualMatchResult[] = [];
+  const userPsychometrics = derivePsychometricProfile(
+    user.normalizedScores,
+    user.mbtiCode,
+  );
   const romanceCentroid = populationCentroid([
     user.romanceVector,
     ...pool.map(({ profile }) => profile.romanceVector),
@@ -716,17 +747,27 @@ export function findDualMatches(
   ]);
 
   for (const { userId, profile } of pool) {
+    const profilePsychometrics = derivePsychometricProfile(
+      profile.normalizedScores,
+      profile.mbtiCode,
+    );
     // Romance track — gated by bidirectional hard filters and the
     // intimacy/conflict selectivity penalty.
     if (checkHardFilters(user.hardFilters, profile.hardFilters)) {
+      const baseSimilarity = trackSimilarity(
+        user.romanceVector,
+        profile.romanceVector,
+        romanceConfig,
+        romanceCentroid,
+      );
       const similarity = applyRomanceSelectivity(
         user.romanceVector,
         profile.romanceVector,
-        trackSimilarity(
-          user.romanceVector,
-          profile.romanceVector,
-          romanceConfig,
-          romanceCentroid,
+        applyPsychometricMix(
+          baseSimilarity,
+          config.psychometric_mix,
+          userPsychometrics,
+          profilePsychometrics,
         ),
         romanceConfig,
       ).score;
@@ -749,11 +790,17 @@ export function findDualMatches(
     }
 
     // Friendship track — no hard filters.
-    const friendshipSimilarity = trackSimilarity(
+    const friendshipBase = trackSimilarity(
       user.friendshipVector,
       profile.friendshipVector,
       friendshipConfig,
       friendshipCentroid,
+    );
+    const friendshipSimilarity = applyPsychometricMix(
+      friendshipBase,
+      config.psychometric_mix,
+      userPsychometrics,
+      profilePsychometrics,
     );
     if (friendshipSimilarity > friendshipConfig.minimum_similarity_exclusive) {
       const badges = generateBadges(
@@ -790,6 +837,61 @@ export interface GlobalMatch {
   badges: Array<{ dimension: string; affinity: number }>;
 }
 
+/**
+ * Minimum sample for the population quantile gate. Below this size a 6% cap
+ * rounds to zero eligible users, so the empirical cap is skipped and only the
+ * configured threshold applies. Mirrors {@link MIN_CENTROID_SAMPLE}.
+ */
+export const MIN_QUANTILE_SAMPLE = 30;
+
+/**
+ * Finite-sample upper-quantile gate. Ranks users by their best candidate
+ * similarity and keeps at most `floor(n × maximumCoverage)` of them; pairs are
+ * retained only when both endpoints are eligible. The emitted user coverage is
+ * therefore never above the configured fraction.
+ *
+ * Because a pair needs two eligible endpoints, a quota of one (30 ≤ n ≤ 33 at
+ * 6%) emits no romance matches. This is the strict floor of the coverage
+ * guarantee, not a fallback.
+ */
+export function capCandidateGraphByCoverage(
+  candidates: ReadonlyArray<ReadonlyArray<{ index: number; similarity: number }>>,
+  users: ReadonlyArray<{ userId: string }>,
+  maximumCoverage: number,
+): Array<Array<{ index: number; similarity: number }>> {
+  const quota = Math.floor(users.length * maximumCoverage);
+  if (quota <= 0) return candidates.map(() => []);
+
+  const compareIds = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+  const eligible = new Set(
+    candidates
+      .map((list, index) => ({
+        index,
+        best: list.reduce(
+          (maximum, candidate) => Math.max(maximum, candidate.similarity),
+          Number.NEGATIVE_INFINITY,
+        ),
+      }))
+      .filter((entry) => Number.isFinite(entry.best))
+      .sort(
+        (a, b) =>
+          b.best - a.best ||
+          compareIds(
+            users[a.index]!.userId.toLowerCase(),
+            users[b.index]!.userId.toLowerCase(),
+          ),
+      )
+      .slice(0, quota)
+      .map((entry) => entry.index),
+  );
+
+  return candidates.map((list, index) =>
+    eligible.has(index)
+      ? list.filter((candidate) => eligible.has(candidate.index))
+      : [],
+  );
+}
+
 export function computeAllMatches(
   pool: Array<{ userId: string; profile: ScoredProfile }>,
   config: MatchingConfig,
@@ -800,6 +902,9 @@ export function computeAllMatches(
   );
   const tracks: MatchTrack[] = ["romance", "amistad"];
   const selected = new Map<string, GlobalMatch>();
+  const psychometrics = users.map(({ profile }) =>
+    derivePsychometricProfile(profile.normalizedScores, profile.mbtiCode),
+  );
   const centroids: Record<MatchTrack, number[] | undefined> = {
     romance: populationCentroid(
       users.map(({ profile }) => profile.romanceVector),
@@ -826,23 +931,37 @@ export function computeAllMatches(
         const vectorA = track === "romance" ? userA.profile.romanceVector : userA.profile.friendshipVector;
         const vectorB = track === "romance" ? userB.profile.romanceVector : userB.profile.friendshipVector;
         const baseSimilarity = trackSimilarity(vectorA, vectorB, trackConfig, centroid);
+        const adjustedSimilarity = applyPsychometricMix(
+          baseSimilarity,
+          config.psychometric_mix,
+          psychometrics[indexA]!,
+          psychometrics[indexB]!,
+        );
         const similarity =
           track === "romance"
             ? applyRomanceSelectivity(
                 vectorA,
                 vectorB,
-                baseSimilarity,
+                adjustedSimilarity,
                 trackConfig,
               ).score
-            : baseSimilarity;
+            : adjustedSimilarity;
         if (similarity <= trackConfig.minimum_similarity_exclusive) continue;
         candidates[indexA]!.push({ index: indexB, similarity });
         candidates[indexB]!.push({ index: indexA, similarity });
       }
     }
 
+    const maximumCoverage = trackConfig.maximum_user_coverage;
+    const eligibleCandidates =
+      track === "romance" &&
+      maximumCoverage !== undefined &&
+      users.length >= MIN_QUANTILE_SAMPLE
+        ? capCandidateGraphByCoverage(candidates, users, maximumCoverage)
+        : candidates;
+
     for (let userIndex = 0; userIndex < users.length; userIndex += 1) {
-      const ranked = candidates[userIndex]!
+      const ranked = eligibleCandidates[userIndex]!
         .sort(
           (a, b) =>
             b.similarity - a.similarity ||

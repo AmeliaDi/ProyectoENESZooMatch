@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   MATCHING_CONFIG,
   MICROTEST_ITEMS,
+  MIN_QUANTILE_SAMPLE,
   applyRomanceSelectivity,
+  applyPsychometricMix,
+  capCandidateGraphByCoverage,
   checkHardFilters,
   computeAllMatches,
   computeTrackCentroid,
@@ -17,6 +20,7 @@ import {
   weightedTrackSimilarity,
 } from "@/lib/matching";
 import { getMaxMatches } from "@/lib/matching";
+import { derivePsychometricProfile } from "@/lib/psychometrics";
 import {
   ALL_DIMENSIONS,
   BIG_FIVE_DIMENSIONS,
@@ -145,6 +149,9 @@ function makeProfile(options: ProfileOptions = {}): ScoredProfile {
 function withThresholds(romance: number, amistad: number): MatchingConfig {
   return {
     ...MATCHING_CONFIG,
+    // Base-similarity tests isolate the threshold; psychometric mixing has its
+    // own dedicated tests below.
+    psychometric_mix: 0,
     tracks: {
       romance: { ...ROMANCE_TRACK, minimum_similarity_exclusive: romance },
       amistad: { ...AMISTAD_TRACK, minimum_similarity_exclusive: amistad },
@@ -649,6 +656,49 @@ describe("trackSimilarity", () => {
   });
 });
 
+describe("applyPsychometricMix", () => {
+  const first = derivePsychometricProfile(
+    {
+      personalidad_apertura: 0.9,
+      personalidad_responsabilidad: 0.5,
+      personalidad_extraversion: 0.3,
+      personalidad_amabilidad: 0.8,
+      personalidad_estabilidad_emocional: 0.7,
+      valores_empatia: 0.9,
+      valores_gestion_conflicto: 0.7,
+      valores_confianza: 0.8,
+    },
+    "INFP",
+  );
+  const second = derivePsychometricProfile(
+    {
+      personalidad_apertura: 0.6,
+      personalidad_responsabilidad: 0.8,
+      personalidad_extraversion: 0.7,
+      personalidad_amabilidad: 0.5,
+      personalidad_estabilidad_emocional: 0.5,
+      valores_empatia: 0.5,
+      valores_gestion_conflicto: 0.4,
+      valores_confianza: 0.6,
+    },
+    "ENTJ",
+  );
+
+  it("recovers the base similarity when the mix is zero", () => {
+    expect(applyPsychometricMix(0.81, 0, first, second)).toBeCloseTo(0.81, 12);
+  });
+
+  it("is symmetric and bounded for every mix", () => {
+    for (const mix of [0, 0.15, 0.5, 1]) {
+      const forward = applyPsychometricMix(0.81, mix, first, second);
+      const reverse = applyPsychometricMix(0.81, mix, second, first);
+      expect(forward).toBeCloseTo(reverse, 12);
+      expect(forward).toBeGreaterThanOrEqual(0);
+      expect(forward).toBeLessThanOrEqual(0.81);
+    }
+  });
+});
+
 // ─── Romance selectivity ──────────────────────────────────────────────────────
 
 describe("applyRomanceSelectivity", () => {
@@ -831,7 +881,11 @@ describe("findDualMatches", () => {
   });
 
   it("returns both tracks for a profile that clears every gate", () => {
-    const results = findDualMatches(user, [{ userId: "twin", profile: twin }], MATCHING_CONFIG);
+    const results = findDualMatches(
+      user,
+      [{ userId: "twin", profile: twin }],
+      withThresholds(0, 0),
+    );
 
     expect(results).toHaveLength(2);
     expect(results.map((result) => result.track).sort()).toEqual(["amistad", "romance"]);
@@ -841,8 +895,20 @@ describe("findDualMatches", () => {
     }
   });
 
-  it("gives romance badges five slots and friendship badges three", () => {
+  it("applies the psychometric mix to an otherwise perfect pair", () => {
     const results = findDualMatches(user, [{ userId: "twin", profile: twin }], MATCHING_CONFIG);
+    for (const result of results) {
+      expect(result.similarity).toBeGreaterThan(0.9);
+      expect(result.similarity).toBeLessThan(1);
+    }
+  });
+
+  it("gives romance badges five slots and friendship badges three", () => {
+    const results = findDualMatches(
+      user,
+      [{ userId: "twin", profile: twin }],
+      withThresholds(0, 0),
+    );
     const romance = results.find((result) => result.track === "romance");
     const amistad = results.find((result) => result.track === "amistad");
 
@@ -1092,28 +1158,102 @@ describe("computeAllMatches", () => {
 
     expect(matches).toEqual([]);
   });
+
+  it("keeps only pairs between the top-quantile users of the candidate graph", () => {
+    const candidates = [
+      [{ index: 1, similarity: 0.9 }, { index: 3, similarity: 0.8 }],
+      [{ index: 0, similarity: 0.9 }, { index: 2, similarity: 0.7 }],
+      [{ index: 1, similarity: 0.7 }, { index: 4, similarity: 0.6 }],
+      [{ index: 0, similarity: 0.8 }],
+      [{ index: 2, similarity: 0.6 }],
+    ];
+    const users = ["u0", "u1", "u2", "u3", "u4"].map((userId) => ({ userId }));
+
+    // quota = floor(5 × 0.4) = 2 → u0 and u1 (tied at 0.9, id order breaks it).
+    const capped = capCandidateGraphByCoverage(candidates, users, 0.4);
+
+    expect(capped[0]).toEqual([{ index: 1, similarity: 0.9 }]);
+    expect(capped[1]).toEqual([{ index: 0, similarity: 0.9 }]);
+    expect(capped.slice(2).every((list) => list.length === 0)).toBe(true);
+  });
+
+  it("holds romance user coverage at or below the configured fraction", () => {
+    const pool = Array.from({ length: 40 }, (_, index) => ({
+      userId: `user-${String(index).padStart(2, "0")}`,
+      profile: makeProfile(),
+    }));
+    const config: MatchingConfig = {
+      ...withThresholds(0.49, 1),
+      tracks: {
+        romance: {
+          ...ROMANCE_TRACK,
+          minimum_similarity_exclusive: 0.49,
+          maximum_user_coverage: 0.06,
+        },
+        amistad: { ...AMISTAD_TRACK, minimum_similarity_exclusive: 1 },
+      },
+    };
+    const romanceMatches = computeAllMatches(pool, config).filter(
+      (match) => match.track === "romance",
+    );
+    const matchedUsers = new Set(
+      romanceMatches.flatMap((match) => [match.userA, match.userB]),
+    );
+
+    expect(pool.length).toBeGreaterThanOrEqual(MIN_QUANTILE_SAMPLE);
+    expect(matchedUsers.size).toBe(Math.floor(pool.length * 0.06));
+    expect(matchedUsers.size / pool.length).toBeLessThanOrEqual(0.06);
+    expect(romanceMatches).toHaveLength(1);
+    expect(romanceMatches[0]).toMatchObject({ userA: "user-00", userB: "user-01" });
+  });
+
+  it("skips the quantile gate below the minimum estimation sample", () => {
+    const pool = Array.from({ length: 2 }, (_, index) => ({
+      userId: `user-${index}`,
+      profile: makeProfile(),
+    }));
+    const config: MatchingConfig = {
+      ...withThresholds(0.49, 1),
+      tracks: {
+        romance: {
+          ...ROMANCE_TRACK,
+          minimum_similarity_exclusive: 0.49,
+          maximum_user_coverage: 0.06,
+        },
+        amistad: { ...AMISTAD_TRACK, minimum_similarity_exclusive: 1 },
+      },
+    };
+    const romanceMatches = computeAllMatches(pool, config).filter(
+      (match) => match.track === "romance",
+    );
+
+    expect(pool.length).toBeLessThan(MIN_QUANTILE_SAMPLE);
+    expect(romanceMatches).toHaveLength(1);
+  });
 });
 
 // ─── Configuration contract ───────────────────────────────────────────────────
 
 describe("MATCHING_CONFIG", () => {
   it("publishes the calibrated dual thresholds", () => {
-    expect(MATCHING_CONFIG.version).toBe("1.2");
+    expect(MATCHING_CONFIG.version).toBe("1.3");
     expect(ROMANCE_TRACK.minimum_similarity_exclusive).toBe(0.78);
     expect(AMISTAD_TRACK.minimum_similarity_exclusive).toBe(0.65);
     expect(ROMANCE_TRACK.centering).toBe(0.5);
     expect(AMISTAD_TRACK.centering).toBe(0.5);
     expect(ROMANCE_TRACK.max_matches).toBe(3);
     expect(AMISTAD_TRACK.max_matches).toBe(5);
-    expect(ROMANCE_TRACK.target_coverage_percentile).toBe(0.08);
+    expect(ROMANCE_TRACK.target_coverage_percentile).toBe(0.06);
     expect(ROMANCE_TRACK.maximum_pair_tail).toBe(0.06);
+    expect(ROMANCE_TRACK.maximum_user_coverage).toBe(0.06);
     expect(AMISTAD_TRACK.target_coverage_percentile).toBe(0.35);
     expect(ROMANCE_TRACK.selectivity).toMatchObject({
       intimacy_alignment_floor: 0.6,
       intimacy_penalty_weight: 0.45,
-      conflict_tolerance: 0.4,
-      conflict_penalty_lambda: 3.5,
+      conflict_tolerance: 0.35,
+      conflict_penalty_lambda: 4.0,
     });
+    expect(MATCHING_CONFIG.psychometric_mix).toBe(0.15);
   });
 
   it("lists exactly the vector dimensions of each track, in vector order", () => {
@@ -1148,7 +1288,7 @@ describe("MATCHING_CONFIG", () => {
 
   it("exposes the calibration metadata", () => {
     expect(MATCHING_CONFIG.calibration.method).toBe("bisection");
-    expect(MATCHING_CONFIG.calibration.target_coverage).toBe(0.08);
+    expect(MATCHING_CONFIG.calibration.target_coverage).toBe(0.06);
     expect(MATCHING_CONFIG.calibration.max_users).toBe(300);
   });
 });

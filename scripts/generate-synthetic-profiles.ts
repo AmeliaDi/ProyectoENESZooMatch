@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 
 import catalogue from "../data/arquetipos.json";
-import { MATCHING_CONFIG, applyRomanceSelectivity, computeTrackCentroid, trackSimilarity } from "../src/lib/matching/engine";
+import { MATCHING_CONFIG, applyRomanceSelectivity, applyPsychometricMix, computeTrackCentroid, trackSimilarity } from "../src/lib/matching/engine";
+import { derivePsychometricProfile } from "../src/lib/psychometrics";
 import {
   FRIENDSHIP_VECTOR_DIMENSIONS,
   ROMANCE_VECTOR_DIMENSIONS,
@@ -359,6 +360,9 @@ export function analyzeTrackPairs(
     track === "romance" ? profile.romanceVector : profile.friendshipVector,
   );
   const centroid = computeTrackCentroid(vectors);
+  const psychometrics = profiles.map((profile) =>
+    derivePsychometricProfile(profile.dimensionScores, profile.mbtiCode),
+  );
   let minimumSimilarity = Number.POSITIVE_INFINITY;
   let maximumSimilarity = Number.NEGATIVE_INFINITY;
 
@@ -367,10 +371,16 @@ export function analyzeTrackPairs(
     for (let secondIndex = firstIndex + 1; secondIndex < profiles.length; secondIndex += 1) {
       const secondVector = vectors[secondIndex]!;
       const baseSimilarity = trackSimilarity(firstVector, secondVector, config, centroid);
+      const adjustedSimilarity = applyPsychometricMix(
+        baseSimilarity,
+        MATCHING_CONFIG.psychometric_mix,
+        psychometrics[firstIndex]!,
+        psychometrics[secondIndex]!,
+      );
       const similarity =
         track === "romance"
-          ? applyRomanceSelectivity(firstVector, secondVector, baseSimilarity, config).score
-          : baseSimilarity;
+          ? applyRomanceSelectivity(firstVector, secondVector, adjustedSimilarity, config).score
+          : adjustedSimilarity;
       similarities.push(similarity);
       maximumSimilarities[firstIndex] = Math.max(maximumSimilarities[firstIndex]!, similarity);
       maximumSimilarities[secondIndex] = Math.max(maximumSimilarities[secondIndex]!, similarity);

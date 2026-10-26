@@ -1,8 +1,11 @@
 export {
   MATCHING_CONFIG,
   MICROTEST_ITEMS,
+  MIN_QUANTILE_SAMPLE,
   attractedTo,
+  applyPsychometricMix,
   applyRomanceSelectivity,
+  capCandidateGraphByCoverage,
   checkHardFilters,
   computeAllMatches,
   computeTrackCentroid,

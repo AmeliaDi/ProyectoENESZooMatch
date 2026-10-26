@@ -274,6 +274,8 @@ export interface TrackConfig {
   target_coverage_percentile: number;
   /** Hard upper bound on the share of pairs above the threshold. */
   maximum_pair_tail?: number;
+  /** Hard upper bound on the share of users who receive a match. */
+  maximum_user_coverage?: number;
   dimensions: string[];
   hard_filters: HardFilterField[];
   weights: CategoryWeights;
@@ -283,6 +285,8 @@ export interface TrackConfig {
 
 export interface MatchingConfig {
   version: string;
+  /** Convex mix of the base Hilbert similarity and Φ_psico ∈ [0, 1]. */
+  psychometric_mix: number;
   tracks: {
     romance: TrackConfig;
     amistad: TrackConfig;

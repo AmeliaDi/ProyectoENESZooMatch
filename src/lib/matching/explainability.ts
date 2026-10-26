@@ -23,6 +23,12 @@ import {
   FRIENDSHIP_VECTOR_DIMENSIONS,
   ROMANCE_VECTOR_DIMENSIONS,
 } from "@/types/microtest";
+import {
+  derivePsychometricProfile,
+  psychometricCompatibility as computePsychometricCompatibility,
+  type PsychometricCompatibility,
+  type PsychometricProfile,
+} from "@/lib/psychometrics";
 import { getMatchingConfig } from "./config";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
@@ -125,12 +131,20 @@ export interface MatchNarrative {
   afinidadBigFive: AfinidadBigFive[];
 }
 
+export interface MatchPsychometrics {
+  user: PsychometricProfile;
+  match: PsychometricProfile;
+  compatibility: PsychometricCompatibility;
+}
+
 export interface MatchExplanation extends MatchNarrative {
   chemistry: ChemistrySummary;
   breakdown: AffinityBreakdown[];
   personalitySummary: PersonalitySummary;
   /** One-line poetic summary of the connection. */
   headline: string;
+  /** Derived Big Five/MBTI/Enneagram/attachment layer. */
+  psychometrics?: MatchPsychometrics;
 }
 
 // ─── Internal constants ───────────────────────────────────────────────────────
@@ -1553,6 +1567,13 @@ export function generateMatchExplanation(
     userAnimal,
     matchAnimal,
   });
+  const user = derivePsychometricProfile(userDimensionScores, userMbtiCode);
+  const match = derivePsychometricProfile(matchDimensionScores, matchMbtiCode);
+  const psychometrics: MatchPsychometrics = {
+    user,
+    match,
+    compatibility: computePsychometricCompatibility(user, match),
+  };
 
-  return { ...narrative, chemistry, breakdown, personalitySummary, headline };
+  return { ...narrative, chemistry, breakdown, personalitySummary, headline, psychometrics };
 }

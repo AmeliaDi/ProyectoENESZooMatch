@@ -1,5 +1,6 @@
 {
-  "version": "1.2",
+  "version": "1.3",
+  "psychometric_mix": 0.15,
   "tracks": {
     "romance": {
       "minimum_similarity_exclusive": 0.78,
@@ -45,13 +46,14 @@
         "intimidad_afecto": 0.25,
         "valores_relacionales": 0.25
       },
-      "target_coverage_percentile": 0.08,
+      "target_coverage_percentile": 0.06,
       "maximum_pair_tail": 0.06,
+      "maximum_user_coverage": 0.06,
       "selectivity": {
         "intimacy_alignment_floor": 0.6,
         "intimacy_penalty_weight": 0.45,
-        "conflict_tolerance": 0.4,
-        "conflict_penalty_lambda": 3.5
+        "conflict_tolerance": 0.35,
+        "conflict_penalty_lambda": 4.0
       }
     },
     "amistad": {
@@ -87,7 +89,7 @@
   },
   "calibration": {
     "method": "bisection",
-    "target_coverage": 0.08,
+    "target_coverage": 0.06,
     "max_users": 300
   }
 }

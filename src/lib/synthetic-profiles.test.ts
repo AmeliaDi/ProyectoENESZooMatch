@@ -174,6 +174,26 @@ describe("synthetic compatibility calibration", () => {
     }
   });
 
+  it("caps romance matching at the configured user coverage", () => {
+    const romanceUsers = new Set(
+      engineMatches
+        .filter((match) => match.track === "romance")
+        .flatMap((match) => [match.userA, match.userB]),
+    );
+    const maximumCoverage = MATCHING_CONFIG.tracks.romance.maximum_user_coverage;
+
+    expect(maximumCoverage).toBe(0.06);
+    expect(romanceUsers.size).toBeGreaterThan(0);
+    expect(romanceUsers.size).toBeLessThanOrEqual(
+      Math.floor(profiles.length * maximumCoverage!),
+    );
+    console.log(
+      `romance engine coverage: users=${(
+        (romanceUsers.size / profiles.length) * 100
+      ).toFixed(3)}% (cap ${(maximumCoverage! * 100).toFixed(1)}%)`,
+    );
+  });
+
   it("applies the configured threshold strictly rather than inclusively", () => {
     const exactThresholdAnalysis = {
       track: "romance" as const,
@@ -201,7 +221,7 @@ describe("synthetic compatibility calibration", () => {
     const threshold = trackConfig.minimum_similarity_exclusive;
     const coverage = measureCoverage(romanceAnalysis, threshold);
     console.log(
-      `romance tail: pairs=${(coverage.pairCoverageRate * 100).toFixed(3)}% users=${(
+      `romance threshold tail (uncapped): pairs=${(coverage.pairCoverageRate * 100).toFixed(3)}% users=${(
         coverage.userCoverageRate * 100
       ).toFixed(3)}%`,
     );
