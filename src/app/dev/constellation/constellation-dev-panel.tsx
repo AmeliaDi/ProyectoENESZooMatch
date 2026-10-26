@@ -29,37 +29,11 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import catalogoData from "../../../../data/arquetipos.json";
-import {
-  ConstellationView,
-  type ConstellationMatchInput,
-  type ConstellationSelfInput,
-} from "@/components/constellation";
+import { ConstellationView } from "@/components/constellation";
 import { getTrackThreshold } from "@/lib/constellation-layout";
-import { getAllAnimalIds, getAllColorIds } from "@/lib/pixel-sprites";
 import type { MatchTrack } from "@/types/microtest";
 
-// ─── Catálogo (sólo lectura) ─────────────────────────────────────────────────
-
-interface CatalogAnimal {
-  id: string;
-  diminutivo_es: string;
-}
-
-interface CatalogColor {
-  id: string;
-  nombre: string;
-  hex: string;
-}
-
-const ANIMALS = catalogoData.animales as unknown as CatalogAnimal[];
-const COLORS = catalogoData.colores as unknown as CatalogColor[];
-
-const ANIMAL_IDS = getAllAnimalIds();
-const COLOR_IDS = getAllColorIds();
-const ANIMAL_NAME = new Map<string, string>(ANIMALS.map((a) => [a.id, a.diminutivo_es]));
-const COLOR_NAME = new Map<string, string>(COLORS.map((c) => [c.id, c.nombre]));
-const COLOR_HEX = new Map<string, string>(COLORS.map((c) => [c.id, c.hex]));
+import { DEV_SELF, generateSyntheticMatches } from "./synthetic";
 
 /** Umbrales REALES y congelados del motor (informativos en el panel). */
 const REAL_ROMANCE_THRESHOLD = getTrackThreshold("romance");
@@ -67,78 +41,6 @@ const REAL_AMISTAD_THRESHOLD = getTrackThreshold("amistad");
 
 const MAX_NODES = 50;
 const MAX_GHOSTS = 12;
-
-/** Nodo "yo" sintético y estable (ids reales de catálogo). */
-const SELF: ConstellationSelfInput = {
-  id: "dev-self",
-  animalId: "ajolotito",
-  colorId: "verde-esmeralda",
-  colorHex: COLOR_HEX.get("verde-esmeralda") ?? "#50C878",
-  animalName: "Ajolotito",
-  colorName: "verde esmeralda",
-  alias: "tú (dev)",
-  mbtiCode: null,
-};
-
-// ─── Utilidades puras ────────────────────────────────────────────────────────
-
-/** PRNG determinista y sembrable (mulberry32). Devuelve valores en [0, 1). */
-function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
-
-function pick(list: readonly string[], rand: () => number): string {
-  return list[Math.floor(rand() * list.length)];
-}
-
-/**
- * Genera `count` conexiones sintéticas, balanceadas entre ambas pistas, con una
- * mezcla de afinidades arriba/abajo del `threshold` del panel. Pure: misma semilla
- * → mismo cielo.
- */
-function generateMatches(
-  count: number,
-  threshold: number,
-  seed: number,
-): ConstellationMatchInput[] {
-  const rand = mulberry32(seed);
-  const matches: ConstellationMatchInput[] = [];
-  for (let index = 0; index < count; index += 1) {
-    const track: MatchTrack = index % 2 === 0 ? "romance" : "amistad";
-    const animalId = pick(ANIMAL_IDS, rand);
-    const colorId = pick(COLOR_IDS, rand);
-    const goesAbove = rand() < 0.6;
-    const similarity = goesAbove
-      ? clamp01(threshold + rand() * (1 - threshold))
-      : clamp01(threshold - rand() * threshold);
-    const animalName = ANIMAL_NAME.get(animalId) ?? animalId;
-    const colorName = (COLOR_NAME.get(colorId) ?? colorId).toLowerCase();
-    matches.push({
-      id: `dev-${seed}-${index}`,
-      animalId,
-      colorId,
-      colorHex: COLOR_HEX.get(colorId) ?? "#c9d4ff",
-      animalName,
-      colorName,
-      alias: `${animalName} ${colorName} · dev${index}`,
-      similarity: Math.round(similarity * 1000) / 1000,
-      track,
-      badges: [],
-      explanation: null,
-    });
-  }
-  return matches;
-}
 
 /**
  * Medidor de FPS basado en `requestAnimationFrame`. El `setState` vive dentro del
@@ -255,7 +157,13 @@ export function ConstellationDevPanel() {
   const [rollNonce, setRollNonce] = useState(1);
 
   const matches = useMemo(
-    () => generateMatches(nodeCount, threshold, rollNonce),
+    () =>
+      generateSyntheticMatches({
+        count: nodeCount,
+        threshold,
+        seed: rollNonce,
+        excludeAnimalId: DEV_SELF.animalId,
+      }),
     [nodeCount, threshold, rollNonce],
   );
   const fps = useFps();
@@ -397,7 +305,7 @@ export function ConstellationDevPanel() {
           </div>
           <ConstellationView
             key={track}
-            me={SELF}
+            me={DEV_SELF}
             matches={matches}
             initialTrack={track}
             ghostCount={ghostCount}
