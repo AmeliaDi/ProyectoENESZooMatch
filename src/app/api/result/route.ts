@@ -3,8 +3,8 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { generateMatchExplanation } from "@/lib/explainability";
-import type { MatchExplanation } from "@/lib/explainability";
+import { generateMatchExplanation } from "@/lib/matching/explainability";
+import type { MatchExplanation } from "@/lib/matching/explainability";
 import { NO_MATCH_MESSAGE } from "@/lib/notification-copy";
 import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
 import { createAdminClient } from "@/lib/supabase/admin.server";
@@ -127,6 +127,7 @@ function buildExplanation(
       other?.dimension_scores ?? null,
       userAnimal,
       user?.dimension_scores ?? null,
+      user?.mbti_code ?? null,
     );
   } catch {
     return null;

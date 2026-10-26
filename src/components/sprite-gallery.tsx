@@ -23,6 +23,8 @@ import {
 } from "react";
 
 import catalogoData from "../../data/arquetipos.json";
+import { PixelAnimal } from "@/components/constellation/PixelAnimal";
+import { SharedHeart } from "@/components/constellation/RomanceHearts";
 import {
   ALL_FAMILIES,
   GRID_SIZE,
@@ -137,6 +139,17 @@ const BG_STYLES: Record<BgMode, CSSProperties> = {
 const SCALE_PX = { 1: 48, 2: 96 } as const;
 type Scale = keyof typeof SCALE_PX;
 
+/** The five animation states shown in the gallery strip. `romance_duo` is a
+ * two-sprite composition, so it is rendered with `PixelAnimal` rather than a
+ * single grid frame. */
+const FRAME_PREVIEWS = [
+  { key: "idle_1", label: "idle" },
+  { key: "idle_2", label: "parpadeo" },
+  { key: "happy", label: "feliz" },
+  { key: "romance_pulse", label: "romance" },
+  { key: "romance_duo", label: "dúo" },
+] as const;
+
 // ─── Sprite SVG (memoizado por animalId + colorId + frame + px) ────────────────
 
 interface SpriteViewProps {
@@ -216,6 +229,7 @@ interface SpriteCardProps {
   animate: boolean;
   blink: boolean;
   index: number;
+  showFrames: boolean;
 }
 
 function SpriteCard({
@@ -227,6 +241,7 @@ function SpriteCard({
   animate,
   blink,
   index,
+  showFrames,
 }: SpriteCardProps) {
   const [hover, setHover] = useState(false);
 
@@ -267,6 +282,37 @@ function SpriteCard({
           {entry.etiqueta} · {entry.family}
         </span>
       </figcaption>
+
+      {showFrames ? (
+        <div className="mt-1 grid w-full grid-cols-5 gap-1" aria-label={`Estados de ${entry.diminutivo}`}>
+          {FRAME_PREVIEWS.map((preview) => (
+            <div key={preview.key} className="flex flex-col items-center gap-0.5">
+              <div className="grid h-8 w-full place-items-center rounded border border-ink/10 bg-paper/70">
+                {preview.key === "romance_duo" ? (
+                  <div className="flex items-center" aria-hidden="true">
+                    <PixelAnimal animalId={entry.id} colorId={colorId} size={13} happy />
+                    <SharedHeart size={7} animated={false} />
+                    <div style={{ transform: "scaleX(-1)" }}>
+                      <PixelAnimal animalId={entry.id} colorId={colorId} size={13} happy />
+                    </div>
+                  </div>
+                ) : (
+                  <PixelAnimal
+                    animalId={entry.id}
+                    colorId={colorId}
+                    frame={preview.key}
+                    size={26}
+                    animated={false}
+                  />
+                )}
+              </div>
+              <span className="font-mono text-[0.42rem] uppercase tracking-[0.06em] text-ink/45">
+                {preview.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </figure>
   );
 }
@@ -322,6 +368,7 @@ export function SpriteGallery() {
   const [bg, setBg] = useState<BgMode>("claro");
   const [scale, setScale] = useState<Scale>(2);
   const [animate, setAnimate] = useState(true);
+  const [showFrames, setShowFrames] = useState(false);
   const [blink, setBlink] = useState(false);
 
   // prefers-reduced-motion apaga el parpadeo automático. `useReducedMotion` se
@@ -467,7 +514,7 @@ export function SpriteGallery() {
             </p>
             <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-leaf">
               {visibleItems.length} sprites en pantalla · {ANIMAL_TOTAL} en el
-              catálogo · {ALL_FAMILIES.length} familias
+              catálogo · {ALL_FAMILIES.length} familias de sprite
             </p>
           </div>
         </header>
@@ -536,6 +583,25 @@ export function SpriteGallery() {
                     aria-hidden="true"
                   />
                   {animate ? "respirando" : "quietos"}
+                </button>
+              </div>
+
+              {/* Estados de animación */}
+              <div className="flex flex-col gap-1.5">
+                <span className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-leaf">
+                  Estados
+                </span>
+                <button
+                  type="button"
+                  aria-pressed={showFrames}
+                  onClick={() => setShowFrames((value) => !value)}
+                  className={`rounded-full border px-3 py-1.5 text-[0.72rem] font-semibold transition-colors ${
+                    showFrames
+                      ? "border-moss bg-moss text-paper"
+                      : "border-ink/20 bg-paper/60 text-ink/70 hover:border-clay/60"
+                  }`}
+                >
+                  {showFrames ? "5 frames visibles" : "ver 5 frames"}
                 </button>
               </div>
 
@@ -667,6 +733,7 @@ export function SpriteGallery() {
                   animate={animate}
                   blink={effectiveBlink}
                   index={index}
+                  showFrames={showFrames}
                 />
               ))}
             </div>

@@ -20,7 +20,7 @@ El producto tiene una sola arquitectura canónica:
 | Cuestionario | 60 ítems / 30 dimensiones (BigFive, MBTI, Identidad, Cultural, Intimidad, Valores), Likert 1–5 |
 | Matching | Doble track romance + amistad; cosine **ponderado por categoría** + **filtros duros** (orientación, identidad de género, tipo de relación) |
 | Umbrales | romance `> 0.65` (26 dimensiones), amistad `> 0.68` (16 dimensiones, sin filtros duros) |
-| Catálogo | 61 animales × 55 colores/texturas |
+| Catálogo | 103 animales en 13 familias morfológicas × 55 colores/texturas |
 
 Ambos tracks centran sus vectores en `0.5` y seleccionan hasta cinco candidatos por persona;
 los pares finales se combinan por unión, por lo que el grado puede superar cinco. Los
@@ -66,7 +66,7 @@ Rasgos de diseño transversales:
 ```
 ProyectoENESZooMatch/
 ├── data/                    # fixtures JSON: única fuente de verdad psicométrica
-│   ├── arquetipos.json                # 61 animales + 55 colores/texturas
+│   ├── arquetipos.json                # 103 animales (13 familias) + 55 colores/texturas
 │   ├── microtest.json                 # 60 ítems, 30 dimensiones, fuentes/licencias
 │   ├── matching-config.json           # tracks romance/amistad, pesos, filtros, calibración
 │   └── external/                      # normas Big Five y señales de literatura
@@ -149,14 +149,26 @@ ProyectoENESZooMatch/
   resultado con badges, porcentajes y narrativa. Los sufijos `_v2` son nombres físicos de
   la base de datos, congelados por las migraciones aplicadas.
 
-### 4.5 Explainability (`src/lib/explainability.ts`)
+### 4.5 Explainability (`src/lib/matching/explainability.ts`)
 
 Traduce similitudes crudas a lenguaje afectivo es-MX determinista: bandas de química
 **relativas al umbral del track** (`almas_gemelas` si la posición relativa es ≥ 0.70;
 `quimica_moderada` por debajo de 0.10), desglose por categoría, resumen de
-personalidad (máx. 3 líneas) y titular poético de una línea. Copy inclusivo, frases
-< 200 caracteres, nunca clínico. El contrato está en `SCORING.md` y en
-`src/lib/explainability.test.ts`.
+personalidad (máx. 3 líneas) y titular poético de una línea. Además devuelve el contrato
+narrativo `MatchNarrative`: `tituloQuimica`, `porQueFunciona`, `dinamicaCotidiana` y
+`puntoDeAtencion`. Amistad pondera apertura y amabilidad y tolera diferencias de
+extraversión; romance pondera estabilidad emocional compartida y complementariedad
+cognitiva MBTI (Ne↔Ni, Ti↔Fe, etc.). Copy inclusivo, frases < 200 caracteres, nunca
+clínico. El contrato está en `SCORING.md` y en
+`src/lib/matching/explainability.test.ts`.
+
+### 4.5.1 Lenguaje inclusivo opcional (`src/lib/inclusive-text.ts`)
+
+Cuatro modos persistentes por navegador: `femenino`, `masculino`, `neutro_e` y
+`neutro_universal`. El formateador acepta palabras del diccionario (`{bienvenido}`),
+alternativas inline (`{a|o|e|x}`) y sufijos (`Bienvenid{o}`). El selector vive en el
+resultado (`src/components/inclusive-mode-selector.tsx`) y usa `useSyncExternalStore`
+para mantener SSR e hidratación estables.
 
 ### 4.6 Notificaciones
 
@@ -213,8 +225,8 @@ separa tres responsabilidades que nunca se tocan entre sí:
   refs, **nunca `setState` por frame**; pausa en `document.hidden` y en equilibrio) +
   `TrackToggle`, `NodeDetailSheet`, `PixelAnimal`. `build-structure.ts`, `render-helpers.ts`,
   `sprite-sheet.ts` y `frame-ticker.ts` son helpers puros. Cada nodo es `role="button"` con
-  `aria-label`; los pixeles se pintan con un sprite-sheet RLE de 3 frames (~3 elementos DOM
-  por nodo). **No hace fetch ni toca Supabase ni el motor de matching:** sólo consume props.
+  `aria-label`; los pixeles se pintan con un sprite-sheet RLE de 4 frames (~3 elementos DOM
+  por nodo) más una capa de corazones orbitantes para el nodo romántico activo. **No hace fetch ni toca Supabase ni el motor de matching:** sólo consume props.
 - **Adaptador e integración** (`adapt-result.ts`): mapea el payload de `GET /api/result`
   (`PublicResult`) a `{ me, matches }`, resolviendo `animalId`/`colorId` del catálogo por
   nombre/hex con fallback al color más cercano. `ConstellationSection` es el wrapper drop-in
@@ -222,10 +234,12 @@ separa tres responsabilidades que nunca se tocan entre sí:
   `public-experience.tsx`. La ruta `result` añade de forma **aditiva** campos opacos
   (`id`, `animal_id`, `color_id`, `color_hex`, `mbti_code`) sin exponer vectores ni matrículas.
 
-**Sprites** (`src/lib/pixel-sprites.ts`, ~1700 líneas): generador **puro, sin dependencias y
-sin aleatoriedad** de sprites 12×12 para los 61 animales del catálogo, en 3 frames de animación;
+**Sprites** (`src/lib/pixel-sprites.ts`): generador **puro, sin dependencias y
+sin aleatoriedad** de sprites 12×12 para los 103 animales del catálogo, con rubor kawaii
+obligatorio (`#FFAAA6`, intensificado a `#FF8A8A` en romance) y 4 frames (`idle_1`, `idle_2`, `happy`, `romance_pulse`) más la composición `romance_duo`;
 es una función de `(animalId, colorId, frame)` con un pase de distintividad que garantiza que
-ningún par de animales comparta silueta en ningún frame.
+ningún par de animales comparta silueta en ningún frame. El frame `romance_pulse` añade
+corazones `#FF6B6B` sobre la cabeza y se activa con afinidad romántica ≥ 75%.
 
 **Rutas de desarrollo** `/dev/constellation` (`ConstellationDevPanel`, datos sintéticos con
 PRNG sembrable + panel de FPS) y `/dev/sprites` (`sprite-gallery.tsx`): herramientas internas
@@ -308,13 +322,16 @@ archivos/líneas:
 
 ## 10. Glosario rápido
 
-- **arquetipos**: animalito diminutivo + color del catálogo (61 animales × 55 colores).
+- **arquetipos**: animalito diminutivo + color del catálogo (103 animales × 55 colores).
 - **microtest**: cuestionario canónico de 60 ítems / 30 dimensiones.
 - **track**: canal de matching (`romance` con filtros duros, `amistad` sin ellos).
 - **hard filter**: pregunta multi-selección que habilita/bloquea emparejamientos romance.
 - **badge**: etiqueta humana de afinidad por dimensión (top 5 / top 3 por match).
 - **constelación**: visualización interactiva de los matches como cielo de sprites con física
   determinista (`constellation-layout.ts` + `components/constellation/`).
-- **sprite**: animalito en pixel-art 12×12 generado por código (`pixel-sprites.ts`), en 3 frames.
-- **explainability**: motor (`explainability.ts`) que vuelve narrativa afectiva es-MX las
-  similitudes numéricas.
+- **sprite**: animalito en pixel-art 12×12 generado por código (`pixel-sprites.ts`), con rubor
+  kawaii, 4 frames (`idle_1`, `idle_2`, `happy`, `romance_pulse`) y la composición `romance_duo`.
+- **explainability**: motor (`matching/explainability.ts`) que vuelve narrativa afectiva es-MX
+  las similitudes numéricas.
+- **modo inclusivo**: preferencia de lenguaje (`femenino`, `masculino`, `neutro_e`,
+  `neutro_universal`) persistida por navegador.

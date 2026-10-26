@@ -600,11 +600,18 @@ export function generateProfileNarrative(
   );
 
   // 2. Core trait from animal metaphor
-  const animalTrait = ANIMAL_TRAITS[animal.nombre_fuente] ?? "autenticidad y belleza";
+  const fallbackTrait =
+    animal.rasgos_personalidad.slice(0, 2).join(" y ") || "autenticidad y belleza";
+  const animalTrait = ANIMAL_TRAITS[animal.nombre_fuente] ?? fallbackTrait;
   sentences.push(
     `Tu naturaleza de ${animal.nombre_fuente.toLowerCase()} te dota de ${animalTrait}, ` +
     `una cualidad que se siente en cada interacción contigo.`
   );
+
+  // 3. Inclusive self-care template from the expanded catalogue.
+  if (animal.plantillas_narrativas?.cuidado) {
+    sentences.push(fillNarrativeTemplate(animal.plantillas_narrativas.cuidado, animal, color));
+  }
 
   // 3. Primary dimension phrase
   if (topDimensions.length > 0) {
@@ -650,6 +657,21 @@ export function generateProfileNarrative(
 
 function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function fillNarrativeTemplate(
+  template: string,
+  animal: CatalogAnimal,
+  color: CatalogColor,
+): string {
+  const [first = "", second = "", third = ""] = animal.rasgos_personalidad;
+  return template
+    .replaceAll("{nombre}", animal.nombre)
+    .replaceAll("{familia_label}", animal.familia_morfologica_label)
+    .replaceAll("{rasgo_1}", first)
+    .replaceAll("{rasgo_2}", second)
+    .replaceAll("{rasgo_3}", third)
+    .replaceAll("{color}", color.nombre.toLowerCase());
 }
 
 // ─── Alias Generation ─────────────────────────────────────────────────────────

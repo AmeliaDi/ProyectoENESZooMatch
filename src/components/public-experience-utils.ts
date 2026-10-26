@@ -1,4 +1,4 @@
-import type { MatchExplanation } from "@/lib/explainability";
+import type { MatchExplanation } from "@/lib/matching/explainability";
 import { NO_MATCH_MESSAGE } from "@/lib/notification-copy";
 import type { CompatibilityBadge } from "@/types/microtest";
 

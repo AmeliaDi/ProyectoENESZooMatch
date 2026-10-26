@@ -17,7 +17,7 @@
  *   `getTrackThreshold(track)` (which reads `data/matching-config.json`).
  */
 
-import type { MatchExplanation } from "@/lib/explainability";
+import type { MatchExplanation } from "@/lib/matching/explainability";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 import type { CSSProperties } from "react";
 
@@ -172,16 +172,22 @@ export interface NodeDetailSheetProps {
  * Frame resolution order:
  * 1. `frame` — explicit override, wins over everything (used by the dev gallery
  *    and by the canvas when it wants a frozen frame under reduced motion).
- * 2. `happy` → the `"happy"` frame (^ ^ eyes + floating heart).
- * 3. otherwise the shared idle ticker alternates `"idle_1"` / `"idle_2"`.
+ * 2. `romance` → the `"romance_pulse"` frame (heart-eyes + floating hearts).
+ * 3. `happy` → the `"happy"` frame (^ ^ eyes + floating heart).
+ * 4. otherwise the shared idle ticker alternates `"idle_1"` / `"idle_2"`.
  */
 export interface PixelAnimalProps {
   animalId: string;
   colorId: string;
-  /** Explicit frame override. When set, `happy` and the idle ticker are ignored. */
+  /** Explicit frame override. When set, every other frame flag is ignored. */
   frame?: SpriteFrameName;
   /** Show the celebrating frame (active connection, hover or focus). */
   happy?: boolean;
+  /**
+   * Show the romance frame. Wins over `happy`. The constellation enables it for
+   * romantic connections with affinity >= 75%.
+   */
+  romance?: boolean;
   /**
    * Participate in the 2-frame idle blink. Pass `false` for ghosts, for
    * reduced motion, and for server-rendered snapshots.
@@ -200,8 +206,8 @@ export interface PixelAnimalProps {
   className?: string;
 }
 
-/** The three frames the sprite engine can produce. */
-export type SpriteFrameName = "idle_1" | "idle_2" | "happy";
+/** The four frames the sprite engine can produce. */
+export type SpriteFrameName = "idle_1" | "idle_2" | "happy" | "romance_pulse";
 
 // ─── Internal render structures (produced by the canvas) ─────────────────────
 
@@ -311,10 +317,15 @@ export const CONSTELLATION_COPY = {
   sheetEyebrowRomance: "Conexión romántica",
   sheetEyebrowAmistad: "Conexión de amistad",
   sheetChemistryTitle: "Química entre ustedes",
+  sheetWhyTitle: "Por qué funciona",
+  sheetDailyTitle: "En el día a día",
+  sheetCareTitle: "Punto de atención",
   sheetAffinityTitle: "Dónde se encuentran",
   sheetPersonalityTitle: "Así es",
   sheetBadgesTitle: "Lo que más les une",
   sheetMbti: "MBTI",
+  sheetMbtiTitle: "Cómo se piensan",
+  sheetBigFiveTitle: "Rasgos compartidos",
   srListHeading: "Lista textual de tus conexiones",
   srListIntro:
     "Versión en texto de la constelación, con cada conexión y su porcentaje de afinidad.",

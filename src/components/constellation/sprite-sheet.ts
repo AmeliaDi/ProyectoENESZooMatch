@@ -7,9 +7,9 @@
  * composite at 60 fps alongside a physics loop.
  *
  * Instead each (animal, colour) pair is rasterised ONCE into a tiny inline SVG
- * *sprite sheet* — three 12×12 frames side by side (`idle_1`, `idle_2`,
- * `happy`) — and exposed as a memoised `data:` URL. A node then renders as a
- * single `<image>` inside a nested 12×12 viewBox, and the frame is chosen by
+ * *sprite sheet* — four 12×12 frames side by side (`idle_1`, `idle_2`, `happy`,
+ * `romance_pulse`) — and exposed as a memoised `data:` URL. A node then renders
+ * as a single `<image>` inside a nested 12×12 viewBox, and the frame is chosen by
  * shifting the image's `x` attribute imperatively. Three DOM elements per node
  * instead of 144, zero React re-renders per animation tick.
  *
@@ -30,9 +30,10 @@ export const SHEET_FRAMES: readonly SpriteFrameName[] = [
   "idle_1",
   "idle_2",
   "happy",
+  "romance_pulse",
 ] as const;
 
-/** Total sheet width in user units (3 frames × 12). */
+/** Total sheet width in user units (4 frames × 12). */
 export const SHEET_WIDTH = GRID_SIZE * SHEET_FRAMES.length;
 
 /** Upper bound on memoised sheets; the cache is dropped wholesale past this. */
@@ -44,7 +45,7 @@ function cacheKey(animalId: string, colorId: string): string {
   return `${animalId}\u0000${colorId}`;
 }
 
-/** Column index (0-2) of a frame name inside the sheet. */
+/** Column index (0-3) of a frame name inside the sheet. */
 export function frameIndex(frame: SpriteFrameName): number {
   const index = SHEET_FRAMES.indexOf(frame);
   return index < 0 ? 0 : index;
@@ -80,7 +81,7 @@ function gridToRects(grid: readonly (readonly string[])[], offsetX: number): str
 }
 
 /**
- * Builds the raw SVG markup of the three-frame sheet. Exported for tests and
+ * Builds the raw SVG markup of the four-frame sheet. Exported for tests and
  * for the (optional) dev gallery; production code should use `spriteSheetUrl`.
  */
 export function buildSpriteSheetSvg(animalId: string, colorId: string): string {

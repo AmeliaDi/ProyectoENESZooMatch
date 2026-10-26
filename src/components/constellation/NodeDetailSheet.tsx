@@ -29,10 +29,11 @@ import {
   generateAffinityBreakdown,
   generateConnectionHeadline,
   type AffinityBreakdown,
-} from "@/lib/explainability";
+} from "@/lib/matching/explainability";
 import type { MatchTrack } from "@/types/microtest";
 
 import { PixelAnimal } from "./PixelAnimal";
+import { RomanceDuo } from "./RomanceHearts";
 import { formatAffinityPercent, sliceBadges } from "./render-helpers";
 import { CONSTELLATION_COPY, type NodeDetailSheetProps } from "./types";
 
@@ -228,6 +229,14 @@ export function NodeDetailSheet({
     [node, track],
   );
 
+  const romancePulse = track === "romance" && (chemistry?.percentage ?? 0) >= 75;
+  const romanceDuo = track === "romance" && (chemistry?.percentage ?? 0) >= 70;
+  const narrative = node?.explanation ?? null;
+  const trackRationale =
+    track === "romance"
+      ? narrative?.porQuePosibleRomance ?? narrative?.porQueFunciona
+      : narrative?.porQueBuenaAmistad ?? narrative?.porQueFunciona;
+
   const identity = node
     ? node.colorName.trim().length > 0
       ? `${node.animalName} ${node.colorName}`
@@ -321,15 +330,27 @@ export function NodeDetailSheet({
               {/* Sprite + chemistry */}
               <div className="flex items-center gap-4">
                 <div
-                  className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl border border-ink/10 bg-white/70"
+                  className="grid h-20 min-w-20 shrink-0 place-items-center rounded-2xl border border-ink/10 bg-white/70 px-1"
                   aria-hidden="true"
                 >
-                  <PixelAnimal
-                    animalId={node.animalId}
-                    colorId={node.colorId}
-                    frame="happy"
-                    size={56}
-                  />
+                  {romanceDuo ? (
+                    <RomanceDuo
+                      selfAnimalId={self.animalId}
+                      selfColorId={self.colorId}
+                      matchAnimalId={node.animalId}
+                      matchColorId={node.colorId}
+                      size={42}
+                      animated={!reducedMotion}
+                    />
+                  ) : (
+                    <PixelAnimal
+                      animalId={node.animalId}
+                      colorId={node.colorId}
+                      romance={romancePulse}
+                      happy={!romancePulse}
+                      size={56}
+                    />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <ChemistryBand
@@ -358,6 +379,124 @@ export function NodeDetailSheet({
                   ? `Ustedes dos comparten ${formatAffinityPercent(node.similarity)}% de compatibilidad romántica.`
                   : `Ustedes dos comparten ${formatAffinityPercent(node.similarity)}% de química amistosa.`}
               </p>
+
+              {/* Psychological narrative produced by the matching engine */}
+              {narrative?.tituloQuimica ? (
+                <section
+                  aria-labelledby="constellation-sheet-narrative"
+                  className="space-y-4"
+                >
+                  <div>
+                    <h3
+                      id="constellation-sheet-narrative"
+                      className="mb-2 font-mono text-[0.62rem] tracking-[0.18em] text-ink/45 uppercase"
+                    >
+                      {CONSTELLATION_COPY.sheetChemistryTitle}
+                    </h3>
+                    <p className="font-display text-xl leading-tight font-semibold tracking-[-0.02em] text-ink">
+                      {narrative.tituloQuimica}
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-ink/75">
+                      {trackRationale}
+                    </p>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-ink/10 bg-white/55 p-3">
+                      <p className="font-mono text-[0.6rem] tracking-[0.16em] text-ink/45 uppercase">
+                        {CONSTELLATION_COPY.sheetDailyTitle}
+                      </p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-ink/70">
+                        {narrative.dinamicaCotidiana}
+                      </p>
+                    </div>
+                    <div
+                      className={`rounded-2xl border p-3 ${
+                        track === "romance"
+                          ? "border-romance/25 bg-romance/5"
+                          : "border-friendship/25 bg-friendship/5"
+                      }`}
+                    >
+                      <p className="font-mono text-[0.6rem] tracking-[0.16em] text-ink/45 uppercase">
+                        {CONSTELLATION_COPY.sheetCareTitle}
+                      </p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-ink/70">
+                        {narrative.dondeCrecer ?? narrative.puntoDeAtencion}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              ) : null}
+
+              {/* MBTI cognitive compatibility */}
+              {narrative?.compatibilidadMBTI ? (
+                <section
+                  aria-labelledby="constellation-sheet-mbti"
+                  className={`rounded-2xl border p-4 ${
+                    track === "romance"
+                      ? "border-romance/25 bg-romance/5"
+                      : "border-friendship/25 bg-friendship/5"
+                  }`}
+                >
+                  <h3
+                    id="constellation-sheet-mbti"
+                    className="font-mono text-[0.62rem] tracking-[0.18em] text-ink/45 uppercase"
+                  >
+                    {CONSTELLATION_COPY.sheetMbtiTitle}
+                  </h3>
+                  <p className="mt-1.5 font-display text-lg font-semibold tracking-[-0.01em] text-ink">
+                    {narrative.compatibilidadMBTI.tipo1}
+                    <span aria-hidden="true"> ↔ </span>
+                    {narrative.compatibilidadMBTI.tipo2}
+                  </p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-ink/75">
+                    {narrative.compatibilidadMBTI.funcionesComplementarias}
+                  </p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-ink/65 italic">
+                    {narrative.compatibilidadMBTI.dinamicaNatural}
+                  </p>
+                </section>
+              ) : null}
+
+              {/* Shared Big Five dimensions */}
+              {narrative?.afinidadBigFive && narrative.afinidadBigFive.length > 0 ? (
+                <section aria-labelledby="constellation-sheet-bigfive">
+                  <h3
+                    id="constellation-sheet-bigfive"
+                    className="mb-3 font-mono text-[0.62rem] tracking-[0.18em] text-ink/45 uppercase"
+                  >
+                    {CONSTELLATION_COPY.sheetBigFiveTitle}
+                  </h3>
+                  <ul className="m-0 space-y-3 p-0">
+                    {narrative.afinidadBigFive.map((entry) => {
+                      const percent = Math.round(entry.similitud * 100);
+                      return (
+                        <li key={entry.dimension} className="list-none">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold text-ink/80">
+                              {entry.dimension}
+                            </span>
+                            <span className="font-mono text-xs tabular-nums text-ink/60">
+                              {percent}%
+                            </span>
+                          </div>
+                          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink/10">
+                            <div
+                              className={`h-full rounded-full ${
+                                track === "romance" ? "bg-romance-deep" : "bg-friendship-deep"
+                              }`}
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                          <p className="mt-1 text-xs leading-relaxed text-ink/70 italic">
+                            {entry.interpretacion}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ) : null}
 
               {/* Affinity breakdown */}
               {breakdown.length > 0 ? (

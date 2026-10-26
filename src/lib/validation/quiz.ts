@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import microtest from "../../../data/microtest.json";
+import { inclusiveModeSchema } from "./common";
 
 /**
  * Request validation for the canonical 60-item questionnaire.
@@ -42,6 +43,7 @@ export const quizSubmissionSchema = z
   .object({
     likert: z.array(likertAnswerSchema).length(LIKERT_ITEM_IDS.length),
     filters: z.array(filterAnswerSchema).length(FILTER_ITEM_IDS.length),
+    inclusiveMode: inclusiveModeSchema.optional(),
   })
   .superRefine((data, ctx) => {
     const likertIds = new Set(data.likert.map((answer) => answer.itemId));

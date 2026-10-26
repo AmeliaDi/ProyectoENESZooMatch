@@ -1,10 +1,61 @@
+import {
+  buildMatchNarrative,
+  type MatchNarrative,
+} from "@/lib/matching/explainability";
 import { SCORING_CONFIG } from "@/lib/scoring/config";
-import type { BigFive, ReasonCode } from "@/lib/scoring/types";
+import type { BigFive, ReasonCode, ScoringProfile } from "@/lib/scoring/types";
+import type { MatchTrack } from "@/types/microtest";
 
 export interface ExplanationContext {
   closestTraits: Array<keyof BigFive>;
   sharedAxes: string[];
   complementaryAxes: string[];
+}
+
+/**
+ * Adapter input for the track-aware psychological narrative. Similarity is the
+ * canonical 0-1 track score; Big Five values in `ScoringProfile` are 0-100 and
+ * are normalized here before they reach the shared narrative engine.
+ */
+export interface NarrativeExplanationContext {
+  track: MatchTrack;
+  similarity: number;
+  user: ScoringProfile;
+  match: ScoringProfile;
+  userAnimal: string;
+  matchAnimal: string;
+}
+
+function toDimensionScores(profile: ScoringProfile): Record<string, number> | null {
+  if (!profile.bigFive) return null;
+  const { O, C, E, A, N } = profile.bigFive;
+  return {
+    personalidad_apertura: O / 100,
+    personalidad_responsabilidad: C / 100,
+    personalidad_extraversion: E / 100,
+    personalidad_amabilidad: A / 100,
+    personalidad_estabilidad_emocional: (100 - N) / 100,
+  };
+}
+
+/**
+ * Produces the same `tituloQuimica` / `porQueFunciona` / `dinamicaCotidiana` /
+ * `puntoDeAtencion` object used by the constellation detail sheet, from the
+ * legacy scoring profile shape.
+ */
+export function explainPairNarrative(
+  context: NarrativeExplanationContext,
+): MatchNarrative {
+  return buildMatchNarrative({
+    track: context.track,
+    similarity: context.similarity,
+    userDimensionScores: toDimensionScores(context.user),
+    matchDimensionScores: toDimensionScores(context.match),
+    userMbtiCode: context.user.mbti,
+    matchMbtiCode: context.match.mbti,
+    userAnimal: context.userAnimal,
+    matchAnimal: context.matchAnimal,
+  });
 }
 
 const TRAIT_LABELS: Record<keyof BigFive, string> = {

@@ -16,6 +16,10 @@ import {
 import microtest from "../../data/microtest.json";
 import { ConstellationSection } from "@/components/constellation/ConstellationSection";
 import {
+  InclusiveModeSelector,
+  useInclusiveMode,
+} from "@/components/inclusive-mode-selector";
+import {
   CATEGORY_LABELS,
   NO_MATCH_MESSAGE,
   QUIZ_STORAGE_KEY,
@@ -25,7 +29,8 @@ import {
   type QuizDraft,
   type ResultMatch,
 } from "@/components/public-experience-utils";
-import type { MatchExplanation } from "@/lib/explainability";
+import { formatInclusive } from "@/lib/inclusive-text";
+import type { MatchExplanation } from "@/lib/matching/explainability";
 import type { MatchTrack } from "@/types/microtest";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -108,6 +113,7 @@ function LoadingFrame({ label }: { label: string }) {
 export function PublicQuiz() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const inclusiveMode = useInclusiveMode();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const submitLock = useRef(false);
 
@@ -232,7 +238,7 @@ export function PublicQuiz() {
       const response = await fetch("/api/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ likert: likertPayload, filters: filtersPayload }),
+        body: JSON.stringify({ likert: likertPayload, filters: filtersPayload, inclusiveMode }),
       });
 
       if (!response.ok) {
@@ -552,6 +558,45 @@ function MatchDetails({
         </div>
       </motion.div>
 
+      {/* Psychological narrative */}
+      {explanation.tituloQuimica && (
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: reduceMotion ? 0 : 0.08, duration: 0.4, ease }}
+          className="space-y-3"
+        >
+          <p className="font-display text-lg font-semibold tracking-[-0.02em] text-ink">
+            {explanation.tituloQuimica}
+          </p>
+          <p className="text-sm leading-relaxed text-ink/70">{explanation.porQueFunciona}</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-ink/10 bg-paper/50 p-3">
+              <p className="font-mono text-[0.58rem] uppercase tracking-[0.16em] text-ink/45">
+                En el día a día
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-ink/65">
+                {explanation.dinamicaCotidiana}
+              </p>
+            </div>
+            <div
+              className={`rounded-xl border p-3 ${
+                track === "romance"
+                  ? "border-romance/25 bg-romance/5"
+                  : "border-friendship/25 bg-friendship/5"
+              }`}
+            >
+              <p className="font-mono text-[0.58rem] uppercase tracking-[0.16em] text-ink/45">
+                Punto de atención
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-ink/65">
+                {explanation.puntoDeAtencion}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Divider */}
       <div className="flex items-center gap-3" aria-hidden="true">
         <span className="h-px flex-1 bg-ink/10" />
@@ -720,6 +765,7 @@ function NoMatchCard({ message }: { message: string }) {
 
 export function PublicResultView() {
   const reduceMotion = useReducedMotion();
+  const inclusiveMode = useInclusiveMode();
   const [result, setResult] = useState<PublicResult | null>(null);
   const [error, setError] = useState<ApiError>(null);
   const [loading, setLoading] = useState(true);
@@ -920,6 +966,17 @@ export function PublicResultView() {
             </p>
           </div>
         </motion.header>
+
+        <div className="mt-6 flex flex-col gap-3 border border-ink/10 bg-paper/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-xl text-sm leading-6 text-ink/65">
+            {formatInclusive(
+              "Bienvenid{o} de nuevo, {alias}. Elige cómo quieres que te hablemos.",
+              inclusiveMode,
+              { alias: result.alias },
+            )}
+          </p>
+          <InclusiveModeSelector />
+        </div>
 
         {showRecomputePending && (
           <div role="status" className="mt-8 border border-clay/30 bg-clay/5 p-5 sm:p-6">

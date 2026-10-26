@@ -21,6 +21,7 @@ export { ConstellationCanvas } from "./ConstellationCanvas";
 export { TrackToggle } from "./TrackToggle";
 export { NodeDetailSheet } from "./NodeDetailSheet";
 export { PixelAnimal } from "./PixelAnimal";
+export { OrbitingHearts, PixelHeart, RomanceDuo, SharedHeart } from "./RomanceHearts";
 
 // ─── Prop contract + es-MX copy ──────────────────────────────────────────────
 
@@ -48,6 +49,7 @@ export {
   GHOST_COLOR_ID,
   GHOST_ANIMAL_ID,
   MAX_RENDERED_EDGES,
+  ROMANCE_SPRITE_THRESHOLD,
   buildDataKey,
   connectionsLabel,
   formatAffinityPercent,

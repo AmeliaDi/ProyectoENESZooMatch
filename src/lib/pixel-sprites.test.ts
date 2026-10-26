@@ -11,16 +11,21 @@ import { describe, expect, it } from "vitest";
 import catalogoData from "../../data/arquetipos.json";
 import {
   ALL_FAMILIES,
+  ALL_FRAMES,
+  BLUSH_COLOR,
   EYE_COLOR,
   GRID_SIZE,
   HALF_WIDTH,
   HEART_COLOR,
+  INTENSE_BLUSH_COLOR,
+  SPARKLE_COLOR,
   getAnimalFamily,
   getAllAnimalIds,
   getAllColorIds,
   getSprite,
   getSpriteFrame,
   simpleHash,
+  validateSpriteIsPixelArt,
   type AnimationFrame,
   type ShapeFamily,
   type SpriteData,
@@ -34,7 +39,7 @@ const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 const PRIMARY_COLOR = "verde-esmeralda";
 const SECONDARY_COLOR = "rosa-pastel";
 
-const FRAMES: readonly AnimationFrame[] = ["idle_1", "idle_2", "happy"];
+const FRAMES: readonly AnimationFrame[] = ALL_FRAMES;
 
 interface CatalogAnimal {
   id: string;
@@ -77,7 +82,7 @@ function expectValidSprite(sprite: SpriteData, animalId: string): void {
   expect(sprite.animalId, `animalId echo for ${animalId}`).toBe(animalId);
   expect(sprite.grid, `grid for ${animalId}`).toHaveLength(GRID_SIZE);
   expect(sprite.palette.length, `palette size for ${animalId}`).toBeGreaterThan(0);
-  expect(sprite.palette.length, `palette size for ${animalId}`).toBeLessThanOrEqual(4);
+  expect(sprite.palette.length, `palette size for ${animalId}`).toBeLessThanOrEqual(5);
   expect(ALL_FAMILIES, `family for ${animalId}`).toContain(sprite.family);
 }
 
@@ -85,7 +90,7 @@ function expectValidSprite(sprite: SpriteData, animalId: string): void {
 
 describe("getSprite — coverage", () => {
   it("generates a valid sprite for every registered animal", () => {
-    expect(ALL_IDS.length).toBe(61);
+    expect(ALL_IDS.length).toBe(103);
 
     const rendered: SpriteData[] = [];
     for (const animalId of ALL_IDS) {
@@ -104,9 +109,9 @@ describe("getSprite — coverage", () => {
     });
   });
 
-  it("registers all 61 catalogue animals exactly once", () => {
-    expect(CATALOG_ANIMALS).toHaveLength(61);
-    expect(ALL_IDS).toHaveLength(61);
+  it("registers all 103 catalogue animals exactly once", () => {
+    expect(CATALOG_ANIMALS).toHaveLength(103);
+    expect(ALL_IDS).toHaveLength(103);
 
     for (const animal of CATALOG_ANIMALS) {
       expect(ALL_IDS, `catalogue animal ${animal.id}`).toContain(animal.id);
@@ -235,11 +240,11 @@ describe("horizontal symmetry", () => {
 // ─── 5 & 6. Palette ───────────────────────────────────────────────────────────
 
 describe("palette", () => {
-  it("never exceeds four entries", () => {
+  it("never exceeds five entries", () => {
     for (const animalId of ALL_IDS) {
       for (const colorId of getAllColorIds()) {
         const { palette } = getSprite(animalId, colorId);
-        expect(palette.length, `${animalId}/${colorId}`).toBeLessThanOrEqual(4);
+        expect(palette.length, `${animalId}/${colorId}`).toBeLessThanOrEqual(5);
       }
     }
   });
@@ -257,11 +262,12 @@ describe("palette", () => {
   it("uses the catalogue hex as the base tone and derives the shades from it", () => {
     for (const color of CATALOG_COLORS) {
       const { palette } = getSprite("delfincito", color.id);
-      const [base, shadow, highlight, eyes] = palette;
+      const [base, shadow, highlight, eyes, blush] = palette;
 
       expect(base, `${color.id} base`).toBe(color.hex);
       expect(eyes, `${color.id} eyes`).toBe(EYE_COLOR);
-      expect(palette, `${color.id} palette`).toHaveLength(4);
+      expect(blush, `${color.id} blush`).toBe(BLUSH_COLOR);
+      expect(palette, `${color.id} palette`).toHaveLength(5);
 
       const channel = (hex: string, offset: number): number =>
         parseInt(hex.slice(1 + offset * 2, 3 + offset * 2), 16);
@@ -398,6 +404,96 @@ describe("animation frames", () => {
     }
   });
 
+  it("stamps a mandatory blush pixel under each eye in every frame", () => {
+    expect(BLUSH_COLOR).toBe("#FFAAA6");
+    expect(INTENSE_BLUSH_COLOR).toBe("#FF8A8A");
+
+    for (const animalId of ALL_IDS) {
+      for (const frame of FRAMES) {
+        const sprite = getSpriteFrame(animalId, PRIMARY_COLOR, frame);
+        const blush = sprite.grid
+          .flat()
+          .filter((cell) => cell === BLUSH_COLOR || cell === INTENSE_BLUSH_COLOR).length;
+        expect(blush, `${animalId}/${frame} blush`).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+
+  it("romance_pulse uses heart-eyes, an intense blush and two 3×3 hearts above the head", () => {
+    for (const animalId of ALL_IDS) {
+      const idle = getSpriteFrame(animalId, PRIMARY_COLOR, "idle_1");
+      const happy = getSpriteFrame(animalId, PRIMARY_COLOR, "happy");
+      const romance = getSpriteFrame(animalId, PRIMARY_COLOR, "romance_pulse");
+
+      expect(fingerprint(romance), `${animalId} romance differs from idle`).not.toBe(
+        fingerprint(idle),
+      );
+      expect(fingerprint(romance), `${animalId} romance differs from happy`).not.toBe(
+        fingerprint(happy),
+      );
+      expect(romance.grid.flat(), `${animalId} romance has no dark eyes`).not.toContain(
+        EYE_COLOR,
+      );
+      expect(
+        romance.grid.flat().filter((cell) => cell === INTENSE_BLUSH_COLOR).length,
+        `${animalId} romance intense blush`,
+      ).toBeGreaterThanOrEqual(2);
+      expect(
+        romance.grid.flat().filter((cell) => cell === SPARKLE_COLOR).length,
+        `${animalId} romance eye sparkles`,
+      ).toBeGreaterThanOrEqual(2);
+
+      const heartPixels = romance.grid.flat().filter((cell) => cell === HEART_COLOR).length;
+      const floatedHearts = romance.grid
+        .slice(0, 3)
+        .flat()
+        .filter((cell) => cell === HEART_COLOR).length;
+      // Two mirrored 3×3 hearts: five pixels each, ten in total.
+      expect(heartPixels, `${animalId} romance heart pixels`).toBeGreaterThanOrEqual(6);
+      expect(heartPixels, `${animalId} romance heart pixels`).toBeLessThanOrEqual(10);
+      expect(floatedHearts, `${animalId} hearts live in rows 0-2`).toBe(heartPixels);
+      for (let r = 3; r < GRID_SIZE; r++) {
+        expect(
+          romance.grid[r].includes(HEART_COLOR),
+          `${animalId} hearts must stay above row 3`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("passes structural pixel-art validation on every animal and frame", () => {
+    for (const animalId of ALL_IDS) {
+      for (const frame of FRAMES) {
+        const sprite = getSpriteFrame(animalId, SECONDARY_COLOR, frame);
+        const result = validateSpriteIsPixelArt(sprite.grid);
+        expect(result.errors, `${animalId}/${frame}: ${result.errors.join("; ")}`).toEqual([]);
+        expect(result.valid).toBe(true);
+      }
+    }
+  });
+
+  it("rejects malformed grids with actionable errors", () => {
+    const base = getSprite(ALL_IDS[0]!, PRIMARY_COLOR).grid.map((row) => row.slice());
+    const withGradient = base.map((row) => row.slice());
+    withGradient[4]![4] = "linear-gradient(#fff,#000)";
+    expect(validateSpriteIsPixelArt(withGradient).valid).toBe(false);
+
+    const withFilledCorner = base.map((row) => row.slice());
+    withFilledCorner[0]![0] = "#123456";
+    const cornerResult = validateSpriteIsPixelArt(withFilledCorner);
+    expect(cornerResult.valid).toBe(false);
+    expect(cornerResult.errors.join(" ")).toContain("corner");
+
+    const withoutBlush = base.map((row) =>
+      row.map((cell) => (cell === BLUSH_COLOR ? "#123456" : cell)),
+    );
+    const blushResult = validateSpriteIsPixelArt(withoutBlush);
+    expect(blushResult.valid).toBe(false);
+    expect(blushResult.errors.join(" ")).toContain("blush");
+
+    expect(validateSpriteIsPixelArt([[""]]).valid).toBe(false);
+  });
+
   it("reports the frame-independent identity on every frame", () => {
     for (const animalId of ALL_IDS) {
       for (const frame of FRAMES) {
@@ -466,6 +562,7 @@ describe("family assignment", () => {
      */
     const specOverrides: Record<string, ShapeFamily> = {
       flamenco: "exotico",
+      dragoncito: "exotico",
       cangrejito: "insecto",
       langostita: "acuatico",
     };
@@ -504,10 +601,11 @@ describe("colour handling", () => {
     for (const colorId of colorIds) {
       const sprite = getSprite("buhito", colorId);
       expectValidSprite(sprite, "buhito");
-      expect(sprite.palette).toHaveLength(4);
+      expect(sprite.palette).toHaveLength(5);
       expect(sprite.palette[0]).toBe(
         CATALOG_COLORS.find((color) => color.id === colorId)?.hex,
       );
+      expect(sprite.palette[4]).toBe(BLUSH_COLOR);
     }
   });
 

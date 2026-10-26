@@ -65,6 +65,13 @@ export const BADGE_LIMITS: Record<MatchTrack, number> = {
 };
 
 /**
+ * Romance affinity (0-1) that unlocks the `romance_pulse` sprite. The prompt
+ * sets the product rule at 75%; keeping it here makes the canvas and the detail
+ * sheet share exactly one threshold.
+ */
+export const ROMANCE_SPRITE_THRESHOLD = 0.75;
+
+/**
  * Upper bound on connection lines actually painted.
  *
  * The physics engine builds an edge for EVERY pair above the threshold, and

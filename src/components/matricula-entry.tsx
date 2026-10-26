@@ -7,6 +7,10 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
 
 import {
+  InclusiveModeSelector,
+  useInclusiveMode,
+} from "@/components/inclusive-mode-selector";
+import {
   isPublicMatriculaValid,
   normalizePublicMatricula,
 } from "@/components/public-experience-utils";
@@ -16,6 +20,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 export function MatriculaEntry() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const inclusiveMode = useInclusiveMode();
   const [matricula, setMatricula] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(false);
@@ -35,7 +40,7 @@ export function MatriculaEntry() {
       const response = await fetch("/api/enter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matricula: normalized }),
+        body: JSON.stringify({ matricula: normalized, inclusiveMode }),
       });
       const body = (await response.json().catch(() => null)) as
         | { ok?: boolean; redirect?: string }
@@ -153,6 +158,8 @@ export function MatriculaEntry() {
             >
               {status}
             </div>
+
+            <InclusiveModeSelector className="mb-6" />
 
             <button
               type="submit"

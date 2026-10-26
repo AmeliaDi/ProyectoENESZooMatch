@@ -3,7 +3,7 @@
 /**
  * PixelAnimal — one animated pixel sprite.
  *
- * Renders a single `<image>` that samples a three-frame sprite sheet built by
+ * Renders a single `<image>` that samples a four-frame sprite sheet built by
  * `./sprite-sheet` (see that module for why we do not render 144 `<rect>`s per
  * node). The frame is swapped by writing the image's `x` attribute directly,
  * driven by the shared idle ticker in `./frame-ticker`, so a blinking
@@ -28,10 +28,12 @@ import type { PixelAnimalProps, SpriteFrameName } from "./types";
  */
 function resolveFrame(
   frame: SpriteFrameName | undefined,
+  romance: boolean,
   happy: boolean,
   animated: boolean,
 ): SpriteFrameName | null {
   if (frame) return frame;
+  if (romance) return "romance_pulse";
   if (happy) return "happy";
   return animated ? null : "idle_1";
 }
@@ -40,6 +42,7 @@ function PixelAnimalImpl({
   animalId,
   colorId,
   frame,
+  romance = false,
   happy = false,
   animated = true,
   size,
@@ -49,7 +52,7 @@ function PixelAnimalImpl({
   className,
 }: PixelAnimalProps) {
   const url = spriteSheetUrl(animalId, colorId);
-  const pinned = resolveFrame(frame, happy, animated);
+  const pinned = resolveFrame(frame, romance, happy, animated);
   const imageRef = useRef<SVGImageElement | null>(null);
 
   useEffect(() => {

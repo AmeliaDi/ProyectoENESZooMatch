@@ -23,7 +23,7 @@ import {
   FRIENDSHIP_VECTOR_DIMENSIONS,
   ROMANCE_VECTOR_DIMENSIONS,
 } from "@/types/microtest";
-import { getMatchingConfig } from "@/lib/matching";
+import { getMatchingConfig } from "./config";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -80,7 +80,52 @@ export interface PersonalitySummary {
   keyTraits: string[];
 }
 
-export interface MatchExplanation {
+/** Human explanation of the dominant/auxiliary MBTI cognitive dynamics. */
+export interface CompatibilidadMBTI {
+  tipo1: string;
+  tipo2: string;
+  funcionesComplementarias: string;
+  dinamicaNatural: string;
+}
+
+/** Similarity and warm interpretation for one shared Big Five dimension. */
+export interface AfinidadBigFive {
+  dimension: string;
+  /** Clamped to 0-1 and rounded to two decimals. */
+  similitud: number;
+  interpretacion: string;
+}
+
+/**
+ * The human-readable psychological justification shown in the detail sheet.
+ * This is the exact contract requested by the product brief; the richer
+ * `MatchExplanation` below adds the chemistry summary and affinity bars.
+ * Alias fields preserve the original contract while offering canonical names.
+ */
+export interface MatchNarrative {
+  track: MatchTrack;
+  scorePorcentaje: number;
+  tituloQuimica: string;
+  porQueFunciona: string;
+  dinamicaCotidiana: string;
+  puntoDeAtencion: string;
+  /** Canonical alias of `scorePorcentaje`. */
+  porcentajeQuimica: number;
+  /** Canonical alias of `tituloQuimica`. */
+  tituloConexion: string;
+  /** Friendship-only psychological rationale; null for romance. */
+  porQueBuenaAmistad: string | null;
+  /** Romance-only psychological rationale; null for friendship. */
+  porQuePosibleRomance: string | null;
+  /** Canonical alias of `puntoDeAtencion`. */
+  dondeCrecer: string;
+  /** Null unless both values are valid MBTI codes among the 16 known types. */
+  compatibilidadMBTI: CompatibilidadMBTI | null;
+  /** Shared dimensions, sorted from highest to lowest similarity. */
+  afinidadBigFive: AfinidadBigFive[];
+}
+
+export interface MatchExplanation extends MatchNarrative {
   chemistry: ChemistrySummary;
   breakdown: AffinityBreakdown[];
   personalitySummary: PersonalitySummary;
@@ -413,6 +458,7 @@ interface BigFiveReader {
   high: (dim: string) => boolean;
   low: (dim: string) => boolean;
   has: (dim: string) => boolean;
+  value: (dim: string) => number | null;
 }
 
 function makeReader(scores: Record<string, number> | null): BigFiveReader {
@@ -431,6 +477,7 @@ function makeReader(scores: Record<string, number> | null): BigFiveReader {
       const v = read(dim);
       return v !== null && v <= LOW_SCORE;
     },
+    value: read,
   };
 }
 
@@ -439,6 +486,649 @@ const RESPONSIBILITY = "personalidad_responsabilidad";
 const EXTRAVERSION = "personalidad_extraversion";
 const AGREEABLENESS = "personalidad_amabilidad";
 const STABILITY = "personalidad_estabilidad_emocional";
+
+// ─── Track-aware psychological narrative ─────────────────────────────────────
+// Friendship rewards shared openness + agreeableness and explicitly tolerates
+// extraversion differences. Romance rewards shared emotional stability and
+// MBTI cognitive complementarity. The hard filters are enforced by the matching
+// engine *before* a match reaches this module; the narrative simply reminds the
+// reader that those filters were respected.
+
+export interface MatchNarrativeInput {
+  track: MatchTrack;
+  similarity: number;
+  userDimensionScores: Record<string, number> | null;
+  matchDimensionScores: Record<string, number> | null;
+  userMbtiCode: string | null;
+  matchMbtiCode: string | null;
+  userAnimal: string;
+  matchAnimal: string;
+}
+
+type CognitiveFunction = "Fi" | "Fe" | "Ti" | "Te" | "Ni" | "Ne" | "Si" | "Se";
+
+const MBTI_COGNITIVE_FUNCTIONS: Record<string, readonly CognitiveFunction[]> = {
+  INFP: ["Fi", "Ne", "Si", "Te"],
+  INFJ: ["Ni", "Fe", "Ti", "Se"],
+  INTP: ["Ti", "Ne", "Si", "Fe"],
+  INTJ: ["Ni", "Te", "Fi", "Se"],
+  ENFP: ["Ne", "Fi", "Te", "Si"],
+  ENFJ: ["Fe", "Ni", "Se", "Ti"],
+  ENTP: ["Ne", "Ti", "Fe", "Si"],
+  ENTJ: ["Te", "Ni", "Se", "Fi"],
+  ISFP: ["Fi", "Se", "Ni", "Te"],
+  ISFJ: ["Si", "Fe", "Ti", "Ne"],
+  ISTP: ["Ti", "Se", "Ni", "Fe"],
+  ISTJ: ["Si", "Te", "Fi", "Ne"],
+  ESFP: ["Se", "Fi", "Te", "Ni"],
+  ESFJ: ["Fe", "Si", "Ne", "Ti"],
+  ESTP: ["Se", "Ti", "Fe", "Ni"],
+  ESTJ: ["Te", "Si", "Ne", "Fi"],
+};
+
+const COMPLEMENTARY_FUNCTION: Record<CognitiveFunction, CognitiveFunction> = {
+  Ne: "Ni",
+  Ni: "Ne",
+  Se: "Si",
+  Si: "Se",
+  Te: "Fi",
+  Fi: "Te",
+  Ti: "Fe",
+  Fe: "Ti",
+};
+
+/**
+ * Returns the complementary cognitive-function pairs between two MBTI codes.
+ * Only the dominant and auxiliary functions are compared, which keeps the
+ * narrative focused on the two strongest ways each person meets the world.
+ */
+export function cognitiveComplementarity(
+  userMbtiCode: string | null,
+  matchMbtiCode: string | null,
+): string[] {
+  const userFunctions = MBTI_COGNITIVE_FUNCTIONS[userMbtiCode?.trim().toUpperCase() ?? ""] ?? [];
+  const matchFunctions = MBTI_COGNITIVE_FUNCTIONS[matchMbtiCode?.trim().toUpperCase() ?? ""] ?? [];
+  const pairs: string[] = [];
+
+  for (const userFunction of userFunctions.slice(0, 2)) {
+    const complement = COMPLEMENTARY_FUNCTION[userFunction];
+    if (matchFunctions.slice(0, 2).includes(complement)) {
+      const pair = `${userFunction} ↔ ${complement}`;
+      if (!pairs.includes(pair)) pairs.push(pair);
+    }
+  }
+  return pairs;
+}
+
+const FUNCTION_HUMAN_LABELS: Record<CognitiveFunction, string> = {
+  Fe: "la empatía que cuida el vínculo",
+  Fi: "la autenticidad que escucha los valores",
+  Ne: "la imaginación que abre posibilidades",
+  Ni: "la visión que encuentra significados",
+  Se: "la presencia que disfruta el momento",
+  Si: "la memoria que da continuidad",
+  Te: "la estructura que vuelve reales los planes",
+  Ti: "la lógica que ordena las preguntas",
+};
+
+const COGNITIVE_PAIR_COPY: Record<string, string> = {
+  "Ne|Ni": "Ne ↔ Ni: une abre posibilidades y otre descubre el hilo profundo que las conecta.",
+  "Se|Si": "Se ↔ Si: une disfruta el presente y otre aporta memoria y calma para darle continuidad.",
+  "Fi|Te": "Fi ↔ Te: une cuida los valores y otre les da estructura para convertirlos en decisiones.",
+  "Fe|Ti": "Fe ↔ Ti: une sintoniza con las emociones y otre aclara las ideas cuando hace falta.",
+};
+
+const DOMINANT_DYNAMICS: Record<string, string> = {
+  "Fe|Fe": "Dúo de cuidado: ambes leen el clima emocional y crean un espacio donde pedir apoyo se siente natural.",
+  "Fi|Fi": "Dúo auténtico: se reconocen en la honestidad emocional y respetan los tiempos del mundo interior.",
+  "Ne|Ne": "Dúo de posibilidades: una idea enciende otra y la conversación siempre encuentra un camino nuevo.",
+  "Ni|Ni": "Dúo visionario: comparten miradas profundas y disfrutan dar sentido a lo que otres pasan por alto.",
+  "Se|Se": "Dúo del presente: conectan haciendo, explorando y convirtiendo los planes sencillos en recuerdos vivos.",
+  "Si|Si": "Dúo de confianza: la constancia y los pequeños rituales construyen una relación predecible y tierna.",
+  "Te|Te": "Dúo de impulso: se entienden al poner metas claras y celebrar lo que logran construir juntes.",
+  "Ti|Ti": "Dúo curioso: disfrutan analizar sin prisa y respetan la necesidad de pensar antes de responder.",
+  "Fe|Fi": "Mentor-Soñador: la guía empática de une ayuda a otre a confiar en su mundo interior; la ternura circula sin exigir que sean iguales.",
+  "Fe|Ni": "Guía-Visionarie: el cuidado de une da aire a la visión de otre y las conversaciones encuentran un rumbo compasivo.",
+  "Fe|Ne": "Guía-Exploradore: el entusiasmo se vuelve cercanía cuando une propone posibilidades y otre cuida el ritmo del vínculo.",
+  "Fi|Ne": "Soñadore-Exploradore: imaginación y autenticidad se retroalimentan en conversaciones que se sienten libres y sinceras.",
+  "Ne|Ni": "Exploradore-Visionarie: une multiplica caminos y otre encuentra su sentido; la diferencia enciende curiosidad, no competencia.",
+  "Fi|Ni": "Soñadore-Visionarie: valores e intuiciones profundas crean un refugio para hablar de lo que de verdad importa.",
+  "Fi|Te": "Corazón-Estratega: une pone los valores y otre la estructura; negociar ambos lenguajes vuelve el apoyo muy concreto.",
+  "Ni|Te": "Visión-Estrategia: las ideas de largo alcance encuentran pasos posibles y cada une reconoce el talento del otre.",
+  "Fe|Ti": "Cuidado-Análisis: une escucha el corazón y otre desenreda las preguntas; la paciencia convierte ambos dones en refugio.",
+  "Se|Si": "Presente-Memoria: une trae espontaneidad y otre continuidad, creando un ritmo que disfruta lo nuevo sin perder raíces.",
+};
+
+function cognitivePairKey(first: CognitiveFunction, second: CognitiveFunction): string {
+  return [first, second].sort().join("|");
+}
+
+function normalizedMbti(code: string | null): string | null {
+  const normalized = code?.trim().toUpperCase() ?? "";
+  return MBTI_COGNITIVE_FUNCTIONS[normalized] ? normalized : null;
+}
+
+function describeCognitivePairs(pairs: readonly string[]): string {
+  return pairs
+    .map((pair) => {
+      const [first, second] = pair.split(" ↔ ") as [CognitiveFunction, CognitiveFunction];
+      return COGNITIVE_PAIR_COPY[cognitivePairKey(first, second)] ?? pair;
+    })
+    .join(" ");
+}
+
+function buildMbtiCompatibility(
+  userMbtiCode: string | null,
+  matchMbtiCode: string | null,
+): CompatibilidadMBTI | null {
+  const tipo1 = normalizedMbti(userMbtiCode);
+  const tipo2 = normalizedMbti(matchMbtiCode);
+  if (!tipo1 || !tipo2) return null;
+
+  const userFunctions = MBTI_COGNITIVE_FUNCTIONS[tipo1]!;
+  const matchFunctions = MBTI_COGNITIVE_FUNCTIONS[tipo2]!;
+  const pairs = cognitiveComplementarity(tipo1, tipo2);
+  const shared = userFunctions
+    .slice(0, 2)
+    .filter((fn) => matchFunctions.slice(0, 2).includes(fn));
+
+  let funcionesComplementarias: string;
+  if (pairs.length > 0) {
+    funcionesComplementarias = describeCognitivePairs(pairs);
+  } else if (shared.length > 0) {
+    funcionesComplementarias = `Comparten ${shared.join(" y ")}: ${FUNCTION_HUMAN_LABELS[shared[0]!]}; ese terreno común facilita entenderse con naturalidad.`;
+  } else {
+    funcionesComplementarias =
+      "Sus funciones principales siguen rutas distintas; la afinidad puede crecer al traducir esos estilos con curiosidad.";
+  }
+
+  const dominantKey = cognitivePairKey(userFunctions[0]!, matchFunctions[0]!);
+  const dinamicaNatural =
+    DOMINANT_DYNAMICS[dominantKey] ??
+    `Dinámica ${userFunctions[0]}-${matchFunctions[0]}: combinan ${FUNCTION_HUMAN_LABELS[userFunctions[0]!]} con ${FUNCTION_HUMAN_LABELS[matchFunctions[0]!]}; escucharse las vuelve apoyo mutuo.`;
+
+  return { tipo1, tipo2, funcionesComplementarias, dinamicaNatural };
+}
+
+interface TraitGap {
+  dimension: string;
+  label: string;
+  value: number;
+}
+
+const NARRATIVE_DIMENSIONS: Record<MatchTrack, readonly string[]> = {
+  romance: [STABILITY, EXTRAVERSION, RESPONSIBILITY, AGREEABLENESS, OPENNESS],
+  amistad: [EXTRAVERSION, OPENNESS, RESPONSIBILITY, AGREEABLENESS, STABILITY],
+};
+
+const DIMENSION_NARRATIVE_LABELS: Record<string, string> = {
+  [OPENNESS]: "apertura",
+  [RESPONSIBILITY]: "organización",
+  [EXTRAVERSION]: "energía social",
+  [AGREEABLENESS]: "ternura",
+  [STABILITY]: "estabilidad emocional",
+};
+
+const BIG_FIVE_DISPLAY_LABELS: Record<string, string> = {
+  [OPENNESS]: "Apertura Mental",
+  [RESPONSIBILITY]: "Responsabilidad",
+  [EXTRAVERSION]: "Energía Social",
+  [AGREEABLENESS]: "Amabilidad",
+  [STABILITY]: "Estabilidad Emocional",
+};
+
+type SimilarityBand = "alta" | "media" | "baja";
+
+function similarityBand(similarity: number): SimilarityBand {
+  if (similarity >= 0.85) return "alta";
+  if (similarity >= 0.65) return "media";
+  return "baja";
+}
+
+function bigFiveInterpretation(
+  dimension: string,
+  band: SimilarityBand,
+  track: MatchTrack,
+): string {
+  switch (dimension) {
+    case OPENNESS:
+      if (band === "alta") {
+        return "Comparten una curiosidad muy cercana; imaginar, aprender y hacerse preguntas puede volverse un plan favorito.";
+      }
+      if (band === "media") {
+        return "Hay curiosidad suficiente para encontrarse, con espacio para negociar cuánta novedad o rutina necesita cada une.";
+      }
+      return "Exploran el mundo desde ritmos distintos; pueden descubrir ideas nuevas si proponen sin presionar y escuchan al otre.";
+    case RESPONSIBILITY:
+      if (band === "alta") {
+        return "Sus formas de cumplir y organizarse se parecen; los acuerdos pueden sentirse claros y confiables.";
+      }
+      if (band === "media") {
+        return "Tienen una base parecida para cumplir acuerdos, aunque conviene ajustar cuánta estructura quiere cada une.";
+      }
+      return "Planean de maneras distintas; acordar lo esencial y dejar espacio para improvisar evita que la logística pese.";
+    case EXTRAVERSION:
+      if (band === "alta") {
+        return "Sus baterías sociales tienen un ritmo cercano; les será más fácil elegir planes sin que une se quede sin energía.";
+      }
+      if (band === "media") {
+        return "Sus ritmos sociales se parecen lo suficiente para encontrarse, con pequeños ajustes entre convivencia y descanso.";
+      }
+      return track === "amistad"
+        ? "Sus energías sociales se equilibran: une puede abrir el plan y otre cuidar la calma; la diferencia suma opciones."
+        : "Une busca más movimiento y otre más recogimiento; turnar planes sociales y citas tranquilas puede volverlos buen equipo.";
+    case AGREEABLENESS:
+      if (band === "alta") {
+        return "Se acercan con una ternura parecida; escuchar, reparar y pedir perdón puede sentirse como un terreno seguro.";
+      }
+      if (band === "media") {
+        return "Comparten bastante disposición al cuidado, aunque el tono de la honestidad puede necesitar pequeños ajustes.";
+      }
+      return "Expresan el cuidado de formas distintas; preguntar antes de aconsejar ayuda a que la honestidad llegue con ternura.";
+    case STABILITY:
+      if (band === "alta") {
+        return "Sus maneras de atravesar emociones se parecen; esa sintonía ayuda a ofrecer calma sin minimizar lo que siente el otre.";
+      }
+      if (band === "media") {
+        return "Tienen recursos emocionales cercanos; nombrar lo que necesitan en los días intensos mantendrá esa sintonía.";
+      }
+      return "Viven el estrés con intensidades distintas; pausar y preguntar qué necesita el otre evita sostenerse desde la urgencia.";
+    default:
+      return "Esta dimensión ofrece una pista para conocerse con curiosidad y conversar sobre lo que cada une necesita.";
+  }
+}
+
+function buildBigFiveAffinity(
+  track: MatchTrack,
+  user: BigFiveReader,
+  match: BigFiveReader,
+): AfinidadBigFive[] {
+  const entries: Array<AfinidadBigFive & { order: number }> = [];
+
+  BIG_FIVE_DIMENSIONS.forEach((dimension, order) => {
+    const userValue = user.value(dimension);
+    const matchValue = match.value(dimension);
+    if (userValue === null || matchValue === null) return;
+
+    const rawSimilarity = clamp01(1 - Math.abs(userValue - matchValue));
+    const similarity = Math.round(rawSimilarity * 100) / 100;
+    entries.push({
+      dimension: BIG_FIVE_DISPLAY_LABELS[dimension] ?? dimension,
+      similitud: similarity,
+      interpretacion: bigFiveInterpretation(
+        dimension,
+        similarityBand(rawSimilarity),
+        track,
+      ),
+      order,
+    });
+  });
+
+  return entries
+    .sort((a, b) => b.similitud - a.similitud || a.order - b.order)
+    .map(({ dimension, similitud, interpretacion }) => ({
+      dimension,
+      similitud,
+      interpretacion,
+    }));
+}
+
+function largestTraitGap(
+  track: MatchTrack,
+  user: BigFiveReader,
+  match: BigFiveReader,
+): TraitGap | null {
+  let largest: TraitGap | null = null;
+  for (const dimension of NARRATIVE_DIMENSIONS[track]) {
+    const userValue = user.value(dimension);
+    const matchValue = match.value(dimension);
+    if (userValue === null || matchValue === null) continue;
+    const gap = Math.abs(userValue - matchValue);
+    if (!largest || gap > largest.value) {
+      largest = {
+        dimension,
+        label: DIMENSION_NARRATIVE_LABELS[dimension] ?? dimension,
+        value: gap,
+      };
+    }
+  }
+  return largest;
+}
+
+function romanceTitle(
+  user: BigFiveReader,
+  match: BigFiveReader,
+  pairs: readonly string[],
+): string {
+  const sharedStability = user.high(STABILITY) && match.high(STABILITY);
+  if (sharedStability && pairs.length > 0) return "Chispa de Calma y Complemento";
+  if (sharedStability) return "Refugio Emocional con Chispa";
+  if (pairs.length > 0) return "Atracción de Mentes Complementarias";
+  if (user.high(AGREEABLENESS) && match.high(AGREEABLENESS)) {
+    return "Química de Ternura Compartida";
+  }
+  return "Pulso de Curiosidad Mutua";
+}
+
+function friendshipTitle(
+  user: BigFiveReader,
+  match: BigFiveReader,
+  extraversionGap: number,
+): string {
+  const sharedOpenness = user.high(OPENNESS) && match.high(OPENNESS);
+  const sharedAgreeableness = user.high(AGREEABLENESS) && match.high(AGREEABLENESS);
+  if (sharedOpenness && sharedAgreeableness) return "Conexión Creativa y Complementaria";
+  if (sharedOpenness) return "Curiosidad que Se Comparte";
+  if (sharedAgreeableness) return "Sintonía de Apertura y Empatía";
+  if (extraversionGap >= 0.35) return "Ritmos Distintos, Misma Sintonía";
+  return "Refugio de Confianza Curiosa";
+}
+
+function romanceRationale(
+  user: BigFiveReader,
+  match: BigFiveReader,
+  pairs: readonly string[],
+): string {
+  const sentences: string[] = [
+    "En romance, el motor pondera sobre todo la estabilidad emocional compartida y la complementariedad cognitiva.",
+  ];
+
+  if (user.high(STABILITY) && match.high(STABILITY)) {
+    sentences.push(
+      "Ambos tienden a buscar calma y seguridad antes que drama, y esa base hace que el vínculo se sienta más tranquilo.",
+    );
+  } else if (user.low(STABILITY) || match.low(STABILITY)) {
+    sentences.push(
+      "Une vive las emociones con más intensidad; la calma del otre puede sostener, siempre que no se convierta en silencio.",
+    );
+  }
+
+  if (pairs.length > 0) {
+    sentences.push(
+      `Sus formas de pensar se complementan (${pairs.join(", ")}): une aporta una perspectiva y otre la traduce en otra, y esa fricción creativa enciende la chispa.`,
+    );
+  } else {
+    sentences.push(
+      "Sus estilos cognitivos se parecen, así que la chispa vendrá de la curiosidad compartida y de la seguridad que se dan mutuamente.",
+    );
+  }
+
+  if (user.high(AGREEABLENESS) && match.high(AGREEABLENESS)) {
+    sentences.push("La ternura mutua ayuda a que los desacuerdos no se conviertan en heridas.");
+  }
+
+  sentences.push(
+    "Los filtros de identidad y orientación ya se verificaron en ambos sentidos, así que esta conexión parte de un terreno respetuoso.",
+  );
+  return sentences.join(" ");
+}
+
+function friendshipRationale(
+  user: BigFiveReader,
+  match: BigFiveReader,
+  extraversionGap: number,
+): string {
+  const sentences: string[] = [
+    "En amistad, el motor pesa sobre todo la apertura mental y la amabilidad.",
+  ];
+  const sharedOpenness = user.high(OPENNESS) && match.high(OPENNESS);
+  const sharedAgreeableness = user.high(AGREEABLENESS) && match.high(AGREEABLENESS);
+
+  if (sharedOpenness) {
+    sentences.push(
+      "Ambos disfrutan explorar ideas, planes y formas nuevas de mirar el campus, así que las conversaciones tienen material para rato.",
+    );
+  } else if (user.high(OPENNESS) || match.high(OPENNESS)) {
+    sentences.push(
+      "Une trae la curiosidad de probar cosas nuevas y le contagia a otre esa chispa sin presionar.",
+    );
+  }
+
+  if (sharedAgreeableness) {
+    sentences.push(
+      "La amabilidad compartida crea un espacio seguro para mostrarse cansade, raro o intenso sin miedo al juicio.",
+    );
+  } else if (user.high(AGREEABLENESS) || match.high(AGREEABLENESS)) {
+    sentences.push(
+      "La ternura de une suaviza los días de otre y hace que el vínculo se sienta cuidado.",
+    );
+  }
+
+  if (extraversionGap >= 0.35) {
+    sentences.push(
+      "La diferencia de extraversión no resta: une recarga con gente y otre con calma, y juntes encuentran un ritmo que incluye a ambos.",
+    );
+  }
+
+  if (user.high(RESPONSIBILITY) && match.high(RESPONSIBILITY)) {
+    sentences.push("También comparten constancia, así que los planes no se quedan en la intención.");
+  }
+
+  if (sentences.length === 1) {
+    sentences.push(
+      "Aunque sus rasgos más altos no coinciden, la combinación crea un contraste que puede enriquecer la amistad.",
+    );
+  }
+  return sentences.join(" ");
+}
+
+function sharedDimensionSimilarity(
+  user: BigFiveReader,
+  match: BigFiveReader,
+  dimension: string,
+): number | null {
+  const userValue = user.value(dimension);
+  const matchValue = match.value(dimension);
+  if (userValue === null || matchValue === null) return null;
+  return clamp01(1 - Math.abs(userValue - matchValue));
+}
+
+function friendshipConnectionRationale(
+  user: BigFiveReader,
+  match: BigFiveReader,
+): string {
+  const reasons: string[] = [];
+  const opennessSimilarity = sharedDimensionSimilarity(user, match, OPENNESS);
+  const agreeablenessSimilarity = sharedDimensionSimilarity(user, match, AGREEABLENESS);
+
+  if (opennessSimilarity !== null && opennessSimilarity >= 0.85) {
+    reasons.push(
+      "Su apertura se reconoce: hay curiosidad y hambre de ideas para conversar, imaginar y descubrir el campus juntes.",
+    );
+  }
+  if (agreeablenessSimilarity !== null && agreeablenessSimilarity >= 0.85) {
+    reasons.push(
+      "La amabilidad los acerca a un mismo lenguaje de empatía, creando un espacio seguro para mostrarse como son.",
+    );
+  }
+
+  const complementaryExtraversion =
+    (user.high(EXTRAVERSION) && match.low(EXTRAVERSION)) ||
+    (match.high(EXTRAVERSION) && user.low(EXTRAVERSION));
+  if (complementaryExtraversion) {
+    reasons.push(
+      "En extraversión se equilibran: une anima a salir y otre recuerda el gusto por bajar el ritmo, sin que ningune tenga que cambiar.",
+    );
+  }
+  if (user.high(RESPONSIBILITY) && match.high(RESPONSIBILITY)) {
+    reasons.push(
+      "Comparten responsabilidad y constancia: cuando se prometen un plan, pueden confiar en que ambes harán su parte.",
+    );
+  }
+
+  if (reasons.length === 0) {
+    reasons.push(
+      "Su amistad puede crecer desde la curiosidad mutua: sus ritmos no son idénticos, pero sí pueden abrirse un lugar con respeto.",
+    );
+  }
+  return reasons.slice(0, 3).join(" ");
+}
+
+function romanceConnectionRationale(
+  user: BigFiveReader,
+  match: BigFiveReader,
+  pairs: readonly string[],
+  gap: TraitGap | null,
+): string {
+  const reasons: string[] = [];
+  const sharedStability = user.high(STABILITY) && match.high(STABILITY);
+
+  if (sharedStability) {
+    reasons.push(
+      "Su estabilidad emocional compartida permite imaginar un vínculo sin miedos, donde acercarse no exige adivinar ni defenderse.",
+    );
+  }
+  if (pairs.length > 0) {
+    reasons.push(describeCognitivePairs(pairs));
+  }
+  if (sharedStability && user.high(AGREEABLENESS) && match.high(AGREEABLENESS)) {
+    reasons.push(
+      "La amabilidad sumada a esa calma hace espacio para un cariño sin drama: cuidarse y decir la verdad pueden ir de la mano.",
+    );
+  }
+  if (reasons.length < 3 && gap && gap.value >= 0.35) {
+    reasons.push(
+      "Lo que a une le cuesta, otre puede aportarlo con naturalidad; sus diferencias se vuelven apoyo cuando las piden sin darlas por sentadas.",
+    );
+  }
+  if (reasons.length === 0) {
+    reasons.push(
+      "La chispa puede crecer al conocer sus ritmos con honestidad y descubrir qué formas de cariño hacen sentir en casa a ambes.",
+    );
+  }
+
+  reasons.push(
+    "Los filtros duros de identidad y orientación ya se verificaron en ambos sentidos; esta posibilidad parte del respeto mutuo.",
+  );
+  return reasons.slice(0, 4).join(" ");
+}
+
+function dailyDynamic(
+  track: MatchTrack,
+  user: BigFiveReader,
+  match: BigFiveReader,
+  pairs: readonly string[],
+  extraversionGap: number,
+): string {
+  if (track === "amistad") {
+    if (user.high(OPENNESS) && match.high(OPENNESS)) {
+      return "Se imaginarían en la biblioteca saltando de un tema a otro, con una playlist compartida y un plan que nace de una idea suelta.";
+    }
+    if (extraversionGap >= 0.35) {
+      return "Une propone el plan del viernes y otre elige el rincón tranquilo; entre los dos encuentran un equilibrio que no agota a nadie.";
+    }
+    if (user.high(AGREEABLENESS) && match.high(AGREEABLENESS)) {
+      return "Probablemente son ese par que se guarda un lugar en la cafetería y nota cuando el otre llega cansade.";
+    }
+    return "Se verían compartiendo apuntes, memes y ese silencio cómodo que solo existe entre amistades que se entienden.";
+  }
+
+  if (user.high(STABILITY) && match.high(STABILITY)) {
+    return "Un café después de clases, caminar sin prisa y hablar de lo que de verdad importa; la calma se siente segura.";
+  }
+  if (pairs.length > 0) {
+    return "Une trae la idea y otre la aterriza; las conversaciones se alargan hasta que cierran la biblioteca.";
+  }
+  if (user.high(AGREEABLENESS) && match.high(AGREEABLENESS)) {
+    return "Detalles pequeños: un mensaje a media tarde, un abrazo que llega justo cuando se necesita.";
+  }
+  return "Planes sencillos que se vuelven importantes: estudiar juntes, cocinar algo, perder la noción del tiempo hablando.";
+}
+
+function attentionPoint(
+  track: MatchTrack,
+  user: BigFiveReader,
+  match: BigFiveReader,
+  gap: TraitGap | null,
+): string {
+  if (user.low(EXTRAVERSION) && match.low(EXTRAVERSION)) {
+    return "Como ambes son muy introspectives, conviene iniciar las conversaciones difíciles en vez de guardarlo todo; una pregunta amable puede abrir el espacio.";
+  }
+  if (
+    (user.high(RESPONSIBILITY) && match.low(RESPONSIBILITY)) ||
+    (match.high(RESPONSIBILITY) && user.low(RESPONSIBILITY))
+  ) {
+    return "Une disfruta planear y otre necesita espontaneidad; negocien estructura y libertad con ternura, sin convertir los planes en una prueba de cariño.";
+  }
+  if (user.low(STABILITY) && match.low(STABILITY)) {
+    return "En estrés, sus emociones podrían amplificarse; practiquen pausas y turnos para ser el ancla del otre, sin cargar con todo a la vez.";
+  }
+
+  if (!gap || gap.value < 0.25) {
+    return track === "romance"
+      ? "La relación tiene bases sólidas; el punto de atención es mantener la conversación sobre identidad, límites y expectativas."
+      : "No hay un punto crítico evidente; cuiden la comunicación y sigan preguntándose cómo se sienten une con otre.";
+  }
+
+  if (track === "amistad") {
+    switch (gap.dimension) {
+      case EXTRAVERSION:
+        return "La diferencia de energía social puede cansar si no se habla: acuerden planes con gente y tardes tranquilas para que nadie se agote.";
+      case RESPONSIBILITY:
+        return "Los ritmos de organización son distintos. Un calendario compartido y acuerdos explícitos evitan que une cargue con toda la logística.";
+      case OPENNESS:
+        return "Lo nuevo entusiasma a une y puede abrumar a otre; prueben la novedad en dosis y pregunten antes de cambiar el plan.";
+      case AGREEABLENESS:
+        return "La franqueza de une puede sentirse dura para otre; pidan permiso antes de dar feedback y cuiden el tono.";
+      default:
+        return `La diferencia en ${gap.label} merece una conversación honesta; nombren lo que cada une necesita antes de que se acumule.`;
+    }
+  }
+
+  switch (gap.dimension) {
+    case STABILITY:
+      return "Cuando llegue el estrés, nombren lo que sienten antes de intentar resolver. La calma de une no debe volverse silencio, ni la intensidad de otre una urgencia.";
+    case EXTRAVERSION:
+      return "El ritmo social distinto puede desgastar; reserven tiempo juntes y también espacios de recarga individual.";
+    case RESPONSIBILITY:
+      return "Distintas formas de planear; acuerden quién lleva qué y revisen expectativas sin juicio.";
+    case AGREEABLENESS:
+      return "En los desacuerdos, cuiden el tono; la honestidad sin ternura puede sonar a ataque.";
+    default:
+      return "La novedad y la rutina se viven distinto; negocien cuánto cambio necesitan y cuánto refugio.";
+  }
+}
+
+/**
+ * Builds the narrative half of the explanation. Pure and deterministic: the
+ * same inputs always produce the same text.
+ */
+export function buildMatchNarrative(input: MatchNarrativeInput): MatchNarrative {
+  const user = makeReader(input.userDimensionScores);
+  const match = makeReader(input.matchDimensionScores);
+  const pairs = cognitiveComplementarity(input.userMbtiCode, input.matchMbtiCode);
+  const gap = largestTraitGap(input.track, user, match);
+  const extraversionGap = Math.abs(
+    (user.value(EXTRAVERSION) ?? 0.5) - (match.value(EXTRAVERSION) ?? 0.5),
+  );
+  const scorePorcentaje = Math.round(clamp01(input.similarity) * 100);
+  const tituloQuimica =
+    input.track === "romance"
+      ? romanceTitle(user, match, pairs)
+      : friendshipTitle(user, match, extraversionGap);
+  const puntoDeAtencion = attentionPoint(input.track, user, match, gap);
+
+  return {
+    track: input.track,
+    scorePorcentaje,
+    tituloQuimica,
+    porQueFunciona:
+      input.track === "romance"
+        ? romanceRationale(user, match, pairs)
+        : friendshipRationale(user, match, extraversionGap),
+    dinamicaCotidiana: dailyDynamic(input.track, user, match, pairs, extraversionGap),
+    puntoDeAtencion,
+    porcentajeQuimica: scorePorcentaje,
+    tituloConexion: tituloQuimica,
+    porQueBuenaAmistad:
+      input.track === "amistad" ? friendshipConnectionRationale(user, match) : null,
+    porQuePosibleRomance:
+      input.track === "romance" ? romanceConnectionRationale(user, match, pairs, gap) : null,
+    dondeCrecer: puntoDeAtencion,
+    compatibilidadMBTI: buildMbtiCompatibility(input.userMbtiCode, input.matchMbtiCode),
+    afinidadBigFive: buildBigFiveAffinity(input.track, user, match),
+  };
+}
 
 /**
  * Complementary phrases, evaluated in order. The first rule whose predicate is
@@ -828,6 +1518,7 @@ export function generateConnectionHeadline(
  * @param matchDimensionScores Matched user's full dimension scores (or null).
  * @param userAnimal          Querying user's animal diminutive.
  * @param userDimensionScores Querying user's full dimension scores (or null).
+ * @param userMbtiCode        Querying user's MBTI code (or null).
  */
 export function generateMatchExplanation(
   similarity: number,
@@ -840,6 +1531,7 @@ export function generateMatchExplanation(
   matchDimensionScores: Record<string, number> | null,
   userAnimal: string,
   userDimensionScores: Record<string, number> | null,
+  userMbtiCode: string | null = null,
 ): MatchExplanation {
   const chemistry = computeChemistrySummary(similarity, track);
   const breakdown = generateAffinityBreakdown(vectorA, vectorB, track);
@@ -851,6 +1543,16 @@ export function generateMatchExplanation(
     userDimensionScores,
   );
   const headline = generateConnectionHeadline(breakdown, track, userAnimal, matchAnimal);
+  const narrative = buildMatchNarrative({
+    track,
+    similarity,
+    userDimensionScores,
+    matchDimensionScores,
+    userMbtiCode,
+    matchMbtiCode,
+    userAnimal,
+    matchAnimal,
+  });
 
-  return { chemistry, breakdown, personalitySummary, headline };
+  return { ...narrative, chemistry, breakdown, personalitySummary, headline };
 }

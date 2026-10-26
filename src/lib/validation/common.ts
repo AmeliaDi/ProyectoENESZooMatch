@@ -12,8 +12,16 @@ export const matriculaSchema = z
   .transform(normalizeMatricula)
   .pipe(z.string().regex(/^[A-Z0-9]{4,32}$/));
 
+export const inclusiveModeSchema = z.enum([
+  "femenino",
+  "masculino",
+  "neutro_e",
+  "neutro_universal",
+]);
+
 export const availabilityRequestSchema = z.object({
   matricula: matriculaSchema,
+  inclusiveMode: inclusiveModeSchema.optional(),
 });
 
 export async function parseJsonBody(request: Request): Promise<unknown> {

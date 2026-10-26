@@ -77,6 +77,7 @@ import {
 } from "./build-structure";
 import { useElementSize } from "./hooks";
 import { PixelAnimal } from "./PixelAnimal";
+import { OrbitingHearts } from "./RomanceHearts";
 import {
   AMBIENT_FRAME_DIVIDER,
   DRAG_CLICK_SLOP,
@@ -87,6 +88,7 @@ import {
   MAX_RENDERED_EDGES,
   MAX_SPARKS,
   MAX_STEPS_PER_FRAME,
+  ROMANCE_SPRITE_THRESHOLD,
   SIZE_DEBOUNCE_MS,
   SPARK_LIFETIME_MS,
   applyCachedPositions,
@@ -134,10 +136,19 @@ interface Spark {
   sourceId: string;
   targetId: string;
   born: number;
+  /** Visual multiplier; romance sparks at >= 85 % are deliberately larger. */
+  boost: number;
 }
 
 /** Builds one pixel-heart spark group, half in each node's colour. */
-function createSpark(colorA: string, colorB: string, sourceId: string, targetId: string, born: number): Spark {
+function createSpark(
+  colorA: string,
+  colorB: string,
+  sourceId: string,
+  targetId: string,
+  born: number,
+  boost = 1,
+): Spark {
   const group = document.createElementNS(SVG_NS, "g") as SVGGElement;
   group.setAttribute("aria-hidden", "true");
   group.setAttribute("opacity", "0");
@@ -151,7 +162,7 @@ function createSpark(colorA: string, colorB: string, sourceId: string, targetId:
     element.setAttribute("shape-rendering", "crispEdges");
     group.appendChild(element);
   }
-  return { element: group, sourceId, targetId, born };
+  return { element: group, sourceId, targetId, born, boost };
 }
 
 export function ConstellationCanvas({
@@ -206,6 +217,9 @@ export function ConstellationCanvas({
   const sparks = useRef<Spark[]>([]);
   /** Edge keys whose "join" moment has already been consumed. */
   const joined = useRef<Set<string>>(new Set());
+  /** Active node that deserves extra, larger heart sparks (romance >= 85 %). */
+  const romanceSparkRef = useRef<{ id: string; color: string } | null>(null);
+  const lastRomanceSpark = useRef(0);
 
   const simRef = useRef<SimulationState | null>(null);
   const structureRef = useRef<ConstellationStructure | null>(null);
@@ -319,6 +333,21 @@ export function ConstellationCanvas({
         }
       }
 
+      // High-romance nodes (>= 85 %) emit their own bigger heart sparks more
+      // often, even once every edge has already "joined".
+      const romance = romanceSparkRef.current;
+      if (
+        romance &&
+        sparks.current.length < MAX_SPARKS &&
+        now - lastRomanceSpark.current > 850 &&
+        pos.has(romance.id)
+      ) {
+        lastRomanceSpark.current = now;
+        const spark = createSpark(romance.color, "#FF6B6B", romance.id, romance.id, now, 1.7);
+        layer.appendChild(spark.element);
+        sparks.current.push(spark);
+      }
+
       const alive: Spark[] = [];
       for (const spark of sparks.current) {
         const t = (now - spark.born) / SPARK_LIFETIME_MS;
@@ -329,7 +358,7 @@ export function ConstellationCanvas({
           continue;
         }
         const swell = Math.sin(Math.PI * t);
-        const scale = 0.6 + 0.8 * swell;
+        const scale = (0.6 + 0.8 * swell) * spark.boost;
         spark.element.setAttribute(
           "transform",
           `translate(${round2((a.x + b.x) / 2)} ${round2((a.y + b.y) / 2)}) scale(${scale.toFixed(3)})`,
@@ -641,6 +670,32 @@ export function ConstellationCanvas({
     return set;
   }, [structure, activeId]);
 
+  const similarityById = useMemo(
+    () => new Map(matches.map((match) => [match.id, match.similarity])),
+    [matches],
+  );
+
+  const activeIsRomancePulse =
+    track === "romance" &&
+    activeId !== null &&
+    (similarityById.get(activeId) ?? 0) >= ROMANCE_SPRITE_THRESHOLD;
+
+  /**
+   * Mirrors the high-romance target into a ref the imperative loop can read
+   * without re-subscribing (the loop callback deliberately has no deps).
+   */
+  useEffect(() => {
+    const similarity = activeId ? (similarityById.get(activeId) ?? 0) : 0;
+    if (track === "romance" && activeId && similarity >= 0.85) {
+      romanceSparkRef.current = {
+        id: activeId,
+        color: colorById.current.get(activeId) ?? "#e8a0bf",
+      };
+    } else {
+      romanceSparkRef.current = null;
+    }
+  }, [track, activeId, similarityById, structure]);
+
   const isEmpty = !booting && structure !== null && activeMatches.length === 0;
 
   const rootStyle = {
@@ -656,13 +711,16 @@ export function ConstellationCanvas({
     >
       <div
         ref={surfaceRef}
-        className="absolute inset-0 overflow-hidden rounded-3xl border border-ink/10"
-        style={{
-          touchAction: "none",
-          background:
-            "radial-gradient(circle at 50% 42%, #fbf7ec 0%, #f0eadb 52%, #e2dac6 100%)",
-        }}
+        className="cosmic-sky absolute inset-0 overflow-hidden rounded-3xl border border-white/10"
+        style={{ touchAction: "none" }}
       >
+        <div className="cosmic-stars" aria-hidden="true" />
+        <div
+          className={`cosmic-nebula ${
+            track === "romance" ? "cosmic-nebula--romance" : "cosmic-nebula--amistad"
+          }`}
+          aria-hidden="true"
+        />
         {structure && width > 0 && height > 0 ? (
           <svg
             ref={svgRef}
@@ -700,6 +758,7 @@ export function ConstellationCanvas({
               {structure.nodes.map((node) => {
                 const interactive = !node.isGhost;
                 const isHappy = happyIds.has(node.id);
+                const isRomance = activeIsRomancePulse && node.id === activeId;
                 const isRinged = ringId === node.id;
                 return (
                   <g
@@ -741,6 +800,16 @@ export function ConstellationCanvas({
                         : undefined
                     }
                   >
+                    {/* Soft colour glow behind every real star. */}
+                    {!node.isGhost ? (
+                      <circle
+                        r={node.radius * 2.2}
+                        fill={node.colorHex}
+                        opacity={0.14}
+                        style={{ filter: "blur(4px)" }}
+                      />
+                    ) : null}
+
                     {/* Halo: the self node wears its own colour. */}
                     {node.isSelf ? (
                       <g className={reducedMotion ? undefined : "animate-pulse"}>
@@ -773,10 +842,15 @@ export function ConstellationCanvas({
                       size={node.displaySize}
                       x={-node.displaySize / 2}
                       y={-node.displaySize / 2}
-                      happy={isHappy}
+                      happy={isHappy && !isRomance}
+                      romance={isRomance}
                       animated={!reducedMotion && interactive}
                       opacity={1}
                     />
+
+                    {isRomance ? (
+                      <OrbitingHearts size={node.displaySize} animated={!reducedMotion} />
+                    ) : null}
 
                     {/* Invisible, generously sized hit target (≈48 px). */}
                     <circle
@@ -790,9 +864,9 @@ export function ConstellationCanvas({
                       <text
                         y={node.radius + 16}
                         textAnchor="middle"
-                        className="pointer-events-none fill-ink font-mono"
+                        className="pointer-events-none fill-paper font-mono"
                         fontSize={10}
-                        opacity={0.72}
+                        opacity={0.82}
                       >
                         {node.alias}
                       </text>
@@ -808,7 +882,7 @@ export function ConstellationCanvas({
         {booting || !structure ? (
           <div className="absolute inset-0 grid place-items-center px-6 text-center">
             <p
-              className="font-mono text-[0.68rem] tracking-[0.18em] text-ink/45 uppercase"
+              className="font-mono text-[0.68rem] tracking-[0.18em] text-paper/60 uppercase"
               role="status"
               aria-live="polite"
             >
@@ -820,7 +894,7 @@ export function ConstellationCanvas({
         {/* ── Empty sky ── */}
         {isEmpty ? (
           <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center px-6">
-            <p className="max-w-sm text-center text-sm leading-relaxed text-ink/70 italic">
+            <p className="max-w-sm text-center text-sm leading-relaxed text-paper/75 italic">
               {emptyMessage ??
                 (track === "romance"
                   ? CONSTELLATION_COPY.emptyRomance

@@ -192,7 +192,22 @@ relative = (similarity - threshold) / (1 - threshold)
 El porcentaje mostrado sigue siendo `round(similarity * 100)`. La etiqueta es una
 presentación relativa al track, **no** un percentil poblacional ni una probabilidad. Un
 match siempre supera el umbral, pero puede seguir siendo "moderado" si está apenas por
-encima. `src/lib/explainability.test.ts` fija este contrato.
+encima. `src/lib/matching/explainability.test.ts` fija este contrato.
+
+## Narrativa psicológica por track
+
+`buildMatchNarrative` añade cuatro campos deterministas a la explicación:
+
+- `tituloQuimica`: etiqueta cálida de la conexión.
+- `porQueFunciona`: justificación del motor psicológico.
+- `dinamicaCotidiana`: escena cotidiana en el campus.
+- `puntoDeAtencion`: el mayor contraste de rasgos y cómo cuidarlo.
+
+La rama de **amistad** pondera apertura y amabilidad y tolera diferencias de extraversión.
+La rama de **romance** pondera estabilidad emocional compartida y complementariedad
+cognitiva MBTI (`Ne ↔ Ni`, `Se ↔ Si`, `Ti ↔ Fe`, `Te ↔ Fi`). Los filtros duros ya se
+verificaron antes de que una pareja llegue a este motor. El frame de sprite
+`romance_pulse` se activa en la constelación a partir de **75%** de afinidad romántica.
 
 El requisito original de "0.85" se pensó para una similitud coseno sin centrar. La
 similitud centrada y ponderada se comporta en otra escala; aplicar 0.85 literal dejaría

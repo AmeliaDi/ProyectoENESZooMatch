@@ -18,7 +18,7 @@ import catalogo from "../../data/arquetipos.json";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-const CATALOG_ANIMALS = catalogo.animales as CatalogAnimal[];
+const CATALOG_ANIMALS = catalogo.animales as unknown as CatalogAnimal[];
 const CATALOG_COLORS = catalogo.colores as CatalogColor[];
 
 const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;

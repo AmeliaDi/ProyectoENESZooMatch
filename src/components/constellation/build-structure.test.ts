@@ -369,12 +369,13 @@ describe("structureFromState", () => {
 // ─── Sprite sheet ────────────────────────────────────────────────────────────
 
 describe("sprite sheet", () => {
-  it("lays three frames side by side", () => {
-    expect(SHEET_FRAMES).toEqual(["idle_1", "idle_2", "happy"]);
-    expect(SHEET_WIDTH).toBe(GRID_SIZE * 3);
+  it("lays four frames side by side", () => {
+    expect(SHEET_FRAMES).toEqual(["idle_1", "idle_2", "happy", "romance_pulse"]);
+    expect(SHEET_WIDTH).toBe(GRID_SIZE * 4);
     expect(frameIndex("idle_1")).toBe(0);
     expect(frameIndex("idle_2")).toBe(1);
     expect(frameIndex("happy")).toBe(2);
+    expect(frameIndex("romance_pulse")).toBe(3);
   });
 
   it("maps frame names onto the engine's AnimationFrame union", () => {
@@ -390,14 +391,14 @@ describe("sprite sheet", () => {
     expect(svg).toContain(`viewBox="0 0 ${SHEET_WIDTH} ${GRID_SIZE}"`);
     expect(svg).toContain("<rect ");
     // Every column of the sheet is populated.
-    for (let column = 0; column < 3; column++) {
+    for (let column = 0; column < SHEET_FRAMES.length; column++) {
       expect(svg).toContain(`x="${column * GRID_SIZE}"`);
     }
   });
 
   it("stays small enough to inline as a data URL", () => {
     const svg = buildSpriteSheetSvg("ajolotito", "rosa-pastel");
-    expect(svg.length).toBeLessThan(8000);
+    expect(svg.length).toBeLessThan(12_000);
   });
 
   it("returns a memoised data URL", () => {

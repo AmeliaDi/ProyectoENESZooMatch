@@ -74,6 +74,19 @@ async function handlePost(request: Request) {
     return NextResponse.json({ error: "Unable to save result" }, { status: 503 });
   }
 
+  // Inclusive-language preference is cosmetic metadata: a missing column or a
+  // transient write failure must never invalidate an already-saved result.
+  if (parsed.data.inclusiveMode) {
+    try {
+      await admin
+        .from("profiles_v2")
+        .update({ inclusive_mode: parsed.data.inclusiveMode })
+        .eq("user_id", userId);
+    } catch {
+      // Best-effort; the browser also keeps the preference locally.
+    }
+  }
+
   let pairs: Awaited<ReturnType<typeof recomputeAllMatches>> = [];
   let recomputePending = false;
   try {

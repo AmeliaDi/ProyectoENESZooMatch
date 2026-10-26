@@ -3,23 +3,24 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Pure TypeScript, zero runtime dependencies, zero randomness.
  *
- * Every animal in `arquetipos.json` (61) is rendered as a 12×12 pixel sprite
+ * Every animal in `arquetipos.json` (103) is rendered as a 12×12 pixel sprite
  * built from one of 12 shape families. The whole pipeline is a pure function of
  * `(animalId, colorId, frame)`.
  *
- * Pipeline (steps 1-4 and 6 operate on the LEFT HALF only)
+ * Pipeline (steps 1-6 operate on the LEFT HALF only)
  * ────────
  *   1. family template      → 12 rows × 6 cols of chars
  *   2. hash variations      → per-animal ears / crest / markings / accents
  *   3. distinctness pass    → guarantees no two animals share a silhouette,
- *                             in *any* of the three animation frames
- *   4. texture strokes      → recolours ≤2 half-cells from the colour's textura
- *   5. frame overlay        → blink (idle_2) / highlight eyes + heart (happy)
- *   6. mirror               → cols 0-5 are reflected into cols 11-6
- *   7. tail                 → the ONLY asymmetric element (≤2 cells, rows 9-11)
- *   8. palette mapping      → chars become hex colours
+ *                             in *any* of the four animation frames
+ *   4. blush stamp          → mandatory pink pixel under each eye (`#FFAAA6`)
+ *   5. texture strokes      → recolours ≤2 half-cells from the colour's textura
+ *   6. frame overlay        → blink / highlight eyes / romance hearts
+ *   7. mirror               → cols 0-5 are reflected into cols 11-6
+ *   8. tail                 → the ONLY asymmetric element (≤2 cells, rows 9-11)
+ *   9. palette mapping      → chars become hex colours
  *
- * Because texture only touches rows 0-8, the heart only touches rows 0-1 and the
+ * Because texture only touches rows 0-8, the heart only touches rows 0-2 and the
  * tail only touches rows 9-11, and because the distinctness pass enforces a
  * minimum half-grid distance of `MIN_HALF_DISTANCE` on the post-frame forms, no
  * two animals can ever collapse into the same grid for a given colour and frame.
@@ -36,10 +37,19 @@ export const GRID_SIZE = 12;
 /** Width of the authored (left) half of a template. */
 export const HALF_WIDTH = GRID_SIZE / 2;
 
-/** Near-black used for every eye pixel. */
-export const EYE_COLOR = "#1a1a1a";
+/** Soft charcoal used for every eye pixel (never absolute black). */
+export const EYE_COLOR = "#2B2A33";
 
-/** Accent used only by the `happy` frame heart. Deliberately outside the palette. */
+/** Mandatory kawaii blush under each eye. */
+export const BLUSH_COLOR = "#FFAAA6";
+
+/** Intensified blush, only in the `romance_pulse` frame. */
+export const INTENSE_BLUSH_COLOR = "#FF8A8A";
+
+/** One-pixel eye sparkle, only in the `romance_pulse` frame. */
+export const SPARKLE_COLOR = "#FFFFFF";
+
+/** Heart accent used by the happy and romance frames. Deliberately outside the palette. */
 export const HEART_COLOR = "#FF6B6B";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
@@ -59,13 +69,13 @@ export type ShapeFamily =
   | "marino"
   | "exotico";
 
-/** The three renderable animation states. */
-export type AnimationFrame = "idle_1" | "idle_2" | "happy";
+/** The four renderable animation states. */
+export type AnimationFrame = "idle_1" | "idle_2" | "happy" | "romance_pulse";
 
 export interface SpriteData {
   /** 12×12 matrix of `"#RRGGBB"` strings; `""` means transparent. */
   grid: string[][];
-  /** At most four tones: base, shadow, highlight, eyes. */
+  /** At most five tones: base, shadow, highlight, eyes and blush. */
   palette: string[];
   /** Silhouette family used for this animal. */
   family: ShapeFamily;
@@ -94,6 +104,7 @@ export const ALL_FRAMES: readonly AnimationFrame[] = [
   "idle_1",
   "idle_2",
   "happy",
+  "romance_pulse",
 ] as const;
 
 // ─── Catalogue shapes ─────────────────────────────────────────────────────────
@@ -122,8 +133,11 @@ const CATALOG_COLORS = catalogoData.colores as unknown as CatalogColor[];
  * - `"B"` base tone
  * - `"S"` shadow tone
  * - `"H"` highlight tone
- * - `"E"` eye tone (never mutated by variations, textures or the distinctness pass)
- * - `"R"` heart accent (only produced by the `happy` overlay)
+ * - `"E"` eye tone (soft charcoal, never mutated by variations or textures)
+ * - `"P"` mandatory blush (`#FFAAA6`)
+ * - `"I"` intensified blush, only in `romance_pulse` (`#FF8A8A`)
+ * - `"W"` one-pixel eye sparkle, only in `romance_pulse` (`#FFFFFF`)
+ * - `"R"` heart accent (happy / romance frames, `#FF6B6B`)
  * - `"."` transparent
  */
 type HalfGrid = string[][];
@@ -132,11 +146,13 @@ type CharGrid = string[][];
 /**
  * Minimum differing cells (on the 12×6 half) between any two animals.
  *
- * `6` is the smallest value that still guarantees distinct final grids:
- * texture removes ≤2, mirroring doubles the rest and the two tails remove ≤4,
- * so the rendered grids differ by at least `2 × (6 − 2) − 4 = 4` pixels.
+ * `8` accounts for every uniform post-form overwrite: texture removes ≤2
+ * half-cells and the blush stamp removes ≤2 more (both use the same cells for
+ * every animal). Mirroring doubles what remains and the two tails remove ≤4
+ * rendered pixels, so the final grids differ by at least
+ * `2 × (8 − 4) − 4 = 4` pixels.
  */
-const MIN_HALF_DISTANCE = 6;
+const MIN_HALF_DISTANCE = 8;
 
 // ─── Family templates (LEFT HALF: 12 rows × 6 columns) ────────────────────────
 // Column 0 is the outer left edge, column 5 touches the vertical mirror axis.
@@ -239,21 +255,23 @@ const TEMPLATE_REPTIL: readonly string[] = [
 
 /**
  * anfibio — frogs, toads, salamanders, axolotls.
- * Bulging eyes sitting ON TOP of a wide flat head, broad mouth, splayed feet.
+ * External feathery gills (`H`) framing a wide round head, baby-low eyes and
+ * splayed feet. Eyes sit on rows 4-5 like every other family, so the romance
+ * hearts (rows 0-2) can never overwrite them.
  */
 const TEMPLATE_ANFIBIO: readonly string[] = [
-  ".EE...", // eye domes (upper)
-  "BEEBBB", // eye domes (lower) + skull
-  "BBBBBB", // flat wide skull
-  "BBBBBB", // skull
-  "BBHHHH", // wide mouth
+  ".HH...", // gill filaments (upper)
+  "HBBBB.", // external gill + skull
+  "HBBBBB", // external gill + wide skull
+  "HBBBBB", // external gill (lower)
+  "BBBEEB", // eyes, baby-low
+  "BBBEEB", // eyes (lower)
+  ".BBBHH", // broad mouth
   ".BBBBB", // chin
   ".BBBBB", // body
   ".BBBBB", // body
-  ".BBBBB", // body
-  ".BBBBB", // body
-  ".BBBBB", // body
-  "S.SS.S", // splayed toes
+  ".SBBBS", // legs
+  ".S..S.", // splayed toes
 ];
 
 /**
@@ -389,13 +407,15 @@ const FAMILY_TEMPLATES: Record<ShapeFamily, readonly string[]> = {
 // `categoria_fauna` alone is not enough: "mamifero" covers cats, dogs, rodents,
 // bears, cetaceans and ungulates. Every mammal is therefore hand-assigned.
 
-/** All 61 catalogue animals, keyed by their catalogue `id`. */
+/** All 103 catalogue animals, keyed by their catalogue `id`. */
 const CATALOG_FAMILY: Record<string, ShapeFamily> = {
   // anfibio
   ajolotito: "anfibio",
   ranita: "anfibio",
   sapito: "anfibio",
   salamandrita: "anfibio",
+  ajolote_celestial: "anfibio",
+  tritoncito: "anfibio",
   // insecto (+ crustaceo with claws/segmentation)
   mantisita: "insecto",
   mariposita: "insecto",
@@ -409,6 +429,8 @@ const CATALOG_FAMILY: Record<string, ShapeFamily> = {
   grillito: "insecto",
   saltamontes: "insecto",
   cangrejito: "insecto",
+  mariquita: "insecto",
+  aranita: "insecto",
   // ave
   cuervito: "ave",
   colibrito: "ave",
@@ -420,28 +442,58 @@ const CATALOG_FAMILY: Record<string, ShapeFamily> = {
   garcita: "ave",
   patito: "ave",
   cisnecito: "ave",
+  pinguino: "ave",
+  halconcito: "ave",
+  colibri_obsidiana: "ave",
+  fenixito: "ave",
+  kiwito: "ave",
   // felino
   gatito: "felino",
   leoncito: "felino",
   tigrito: "felino",
   jaguarito: "felino",
   pumita: "felino",
+  ocelotito: "felino",
+  guepardito: "felino",
   // canino
   lobito: "canino",
   zorrito: "canino",
   perrito: "canino",
   suricatita: "canino",
+  coyotito: "canino",
+  huskito: "canino",
+  dinguito: "canino",
+  mapachito: "canino",
+  nahualito: "canino",
+  chihuahuita: "canino",
+  kitsune: "canino",
   // oso
   osito: "oso",
   pandita: "oso",
   koalita: "oso",
+  polarito: "oso",
+  perezosito: "oso",
+  wombatito: "oso",
+  osito_anteojos: "oso",
   // roedor
   erizito: "roedor",
   castorcito: "roedor",
   ardillita: "roedor",
   conejito: "roedor",
+  capibarita: "roedor",
+  huroncito: "roedor",
+  chinchillita: "roedor",
+  tlacuachito: "roedor",
+  armadillito: "roedor",
   // ungulado
   venadito: "ungulado",
+  jirafita: "ungulado",
+  llamita: "ungulado",
+  potrillo: "ungulado",
+  cangurito: "ungulado",
+  ciervito: "ungulado",
+  cabrita: "ungulado",
+  alcito: "ungulado",
   // marino (cetaceos, pinnipedos, moluscos, cnidarios, equinodermos)
   delfincito: "marino",
   pulpito: "marino",
@@ -456,14 +508,22 @@ const CATALOG_FAMILY: Record<string, ShapeFamily> = {
   caballito: "acuatico",
   tiburoncito: "acuatico",
   langostita: "acuatico",
+  mantarrayita: "acuatico",
   // reptil
   camaleoncito: "reptil",
   iguanita: "reptil",
   lagartijita: "reptil",
   geckito: "reptil",
   tortuguita: "reptil",
-  // exotico
+  pangolincito: "reptil",
+  cocodrilito: "reptil",
+  serpientita: "reptil",
+  // exotico (siluetas largas o con rasgos únicos)
   flamenco: "exotico",
+  alebrijito: "exotico",
+  ornitorrincocito: "exotico",
+  murcielaguito: "exotico",
+  dragoncito: "exotico",
 };
 
 /**
@@ -719,7 +779,8 @@ function eyeBottomRow(half: HalfGrid): number {
  * Writes a tone into the half grid.
  *
  * Guards that keep the invariants intact:
- * - eye cells are never touched (the blink frame depends on them existing),
+ * - eye and blush cells are never touched (frames and the distinctness pass
+ *   depend on them existing),
  * - empty cells are only written when `onlyFilled === false`,
  * - writing the current value is a no-op so callers can detect real changes.
  */
@@ -732,7 +793,7 @@ function setCell(
 ): boolean {
   if (r < 0 || r >= GRID_SIZE || c < 0 || c >= HALF_WIDTH) return false;
   const current = half[r][c];
-  if (current === "E" || current === value) return false;
+  if (current === "E" || current === "P" || current === value) return false;
   if (onlyFilled && current === ".") return false;
   half[r][c] = value;
   return true;
@@ -741,7 +802,7 @@ function setCell(
 function clearCell(half: HalfGrid, r: number, c: number): boolean {
   if (r < 0 || r >= GRID_SIZE || c < 0 || c >= HALF_WIDTH) return false;
   const current = half[r][c];
-  if (current === "E" || current === ".") return false;
+  if (current === "E" || current === "P" || current === ".") return false;
   half[r][c] = ".";
   return true;
 }
@@ -1072,10 +1133,13 @@ interface TailSpec {
   seed: number;
 }
 
+/**
+ * Tail cells, always on the lower-right quadrant. The four grid corners stay
+ * empty (a validator invariant), so `(11, 11)` is deliberately not a candidate.
+ */
 const TAIL_CANDIDATES: ReadonlyArray<readonly [number, number]> = [
   [9, 11],
   [10, 11],
-  [11, 11],
   [9, 10],
   [10, 10],
   [11, 10],
@@ -1128,7 +1192,7 @@ type Move = readonly (readonly [number, number, string])[];
 
 /**
  * The colour-independent character form of a half grid for every animation
- * frame, in `ALL_FRAMES` order. The solver separates animals in *all three*
+ * frame, in `ALL_FRAMES` order. The solver separates animals in *all four*
  * forms, so no frame can collapse two sprites onto the same grid.
  */
 function frameForms(half: HalfGrid): HalfGrid[] {
@@ -1247,14 +1311,16 @@ function minDistanceToPrevious(half: HalfGrid, previous: HalfGrid[][]): number {
  *
  * Why this is enough to guarantee zero duplicate sprites:
  * - texture recolours at most 2 half-cells, and only inside rows 0-8;
+ * - the mandatory blush stamp recolours at most 2 more half-cells, always the
+ *   same cells for a given animal, and is baked into the measured form;
  * - the frame transform is already part of the measured form;
  * - the tail re-mirrors rows 9-11 and then writes at most 2 right-side cells;
  * - mirroring doubles every half-cell difference into the full grid.
  *
  * So for two animals whose forms sit at half-distance `d >= MIN_HALF_DISTANCE`:
- *   post-texture half-distance   >= d - 2      =  4
- *   mirrored full-grid distance  >= 2 * 4      =  8
- *   after both tails             >= 8 - 4      =  4  > 0
+ *   post-texture/blush half-distance >= d - 4      =  4
+ *   mirrored full-grid distance      >= 2 * 4      =  8
+ *   after both tails                 >= 8 - 4      =  4  > 0
  *
  * Only animal `i` is ever mutated and every earlier index is re-checked after
  * each move, so the invariant holds for all pairs when the loop finishes.
@@ -1286,6 +1352,16 @@ function enforceDistinctness(
   }
 }
 
+/**
+ * Keeps the four grid corners transparent (rounded mochi silhouette). Applied
+ * after variations and frames, both in the solver and in the renderer, so the
+ * invariant the validator checks is the one the solver optimised for.
+ */
+function clearOuterCorners(half: HalfGrid): void {
+  half[0][0] = ".";
+  half[GRID_SIZE - 1][0] = ".";
+}
+
 function buildRegistry(): Registry {
   const patterns = new Map<string, AnimalPattern>();
 
@@ -1294,6 +1370,8 @@ function buildRegistry(): Registry {
     const half = parseTemplate(FAMILY_TEMPLATES[family]);
     const hash = simpleHash(animalId);
     applyVariations(half, hash);
+    applyBlushHalf(half);
+    clearOuterCorners(half);
     patterns.set(animalId, {
       family,
       half,
@@ -1459,6 +1537,34 @@ function resolveColorEntry(colorId: string, animalId: string): ResolvedColor {
 // renderer and the distinctness solver looking at exactly the same characters,
 // so the solver can guarantee uniqueness for every frame, not just `idle_1`.
 
+/**
+ * Mandatory kawaii blush. Stamps one pink pixel below each eye column, walking
+ * down until a filled non-eye cell is found. Applied *before* the distinctness
+ * solver so every frame — including romance — carries the blush.
+ */
+function applyBlushHalf(half: HalfGrid): void {
+  const top = eyeTopRow(half);
+  const bottom = eyeBottomRow(half);
+  if (top < 0 || bottom < 0) return;
+
+  const eyeColumns: number[] = [];
+  for (let r = top; r <= bottom; r++) {
+    for (let c = 0; c < HALF_WIDTH; c++) {
+      if (half[r][c] === "E" && !eyeColumns.includes(c)) eyeColumns.push(c);
+    }
+  }
+
+  for (const c of eyeColumns) {
+    for (let r = bottom + 1; r < GRID_SIZE; r++) {
+      const cell = half[r][c];
+      if (cell !== "." && cell !== "E" && cell !== "P" && cell !== "R") {
+        half[r][c] = "P";
+        break;
+      }
+    }
+  }
+}
+
 /** idle_2 — half-closed eyes: every eye row above the lowest one becomes base. */
 function applyBlinkHalf(half: HalfGrid): void {
   const lowest = eyeBottomRow(half);
@@ -1492,6 +1598,36 @@ const HEART_CELLS: ReadonlyArray<readonly [number, number]> = [
   [1, 5], // point
 ];
 
+/**
+ * Romance hearts in HALF coordinates. Mirroring turns this half pattern into
+ * two complete 3×3 pixel hearts (left cols 1-3, right cols 8-10), always inside
+ * rows 0-2:
+ *
+ *     .R.      .R.
+ *     RRR  →   RRR   (per heart, five `#FF6B6B` pixels)
+ *     .R.      .R.
+ *
+ * Every family keeps its eyes on rows 3-5, so the stamp can never erase an eye.
+ */
+const ROMANCE_HEART_CELLS: ReadonlyArray<readonly [number, number]> = [
+  [0, 2],
+  [1, 1],
+  [1, 2],
+  [1, 3],
+  [2, 2],
+];
+
+function stampHeart(
+  half: HalfGrid,
+  cells: ReadonlyArray<readonly [number, number]>,
+  offset: number,
+): void {
+  for (const [dr, c] of cells) {
+    const r = offset + dr;
+    if (r < GRID_SIZE) half[r][c] = "R";
+  }
+}
+
 /** happy — eyes squint into highlights and a heart floats over the crown. */
 function applyHappyHalf(half: HalfGrid): void {
   for (let r = 0; r < GRID_SIZE; r++) {
@@ -1500,19 +1636,45 @@ function applyHappyHalf(half: HalfGrid): void {
     }
   }
 
-  // Float the heart into the free band above the crown when there is one.
   const crown = topFilledRow(half);
   const offset = crown >= HEART_ROWS ? crown - HEART_ROWS : 0;
-  for (const [dr, c] of HEART_CELLS) {
-    const r = offset + dr;
-    if (r < GRID_SIZE) half[r][c] = "R";
+  stampHeart(half, HEART_CELLS, offset);
+}
+
+/**
+ * romance_pulse — intensified blush (`I`, `#FF8A8A`), a one-pixel white sparkle
+ * inside each eye (`W`) and two 3×3 pixel hearts floating over the crown.
+ * The base blush cells become intense too, so the cheeks never lose their pink.
+ */
+function applyRomanceHalf(half: HalfGrid): void {
+  const top = eyeTopRow(half);
+  let sparkleColumn = -1;
+  if (top >= 0) {
+    for (let c = 0; c < HALF_WIDTH; c++) {
+      if (half[top][c] === "E") {
+        sparkleColumn = c;
+        break;
+      }
+    }
   }
+
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < HALF_WIDTH; c++) {
+      const cell = half[r][c];
+      if (cell === "P" || cell === "E") {
+        half[r][c] = r === top && c === sparkleColumn ? "W" : "I";
+      }
+    }
+  }
+
+  stampHeart(half, ROMANCE_HEART_CELLS, 0);
 }
 
 /** Frame transform shared by the renderer and the distinctness solver. */
 function applyFrameHalf(half: HalfGrid, frame: AnimationFrame): void {
   if (frame === "idle_2") applyBlinkHalf(half);
   else if (frame === "happy") applyHappyHalf(half);
+  else if (frame === "romance_pulse") applyRomanceHalf(half);
 }
 
 // ─── Grid assembly ────────────────────────────────────────────────────────────
@@ -1527,6 +1689,12 @@ function charToHex(cell: string, tones: Tones): string {
       return tones.highlight;
     case "E":
       return tones.eyes;
+    case "P":
+      return BLUSH_COLOR;
+    case "I":
+      return INTENSE_BLUSH_COLOR;
+    case "W":
+      return SPARKLE_COLOR;
     case "R":
       return HEART_COLOR;
     default:
@@ -1539,12 +1707,14 @@ function renderHexGrid(grid: CharGrid, tones: Tones): string[][] {
 }
 
 function buildPalette(tones: Tones): string[] {
-  const ordered = [tones.base, tones.shadow, tones.highlight, tones.eyes];
+  // Keep the first four positions stable (base, shadow, highlight, eyes) and
+  // append the mandatory blush tone so existing consumers keep working.
+  const ordered = [tones.base, tones.shadow, tones.highlight, tones.eyes, BLUSH_COLOR];
   const unique: string[] = [];
   for (const entry of ordered) {
     if (!unique.includes(entry)) unique.push(entry);
   }
-  return unique.slice(0, 4);
+  return unique.slice(0, 5);
 }
 
 /** Half → texture → frame → mirror → tail. */
@@ -1557,12 +1727,15 @@ function buildCharGrid(
   if (!pattern) {
     // Unreachable for registered ids; kept so the function is total.
     const half = parseTemplate(FAMILY_TEMPLATES[resolveFamily(animalId)]);
+    applyBlushHalf(half);
     applyFrameHalf(half, frame);
+    clearOuterCorners(half);
     return mirrorHalf(half);
   }
   const half = cloneHalf(pattern.half);
   applyTexture(half, resolved.textura, resolved.key);
   applyFrameHalf(half, frame);
+  clearOuterCorners(half);
   const grid = mirrorHalf(half);
   applyTail(grid, pattern.tail);
   return grid;
@@ -1601,8 +1774,9 @@ export function getSprite(animalId: string, colorId: string): SpriteData {
 }
 
 /**
- * Returns a variant grid for animation: `idle_1` (resting), `idle_2` (blink)
- * or `happy` (squinted highlight eyes plus a floating heart).
+ * Returns a variant grid for animation: `idle_1` (resting), `idle_2` (blink),
+ * `happy` (squinted highlight eyes plus a floating heart) or `romance_pulse`
+ * (heart-eyes, a stronger blush and two floating hearts).
  */
 export function getSpriteFrame(
   animalId: string,
@@ -1622,11 +1796,108 @@ export function getSpriteFrame(
   };
 }
 
+export interface SpriteValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
+
+/**
+ * Structural validation for a rendered 12×12 (or 16×16) sprite grid.
+ *
+ * Checks, in order:
+ *   1. square, supported dimensions (12 or 16);
+ *   2. every cell is either transparent or one solid `#RRGGBB` colour — no
+ *      gradients, no fractional values, no named colours;
+ *   3. at least two blush pixels (one per cheek), in either blush tone;
+ *   4. eyes (`EYE_COLOR`) and romance sparkles (`SPARKLE_COLOR`) live in the
+ *      lower-middle band of the silhouette (20%-80% of the painted height,
+ *      measured from the topmost painted row), never on the forehead crown or
+ *      down on the feet;
+ *   5. all four grid corners are transparent, which keeps the silhouette round
+ *      and lets the blush/hearts read as floating elements.
+ *
+ * The function is total: it never throws, it reports every problem it finds.
+ */
+export function validateSpriteIsPixelArt(
+  grid: readonly (readonly string[])[],
+): SpriteValidationResult {
+  const errors: string[] = [];
+  const size = grid.length;
+  if (size !== 12 && size !== 16) {
+    errors.push(`unsupported grid size ${size}; expected 12 or 16`);
+    return { valid: false, errors };
+  }
+
+  let top = size;
+  let bottom = -1;
+  let blushCount = 0;
+  const eyeCells: Array<readonly [number, number]> = [];
+  const sparkleCells: Array<readonly [number, number]> = [];
+
+  for (let r = 0; r < size; r++) {
+    const row = grid[r];
+    if (row.length !== size) {
+      errors.push(`row ${r} has ${row.length} cells; expected ${size}`);
+      continue;
+    }
+    for (let c = 0; c < size; c++) {
+      const cell = row[c];
+      if (cell === "") continue;
+      if (!HEX_COLOR_PATTERN.test(cell)) {
+        errors.push(`row ${r}, col ${c}: invalid colour "${cell}"`);
+        continue;
+      }
+      if (r < top) top = r;
+      if (r > bottom) bottom = r;
+      if (cell === BLUSH_COLOR || cell === INTENSE_BLUSH_COLOR) blushCount++;
+      if (cell === EYE_COLOR) eyeCells.push([r, c]);
+      if (cell === SPARKLE_COLOR) sparkleCells.push([r, c]);
+    }
+  }
+
+  if (bottom < top) {
+    errors.push("sprite is completely transparent");
+    return { valid: false, errors };
+  }
+  if (blushCount < 2) {
+    errors.push(`expected at least 2 blush pixels, found ${blushCount}`);
+  }
+
+  const height = bottom - top + 1;
+  const minFaceRow = top + Math.floor(height * 0.2);
+  const maxFaceRow = top + Math.ceil(height * 0.8);
+  for (const [r, c] of eyeCells) {
+    if (r < minFaceRow || r > maxFaceRow) {
+      errors.push(`eye at (${r}, ${c}) is outside the lower-middle face band`);
+    }
+  }
+  for (const [r, c] of sparkleCells) {
+    if (r < minFaceRow || r > maxFaceRow) {
+      errors.push(`sparkle at (${r}, ${c}) is outside the lower-middle face band`);
+    }
+  }
+
+  const corners: ReadonlyArray<readonly [number, number]> = [
+    [0, 0],
+    [0, size - 1],
+    [size - 1, 0],
+    [size - 1, size - 1],
+  ];
+  for (const [r, c] of corners) {
+    if (grid[r][c] !== "") {
+      errors.push(`corner (${r}, ${c}) must be transparent`);
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
 /**
  * ASCII preview of a sprite, handy for snapshots and the dev gallery.
  * Transparent cells render as a middle dot.
- */
-export function spriteToAscii(sprite: SpriteData): string {
+ */export function spriteToAscii(sprite: SpriteData): string {
   const legend = new Map<string, string>();
   const glyphs = ["#", "+", "=", "-", "%"];
   sprite.palette.forEach((hex, index) => {

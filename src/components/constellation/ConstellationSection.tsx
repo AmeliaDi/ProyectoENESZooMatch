@@ -57,12 +57,12 @@ export function ConstellationSection({
   if (loading) {
     return (
       <div
-        className={`constellation-section grid place-items-center border border-ink/15 bg-ink/[0.03] p-8 text-center ${className ?? ""}`.trim()}
+        className={`cosmic-sky grid place-items-center rounded-3xl border border-white/10 p-8 text-center ${className ?? ""}`.trim()}
         style={FALLBACK_STYLE}
         role="status"
         aria-live="polite"
       >
-        <p className="font-display text-lg italic leading-relaxed text-ink/60">
+        <p className="font-display text-lg italic leading-relaxed text-paper/70">
           {CONSTELLATION_COPY.loading}
         </p>
       </div>
@@ -72,12 +72,12 @@ export function ConstellationSection({
   if (error || !result || !adapted) {
     return (
       <div
-        className={`constellation-section grid place-items-center border border-ink/15 bg-ink/[0.03] p-8 text-center ${className ?? ""}`.trim()}
+        className={`cosmic-sky grid place-items-center rounded-3xl border border-white/10 p-8 text-center ${className ?? ""}`.trim()}
         style={FALLBACK_STYLE}
         role="status"
         aria-live="polite"
       >
-        <p className="max-w-md font-display text-lg italic leading-relaxed text-ink/60">
+        <p className="max-w-md font-display text-lg italic leading-relaxed text-paper/75">
           {
             "Por ahora no podemos dibujar tu constelación, pero tu resultado sigue aquí a salvo. Inténtalo de nuevo en un ratito <3"
           }

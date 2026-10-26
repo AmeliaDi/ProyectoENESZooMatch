@@ -19,3 +19,21 @@ export {
   getMaxMatches,
   getRomanceThreshold,
 } from "./config";
+export {
+  buildMatchNarrative,
+  cognitiveComplementarity,
+  computeChemistrySummary,
+  generateAffinityBreakdown,
+  generateConnectionHeadline,
+  generateMatchExplanation,
+  generatePersonalitySummary,
+} from "./explainability";
+export type {
+  AffinityBreakdown,
+  ChemistryLevel,
+  ChemistrySummary,
+  MatchExplanation,
+  MatchNarrative,
+  MatchNarrativeInput,
+  PersonalitySummary,
+} from "./explainability";

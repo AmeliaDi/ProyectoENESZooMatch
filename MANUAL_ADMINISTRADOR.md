@@ -282,8 +282,9 @@ lógico vs físico) y qué filtros o búsquedas ofrece.
 
 - **¿Para qué sirve?** Definir el "universo" de identidades visuales: los **animalitos** y los
   **colores/texturas** que se asignan a cada perfil.
-- **Contenido real detectado:** catálogo de **61 animales × 55 colores/texturas** (archivo
-  `data/arquetipos.json`).
+- **Contenido real detectado:** catálogo de **103 animales en 13 familias morfológicas × 55
+  colores/texturas** (archivo `data/arquetipos.json`). Cada animal incluye vector Big Five,
+  afinidad MBTI primaria/secundaria, rasgos y plantillas narrativas inclusivas.
 - **¿Se crean/editan desde el panel?** **No.** No existe ninguna pantalla administrativa para
   agregar, renombrar, desactivar o eliminar animalitos o colores.
 - **Cómo se administran entonces:** editando los **archivos de datos** del catálogo y

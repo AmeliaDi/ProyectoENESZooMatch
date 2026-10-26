@@ -1,7 +1,7 @@
 export { scoreBigFive } from "@/lib/scoring/bigfive";
 export { getBigFiveWeights, SCORING_CALIBRATION } from "@/lib/scoring/calibration";
 export { SCORING_CONFIG } from "@/lib/scoring/config";
-export { explainPair } from "@/lib/scoring/explain";
+export { explainPair, explainPairNarrative } from "@/lib/scoring/explain";
 export { toScoringProfile } from "@/lib/scoring/from-profile";
 export { scoreMbti } from "@/lib/scoring/mbti";
 export { rankBestMatches } from "@/lib/scoring/rank";
@@ -19,3 +19,7 @@ export type {
   Sociocultural,
 } from "@/lib/scoring/types";
 export type { BigFiveWeights } from "@/lib/scoring/calibration";
+export type {
+  ExplanationContext,
+  NarrativeExplanationContext,
+} from "@/lib/scoring/explain";

@@ -18,7 +18,7 @@ cada capa, consulta [`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md) y el
 - El repositorio está en la rama `refactor/canonical`, que elimina por completo el flujo v1
   y deja una sola arquitectura: matrícula → microtest de 60 ítems → persistencia Supabase →
   matching dual (romance/amistad) → resultado y constelación.
-- Verificación local: **typecheck ✓ · lint ✓ · 463 tests en 24 archivos ✓**. El build local
+- Verificación local: **typecheck ✓ · lint ✓ · 481 tests en 25 archivos ✓**. El build local
   se corre con `next build --webpack` cuando el shell no tiene `node` en PATH; CI y Vercel
   usan el build estándar con Node 24.
 - Hallazgos cerrados del [`AUDIT.md`](./AUDIT.md): submit tolerante a ráfagas
@@ -99,13 +99,15 @@ Una sola implementación, organizada por dominio:
 | Config | `src/lib/matching/config.ts` | Carga validada de `data/matching-config.json` |
 | Recompute | `src/lib/matching/recompute.server.ts` | Carga de perfiles y reemplazo atómico de matches |
 | Scoring | `src/lib/scoring/` | Big Five, MBTI, sociocultural, calibración literaria, ranking y explicación |
+| Explainability | `src/lib/matching/explainability.ts` | Química, desglose por categoría y narrativa psicológica por track |
+| Lenguaje | `src/lib/inclusive-text.ts` | Cuatro modos inclusivos persistentes por navegador |
 | Admin | `src/lib/admin/dashboard.ts` | Agregados duales, validación Zod y export CSV |
 | Auth | `src/lib/auth/` | Hash de matrícula, sesión anónima y contexto admin |
 | Validación | `src/lib/validation/` | Zod estricto para matrícula, 60 ítems y filtros duros |
 | Datos | `data/microtest.json`, `data/arquetipos.json`, `data/matching-config.json` | Fuente de verdad de ítems, catálogo y umbrales |
 
-El cuestionario tiene **60 ítems · 30 dimensiones · Likert 1–5**, catálogo de **61 animales ×
-55 colores/texturas** y dos tracks independientes:
+El cuestionario tiene **60 ítems · 30 dimensiones · Likert 1–5**, catálogo de **103 animales ×
+55 colores/texturas** repartidos en **13 familias morfológicas** y dos tracks independientes:
 
 - **Romance** (`> 0.65`): 26 dimensiones + filtros de atracción mutua y tipo de relación.
 - **Amistad** (`> 0.68`): 16 dimensiones, sin filtros duros.
@@ -129,16 +131,24 @@ Las rutas públicas canónicas son `/cuestionario` y `/resultado`; las APIs son 
   de relación sólo para **romance**, y hasta cinco matches por track y persona.
 - **Badges de afinidad**: top 5 dimensiones (romance) / top 3 (amistad) por afinidad
   `1 - |a - b|`, con label e icono en español.
-- **Explainability** (`src/lib/explainability.ts`): traduce similitudes crudas a lenguaje
-  afectivo es-MX (bandas de química, desglose por categoría, titular poético).
+- **Explainability** (`src/lib/matching/explainability.ts`): traduce similitudes crudas a
+  lenguaje afectivo es-MX (bandas de química, desglose por categoría, titular poético) y
+  añade una ficha psicológica con **por qué funciona**, **dinámica cotidiana** y **punto de
+  atención**, con énfasis distinto para amistad y romance.
+- **Lenguaje inclusivo opcional** (`src/lib/inclusive-text.ts`): modos `femenino`,
+  `masculino`, `neutro_e` y `neutro_universal`, seleccionables desde el resultado y
+  persistidos en el navegador.
 - **Constelación interactiva** (`src/components/constellation/` + `src/lib/constellation-layout.ts`):
   los matches se dibujan como un cielo de sprites de pixeles con **física determinista**
   (resortes, repulsión por colisión, gravedad al centro, detección de equilibrio y deriva
   ambiental), arrastrables y con *join sparks*, etiquetas ARIA y soporte de
   `prefers-reduced-motion`.
-- **Sprites de pixeles generados por código** (`src/lib/pixel-sprites.ts`, 1600+ líneas):
-  cada uno de los 61 animales del catálogo se renderiza como un sprite 12×12 determinista
-  en 3 frames de animación, sin assets externos ni aleatoriedad.
+- **Sprites de pixeles generados por código** (`src/lib/pixel-sprites.ts`):
+  cada uno de los 103 animales del catálogo se renderiza como un sprite 12×12 determinista
+  con rubor kawaii obligatorio, **4 frames** (`idle_1`, `idle_2`, `happy`,
+  `romance_pulse`) y la composición `romance_duo` en la ficha, sin assets externos ni
+  aleatoriedad. El frame romántico se activa con
+  afinidad ≥ 75% al pasar el cursor o abrir la ficha.
 - **Notificaciones** de match y bienvenida (`/api/notifications` + `NotificationProvider`).
 - **Dashboard de admin** (`/admin`, Recharts): totales, distribución MBTI de 16 tipos,
   % de usuarios con al menos un match sobre el umbral, top 5 animalitos y export CSV.
@@ -173,7 +183,7 @@ Las rutas públicas canónicas son `/cuestionario` y `/resultado`; las APIs son 
 ```
 ProyectoENESZooMatch/
 ├── data/                          # ⭐ fixtures JSON: única fuente de verdad psicométrica
-│   ├── arquetipos.json                # 61 animales + 55 colores/texturas
+│   ├── arquetipos.json                # 103 animales (13 familias) + 55 colores/texturas
 │   ├── microtest.json                 # 60 ítems, 30 dimensiones, fuentes/licencias
 │   ├── matching-config.json           # tracks romance/amistad, pesos, filtros, calibración
 │   └── external/                      # señales de literatura y normas Big Five
@@ -280,7 +290,7 @@ cuestionario de 60 ítems y las siguientes retoman el resultado.
   `profiles_v2` + `get_my_matches_v2`.
 
 ### 5. Explainability
-`src/lib/explainability.ts` traduce similitudes a lenguaje afectivo es-MX determinista:
+`src/lib/matching/explainability.ts` traduce similitudes a lenguaje afectivo es-MX determinista:
 bandas de química **relativas al umbral del track** (0.65 romance / 0.68 amistad), desglose
 por categoría, resumen de personalidad (máx. 3 líneas) y titular poético de una línea.
 Frases < 200 caracteres, nunca clínico. El detalle de las bandas está en `SCORING.md`.
@@ -387,7 +397,7 @@ pip install -r requirements.txt
 ## ✅ Tests
 
 Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Estado actual:
-**463 tests en 24 archivos** (2026-10-25). Cubren, entre otros:
+**481 tests en 25 archivos** (2026-10-25). Cubren, entre otros:
 
 - `matching/engine.test.ts` (~960 líneas: scoring, filtros duros, similitud ponderada,
   badges, constante de "sin match").
@@ -474,7 +484,7 @@ Este README es la puerta de entrada. Para profundizar:
 
 ## 📖 Glosario
 
-- **arquetipos:** animalito diminutivo + color del catálogo (61 animales × 55 colores).
+- **arquetipos:** animalito diminutivo + color del catálogo (103 animales × 55 colores).
 - **microtest:** cuestionario canónico de 60 ítems / 30 dimensiones.
 - **track:** canal de matching (`romance` con filtros duros, `amistad` sin ellos).
 - **hard filter:** pregunta multi-selección que habilita/bloquea emparejamientos romance
@@ -482,8 +492,11 @@ Este README es la puerta de entrada. Para profundizar:
 - **badge:** etiqueta humana de afinidad por dimensión (top 5 romance / top 3 amistad).
 - **constelación:** visualización interactiva de los matches como cielo de sprites con
   física determinista.
-- **sprite:** animalito en pixel-art 12×12 generado por código, en 3 frames de animación.
+- **sprite:** animalito en pixel-art 12×12 generado por código, con rubor kawaii, 4 frames
+  (`idle_1`, `idle_2`, `happy`, `romance_pulse`) y la composición `romance_duo`.
 - **explainability:** motor que convierte similitudes numéricas en narrativa afectiva es-MX.
+- **modo inclusivo:** preferencia de lenguaje (`femenino`, `masculino`, `neutro_e`,
+  `neutro_universal`) guardada por navegador.
 
 ---
 
