@@ -6,6 +6,23 @@ import type { DimensionScoresV2, HardFilters, ScoredProfileV2 } from "@/types/mi
 
 const PROFILE_PAGE_SIZE = 1000;
 
+/** Attempts to replace the global match set when the profile pool changes mid-run. */
+export const RECOMPUTE_MAX_ATTEMPTS = 5;
+
+const BACKOFF_BASE_MS = 50;
+const BACKOFF_JITTER_MS = 50;
+const BACKOFF_MAX_MS = 200;
+
+/** Short exponential backoff with jitter (50-200 ms) between recompute attempts. */
+export function recomputeBackoffMs(attempt: number, random: () => number = Math.random): number {
+  const exponential = Math.min(BACKOFF_MAX_MS, BACKOFF_BASE_MS * 2 ** attempt);
+  return Math.min(BACKOFF_MAX_MS, exponential + Math.floor(random() * BACKOFF_JITTER_MS));
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 interface ProfileRow {
   user_id: string;
   romance_vector: number[];
@@ -43,7 +60,7 @@ function toScoredProfile(row: ProfileRow): ScoredProfileV2 {
 }
 
 export async function recomputeAllMatchesV2(admin: SupabaseClient) {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < RECOMPUTE_MAX_ATTEMPTS; attempt += 1) {
     const profileRows = await loadCompletedProfilesV2(admin);
     const profiles = profileRows.map((row) => ({
       userId: row.user_id,
@@ -62,6 +79,10 @@ export async function recomputeAllMatchesV2(admin: SupabaseClient) {
     });
     if (replaceError) throw new Error("Unable to replace global matches");
     if (replaced !== -1) return pairs;
+
+    if (attempt < RECOMPUTE_MAX_ATTEMPTS - 1) {
+      await sleep(recomputeBackoffMs(attempt));
+    }
   }
 
   throw new Error("Completed profiles changed during matching recomputation");

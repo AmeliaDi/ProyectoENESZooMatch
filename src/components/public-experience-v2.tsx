@@ -29,6 +29,7 @@ import type { MatchExplanation } from "@/lib/explainability";
 import type { MatchTrack } from "@/types/microtest-v2";
 
 const ease = [0.22, 1, 0.36, 1] as const;
+const RECOMPUTE_PENDING_KEY = "zoomatch:recompute-pending";
 
 type ApiError = "generic" | "session" | null;
 
@@ -238,7 +239,15 @@ export function PublicQuizV2() {
         setError(response.status === 401 ? "session" : "generic");
         return;
       }
+      const payload = (await response.json().catch(() => null)) as {
+        recomputePending?: boolean;
+      } | null;
       window.localStorage.removeItem(QUIZ_STORAGE_KEY_V2);
+      if (payload?.recomputePending) {
+        window.sessionStorage.setItem(RECOMPUTE_PENDING_KEY, "1");
+      } else {
+        window.sessionStorage.removeItem(RECOMPUTE_PENDING_KEY);
+      }
       router.replace("/resultado-v2");
     } catch {
       setError("generic");
@@ -532,6 +541,10 @@ function MatchDetails({
             {chemistry.levelLabel}
           </p>
           <p className="text-xs text-ink/55">{chemistry.displayText}</p>
+          <p className="mt-1 text-[0.65rem] leading-4 text-ink/40">
+            Nivel relativo al rango válido de este track (umbral{" "}
+            {Math.round(chemistry.threshold * 100)}%).
+          </p>
         </div>
       </motion.div>
 
@@ -709,6 +722,11 @@ export function PublicResultViewV2() {
   const [attempt, setAttempt] = useState(0);
   const [activeTrack, setActiveTrack] = useState<MatchTrack>("romance");
   const [viewMode, setViewMode] = useState<"lista" | "constelacion">("lista");
+  const [recomputePending, setRecomputePending] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem(RECOMPUTE_PENDING_KEY) === "1",
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -736,6 +754,10 @@ export function PublicResultViewV2() {
           return;
         }
         setResult(parsed);
+        if (parsed.matches.romance.length + parsed.matches.amistad.length > 0) {
+          window.sessionStorage.removeItem(RECOMPUTE_PENDING_KEY);
+          setRecomputePending(false);
+        }
       } catch {
         if (active) setError("generic");
       } finally {
@@ -843,6 +865,8 @@ export function PublicResultViewV2() {
   const animalName = result.animal.diminutivo_es;
   const colorName = result.color.nombre;
   const activeMatches = result.matches[activeTrack];
+  const totalMatches = result.matches.romance.length + result.matches.amistad.length;
+  const showRecomputePending = recomputePending && totalMatches === 0;
   const noMatchMsg = result.no_match_message || NO_MATCH_MESSAGE_V2;
 
   return (
@@ -893,6 +917,25 @@ export function PublicResultViewV2() {
           </div>
         </motion.header>
 
+        {showRecomputePending && (
+          <div role="status" className="mt-8 border border-clay/30 bg-clay/5 p-5 sm:p-6">
+            <p className="font-display text-xl italic leading-snug text-ink/80 sm:text-2xl">
+              Tu resultado ya está guardado. Estamos terminando de calcular tus conexiones.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-ink/55">
+              El recálculo global se completará con el próximo envío o desde el panel de
+              administración. Tu constelación evoluciona cuando llegan más personas.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-4 border border-ink/25 px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] text-ink/70 transition-colors hover:border-ink/55 outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2"
+            >
+              Actualizar
+            </button>
+          </div>
+        )}
+
         {/* View mode: lista clásica o constelación interactiva */}
         <div className="mt-10 flex flex-wrap items-center gap-3">
           <div
@@ -927,6 +970,10 @@ export function PublicResultViewV2() {
               : "Cielo interactivo"}
           </span>
         </div>
+        <p className="mt-3 max-w-xl text-xs leading-5 text-ink/45">
+          Tu constelación evoluciona cuando llegan más personas y se recalcula el matching
+          global.
+        </p>
 
         {viewMode === "constelacion" ? (
           <ConstellationSection result={result} initialTrack={activeTrack} className="mt-6" />

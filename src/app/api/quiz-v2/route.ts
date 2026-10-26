@@ -12,6 +12,7 @@ import { quizSubmissionV2Schema } from "@/lib/validation-v2";
 import type { QuizSubmissionV2 } from "@/types/microtest-v2";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 async function handlePost(request: Request) {
   const parsed = quizSubmissionV2Schema.safeParse(await parseJsonBody(request));
@@ -72,54 +73,69 @@ async function handlePost(request: Request) {
     return NextResponse.json({ error: "Unable to save result" }, { status: 503 });
   }
 
-  let pairs;
+  let pairs: Awaited<ReturnType<typeof recomputeAllMatchesV2>> = [];
+  let recomputePending = false;
   try {
     pairs = await recomputeAllMatchesV2(admin);
   } catch {
-    return NextResponse.json({ error: "Unable to save result" }, { status: 503 });
+    // The quiz result is already persisted. Match recomputation is a global,
+    // best-effort step: a concurrent submission can invalidate the expected
+    // profile count. The user still gets their result and the next recompute
+    // (another submission or the admin button) will publish the matches.
+    recomputePending = true;
   }
 
-  const { error: notifyError } = await admin.rpc("notify_matches_v2", {
-    p_user_id: userId,
-  });
-
-  if (notifyError) {
-    return NextResponse.json({ error: "Unable to save result" }, { status: 503 });
-  }
-
-  const pairedUsers = new Set<string>();
-  for (const pair of pairs) {
-    if (pair.userA === userId.toLowerCase()) pairedUsers.add(pair.userB);
-    else if (pair.userB === userId.toLowerCase()) pairedUsers.add(pair.userA);
-  }
-  await Promise.all(
-    [...pairedUsers]
-      .filter((pairedUserId) => pairedUserId !== userId.toLowerCase())
-      .map(async (pairedUserId) => {
-        try {
-          await admin.rpc("notify_matches_v2", { p_user_id: pairedUserId });
-        } catch {
-          // Counterpart notifications are best-effort.
+  if (!recomputePending) {
+    // Notifications are cosmetic and must never turn a persisted result into a
+    // 5xx response.
+    try {
+      const { error: notifyError } = await admin.rpc("notify_matches_v2", {
+        p_user_id: userId,
+      });
+      if (!notifyError) {
+        const pairedUsers = new Set<string>();
+        for (const pair of pairs) {
+          if (pair.userA === userId.toLowerCase()) pairedUsers.add(pair.userB);
+          else if (pair.userB === userId.toLowerCase()) pairedUsers.add(pair.userA);
         }
-      }),
-  );
+        await Promise.all(
+          [...pairedUsers]
+            .filter((pairedUserId) => pairedUserId !== userId.toLowerCase())
+            .map(async (pairedUserId) => {
+              try {
+                await admin.rpc("notify_matches_v2", { p_user_id: pairedUserId });
+              } catch {
+                // Counterpart notifications are best-effort.
+              }
+            }),
+        );
+      }
+    } catch {
+      // Notification failures are non-critical.
+    }
+  }
 
   // Best-effort welcome notification for first-time submissions. Inserted after
   // notify_matches_v2 (which clears prior unread notifications) so it persists.
   if (isFirstSubmission) {
-    const welcome = generateWelcomeMessage(identity.animalDiminutivo, identity.colorNombre);
-    await admin.from("notifications").insert({
-      user_id: userId,
-      type: "welcome",
-      title: welcome.title,
-      body: welcome.body,
-      metadata: { animal: identity.animalId, color: identity.colorId },
-    });
+    try {
+      const welcome = generateWelcomeMessage(identity.animalDiminutivo, identity.colorNombre);
+      await admin.from("notifications").insert({
+        user_id: userId,
+        type: "welcome",
+        title: welcome.title,
+        body: welcome.body,
+        metadata: { animal: identity.animalId, color: identity.colorId },
+      });
+    } catch {
+      // Welcome copy is nice-to-have, never a submission blocker.
+    }
   }
 
   return NextResponse.json(
     {
       ok: true,
+      recomputePending,
       profile: {
         alias: identity.alias,
         animal: identity.animalId,

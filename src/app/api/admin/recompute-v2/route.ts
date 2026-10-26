@@ -7,6 +7,7 @@ import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.serv
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 async function handlePost() {
   const context = await getAdminContext();
