@@ -9,8 +9,10 @@ Evidencia local: Supabase CLI 2.54 + Docker (`supabase db reset` con las 5 migra
 Esta sección es la fotografía más reciente; el resto del documento conserva el análisis
 original y debe leerse como histórico.
 
-- **Rama:** `main` @ `283a8a7`, sincronizada con `origin/main`. Los PRs #1–#3 ya están
+- **Base:** `main` @ `283a8a7`, sincronizada con `origin/main`. Los PRs #1–#3 ya están
   mergeados, por lo que **B-01 queda cerrado**: lo desplegable es el flujo v2.
+- **Rama de cierre:** `audit/close-2026-10-25` (4 commits locales, aún sin push). Los
+  cambios descritos en esta sección viven en esa rama hasta que se revise y mergee.
 - **Verificación local:** `typecheck` ✓, `lint` ✓, `build` ✓ y **476/476 tests en 26
   archivos** ✓. El build local se ejecutó con `next build --webpack` porque el shell no
   tiene `node` en PATH; Turbopack falla únicamente al intentar lanzar un proceso hijo
