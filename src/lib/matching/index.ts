@@ -30,8 +30,10 @@ export {
 } from "./explainability";
 export type {
   AffinityBreakdown,
+  AfinidadBigFive,
   ChemistryLevel,
   ChemistrySummary,
+  CompatibilidadMBTI,
   MatchExplanation,
   MatchNarrative,
   MatchNarrativeInput,

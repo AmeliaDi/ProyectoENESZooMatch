@@ -2766,7 +2766,7 @@
         "vinculo": "Con {otrx}, tu {rasgo_1} crea corriente y tu {rasgo_2} hace que flotar juntxs sea natural.",
         "cuidado": "Tu {rasgo_3} sube como marea; aprende a nombrarla antes de que te arrastre."
       },
-      "familia_sprite": "marino",
+      "familia_sprite": "insecto",
       "rasgos_kawaii": {
         "forma_orejas": "aletas_suaves",
         "tiene_rubor": true,

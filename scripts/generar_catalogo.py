@@ -310,6 +310,7 @@ SPRITE_POR_ID: dict[str, str] = {
     "mapachito": "canino",
     "nahualito": "canino",
     "kitsune": "canino",
+    "cangrejito": "insecto",
     "pangolincito": "reptil",
     "tlacuachito": "roedor",
     "armadillito": "roedor",

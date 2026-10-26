@@ -162,6 +162,168 @@ describe("buildMatchNarrative", () => {
 
     expect(buildMatchNarrative(input)).toEqual(buildMatchNarrative(input));
     expect(buildMatchNarrative(input).porQueFunciona.length).toBeGreaterThan(40);
+    expect(buildMatchNarrative(input).compatibilidadMBTI).toBeNull();
+    expect(buildMatchNarrative(input).afinidadBigFive).toEqual([]);
+  });
+
+  it("keeps the canonical aliases in sync and fills only the track-specific rationale", () => {
+    const base = {
+      similarity: 0.74,
+      userDimensionScores: sharedOpenAgreeable,
+      matchDimensionScores: quietOpenAgreeable,
+      userMbtiCode: "ENFP",
+      matchMbtiCode: "INFJ",
+      userAnimal: "perrito",
+      matchAnimal: "buhito",
+    };
+    const friendship = buildMatchNarrative({ ...base, track: "amistad" });
+    const romance = buildMatchNarrative({ ...base, track: "romance" });
+
+    expect(friendship.porcentajeQuimica).toBe(friendship.scorePorcentaje);
+    expect(friendship.tituloConexion).toBe(friendship.tituloQuimica);
+    expect(friendship.dondeCrecer).toBe(friendship.puntoDeAtencion);
+    expect(typeof friendship.porQueBuenaAmistad).toBe("string");
+    expect(friendship.porQueBuenaAmistad!.length).toBeGreaterThan(40);
+    expect(friendship.porQuePosibleRomance).toBeNull();
+
+    expect(romance.porcentajeQuimica).toBe(74);
+    expect(romance.tituloConexion).toBe(romance.tituloQuimica);
+    expect(romance.dondeCrecer).toBe(romance.puntoDeAtencion);
+    expect(typeof romance.porQuePosibleRomance).toBe("string");
+    expect(romance.porQuePosibleRomance!.length).toBeGreaterThan(40);
+    expect(romance.porQueBuenaAmistad).toBeNull();
+  });
+
+  it("describes MBTI cognitive dynamics for a valid pair and stays null otherwise", () => {
+    const narrative = buildMatchNarrative({
+      track: "romance",
+      similarity: 0.8,
+      userDimensionScores: calmProfile,
+      matchDimensionScores: calmProfile,
+      userMbtiCode: "ENFJ",
+      matchMbtiCode: "INFP",
+      userAnimal: "perrito",
+      matchAnimal: "ajolotito",
+    });
+
+    expect(narrative.compatibilidadMBTI).not.toBeNull();
+    expect(narrative.compatibilidadMBTI!.tipo1).toBe("ENFJ");
+    expect(narrative.compatibilidadMBTI!.tipo2).toBe("INFP");
+    expect(narrative.compatibilidadMBTI!.funcionesComplementarias.length).toBeGreaterThan(40);
+    expect(narrative.compatibilidadMBTI!.dinamicaNatural).toContain("Mentor-Soñador");
+
+    const withoutCodes = buildMatchNarrative({
+      track: "romance",
+      similarity: 0.8,
+      userDimensionScores: calmProfile,
+      matchDimensionScores: calmProfile,
+      userMbtiCode: "not-a-type",
+      matchMbtiCode: null,
+      userAnimal: "perrito",
+      matchAnimal: "ajolotito",
+    });
+    expect(withoutCodes.compatibilidadMBTI).toBeNull();
+  });
+
+  it("sorts shared Big Five affinities and computes them from the raw gap", () => {
+    const narrative = buildMatchNarrative({
+      track: "amistad",
+      similarity: 0.7,
+      userDimensionScores: sharedOpenAgreeable,
+      matchDimensionScores: quietOpenAgreeable,
+      userMbtiCode: "ENFP",
+      matchMbtiCode: "INFJ",
+      userAnimal: "perrito",
+      matchAnimal: "buhito",
+    });
+
+    const entries = narrative.afinidadBigFive;
+    expect(entries).toHaveLength(5);
+    for (let index = 1; index < entries.length; index++) {
+      expect(entries[index - 1]!.similitud).toBeGreaterThanOrEqual(entries[index]!.similitud);
+    }
+    const byDimension = new Map(entries.map((entry) => [entry.dimension, entry.similitud]));
+    expect(byDimension.get("Amabilidad")).toBe(0.96);
+    expect(byDimension.get("Responsabilidad")).toBe(0.95);
+    expect(byDimension.get("Apertura Mental")).toBe(0.94);
+    expect(byDimension.get("Energía Social")).toBe(0.38);
+    for (const entry of entries) {
+      expect(entry.interpretacion.length).toBeGreaterThan(40);
+      expect(entry.similitud).toBeGreaterThanOrEqual(0);
+      expect(entry.similitud).toBeLessThanOrEqual(1);
+    }
+
+    const symmetric = buildMatchNarrative({
+      track: "amistad",
+      similarity: 0.7,
+      userDimensionScores: sharedOpenAgreeable,
+      matchDimensionScores: sharedOpenAgreeable,
+      userMbtiCode: null,
+      matchMbtiCode: null,
+      userAnimal: "perrito",
+      matchAnimal: "buhito",
+    });
+    expect(symmetric.afinidadBigFive.every((entry) => entry.similitud === 1)).toBe(true);
+  });
+
+  it("prioritises the new attention dynamics over the generic gap", () => {
+    const quiet = {
+      personalidad_apertura: 0.5,
+      personalidad_responsabilidad: 0.5,
+      personalidad_extraversion: 0.2,
+      personalidad_amabilidad: 0.5,
+      personalidad_estabilidad_emocional: 0.5,
+    };
+    const bothIntroverted = buildMatchNarrative({
+      track: "amistad",
+      similarity: 0.7,
+      userDimensionScores: quiet,
+      matchDimensionScores: quiet,
+      userMbtiCode: null,
+      matchMbtiCode: null,
+      userAnimal: "gatito",
+      matchAnimal: "buhito",
+    });
+    expect(bothIntroverted.puntoDeAtencion).toContain("conversaciones difíciles");
+
+    const planner = {
+      ...quiet,
+      personalidad_responsabilidad: 0.85,
+      personalidad_extraversion: 0.5,
+    };
+    const freeSpirit = {
+      ...quiet,
+      personalidad_responsabilidad: 0.2,
+      personalidad_extraversion: 0.5,
+    };
+    const planningClash = buildMatchNarrative({
+      track: "romance",
+      similarity: 0.7,
+      userDimensionScores: planner,
+      matchDimensionScores: freeSpirit,
+      userMbtiCode: null,
+      matchMbtiCode: null,
+      userAnimal: "castorcito",
+      matchAnimal: "colibrito",
+    });
+    expect(planningClash.puntoDeAtencion).toContain("espontaneidad");
+
+    const intense = {
+      ...quiet,
+      personalidad_extraversion: 0.5,
+      personalidad_estabilidad_emocional: 0.2,
+    };
+    const bothIntense = buildMatchNarrative({
+      track: "romance",
+      similarity: 0.7,
+      userDimensionScores: intense,
+      matchDimensionScores: intense,
+      userMbtiCode: null,
+      matchMbtiCode: null,
+      userAnimal: "fenixito",
+      matchAnimal: "tigrito",
+    });
+    expect(bothIntense.puntoDeAtencion).toContain("ancla del otre");
   });
 });
 
