@@ -133,13 +133,15 @@ por categoría y lo escala a `[0,1]`. Los pesos activos están versionados en
 - **Animación:** Framer Motion `^14`. **Gráficas admin:** Recharts `^3`.
 - **Validación:** Zod `^4` (entorno, payloads de API, configs JSON).
 - **Backend:** Supabase (PostgreSQL + Auth + RLS) vía `@supabase/supabase-js` +
-  `@supabase/ssr`. La lógica pesada de matching vive en **funciones SQL (RPCs)** dentro de
-  `supabase/migrations/`.
+  `@supabase/ssr`. El matching v2 se calcula server-side en TypeScript
+  (`src/lib/matching-v2.ts`); el RPC SQL `compute_dual_matches` se conserva como legado y está
+  marcado como deprecated.
 - **Tests:** Vitest `^5` (corrido con Vite `^8`), sólo `src/**/*.test.ts`, entorno `node`,
   alias `@` → `./src`.
 - **Pipeline de datos:** Python (`requests` + `beautifulsoup4`) bajo `scripts/` para
   generar y curar los JSON de `data/`.
-- **Sin CI, sin Docker:** todo se maneja con scripts npm.
+- **CI / Docker:** no hay CI; Docker sólo se necesita para levantar Supabase local
+  (`supabase start`).
 
 ---
 

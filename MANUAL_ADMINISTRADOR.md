@@ -81,30 +81,26 @@ Consideraciones:
 - Si el servicio de autenticación no está disponible en ese momento, aparecerá
   *"El servicio de acceso no está disponible en este momento."*
 
-### 1.4 Reabrir o recuperar la sesión del estudiante
+### 1.4 Entrada y recuperación de la sesión del estudiante
 
-El estudiante **no recupera una contraseña** (no tiene). El reingreso funciona así:
+El estudiante **no recupera una contraseña** (no tiene). La entrada única es la pantalla
+principal (`/`), donde escribe su matrícula. En la primera entrada se crea automáticamente
+un perfil anónimo; no hay un paso separado de **"Crear mi perfil"**.
 
-1. Entra a `/login` ("Bienvenidx de vuelta · Tu hábitat te espera").
-2. Escribe la **misma matrícula** con la que creó su perfil.
-3. Pulsa **"Entrar al hábitat"**. El sistema reabre la sesión de forma automática y segura,
-   **sin pedir contraseña** y sin que el estudiante tenga que repetir el cuestionario.
-4. Según su avance, la aplicación lo lleva:
-   - al **cuestionario** (si aún no lo termina), o
-   - al **resultado** (si ya lo completó).
+1. Escribe la matrícula en `/` y pulsa **"Entrar al hábitat"**.
+2. El sistema abre o reabre la sesión de forma automática, **sin pedir contraseña**.
+3. Según su avance, la aplicación lo lleva a `/cuestionario-v2` si el cuestionario está
+   pendiente o a `/resultado-v2` si ya lo completó.
 
-Mensajes posibles en el reingreso:
+Mensajes posibles:
 
-- *"No encontramos un perfil con esa matrícula. ¿Es tu primera vez?"* → la matrícula no está
-  registrada; se ofrece el enlace **"Crear mi perfil ahora"**.
 - *"El hábitat no está disponible ahora. Intenta más tarde."* → el servicio no responde en este
   momento.
 - *"Algo salió mal. Intenta de nuevo."* → error genérico.
 
-> **Nota de navegación real:** el registro por primera vez (pantalla principal) abre el
-> **cuestionario (versión 1)**; el reingreso por matrícula (`/login`) dirige al **flujo versión 2**
-> (cuestionario o resultado v2). Ambas versiones del cuestionario conviven en el sistema
-> (ver [3.5](#35-módulo-cuestionario)).
+> **Nota de navegación real:** `/login` redirige a `/`. La pantalla principal es la entrada por
+> matrícula; según el avance, dirige al cuestionario v2 o al resultado v2 (ver
+> [3.5](#35-módulo-cuestionario)).
 
 ### 1.5 Requisitos de acceso (antes de que alguien pueda entrar)
 
@@ -303,9 +299,9 @@ lógico vs físico) y qué filtros o búsquedas ofrece.
 
 ### 3.5 Módulo: Cuestionario
 
-Existen **dos cuestionarios** que conviven:
+Comparación de versiones; la ruta del cuestionario v1 ahora redirige al flujo v2:
 
-| | Versión 1 (`/cuestionario`) | Versión 2 (`/cuestionario-v2`) |
+| | Versión 1 (legado; `/cuestionario` redirige a `/cuestionario-v2`) | Versión 2 (`/cuestionario-v2`) |
 |---|---|---|
 | **Cantidad de preguntas** | 24 ítems | 60 ítems |
 | **Escala de respuesta** | Likert de 4 opciones | Likert de 5 opciones |
