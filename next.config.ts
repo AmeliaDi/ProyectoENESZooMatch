@@ -4,13 +4,36 @@ const scriptPolicy = process.env.NODE_ENV === "development"
   ? "'self' 'unsafe-inline' 'unsafe-eval'"
   : "'self' 'unsafe-inline'";
 
+const connectSources = new Set([
+  "https://*.supabase.co",
+  "wss://*.supabase.co",
+]);
+
+const configuredSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (configuredSupabaseUrl) {
+  try {
+    const supabaseUrl = new URL(configuredSupabaseUrl);
+    connectSources.add(supabaseUrl.origin);
+    connectSources.add(supabaseUrl.origin.replace(/^http/, "ws"));
+  } catch {
+    // Invalid env values are caught by the runtime env validator; keep the wildcard.
+  }
+}
+
+if (process.env.NODE_ENV === "development") {
+  for (const origin of ["http://localhost:54321", "http://127.0.0.1:54321"]) {
+    connectSources.add(origin);
+    connectSources.add(origin.replace(/^http/, "ws"));
+  }
+}
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src ${scriptPolicy}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  `connect-src 'self' ${[...connectSources].join(" ")}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

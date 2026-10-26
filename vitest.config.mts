@@ -11,5 +11,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // The constellation suite runs a real 50-node physics pass; on a loaded CI
+    // runner the default 5s timeout can flake even though the test is correct.
+    testTimeout: 20_000,
   },
 });

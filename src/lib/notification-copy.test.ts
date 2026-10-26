@@ -84,6 +84,12 @@ const ALL_COPY: Array<{ type: NotificationType; title: string; body: string }> =
 // ─── No-match message ─────────────────────────────────────────────────────────
 
 describe("NO_MATCH_MESSAGE_V2", () => {
+  it("keeps the exact product literal", () => {
+    expect(NO_MATCH_MESSAGE_V2).toBe(
+      "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor \u003c3",
+    );
+  });
+
   it("reassures with inclusive language", () => {
     expect(NO_MATCH_MESSAGE_V2).toContain("tranquilx");
     expect(NO_MATCH_MESSAGE_V2).toMatch(NEUTRAL_X_PATTERN);
@@ -94,8 +100,8 @@ describe("NO_MATCH_MESSAGE_V2", () => {
   });
 
   it("frames the result as a statistics project, not a verdict", () => {
-    expect(NO_MATCH_MESSAGE_V2).toContain("estadística");
-    expect(NO_MATCH_MESSAGE_V2).toContain("valor");
+    expect(NO_MATCH_MESSAGE_V2).toContain("estadistica");
+    expect(NO_MATCH_MESSAGE_V2).toContain("amor");
   });
 
   it("stays under the 280-character notification budget", () => {

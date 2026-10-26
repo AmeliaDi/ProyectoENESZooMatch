@@ -73,6 +73,12 @@ describe("QUIZ_STORAGE_KEY_V2", () => {
 // ─── No-match message ─────────────────────────────────────────────────────────
 
 describe("NO_MATCH_MESSAGE_V2", () => {
+  it("keeps the exact product literal", () => {
+    expect(NO_MATCH_MESSAGE_V2).toBe(
+      "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor \u003c3",
+    );
+  });
+
   it("reassures with inclusive language", () => {
     expect(NO_MATCH_MESSAGE_V2).toContain("tranquilx");
   });
@@ -82,8 +88,8 @@ describe("NO_MATCH_MESSAGE_V2", () => {
   });
 
   it("frames the outcome as statistics, not a verdict on the person", () => {
-    expect(NO_MATCH_MESSAGE_V2).toContain("estadística");
-    expect(NO_MATCH_MESSAGE_V2).toContain("valor");
+    expect(NO_MATCH_MESSAGE_V2).toContain("estadistica");
+    expect(NO_MATCH_MESSAGE_V2).toContain("amor");
   });
 
   it("stays under the 280-character notification budget", () => {

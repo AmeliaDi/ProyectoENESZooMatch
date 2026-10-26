@@ -8,7 +8,7 @@ export const QUIZ_STORAGE_KEY_V2 = "zoomatch:quiz-draft:v2";
 // ─── No-match message ─────────────────────────────────────────────────────────
 
 export const NO_MATCH_MESSAGE_V2 =
-  "Aún no llega ese ser especial a la base de datos, pero tranquilx, tu vibra es única y esto es solo un proyecto de estadística, no una medida de tu inmenso valor <3";
+  "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor \u003c3";
 
 // ─── Draft types ──────────────────────────────────────────────────────────────
 

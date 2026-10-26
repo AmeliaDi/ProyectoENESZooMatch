@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -30,9 +32,9 @@ const matchRowSchema = z.object({
 
 interface MatchEntry {
   /**
-   * Opaque counterpart user id (the `other_user` UUID from the RPC). Used only as
-   * a stable React key for the constellation; it is never displayed and carries
-   * no matrícula, hash, answer or vector data.
+   * Opaque per-viewer id derived from the counterpart UUID. Used only as a
+   * stable React key for the constellation; it is never displayed and cannot
+   * be used to look up a profile.
    */
   id: string | null;
   alias: string;
@@ -131,6 +133,22 @@ function buildExplanation(
   }
 }
 
+/**
+ * Builds a stable, non-reversible per-viewer handle for a counterpart. The
+ * same pair always yields the same handle for that viewer, but the value cannot
+ * be traced back to a profile id.
+ */
+function opaqueMatchId(
+  viewerId: string,
+  otherUserId: string | null | undefined,
+): string | null {
+  if (!otherUserId) return null;
+  return createHash("sha256")
+    .update(`${viewerId}:${otherUserId}`, "utf8")
+    .digest("hex")
+    .slice(0, 16);
+}
+
 async function handleGet() {
   const client = await createClient();
   if (!client) {
@@ -213,7 +231,7 @@ async function handleGet() {
     const alias = match.other_alias ?? "alguien especial";
     const otherProfile = match.other_user ? otherProfiles.get(match.other_user) : undefined;
     const entry: MatchEntry = {
-      id: match.other_user ?? null,
+      id: opaqueMatchId(userData.user.id, match.other_user),
       alias,
       animal: match.other_animal ?? "",
       animal_id: otherProfile?.animal_id ?? null,

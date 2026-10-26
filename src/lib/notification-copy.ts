@@ -27,7 +27,7 @@ export interface NotificationCopy {
  * This is the v2 replacement for NO_MATCH_LITERAL.
  */
 export const NO_MATCH_MESSAGE_V2 =
-  "A\u00fan no llega ese ser especial a la base de datos, pero tranquilx, tu vibra es \u00fanica y esto es solo un proyecto de estad\u00edstica, no una medida de tu inmenso valor \u003c3";
+  "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor \u003c3";
 
 // ─── Main Generator ───────────────────────────────────────────────────────────
 

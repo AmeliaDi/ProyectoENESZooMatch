@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { NotificationProvider } from "@/components/notification-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,9 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="es-MX">
-      <body>
-        <NotificationProvider>{children}</NotificationProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

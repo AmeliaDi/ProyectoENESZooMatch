@@ -27,10 +27,10 @@
  *
  * ─── Privacy ─────────────────────────────────────────────────────────────────
  * The visible identity of a node is animal + colour + alias only. The match `id`
- * is the opaque `other_user` UUID already returned by the RPC — used purely as a
- * stable React key, never displayed, and carrying no matrícula, hash, answer or
- * vector data. Vectors are deliberately NOT forwarded: the detail sheet falls
- * back to `explanation.breakdown`.
+ * is an opaque, non-reversible per-viewer handle derived by the API — used
+ * purely as a stable React key, never displayed, and carrying no matrícula,
+ * hash, answer or vector data. Vectors are deliberately NOT forwarded: the
+ * detail sheet falls back to `explanation.breakdown`.
  */
 
 import catalogoData from "../../../data/catalogo_arquetipos_v2.json";
@@ -238,7 +238,7 @@ function adaptTrack(
 
     const animal = ANIMAL_BY_ID.get(animalId);
     adapted.push({
-      // The opaque counterpart UUID is the stable React key; fall back to a
+      // The opaque per-viewer handle is the stable React key; fall back to a
       // per-track synthetic key only if the API somehow omitted it.
       id: entry.id ?? `${track}-${index}`,
       animalId,

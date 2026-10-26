@@ -144,6 +144,14 @@ const GHOST_RADIUS = 6;
 const DEFAULT_GHOST_COUNT = 8;
 const MAX_GHOST_COUNT = 12;
 
+/**
+ * Hard cap for real match nodes. The physics pass is O(n²) × 2000 ticks and
+ * cluster detection is brute-force, so a pathological pool must not block the
+ * main thread. 24 is just above the observed maximum (~21); the list view still
+ * exposes every match, this cap only bounds the constellation canvas.
+ */
+export const MAX_REAL_MATCHES = 24;
+
 // ─── Threshold helper (reads data/matching-config-v2.json) ───────────────────
 
 /**
@@ -350,9 +358,15 @@ export function buildGraph(
   // are not matches, so they get no node — this also guarantees every real
   // node is spring-anchored to self and the layout always converges.
   const seen = new Set<string>();
-  const activeMatches = matches.filter(
+  const filteredMatches = matches.filter(
     (m) => m.track === track && m.similarity > threshold && !seen.has(m.id) && seen.add(m.id),
   );
+  const activeMatches =
+    filteredMatches.length > MAX_REAL_MATCHES
+      ? [...filteredMatches]
+          .sort((a, b) => b.similarity - a.similarity || a.id.localeCompare(b.id))
+          .slice(0, MAX_REAL_MATCHES)
+      : filteredMatches;
 
   const selfNode: ConstellationNode = {
     id: me.id,
@@ -413,6 +427,9 @@ export function buildGraph(
 export function detectClusters(graph: ConstellationGraph): ConstellationCluster[] {
   const { nodes, edges } = graph;
   if (nodes.length < 3 || edges.length === 0) return [];
+  // Brute-force triangle enumeration is O(n³). buildGraph already caps real
+  // matches; this guard protects direct callers from pathological graphs.
+  if (nodes.length > 80) return [];
 
   const nodeById = new Map<string, ConstellationNode>();
   for (const n of nodes) nodeById.set(n.id, n);

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_DISTANCE_CONFIG,
   DEFAULT_SIMULATION_PARAMS,
+  MAX_REAL_MATCHES,
   buildGraph,
   createSimulationState,
   detectClusters,
@@ -272,6 +273,19 @@ describe("buildGraph", () => {
     expect(g.edges.length).toBe(0);
     expect(g.clusters.length).toBe(0);
   });
+
+  it("caps pathological match counts to protect the O(n²) simulation", () => {
+    const matches = Array.from({ length: MAX_REAL_MATCHES + 30 }, (_, index) =>
+      makeMatch(`cap-${index}`, 0.7 + (index % 25) / 100),
+    );
+
+    const g = buildGraph(ME, matches, "amistad", AMISTAD_THRESHOLD, VIEWPORT_W, VIEWPORT_H, 0);
+
+    expect(g.nodes.filter((node) => !node.isGhost && !node.isSelf)).toHaveLength(
+      MAX_REAL_MATCHES,
+    );
+    expect(g.nodes.some((node) => node.id === "cap-24")).toBe(true);
+  });
 });
 
 // ─── detectClusters ───────────────────────────────────────────────────────────
@@ -375,12 +389,13 @@ describe("stepSimulation", () => {
   });
 
   it("produces no NaN with 50 nodes after 100 steps", () => {
-    const matches: MatchInput[] = [];
-    for (let i = 0; i < 41; i++) {
-      matches.push(makeMatch(`bulk-${i}`, 0.76 + ((i * 7) % 24) / 100));
-    }
-    // me (1) + 41 matches + 8 ghosts = 50 nodes
-    const graph = buildGraph(ME, matches, "amistad", AMISTAD_THRESHOLD, VIEWPORT_W, VIEWPORT_H);
+    // Build the 50-node fixture directly so this test measures the physics,
+    // independently of the render cap enforced by buildGraph.
+    const nodes = Array.from({ length: 50 }, (_, index) =>
+      makeNode(`bulk-${index}`, 100 + (index % 10) * 50, 100 + Math.floor(index / 10) * 50),
+    );
+    const edges = nodes.slice(1).map((node) => makeEdge("bulk-0", node.id, 0.9));
+    const graph = makeGraph(nodes, edges);
     expect(graph.nodes.length).toBe(50);
     const final = runSteps(createSimulationState(graph, VIEWPORT_W, VIEWPORT_H), 100);
     for (const n of final.nodes) {
