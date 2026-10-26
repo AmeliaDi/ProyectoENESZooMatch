@@ -55,6 +55,7 @@ interface RawTrackConfig {
   centering: number;
   max_matches: number;
   target_coverage_percentile: number;
+  maximum_pair_tail?: number;
   dimensions: string[];
   hard_filters: string[];
   weights: Record<string, number>;
@@ -90,6 +91,9 @@ function normalizeTrack(track: RawTrackConfig): TrackConfig {
     centering: track.centering,
     max_matches: track.max_matches,
     target_coverage_percentile: track.target_coverage_percentile,
+    ...(track.maximum_pair_tail !== undefined
+      ? { maximum_pair_tail: track.maximum_pair_tail }
+      : {}),
     dimensions: [...track.dimensions],
     hard_filters: [...track.hard_filters] as HardFilterField[],
     weights: normalizeWeights(track.weights),
@@ -343,7 +347,14 @@ export function isRelationshipCompatible(a: string[], b: string[]): boolean {
 
 /**
  * Checks whether two users' hard filters are compatible for romance matching.
- * All three filter types must be compatible (AND logic).
+ *
+ * Formalized as the indicator product
+ *
+ *   1[G_B ∈ O_A] · 1[G_A ∈ O_B] · 1[K(A, B)]
+ *
+ * where `K` is the symmetric relationship-compatibility kernel. `solo_amistad`
+ * makes `K = 0`; an unspecified relation is treated as universal, and the
+ * attraction indicators already encode the sexual-orientation wildcards.
  */
 export function checkHardFilters(a: HardFilters, b: HardFilters): boolean {
   return (
@@ -395,16 +406,44 @@ function categoryOfDimension(dimension: string): keyof CategoryWeights | null {
 }
 
 /**
- * Weighted cosine similarity that applies per-category weights.
+ * Diagonal metric `W = diag(w_1, …, w_n)` for a track.
  *
- * Dimensions are grouped by category, a cosine similarity is computed within
- * each category's sub-vector, and the results are combined as a weighted mean:
- * `sum(weight_c * cosine_c) / sum(weight_c)`. This keeps categories with many
- * dimensions (e.g. intimacy, 8 dims) from drowning out categories with few
- * (e.g. identity, 2 dims).
+ * Category weights are distributed evenly among the dimensions of each
+ * category and normalized so `Σ w_i = 1`. Categories absent from the track
+ * (or with weight 0) contribute nothing.
+ */
+export function trackDimensionWeights(
+  dimensions: readonly string[],
+  weights: CategoryWeights,
+): number[] {
+  const counts = new Map<keyof CategoryWeights, number>();
+  for (const dimension of dimensions) {
+    const category = categoryOfDimension(dimension);
+    if (category === null || (weights[category] ?? 0) <= 0) continue;
+    counts.set(category, (counts.get(category) ?? 0) + 1);
+  }
+
+  let total = 0;
+  const raw = dimensions.map((dimension) => {
+    const category = categoryOfDimension(dimension);
+    if (category === null) return 0;
+    const count = counts.get(category) ?? 0;
+    if (count === 0) return 0;
+    const weight = (weights[category] ?? 0) / count;
+    total += weight;
+    return weight;
+  });
+
+  return total === 0 ? raw : raw.map((weight) => weight / total);
+}
+
+/**
+ * Weighted cosine in the Hilbert space induced by `W`:
  *
- * Categories absent from `dimensions`, or whose weight is `0`/undefined, do not
- * contribute. Returns `0` when no active weight exists.
+ *   ⟨a, b⟩_W = Σ w_i · a_i · b_i
+ *   cos_W(a, b) = ⟨a, b⟩_W / (‖a‖_W · ‖b‖_W)
+ *
+ * Returns `0` when either weighted norm is zero.
  *
  * @throws If the vectors and `dimensions` do not all share the same length.
  */
@@ -418,37 +457,82 @@ export function weightedTrackSimilarity(
     throw new Error("Vectors and dimensions must all share the same length");
   }
 
-  // Bucket indices by category, preserving first-seen category order.
-  const buckets = new Map<keyof CategoryWeights, number[]>();
-  for (let index = 0; index < dimensions.length; index += 1) {
-    const category = categoryOfDimension(dimensions[index] ?? "");
-    if (category === null) continue;
-    const bucket = buckets.get(category);
-    if (bucket) bucket.push(index);
-    else buckets.set(category, [index]);
+  const metric = trackDimensionWeights(dimensions, weights);
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let index = 0; index < a.length; index += 1) {
+    const weight = metric[index] ?? 0;
+    const first = a[index] ?? 0;
+    const second = b[index] ?? 0;
+    dot += weight * first * second;
+    normA += weight * first * first;
+    normB += weight * second * second;
   }
 
-  let weightSum = 0;
-  let weightedSum = 0;
-  for (const [category, indices] of buckets) {
-    const weight = weights[category] ?? 0;
-    if (weight === 0) continue;
-    const subA = indices.map((index) => a[index] ?? 0);
-    const subB = indices.map((index) => b[index] ?? 0);
-    weightedSum += weight * cosineSimilarity(subA, subB);
-    weightSum += weight;
-  }
-
-  return weightSum === 0 ? 0 : weightedSum / weightSum;
+  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
+  return denominator === 0 ? 0 : dot / denominator;
 }
 
+/**
+ * Empirical centroid `μ` of a population: the per-dimension mean. Centering
+ * against `μ` (instead of a fixed 0.5) removes the population's answer-pattern
+ * bias before computing the weighted cosine.
+ */
+export function computeTrackCentroid(
+  vectors: readonly (readonly number[])[],
+): number[] {
+  if (vectors.length === 0) return [];
+  const length = vectors[0]?.length ?? 0;
+  const centroid = new Array<number>(length).fill(0);
+  for (const vector of vectors) {
+    if (vector.length !== length) {
+      throw new Error("Vectors must all share the same length");
+    }
+    for (let index = 0; index < length; index += 1) {
+      centroid[index] += vector[index] ?? 0;
+    }
+  }
+  return centroid.map((value) => value / vectors.length);
+}
+
+/**
+ * Minimum sample for the empirical centroid to be estimable. With fewer
+ * profiles, centering both members of a pair by their own mean would force a
+ * cosine of -1 (similarity 0), so the neutral reference `centering` is used.
+ */
+export const MIN_CENTROID_SAMPLE = 30;
+
+function populationCentroid(
+  vectors: readonly (readonly number[])[],
+): number[] | undefined {
+  return vectors.length >= MIN_CENTROID_SAMPLE
+    ? computeTrackCentroid(vectors)
+    : undefined;
+}
+
+/**
+ * Centered weighted cosine mapped affinely from `[-1, 1]` to `[0, 1]`.
+ *
+ * `centroid` is the empirical population mean μ. When omitted, the track's
+ * configured `centering` value is used as a flat reference so pure callers and
+ * unit tests remain deterministic.
+ */
 export function trackSimilarity(
   a: readonly number[],
   b: readonly number[],
   trackConfig: TrackConfig,
+  centroid?: readonly number[],
 ): number {
-  const centeredA = a.map((value) => value - trackConfig.centering);
-  const centeredB = b.map((value) => value - trackConfig.centering);
+  if (centroid !== undefined && centroid.length !== a.length) {
+    throw new Error("Centroid and vectors must share the same length");
+  }
+  const centeredA = a.map(
+    (value, index) => value - (centroid?.[index] ?? trackConfig.centering),
+  );
+  const centeredB = b.map(
+    (value, index) => value - (centroid?.[index] ?? trackConfig.centering),
+  );
   const similarity = clamp01(
     (1 +
       weightedTrackSimilarity(
@@ -467,29 +551,34 @@ export function trackSimilarity(
 /** Fallback used if a config predates the romance selectivity block. */
 const DEFAULT_ROMANCE_SELECTIVITY: RomanceSelectivityConfig = {
   intimacy_alignment_floor: 0.6,
-  conflict_alignment_floor: 0.55,
   intimacy_penalty_weight: 0.45,
-  conflict_penalty_weight: 0.35,
+  conflict_tolerance: 0.4,
+  conflict_penalty_lambda: 3.5,
 };
 
 export interface RomanceSelectivityResult {
-  /** Similarity after the intimacy/conflict penalty. */
+  /** Similarity after the intimacy and conflict factors. */
   score: number;
   /** Mean per-dimension affinity across the eight intimacy dimensions. */
   intimacyAlignment: number;
-  /** Affinity on `valores_gestion_conflicto`. */
-  conflictAlignment: number;
-  /** Multiplicative penalty in [0, 1]; zero means perfectly aligned. */
+  /** Absolute distance in `valores_gestion_conflicto`, Δc ∈ [0, 1]. */
+  conflictDistance: number;
+  /** Smooth Lipschitz factor exp(-λ·max(0, Δc - δc)²). */
+  conflictFactor: number;
+  /** Multiplicative score loss in [0, 1]; zero means perfectly aligned. */
   penalty: number;
 }
 
 /**
  * Applies the romance-only alignment penalties.
  *
- * Intimacy and conflict are the two places where two otherwise similar people
- * tend to hurt each other, so a pair below either floor loses part of its
- * score. Identical vectors are untouched, which keeps the base similarity
- * meaningful and makes the penalty symmetric.
+ * Intimacy is a soft floor on the mean affinity across the eight intimacy
+ * dimensions. Conflict follows the smooth Lipschitz penalty from the design
+ * brief:
+ *
+ *   f(Δc) = exp(-λ · max(0, Δc - δc)²),  δc = 0.40, λ = 3.5
+ *
+ * Both factors are symmetric and identical vectors are untouched.
  */
 export function applyRomanceSelectivity(
   a: readonly number[],
@@ -500,44 +589,44 @@ export function applyRomanceSelectivity(
   const config = trackConfig.selectivity ?? DEFAULT_ROMANCE_SELECTIVITY;
   let intimacySum = 0;
   let intimacyCount = 0;
-  let conflictSum = 0;
-  let conflictCount = 0;
+  let conflictIndex = -1;
 
   for (let index = 0; index < trackConfig.dimensions.length; index += 1) {
     const dimension = trackConfig.dimensions[index] ?? "";
-    const affinity = clamp01(1 - Math.abs((a[index] ?? 0) - (b[index] ?? 0)));
-    if (dimension.startsWith("intimidad_")) {
-      intimacySum += affinity;
-      intimacyCount += 1;
-    }
     if (dimension === "valores_gestion_conflicto") {
-      conflictSum += affinity;
-      conflictCount += 1;
+      conflictIndex = index;
+    }
+    if (dimension.startsWith("intimidad_")) {
+      intimacySum += 1 - Math.abs((a[index] ?? 0) - (b[index] ?? 0));
+      intimacyCount += 1;
     }
   }
 
-  const intimacyAlignment = intimacyCount === 0 ? 1 : intimacySum / intimacyCount;
-  const conflictAlignment = conflictCount === 0 ? 1 : conflictSum / conflictCount;
+  const intimacyAlignment =
+    intimacyCount === 0 ? 1 : clamp01(intimacySum / intimacyCount);
   const intimacyGap =
     config.intimacy_alignment_floor > 0
       ? Math.max(0, config.intimacy_alignment_floor - intimacyAlignment) /
         config.intimacy_alignment_floor
       : 0;
-  const conflictGap =
-    config.conflict_alignment_floor > 0
-      ? Math.max(0, config.conflict_alignment_floor - conflictAlignment) /
-        config.conflict_alignment_floor
-      : 0;
-  const penalty = clamp01(
-    intimacyGap * config.intimacy_penalty_weight +
-      conflictGap * config.conflict_penalty_weight,
+  const intimacyFactor = clamp01(1 - intimacyGap * config.intimacy_penalty_weight);
+
+  const conflictDistance =
+    conflictIndex === -1
+      ? 0
+      : clamp01(Math.abs((a[conflictIndex] ?? 0) - (b[conflictIndex] ?? 0)));
+  const conflictFactor = Math.exp(
+    -config.conflict_penalty_lambda *
+      Math.max(0, conflictDistance - config.conflict_tolerance) ** 2,
   );
 
+  const alignmentFactor = clamp01(intimacyFactor * conflictFactor);
   return {
-    score: clamp01(baseSimilarity * (1 - penalty)),
+    score: clamp01(baseSimilarity * alignmentFactor),
     intimacyAlignment,
-    conflictAlignment,
-    penalty,
+    conflictDistance,
+    conflictFactor,
+    penalty: 1 - alignmentFactor,
   };
 }
 
@@ -601,9 +690,9 @@ function buildNarrative(track: MatchTrack, badges: CompatibilityBadge[], similar
  * Finds all dual-track matches for a user against a pool of scored profiles.
  *
  *  - Romance: hard filter → centered weighted cosine over the 26-dim romance vector →
- *    strictly-greater-than threshold → top 5 badges.
+ *    intimacy/conflict selectivity → strictly-greater-than threshold → top 3.
  *  - Friendship: centered weighted cosine over the 16-dim friendship vector →
- *    strictly-greater-than threshold → top 3 badges (no hard filters).
+ *    strictly-greater-than threshold → top 5 (no hard filters).
  *
  * A single `otherUserId` may appear twice in the result (once per track) when it
  * clears both thresholds. Callers should exclude the querying user from `pool`.
@@ -617,6 +706,14 @@ export function findDualMatches(
   const friendshipConfig = config.tracks.amistad;
   const romanceResults: DualMatchResult[] = [];
   const friendshipResults: DualMatchResult[] = [];
+  const romanceCentroid = populationCentroid([
+    user.romanceVector,
+    ...pool.map(({ profile }) => profile.romanceVector),
+  ]);
+  const friendshipCentroid = populationCentroid([
+    user.friendshipVector,
+    ...pool.map(({ profile }) => profile.friendshipVector),
+  ]);
 
   for (const { userId, profile } of pool) {
     // Romance track — gated by bidirectional hard filters and the
@@ -625,7 +722,12 @@ export function findDualMatches(
       const similarity = applyRomanceSelectivity(
         user.romanceVector,
         profile.romanceVector,
-        trackSimilarity(user.romanceVector, profile.romanceVector, romanceConfig),
+        trackSimilarity(
+          user.romanceVector,
+          profile.romanceVector,
+          romanceConfig,
+          romanceCentroid,
+        ),
         romanceConfig,
       ).score;
       if (similarity > romanceConfig.minimum_similarity_exclusive) {
@@ -651,6 +753,7 @@ export function findDualMatches(
       user.friendshipVector,
       profile.friendshipVector,
       friendshipConfig,
+      friendshipCentroid,
     );
     if (friendshipSimilarity > friendshipConfig.minimum_similarity_exclusive) {
       const badges = generateBadges(
@@ -697,9 +800,18 @@ export function computeAllMatches(
   );
   const tracks: MatchTrack[] = ["romance", "amistad"];
   const selected = new Map<string, GlobalMatch>();
+  const centroids: Record<MatchTrack, number[] | undefined> = {
+    romance: populationCentroid(
+      users.map(({ profile }) => profile.romanceVector),
+    ),
+    amistad: populationCentroid(
+      users.map(({ profile }) => profile.friendshipVector),
+    ),
+  };
 
   for (const track of tracks) {
     const trackConfig = config.tracks[track];
+    const centroid = centroids[track];
     const candidates = users.map(() => [] as Array<{ index: number; similarity: number }>);
 
     for (let indexA = 0; indexA < users.length; indexA += 1) {
@@ -713,7 +825,7 @@ export function computeAllMatches(
 
         const vectorA = track === "romance" ? userA.profile.romanceVector : userA.profile.friendshipVector;
         const vectorB = track === "romance" ? userB.profile.romanceVector : userB.profile.friendshipVector;
-        const baseSimilarity = trackSimilarity(vectorA, vectorB, trackConfig);
+        const baseSimilarity = trackSimilarity(vectorA, vectorB, trackConfig, centroid);
         const similarity =
           track === "romance"
             ? applyRomanceSelectivity(

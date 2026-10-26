@@ -196,6 +196,22 @@ describe("synthetic compatibility calibration", () => {
     });
   });
 
+  it("keeps the romance upper tail at or below six percent of pairs", () => {
+    const trackConfig = MATCHING_CONFIG.tracks.romance;
+    const threshold = trackConfig.minimum_similarity_exclusive;
+    const coverage = measureCoverage(romanceAnalysis, threshold);
+    console.log(
+      `romance tail: pairs=${(coverage.pairCoverageRate * 100).toFixed(3)}% users=${(
+        coverage.userCoverageRate * 100
+      ).toFixed(3)}%`,
+    );
+
+    expect(trackConfig.maximum_pair_tail).toBe(0.06);
+    expect(coverage.pairCoverageRate).toBeLessThanOrEqual(
+      trackConfig.maximum_pair_tail!,
+    );
+  });
+
   it("calibrates the synthetic population to each track's coverage percentile", () => {
     for (const analysis of [romanceAnalysis, friendshipAnalysis]) {
       const trackConfig = MATCHING_CONFIG.tracks[analysis.track];

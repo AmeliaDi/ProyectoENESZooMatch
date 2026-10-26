@@ -6,11 +6,13 @@ import {
   applyRomanceSelectivity,
   checkHardFilters,
   computeAllMatches,
+  computeTrackCentroid,
   cosineSimilarity,
   findDualMatches,
   generateBadges,
   isRelationshipCompatible,
   scoreQuiz,
+  trackDimensionWeights,
   trackSimilarity,
   weightedTrackSimilarity,
 } from "@/lib/matching";
@@ -577,6 +579,53 @@ describe("weightedTrackSimilarity", () => {
   });
 });
 
+describe("trackDimensionWeights", () => {
+  it("sums to one and splits each category weight across its dimensions", () => {
+    const metric = trackDimensionWeights(
+      ROMANCE_VECTOR_DIMENSIONS,
+      ROMANCE_TRACK.weights,
+    );
+    const personalityIndices = ROMANCE_VECTOR_DIMENSIONS.map((dimension, index) =>
+      dimension.startsWith("personalidad_") ? index : -1,
+    ).filter((index) => index >= 0);
+    const expectedUnit =
+      (ROMANCE_TRACK.weights.personalidad ?? 0) / personalityIndices.length;
+
+    expect(metric.reduce((sum, weight) => sum + weight, 0)).toBeCloseTo(1, 12);
+    for (const index of personalityIndices) {
+      expect(metric[index]).toBeCloseTo(expectedUnit, 12);
+    }
+  });
+
+  it("returns the zero metric when every category is disabled", () => {
+    const metric = trackDimensionWeights(ROMANCE_VECTOR_DIMENSIONS, {
+      personalidad: 0,
+      afinidad_cultural: 0,
+      intimidad_afecto: 0,
+      valores_relacionales: 0,
+      identidad: 0,
+    });
+
+    expect(metric.every((weight) => weight === 0)).toBe(true);
+  });
+});
+
+describe("computeTrackCentroid", () => {
+  it("returns the per-dimension empirical mean", () => {
+    expect(
+      computeTrackCentroid([
+        [1, 0, 0.5],
+        [0, 1, 0.5],
+        [0, 0, 0.5],
+      ]),
+    ).toEqual([1 / 3, 1 / 3, 0.5]);
+  });
+
+  it("throws when the population mixes vector lengths", () => {
+    expect(() => computeTrackCentroid([[0.5, 0.5], [0.5]])).toThrow(/same length/);
+  });
+});
+
 describe("trackSimilarity", () => {
   it("maps centered identical and mirrored vectors to one and zero", () => {
     expect(trackSimilarity(romanceVector(0.8), romanceVector(0.8), ROMANCE_TRACK)).toBeCloseTo(1);
@@ -610,7 +659,8 @@ describe("applyRomanceSelectivity", () => {
     const result = applyRomanceSelectivity(vector, vector, 0.91, ROMANCE_TRACK);
 
     expect(result.intimacyAlignment).toBeCloseTo(1, 12);
-    expect(result.conflictAlignment).toBeCloseTo(1, 12);
+    expect(result.conflictDistance).toBe(0);
+    expect(result.conflictFactor).toBe(1);
     expect(result.penalty).toBe(0);
     expect(result.score).toBeCloseTo(0.91, 12);
   });
@@ -632,8 +682,13 @@ describe("applyRomanceSelectivity", () => {
     expect(forward.intimacyAlignment).toBeLessThan(
       ROMANCE_TRACK.selectivity!.intimacy_alignment_floor,
     );
-    expect(forward.conflictAlignment).toBeLessThan(
-      ROMANCE_TRACK.selectivity!.conflict_alignment_floor,
+    expect(forward.conflictDistance).toBeCloseTo(0.65, 12);
+    expect(forward.conflictFactor).toBeCloseTo(
+      Math.exp(
+        -ROMANCE_TRACK.selectivity!.conflict_penalty_lambda *
+          (forward.conflictDistance - ROMANCE_TRACK.selectivity!.conflict_tolerance) ** 2,
+      ),
+      12,
     );
   });
 
@@ -1043,7 +1098,7 @@ describe("computeAllMatches", () => {
 
 describe("MATCHING_CONFIG", () => {
   it("publishes the calibrated dual thresholds", () => {
-    expect(MATCHING_CONFIG.version).toBe("1.1");
+    expect(MATCHING_CONFIG.version).toBe("1.2");
     expect(ROMANCE_TRACK.minimum_similarity_exclusive).toBe(0.78);
     expect(AMISTAD_TRACK.minimum_similarity_exclusive).toBe(0.65);
     expect(ROMANCE_TRACK.centering).toBe(0.5);
@@ -1051,10 +1106,13 @@ describe("MATCHING_CONFIG", () => {
     expect(ROMANCE_TRACK.max_matches).toBe(3);
     expect(AMISTAD_TRACK.max_matches).toBe(5);
     expect(ROMANCE_TRACK.target_coverage_percentile).toBe(0.08);
+    expect(ROMANCE_TRACK.maximum_pair_tail).toBe(0.06);
     expect(AMISTAD_TRACK.target_coverage_percentile).toBe(0.35);
     expect(ROMANCE_TRACK.selectivity).toMatchObject({
       intimacy_alignment_floor: 0.6,
-      conflict_alignment_floor: 0.55,
+      intimacy_penalty_weight: 0.45,
+      conflict_tolerance: 0.4,
+      conflict_penalty_lambda: 3.5,
     });
   });
 

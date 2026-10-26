@@ -13,9 +13,9 @@ import rawConfig from "../../../data/matching-config.json";
 
 const selectivitySchema = z.object({
   intimacy_alignment_floor: z.number().min(0).max(1),
-  conflict_alignment_floor: z.number().min(0).max(1),
   intimacy_penalty_weight: z.number().min(0).max(1),
-  conflict_penalty_weight: z.number().min(0).max(1),
+  conflict_tolerance: z.number().min(0).max(1),
+  conflict_penalty_lambda: z.number().min(0),
 });
 
 const trackSchema = z.object({
@@ -23,6 +23,7 @@ const trackSchema = z.object({
   centering: z.number().min(0).max(1),
   max_matches: z.number().int().positive(),
   target_coverage_percentile: z.number().min(0).max(1),
+  maximum_pair_tail: z.number().min(0).max(1).optional(),
   dimensions: z.array(z.string()),
   hard_filters: z.array(z.string()),
   weights: z.record(z.string(), z.number()),

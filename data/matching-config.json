@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "tracks": {
     "romance": {
       "minimum_similarity_exclusive": 0.78,
@@ -46,11 +46,12 @@
         "valores_relacionales": 0.25
       },
       "target_coverage_percentile": 0.08,
+      "maximum_pair_tail": 0.06,
       "selectivity": {
         "intimacy_alignment_floor": 0.6,
-        "conflict_alignment_floor": 0.55,
         "intimacy_penalty_weight": 0.45,
-        "conflict_penalty_weight": 0.35
+        "conflict_tolerance": 0.4,
+        "conflict_penalty_lambda": 3.5
       }
     },
     "amistad": {

@@ -258,9 +258,11 @@ export interface CategoryWeights {
 
 export interface RomanceSelectivityConfig {
   intimacy_alignment_floor: number;
-  conflict_alignment_floor: number;
   intimacy_penalty_weight: number;
-  conflict_penalty_weight: number;
+  /** Maximum tolerated distance in conflict-management style, δc. */
+  conflict_tolerance: number;
+  /** Quadratic penalty rate λ for distances beyond δc. */
+  conflict_penalty_lambda: number;
 }
 
 // Matching configuration
@@ -270,6 +272,8 @@ export interface TrackConfig {
   max_matches: number;
   /** Expected share of users with at least one match on this track. */
   target_coverage_percentile: number;
+  /** Hard upper bound on the share of pairs above the threshold. */
+  maximum_pair_tail?: number;
   dimensions: string[];
   hard_filters: HardFilterField[];
   weights: CategoryWeights;

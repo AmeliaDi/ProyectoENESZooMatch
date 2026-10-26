@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 import catalogue from "../data/arquetipos.json";
-import { MATCHING_CONFIG, trackSimilarity } from "../src/lib/matching/engine";
+import { MATCHING_CONFIG, applyRomanceSelectivity, computeTrackCentroid, trackSimilarity } from "../src/lib/matching/engine";
 import {
   FRIENDSHIP_VECTOR_DIMENSIONS,
   ROMANCE_VECTOR_DIMENSIONS,
@@ -15,8 +15,6 @@ import type { ArchetypeCatalog, MbtiCode } from "../src/types/archetype";
 
 export const SYNTHETIC_PROFILE_COUNT = 500;
 export const SYNTHETIC_SEED = 0x5a4f4f4d;
-export const TARGET_COVERAGE_RATE = 0.2;
-export const COVERAGE_BAND = { minimum: 0.05, maximum: 0.4 } as const;
 
 const MBTI_CODES: readonly MbtiCode[] = [
   "INTJ", "INTP", "ENTJ", "ENTP",
@@ -66,6 +64,7 @@ export interface PairAnalysis {
 export interface CoverageMeasurement {
   thresholdExclusive: number;
   qualifyingPairCount: number;
+  pairCoverageRate: number;
   usersWithMatch: number;
   userCoverageRate: number;
 }
@@ -344,6 +343,10 @@ export function generateSyntheticProfiles(seed = SYNTHETIC_SEED): SyntheticProfi
  * Computes every unordered pair once for a track. Synthetic profiles share
  * compatible hard filters (orientation wildcard + `sin_definir`), so the
  * analysis is purely dimensional.
+ *
+ * Vectors are centered against the empirical population centroid μ and the
+ * romance track applies the same intimacy/conflict selectivity as the engine,
+ * so these similarities are the final scores users would see.
  */
 export function analyzeTrackPairs(
   profiles: readonly SyntheticProfile[],
@@ -352,18 +355,22 @@ export function analyzeTrackPairs(
   const similarities: number[] = [];
   const maximumSimilarities = Array.from({ length: profiles.length }, () => 0);
   const config = MATCHING_CONFIG.tracks[track];
+  const vectors = profiles.map((profile) =>
+    track === "romance" ? profile.romanceVector : profile.friendshipVector,
+  );
+  const centroid = computeTrackCentroid(vectors);
   let minimumSimilarity = Number.POSITIVE_INFINITY;
   let maximumSimilarity = Number.NEGATIVE_INFINITY;
 
   for (let firstIndex = 0; firstIndex < profiles.length; firstIndex += 1) {
-    const first = profiles[firstIndex]!;
-    const firstVector =
-      track === "romance" ? first.romanceVector : first.friendshipVector;
+    const firstVector = vectors[firstIndex]!;
     for (let secondIndex = firstIndex + 1; secondIndex < profiles.length; secondIndex += 1) {
-      const second = profiles[secondIndex]!;
-      const secondVector =
-        track === "romance" ? second.romanceVector : second.friendshipVector;
-      const similarity = trackSimilarity(firstVector, secondVector, config);
+      const secondVector = vectors[secondIndex]!;
+      const baseSimilarity = trackSimilarity(firstVector, secondVector, config, centroid);
+      const similarity =
+        track === "romance"
+          ? applyRomanceSelectivity(firstVector, secondVector, baseSimilarity, config).score
+          : baseSimilarity;
       similarities.push(similarity);
       maximumSimilarities[firstIndex] = Math.max(maximumSimilarities[firstIndex]!, similarity);
       maximumSimilarities[secondIndex] = Math.max(maximumSimilarities[secondIndex]!, similarity);
@@ -389,31 +396,31 @@ export function measureCoverage(
   const usersWithMatch = analysis.maximumSimilarities.filter(
     (similarity) => similarity > thresholdExclusive,
   ).length;
+  const qualifyingPairCount = analysis.similarities.filter(
+    (similarity) => similarity > thresholdExclusive,
+  ).length;
   return {
     thresholdExclusive,
-    qualifyingPairCount: analysis.similarities.filter(
-      (similarity) => similarity > thresholdExclusive,
-    ).length,
+    qualifyingPairCount,
+    pairCoverageRate:
+      analysis.pairCount === 0 ? 0 : qualifyingPairCount / analysis.pairCount,
     usersWithMatch,
     userCoverageRate: usersWithMatch / analysis.maximumSimilarities.length,
   };
 }
 
 /**
- * If the active threshold lands outside the 5%–40% success band, bisects a new
- * threshold that reaches {@link TARGET_COVERAGE_RATE}. The matching engine keeps
- * its own configured threshold; this function reports the calibration only.
+ * Bisects a threshold that reaches the track's configured user-coverage
+ * target. The matching engine keeps its own configured threshold; this
+ * function reports the calibration only.
  */
 export function calibrateThreshold(
   analysis: PairAnalysis,
   initialThreshold = MATCHING_CONFIG.tracks[analysis.track].minimum_similarity_exclusive,
-  targetCoverageRate = TARGET_COVERAGE_RATE,
+  targetCoverageRate = MATCHING_CONFIG.tracks[analysis.track].target_coverage_percentile,
 ): CalibrationResult {
   const initial = measureCoverage(analysis, initialThreshold);
-  if (
-    initial.userCoverageRate >= COVERAGE_BAND.minimum &&
-    initial.userCoverageRate <= COVERAGE_BAND.maximum
-  ) {
+  if (Math.abs(initial.userCoverageRate - targetCoverageRate) <= 0.002) {
     return {
       calibrated: false,
       initial,
