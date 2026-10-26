@@ -15,27 +15,31 @@ import {
 
 import {
   MBTI_CODES,
-  adminMetricsToCsv,
-  parseAdminMetrics,
-  type AdminMetrics,
-} from "@/lib/admin-dashboard";
+  adminMetricsV2ToCsv,
+  parseAdminMetricsV2,
+  trackCoverageRate,
+  type AdminMetricsV2,
+} from "@/lib/admin-dashboard-v2";
 
 interface AdminDashboardProps {
-  initialData: AdminMetrics | null;
-  threshold: number;
+  initialData: AdminMetricsV2 | null;
 }
 
 const chartColors = ["#c7e879", "#8fae66", "#ef936d", "#6aa6a0"];
 
-function emptyMetrics(threshold: number): AdminMetrics {
+function emptyMetrics(): AdminMetricsV2 {
   return {
     generatedAt: new Date(0).toISOString(),
-    threshold,
+    romanceThreshold: 0.65,
+    amistadThreshold: 0.68,
     totalProfiles: 0,
-    matchedUsers: 0,
-    matchedPercentage: 0,
-    mbtiDistribution: MBTI_CODES.map((code) => ({ code, count: 0 })),
+    romanceMatches: 0,
+    amistadMatches: 0,
+    usersWithRomanceMatch: 0,
+    usersWithAmistadMatch: 0,
+    mbtiDistribution: {},
     topAnimals: [],
+    topColors: [],
   };
 }
 
@@ -45,15 +49,22 @@ function utcStamp(value: string): string {
   return `${date.toISOString().slice(0, 16).replace("T", " ")} UTC`;
 }
 
-export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) {
+export function AdminDashboard({ initialData }: AdminDashboardProps) {
   const router = useRouter();
-  const [metrics, setMetrics] = useState<AdminMetrics | null>(initialData);
+  const [metrics, setMetrics] = useState<AdminMetricsV2 | null>(initialData);
   const [status, setStatus] = useState<"idle" | "refreshing" | "error">(
     initialData ? "idle" : "error",
   );
+  const [recomputing, setRecomputing] = useState(false);
   const inFlight = useRef(false);
   const mounted = useRef(true);
-  const data = metrics ?? emptyMetrics(threshold);
+  const data = metrics ?? emptyMetrics();
+  const mbtiDistribution = MBTI_CODES.map((code) => ({
+    code,
+    count: data.mbtiDistribution[code] ?? 0,
+  }));
+  const romanceCoverage = trackCoverageRate(data.usersWithRomanceMatch, data.totalProfiles);
+  const amistadCoverage = trackCoverageRate(data.usersWithAmistadMatch, data.totalProfiles);
   const isZero = data.totalProfiles === 0;
 
   const refresh = useCallback(async (silent = false) => {
@@ -62,7 +73,7 @@ export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) 
     if (!silent) setStatus("refreshing");
 
     try {
-      const response = await fetch("/api/admin/metrics", {
+      const response = await fetch("/api/admin/metrics-v2", {
         cache: "no-store",
         credentials: "same-origin",
         signal: AbortSignal.timeout(10000),
@@ -73,7 +84,7 @@ export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) 
       }
       if (!response.ok) throw new Error("metrics_unavailable");
 
-      const parsed = parseAdminMetrics(await response.json());
+      const parsed = parseAdminMetricsV2(await response.json());
       if (!parsed) throw new Error("invalid_metrics");
       if (mounted.current) {
         setMetrics(parsed);
@@ -100,13 +111,36 @@ export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) 
 
   function downloadCsv() {
     if (!metrics) return;
-    const blob = new Blob([adminMetricsToCsv(metrics)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([adminMetricsV2ToCsv(metrics)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = `zoomatch-agregados-${new Date().toISOString().slice(0, 10)}.csv`;
     anchor.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function recompute() {
+    if (recomputing) return;
+    setRecomputing(true);
+    try {
+      const response = await fetch("/api/admin/recompute-v2", {
+        method: "POST",
+        cache: "no-store",
+        credentials: "same-origin",
+        signal: AbortSignal.timeout(120000),
+      });
+      if (response.status === 401 || response.status === 403) {
+        router.replace("/admin/login");
+        return;
+      }
+      if (!response.ok) throw new Error("recompute_unavailable");
+      await refresh(false);
+    } catch {
+      setStatus("error");
+    } finally {
+      setRecomputing(false);
+    }
   }
 
   async function logout() {
@@ -143,6 +177,14 @@ export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) 
             </button>
             <button
               type="button"
+              onClick={() => void recompute()}
+              disabled={recomputing}
+              className="min-h-11 border border-[#ef936d]/50 px-4 font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[#ef936d] transition hover:border-[#ef936d] hover:text-white focus-visible:ring-2 focus-visible:ring-[#ef936d] disabled:cursor-wait disabled:opacity-45"
+            >
+              {recomputing ? "Recalculando" : "Recalcular constelaciones"}
+            </button>
+            <button
+              type="button"
               onClick={downloadCsv}
               disabled={!metrics}
               className="min-h-11 bg-[#c7e879] px-4 font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[#0b100e] transition hover:bg-white focus-visible:ring-2 focus-visible:ring-white disabled:opacity-35"
@@ -163,7 +205,10 @@ export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) 
           <p role="status" aria-live="polite" className={status === "error" ? "text-[#ef936d]" : ""}>
             {status === "error" ? "Lectura interrumpida; conserva el último agregado" : `Última lectura · ${utcStamp(data.generatedAt)}`}
           </p>
-          <p>Polling visible · 60 s / umbral &gt; {(data.threshold * 100).toFixed(0)}%</p>
+          <p>
+            Polling visible · 60 s / umbrales &gt; romance {(data.romanceThreshold * 100).toFixed(0)}%
+            · amistad {(data.amistadThreshold * 100).toFixed(0)}%
+          </p>
         </div>
 
         <section aria-label="Resumen de métricas" className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-[0.8fr_1fr_1.45fr]">
@@ -175,15 +220,34 @@ export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) 
           </article>
 
           <article className="admin-panel p-5 lg:p-7">
-            <p className="admin-label">Usuarios con al menos un match</p>
-            <div className="mt-4 flex items-end gap-4">
-              <p className="font-display text-7xl leading-none tracking-[-0.06em] text-[#c7e879]">{data.matchedPercentage.toFixed(1)}%</p>
-              <p className="pb-2 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[#718079]">{data.matchedUsers} distintos</p>
+            <p className="admin-label">Cobertura por track</p>
+            <div className="mt-5 space-y-5">
+              <div>
+                <div className="flex items-end justify-between gap-3">
+                  <p className="font-display text-4xl leading-none text-[#c7e879]">{romanceCoverage.toFixed(1)}%</p>
+                  <p className="pb-1 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-[#718079]">
+                    romance · {data.romanceMatches} matches
+                  </p>
+                </div>
+                <div className="mt-2 h-1.5 overflow-hidden bg-white/5" aria-hidden="true">
+                  <span className="block h-full bg-[#c7e879]" style={{ width: `${romanceCoverage}%` }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-end justify-between gap-3">
+                  <p className="font-display text-4xl leading-none text-[#ef936d]">{amistadCoverage.toFixed(1)}%</p>
+                  <p className="pb-1 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-[#718079]">
+                    amistad · {data.amistadMatches} matches
+                  </p>
+                </div>
+                <div className="mt-2 h-1.5 overflow-hidden bg-white/5" aria-hidden="true">
+                  <span className="block h-full bg-[#ef936d]" style={{ width: `${amistadCoverage}%` }} />
+                </div>
+              </div>
             </div>
-            <div className="mt-6 h-1.5 overflow-hidden bg-white/5" aria-hidden="true">
-              <span className="block h-full bg-[#c7e879] transition-[width] duration-700" style={{ width: `${data.matchedPercentage}%` }} />
-            </div>
-            <p className="mt-4 text-xs leading-5 text-[#718079]">Similitud estrictamente mayor al umbral activo.</p>
+            <p className="mt-4 text-xs leading-5 text-[#718079]">
+              Usuarios con al menos una conexión; similitud estrictamente mayor al umbral.
+            </p>
           </article>
 
           <article className="admin-panel p-5 md:col-span-2 lg:p-7 xl:col-span-1">
@@ -192,17 +256,17 @@ export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) 
                 <p className="admin-label">Distribución MBTI completa</p>
                 <h2 className="mt-2 font-display text-3xl tracking-[-0.04em]">Dieciséis señales</h2>
               </div>
-              <span className="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-[#718079]">n = {data.mbtiDistribution.reduce((sum, item) => sum + item.count, 0)}</span>
+              <span className="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-[#718079]">n = {mbtiDistribution.reduce((sum, item) => sum + item.count, 0)}</span>
             </div>
             <div className="mt-5 h-56" aria-label="Gráfica de distribución de los 16 tipos MBTI">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.mbtiDistribution} margin={{ top: 8, right: 0, bottom: 0, left: -28 }} accessibilityLayer>
+                <BarChart data={mbtiDistribution} margin={{ top: 8, right: 0, bottom: 0, left: -28 }} accessibilityLayer>
                   <CartesianGrid stroke="#ffffff0d" vertical={false} />
                   <XAxis dataKey="code" tick={{ fill: "#718079", fontSize: 9 }} axisLine={false} tickLine={false} interval={0} angle={-55} textAnchor="end" height={48} />
                   <YAxis allowDecimals={false} tick={{ fill: "#718079", fontSize: 9 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: "#ffffff08" }} contentStyle={{ background: "#111915", border: "1px solid #ffffff1a", color: "#eef2e3", fontSize: 12 }} />
                   <Bar dataKey="count" name="Perfiles" radius={[2, 2, 0, 0]}>
-                    {data.mbtiDistribution.map((entry, index) => <Cell key={entry.code} fill={chartColors[Math.floor(index / 4)]} />)}
+                    {mbtiDistribution.map((entry, index) => <Cell key={entry.code} fill={chartColors[Math.floor(index / 4)]} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -257,7 +321,7 @@ export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) 
                   <tr><th scope="col" className="border-b border-white/10 pb-3">Tipo</th><th scope="col" className="border-b border-white/10 pb-3 text-right">Perfiles</th></tr>
                 </thead>
                 <tbody className="font-mono text-xs">
-                  {data.mbtiDistribution.map(({ code, count }) => (
+                  {mbtiDistribution.map(({ code, count }) => (
                     <tr key={code}><th scope="row" className="border-b border-white/5 py-2 font-medium text-[#c7e879]">{code}</th><td className="border-b border-white/5 py-2 text-right text-[#9ca9a1]">{count}</td></tr>
                   ))}
                 </tbody>
@@ -266,13 +330,29 @@ export function AdminDashboard({ initialData, threshold }: AdminDashboardProps) 
 
             <div className="admin-panel overflow-auto p-5 lg:p-6">
               <table className="w-full border-collapse text-left text-sm">
-                <caption className="mb-4 text-left font-display text-2xl tracking-[-0.03em]">Ranking accesible</caption>
+                <caption className="mb-4 text-left font-display text-2xl tracking-[-0.03em]">Animalitos</caption>
                 <thead className="font-mono text-[0.58rem] uppercase tracking-[0.16em] text-[#718079]">
                   <tr><th scope="col" className="border-b border-white/10 pb-3">Animalito</th><th scope="col" className="border-b border-white/10 pb-3 text-right">Perfiles</th></tr>
                 </thead>
                 <tbody>
                   {data.topAnimals.length > 0 ? data.topAnimals.map(({ animal, count }) => (
                     <tr key={animal}><th scope="row" className="border-b border-white/5 py-3 font-medium text-white">{animal}</th><td className="border-b border-white/5 py-3 text-right font-mono text-xs text-[#ef936d]">{count}</td></tr>
+                  )) : (
+                    <tr><td colSpan={2} className="py-6 text-center text-[#718079]">Sin datos agregados</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="admin-panel overflow-auto p-5 lg:p-6">
+              <table className="w-full border-collapse text-left text-sm">
+                <caption className="mb-4 text-left font-display text-2xl tracking-[-0.03em]">Colores</caption>
+                <thead className="font-mono text-[0.58rem] uppercase tracking-[0.16em] text-[#718079]">
+                  <tr><th scope="col" className="border-b border-white/10 pb-3">Color</th><th scope="col" className="border-b border-white/10 pb-3 text-right">Perfiles</th></tr>
+                </thead>
+                <tbody>
+                  {data.topColors.length > 0 ? data.topColors.map(({ color, count }) => (
+                    <tr key={color}><th scope="row" className="border-b border-white/5 py-3 font-medium text-white">{color}</th><td className="border-b border-white/5 py-3 text-right font-mono text-xs text-[#c7e879]">{count}</td></tr>
                   )) : (
                     <tr><td colSpan={2} className="py-6 text-center text-[#718079]">Sin datos agregados</td></tr>
                   )}

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { getAmistadThreshold, getRomanceThreshold } from "@/lib/matching-config-v2";
 import { MICROTEST_V2_ITEMS, scoreQuizV2 } from "@/lib/matching-v2";
+import { recomputeAllMatchesV2 } from "@/lib/matching-recompute.server";
 import { generateWelcomeMessage } from "@/lib/notification-copy";
 import { generateProfileIdentity } from "@/lib/profile-generator";
 import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
@@ -72,13 +72,10 @@ async function handlePost(request: Request) {
     return NextResponse.json({ error: "Unable to save result" }, { status: 503 });
   }
 
-  const { error: matchError } = await admin.rpc("compute_dual_matches", {
-    p_user_id: userId,
-    p_romance_threshold: getRomanceThreshold(),
-    p_amistad_threshold: getAmistadThreshold(),
-  });
-
-  if (matchError) {
+  let pairs;
+  try {
+    pairs = await recomputeAllMatchesV2(admin);
+  } catch {
     return NextResponse.json({ error: "Unable to save result" }, { status: 503 });
   }
 
@@ -89,6 +86,23 @@ async function handlePost(request: Request) {
   if (notifyError) {
     return NextResponse.json({ error: "Unable to save result" }, { status: 503 });
   }
+
+  const pairedUsers = new Set<string>();
+  for (const pair of pairs) {
+    if (pair.userA === userId.toLowerCase()) pairedUsers.add(pair.userB);
+    else if (pair.userB === userId.toLowerCase()) pairedUsers.add(pair.userA);
+  }
+  await Promise.all(
+    [...pairedUsers]
+      .filter((pairedUserId) => pairedUserId !== userId.toLowerCase())
+      .map(async (pairedUserId) => {
+        try {
+          await admin.rpc("notify_matches_v2", { p_user_id: pairedUserId });
+        } catch {
+          // Counterpart notifications are best-effort.
+        }
+      }),
+  );
 
   // Best-effort welcome notification for first-time submissions. Inserted after
   // notify_matches_v2 (which clears prior unread notifications) so it persists.

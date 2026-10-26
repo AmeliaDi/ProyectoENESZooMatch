@@ -72,15 +72,15 @@ Resultado: animalito + color + narrativa afectiva + constelación de matches
 
 El producto evolucionó en **dos versiones que conviven** en el mismo repositorio:
 
-| | **v1** | **v2** |
+| | **v1 (legado)** | **v2 (producto vigente)** |
 |---|---|---|
 | Enfoque | Un solo track (romance/afinidad) | **Doble track: romance + amistad** |
 | Cuestionario | 24 ítems · 17 dimensiones (13 de matching + 4 MBTI) · Likert 1–4 | **60 ítems · 30 dimensiones · Likert 1–5** |
 | Categorías | BigFive, MBTI, Relaciones, Género | BigFive, MBTI, Identidad, Cultural, Intimidad, Valores |
-| Motor | Similitud coseno sobre vectores normalizados | Similitud coseno **ponderada por categoría** + **filtros duros** |
-| Umbral activo | `> 0.9920196533203125` (ver nota) | romance `> 0.80` (26 dims) · amistad `> 0.75` (16 dims, sin filtros) |
+| Motor | Similitud coseno sobre vectores normalizados | Coseno **ponderado y centrado en 0.5**, filtros de atracción mutua en romance |
+| Umbral activo | `> 0.9920196533203125` (ver nota) | romance `> 0.65` · amistad `> 0.68`; top-5 por persona y track |
 | Catálogo | 16 arquetipos MBTI | **61 animales × 55 colores/texturas** |
-| Rutas | `/cuestionario` → `/resultado` | `/cuestionario-v2` → `/resultado-v2` |
+| Rutas | redirige al flujo vigente | `/` → `/cuestionario-v2` → `/resultado-v2` |
 | Visualización | Lista de matches | **Constelación interactiva** + badges |
 
 > **Nota sobre el umbral v1:** `data/matching-config.json` contiene hoy
@@ -90,22 +90,20 @@ El producto evolucionó en **dos versiones que conviven** en el mismo repositori
 > del esquema** (`SAFE_FALLBACK_THRESHOLD` en `src/lib/matching-config.ts`), no el umbral
 > activo.
 
-**Pesos por categoría (v2 romance):** personalidad `0.25`, intimidad `0.25`, valores `0.25`,
-cultural `0.20`, identidad `0.05`. Esto evita que categorías con muchas dimensiones
-(intimidad, 8) tapen a las pequeñas (identidad, 2). **Pesos amistad:** personalidad `0.40`,
-cultural `0.35`, valores `0.25`.
+La similitud v2 centra cada vector según `centering: 0.5`, calcula el cosine ponderado
+por categoría y lo escala a `[0,1]`. Los pesos activos están versionados en
+`data/matching-config-v2.json`.
 
 ---
 
 ## ✨ Funcionalidades clave
 
-- **Registro e identidad anónima** (`/api/register`, `/api/login`, `/api/availability`):
-  matrícula → hash HMAC → usuario Supabase Auth con email virtual
-  `${hash}@accounts.zoomatch.invalid`.
-- **Cuestionarios v1 y v2** con borrador persistente en `localStorage`
-  (`zoomatch:quiz-draft:v1`).
-- **Motor de matching dual** con filtros duros (orientación sexual, identidad de género,
-  tipo de relación buscada) que sólo aplican al track **romance**.
+- **Entrada pública por matrícula** (`/api/enter`, compatible en `/api/login`): crea o
+  recupera una cuenta anónima sin revelar si la matrícula ya existía.
+- **Cuestionario v2 de 60 ítems** como flujo público vigente, con borrador persistente
+  en `localStorage`; v1 se conserva como legado.
+- **Motor de matching dual** con cosine ponderado y centrado, atracción mutua y filtros
+  de relación sólo para **romance**, y hasta cinco matches por track y persona.
 - **Badges de afinidad**: top 5 dimensiones (romance) / top 3 (amistad) por afinidad
   `1 - |a - b|`, con label e icono en español.
 - **Explainability** (`src/lib/explainability.ts`): traduce similitudes crudas a lenguaje
@@ -135,13 +133,15 @@ cultural `0.35`, valores `0.25`.
 - **Animación:** Framer Motion `^14`. **Gráficas admin:** Recharts `^3`.
 - **Validación:** Zod `^4` (entorno, payloads de API, configs JSON).
 - **Backend:** Supabase (PostgreSQL + Auth + RLS) vía `@supabase/supabase-js` +
-  `@supabase/ssr`. La lógica pesada de matching vive en **funciones SQL (RPCs)** dentro de
-  `supabase/migrations/`.
+  `@supabase/ssr`. El matching v2 se calcula server-side en TypeScript
+  (`src/lib/matching-v2.ts`); el RPC SQL `compute_dual_matches` se conserva como legado y está
+  marcado como deprecated.
 - **Tests:** Vitest `^5` (corrido con Vite `^8`), sólo `src/**/*.test.ts`, entorno `node`,
   alias `@` → `./src`.
 - **Pipeline de datos:** Python (`requests` + `beautifulsoup4`) bajo `scripts/` para
   generar y curar los JSON de `data/`.
-- **Sin CI, sin Docker:** todo se maneja con scripts npm.
+- **CI / Docker:** no hay CI; Docker sólo se necesita para levantar Supabase local
+  (`supabase start`).
 
 ---
 
@@ -165,16 +165,16 @@ ProyectoENESZooMatch/
 ├── src/
 │   ├── app/                       # 🧭 rutas App Router (páginas + API)
 │   │   ├── page.tsx · layout.tsx · globals.css
-│   │   ├── login/ · cuestionario/ · resultado/            # flujo v1
+│   │   ├── login/ · cuestionario/ · resultado/            # redirecciones al flujo vigente
 │   │   ├── cuestionario-v2/ · resultado-v2/               # flujo v2
 │   │   ├── admin/ · admin/login/                          # dashboard (protegido por proxy)
 │   │   ├── dev/constellation/ · dev/sprites/              # rutas de desarrollo (404 en prod)
-│   │   └── api/                                           # Route Handlers (register, login, quiz, result, admin, notifications, availability…)
+│   │   └── api/                                           # Route Handlers (enter, quiz-v2, result-v2, admin, notifications…)
 │   ├── components/                # 🎨 experiencias cliente
 │   │   ├── public-experience.tsx / -v2.tsx     # quiz + resultado (v1 / v2)
 │   │   ├── public-experience-utils.ts / -v2.ts # lógica pura + literales protegidos por tests
 │   │   ├── constellation/                    # ⭐ sistema de visualización de constelación
-│   │   ├── admin-dashboard.tsx · admin-login.tsx · login-form.tsx
+│   │   ├── admin-dashboard.tsx · admin-login.tsx · matricula-entry.tsx
 │   │   ├── foundation-hero.tsx · notification-provider.tsx · sprite-gallery.tsx
 │   ├── lib/                       # ⚙️ motores (matching, scoring, validación, seguridad, layout)
 │   │   ├── matching.ts / matching-v2.ts        # núcleos de matching (puros)
@@ -196,7 +196,7 @@ ProyectoENESZooMatch/
 ├── .qoder/repowiki/               # 📚 documentación generada (ver mapa de lectura abajo)
 ├── .env.example                   # contrato de variables de entorno
 ├── CONTEXTO_PROYECTO.md           # documento de contexto profundo por capas
-├── vitest.config.ts · next.config.ts · tsconfig.json · eslint.config.mjs · postcss.config.mjs
+├── vitest.config.mts · next.config.ts · tsconfig.json · eslint.config.mjs · postcss.config.mjs
 └── package.json · package-lock.json · requirements.txt
 ```
 
@@ -213,14 +213,14 @@ ProyectoENESZooMatch/
                                  │  replicados con seed.sql / seed_v2.sql)
 ┌───────────────────────────────▼───────────────────────────────────────┐
 │  FRONTEND (Next.js App Router)                                          │
-│  páginas (/cuestionario*, /resultado*, /admin, /login)                  │
+│  páginas (/cuestionario-v2, /resultado-v2, /admin)                      │
 │  + componentes (public-experience*, constellation/, admin-dashboard)    │
 └───────────────────────────────┬───────────────────────────────────────┘
                                  │ fetch
 ┌───────────────────────────────▼───────────────────────────────────────┐
 │  API ROUTES  (todas envueltas en withApiSecurity: CORS + rate limit)    │
-│  /api/register · login · availability · quiz · quiz-v2 · result ·       │
-│   result-v2 · notifications · admin/{login,logout,metrics,metrics-v2}   │
+│  /api/enter · quiz-v2 · result-v2 · notifications ·                    │
+│   admin/{login,logout,metrics-v2,recompute-v2}                          │
 └───────────────────────────────┬───────────────────────────────────────┘
                                  │ Supabase service-role client
 ┌───────────────────────────────▼───────────────────────────────────────┐
@@ -237,10 +237,13 @@ ProyectoENESZooMatch/
 **calibra umbrales por bisección**. La calibración sólo escribe en `data/` o fixtures de
 prueba, **nunca reescribe código fuente**.
 
-### 2. Registro, login e identidad (compartido v1+v2)
-Matrícula → `hashMatricula()` (HMAC-SHA-256 con `MATRICULA_HMAC_SECRET`) →
-`is_matricula_available` (RPC) → usuario Supabase Auth con email virtual. Archetype
-(animalito + color) se asigna server-side (`private.assign_archetype_and_alias`).
+### 2. Entrada e identidad del producto (v2)
+La entrada pública pide únicamente la matrícula. `POST /api/enter` la normaliza y
+calcula su hash HMAC-SHA-256; crea un perfil anónimo si hace falta o recupera el
+existente, y abre sesión sin revelar si la matrícula estaba registrada. La primera
+entrada lleva al cuestionario de 60 ítems y las siguientes retoman el flujo v2.
+`/login`, `/cuestionario` y `/resultado` redirigen a la experiencia vigente; v1 queda
+como legado.
 
 ### 3. Cuestionario y matching v1
 `POST /api/quiz` → RPC `submit_quiz_result` (guarda respuestas y calcula vectores
@@ -255,13 +258,16 @@ emoticon intocables, asertada por tests).
 - **Scoring** (`matching-v2.ts::scoreQuizV2`): ítems negativos invertidos (`6 - valor`);
   cada dimensión normalizada a `[0,1]`; se deriva el código MBTI (`>= 0.5` → letra
   positiva); se extraen los 3 hard filters; se arman los vectores romance (26) y amistad (16).
-- **Filtros duros** (sólo romance): orientación sexual (con comodines `todxs` /
-  `prefiero no decir`), identidad de género (deliberadamente permisiva) y tipo de relación.
-  AND de los tres.
-- **Similitud ponderada** (`weightedTrackSimilarity`): cosine por sub-vector de categoría y
-  media ponderada con los pesos de config.
-- **Orquestación** `POST /api/quiz-v2`: `submit_quiz_result_v2` → `compute_dual_matches` →
-  `notify_matches_v2` + bienvenida. `GET /api/result-v2`: `profiles_v2` + `get_my_matches_v2`.
+- **Filtros duros** (sólo romance): atracción mutua entre orientación e identidad de
+  género, comodines `todxs` / `prefiero no decir`, compatibilidad asexual y tipo de
+  relación. `amistad` no aplica esos filtros.
+- **Similitud ponderada** (`trackSimilarity`): centra los vectores en `0.5`, calcula
+  cosine por categoría con sus pesos y transforma el resultado a `[0,1]`. Cada track
+  aplica su umbral exclusivo y conserva la unión top-5 por persona.
+- **Orquestación** `POST /api/quiz-v2`: `submit_quiz_result_v2` → recomputación global
+  determinista en TypeScript → reemplazo atómico mediante `replace_matches_v2` →
+  notificaciones y bienvenida. `GET /api/result-v2`: `profiles_v2` +
+  `get_my_matches_v2`.
 
 ### 5. Explainability
 `src/lib/explainability.ts` traduce similitudes a lenguaje afectivo es-MX determinista:
@@ -305,12 +311,13 @@ duros (`Cache-Control: no-store`, `X-Content-Type-Options: nosniff`).
 | `user_roles` + `private.is_admin` | `202610220002_admin_analytics.sql` | RBAC del dashboard |
 | `animals`, `colors`, `quiz_items_v2`, `profiles_v2`, `quiz_responses_v2`, `matches_v2`, `notifications` | `202610230001_multidimensional_v2.sql` | v2: catálogo expandido, doble track y notificaciones |
 | (recrea `get_my_matches_v2`) | `202610240001_matches_v2_explainability.sql` | añade `other_user` al RPC para que el resultado pueda construir la explicación afectiva |
+| `replace_matches_v2` y permisos de RPC | `202610250001_global_matching_hardening.sql` | reemplazo atómico de matches, control de snapshots obsoletos y cierre de permisos por defecto |
 
 `profiles_v2` guarda `romance_vector double precision[26]` y
-`amistad_vector double precision[16]`. **RPCs clave:** `is_matricula_available`,
-`submit_quiz_result`, `refresh_matches`, `get_my_matches` (v1) · `submit_quiz_result_v2`,
-`compute_dual_matches`, `get_my_matches_v2`, `notify_matches_v2`, `get_my_notifications`,
-`mark_notifications_read`, `get_admin_dashboard`, `get_admin_dashboard_v2` (v2).
+`amistad_vector double precision[16]`. **RPCs clave:** `submit_quiz_result`,
+`refresh_matches`, `get_my_matches` (v1, legado) · `submit_quiz_result_v2`,
+`replace_matches_v2`, `get_my_matches_v2`, `notify_matches_v2`,
+`get_my_notifications`, `mark_notifications_read`, `get_admin_dashboard_v2` (v2).
 RLS activo en todo; **service role sólo en rutas API server-side**.
 
 ---
@@ -336,19 +343,16 @@ Contrato completo en [`.env.example`](./.env.example). Validadas con Zod en
 
 ## 🚀 Cómo correr el proyecto
 
+La configuración completa de Supabase, seeds, Auth, Vercel, variables y capacidad está
+en [`DESPLIEGUE.md`](./DESPLIEGUE.md). Resumen local:
+
 ```bash
-# 1. Requisitos: Node >= 22.12.0
+# 1. Requisitos: Node >= 22.12.0 y Docker
 npm install
 
-# 2. Entorno
-cp .env.example .env.local      # en Windows: copy .env.example .env.local
-#    → llena Supabase (URL + publishable + service role) y MATRICULA_HMAC_SECRET
-
-# 3. Base de datos (Supabase)
-#    Aplica en orden: supabase/migrations/*.sql  →  seed.sql  →  seed_v2.sql
-#    Promueve el primer admin con: supabase/promote_admin.sql
-
-# 4. Desarrollo
+supabase start
+supabase db reset               # migraciones y ambos seeds configurados
+supabase status                 # copia URL/keys locales a .env.local
 npm run dev                     # http://localhost:3000
 
 # (Opcional) sólo si regeneras datos del pipeline Python:

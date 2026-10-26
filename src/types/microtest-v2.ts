@@ -259,6 +259,8 @@ export interface CategoryWeights {
 // Matching configuration
 export interface TrackConfig {
   minimum_similarity_exclusive: number;
+  centering: number;
+  max_matches: number;
   dimensions: string[];
   hard_filters: HardFilterField[];
   weights: CategoryWeights;

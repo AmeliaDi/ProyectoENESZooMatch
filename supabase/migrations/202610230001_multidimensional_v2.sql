@@ -244,9 +244,9 @@ BEGIN
     p_user_id,
     (SELECT matricula_hash FROM public.profiles WHERE id = p_user_id),
     p_alias, p_animal_id, p_color_id, p_narrative,
-    COALESCE((p_hard_filters->'orientacion_sexual')::TEXT[], '{}'),
-    COALESCE((p_hard_filters->'identidad_genero')::TEXT[], '{}'),
-    COALESCE((p_hard_filters->'tipo_relacion_busca')::TEXT[], '{}'),
+    COALESCE(ARRAY(SELECT jsonb_array_elements_text(p_hard_filters->'orientacion_sexual')), '{}'),
+    COALESCE(ARRAY(SELECT jsonb_array_elements_text(p_hard_filters->'identidad_genero')), '{}'),
+    COALESCE(ARRAY(SELECT jsonb_array_elements_text(p_hard_filters->'tipo_relacion_busca')), '{}'),
     p_romance_vector, p_amistad_vector, p_dimension_scores, p_mbti_code, now()
   )
   ON CONFLICT (user_id) DO UPDATE SET
@@ -439,15 +439,19 @@ BEGIN
   END LOOP;
 
   SELECT jsonb_agg(jsonb_build_object(
-    'dimension', v_dims[idx],
-    'affinity', v_affinities[idx]
-  ) ORDER BY v_affinities[idx] DESC)
+    'dimension', selected.dimension,
+    'affinity', selected.affinity
+  ) ORDER BY selected.affinity DESC, selected.idx)
   INTO v_badges
-  FROM generate_subscripts(v_dims, 1) AS idx
-  WHERE idx = ANY(
-    (SELECT array_agg(s.idx ORDER BY v_affinities[s.idx] DESC LIMIT v_limit)
-     FROM generate_subscripts(v_dims, 1) AS s(idx))
-  );
+  FROM (
+    SELECT
+      s.idx,
+      v_dims[s.idx] AS dimension,
+      v_affinities[s.idx] AS affinity
+    FROM generate_subscripts(v_dims, 1) AS s(idx)
+    ORDER BY v_affinities[s.idx] DESC, s.idx
+    LIMIT v_limit
+  ) AS selected;
 
   RETURN COALESCE(v_badges, '[]'::JSONB);
 END;

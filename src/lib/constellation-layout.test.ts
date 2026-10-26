@@ -33,8 +33,8 @@ const VIEWPORT_H = 600;
 
 const ME = { id: "me-001", animal: "ajolotito", color: "#ff77aa", alias: "Yo" };
 
-const ROMANCE_THRESHOLD = getTrackThreshold("romance"); // 0.80 from config
-const AMISTAD_THRESHOLD = getTrackThreshold("amistad"); // 0.75 from config
+const ROMANCE_THRESHOLD = getTrackThreshold("romance"); // 0.65 from config
+const AMISTAD_THRESHOLD = getTrackThreshold("amistad"); // 0.68 from config
 
 function makeMatch(
   id: string,
@@ -48,7 +48,7 @@ const MATCHES: MatchInput[] = [
   makeMatch("m-high", 0.95),
   makeMatch("m-mid", 0.85),
   makeMatch("m-low", 0.78),
-  makeMatch("m-below", 0.70), // below amistad threshold → node, no edge
+  makeMatch("m-below", 0.67), // below amistad threshold → no node or edge
   makeMatch("m-romance", 0.92, "romance"), // different track → excluded
 ];
 
@@ -97,11 +97,11 @@ function distanceBetween(state: SimulationState, a: string, b: string): number {
 
 describe("getTrackThreshold", () => {
   it("reads romance threshold from matching-config-v2.json", () => {
-    expect(ROMANCE_THRESHOLD).toBe(0.8);
+    expect(ROMANCE_THRESHOLD).toBe(0.65);
   });
 
   it("reads amistad threshold from matching-config-v2.json", () => {
-    expect(AMISTAD_THRESHOLD).toBe(0.75);
+    expect(AMISTAD_THRESHOLD).toBe(0.68);
   });
 });
 
@@ -195,7 +195,7 @@ describe("buildGraph", () => {
 
   it("creates the correct node count: me + filtered matches + ghosts", () => {
     // me (1) + above-threshold amistad matches (3: m-high, m-mid, m-low) + ghosts (4).
-    // m-below (0.70) is under the 0.75 threshold so it is not a match → no node.
+    // m-below (0.67) is under the 0.68 threshold so it is not a match → no node.
     expect(graph.nodes.length).toBe(8);
     expect(graph.nodes.filter((n) => !n.isGhost && !n.isSelf).length).toBe(3);
   });
@@ -218,7 +218,7 @@ describe("buildGraph", () => {
   });
 
   it("excludes below-threshold matches as nodes (they are not matches)", () => {
-    // m-below (0.70 <= 0.75) is not a match → neither a node nor an edge.
+    // m-below (0.67 <= 0.68) is not a match → neither a node nor an edge.
     expect(graph.nodes.some((n) => n.id === "m-below")).toBe(false);
     expect(graph.edges.some((e) => e.source === "m-below" || e.target === "m-below")).toBe(false);
   });
@@ -571,7 +571,7 @@ describe("switchTrack", () => {
     makeMatch("d1", 0.92, "romance"),
     makeMatch("d1", 0.77, "amistad"),
     makeMatch("d2", 0.86, "romance"),
-    makeMatch("d2", 0.71, "amistad"), // below amistad threshold → no edge after switch
+    makeMatch("d2", 0.67, "amistad"), // below amistad threshold → no edge after switch
   ];
 
   const romanceState = createSimulationState(
@@ -585,7 +585,7 @@ describe("switchTrack", () => {
     const switched = switchTrack(settled, dualMatches, "amistad", AMISTAD_THRESHOLD);
     expect(switched.edges.length).not.toBe(settled.edges.length);
     const selfEdges = switched.edges.filter((e) => e.source === ME.id || e.target === ME.id);
-    // d1 (0.77 > 0.75) connected; d2 (0.71 <= 0.75) not.
+    // d1 (0.77 > 0.68) connected; d2 (0.67 <= 0.68) not.
     expect(selfEdges.some((e) => e.source === "d1" || e.target === "d1")).toBe(true);
     expect(selfEdges.some((e) => e.source === "d2" || e.target === "d2")).toBe(false);
     for (const e of switched.edges) expect(e.similarity).toBeGreaterThan(AMISTAD_THRESHOLD);

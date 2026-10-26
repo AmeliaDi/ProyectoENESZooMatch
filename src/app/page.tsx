@@ -1,5 +1,5 @@
-import { PublicRegistration } from "@/components/public-experience";
+import { MatriculaEntry } from "@/components/matricula-entry";
 
 export default function HomePage() {
-  return <PublicRegistration />;
+  return <MatriculaEntry />;
 }

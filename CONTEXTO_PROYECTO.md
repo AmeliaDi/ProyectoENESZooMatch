@@ -20,8 +20,10 @@ El producto evolucionó en **dos versiones coexistentes**:
 | **v1** | Un solo track (romance/afinidad) | 24 ítems, 17 dimensiones (13 de matching + 4 MBTI), Likert 1–4 | Similitud coseno sobre vectores normalizados, umbral activo `> 0.9920196533203125` |
 | **v2** | **Doble track: romance + amistad** | 60 ítems / 30 dimensiones (BigFive, MBTI, Identidad, Cultural, Intimidad, Valores), Likert 1–5 | Similitud coseno **ponderada por categoría** + **filtros duros** (orientación, identidad de género, tipo de relación) |
 
-Umbrales activos en v2 (`data/matching-config-v2.json`): romance `> 0.80` (26 dimensiones),
-amistad `> 0.75` (16 dimensiones, sin filtros duros).
+Umbrales exclusivos activos en v2 (`data/matching-config-v2.json`): romance `> 0.65`
+(26 dimensiones), amistad `> 0.68` (16 dimensiones, sin filtros duros). Ambos tracks centran
+sus vectores en `0.5` y seleccionan hasta cinco candidatos por persona; los pares finales se
+combinan por unión, por lo que el grado puede superar cinco.
 
 > **Nota umbral v1:** `data/matching-config.json` contiene hoy `0.9920196533203125`, fruto de
 > 56 iteraciones de bisección de `scripts/generate-synthetic-profiles.ts`. El `0.85` que
@@ -116,17 +118,13 @@ ProyectoENESZooMatch/
 4. Los JSON de `data/` se importan estáticamente en TS (`import ... from "../../data/..."`)
    y se replican en Supabase con `seed.sql` / `seed_v2.sql` para las RPCs SQL.
 
-### 4.2 Registro, login e identidad (v1+v2 compartidas)
+### 4.2 Entrada por matrícula e identidad
 
-- **`POST /api/register`**: normaliza la matrícula UNAM → `hashMatricula()`
-  (HMAC-SHA-256 con `MATRICULA_HMAC_SECRET`) → `is_matricula_available` (RPC) → crea el
-  usuario Supabase Auth con email virtual `${hash}@accounts.zoomatch.invalid`
-  (`src/lib/identity.server.ts`). La respuesta es **idéntica para nuevas y duplicadas** para
-  evitar enumeración de matrículas; el UNIQUE index sobre el hash hace el dedupe O(1).
-- **`POST /api/login`**: valida credenciales y consulta `profiles` / `profiles_v2` para
-  decidir a qué flujo enviar (quiz pendiente vs. resultado).
-- **`GET /api/availability`**: consulta `is_matricula_available` sin crear nada.
-- Archetype/animalito + color se asignan server-side (`private.assign_archetype_and_alias`).
+- **`POST /api/enter`** es la entrada única del estudiante: recibe sólo la matrícula y crea
+  un perfil anónimo en la primera entrada o reabre la sesión existente.
+- **`POST /api/login`** es un alias de `/api/enter`; la página **`/login`** redirige a `/`.
+- Las rutas `/api/register` y `/api/availability` fueron eliminadas.
+- La entrada dirige al cuestionario v2 si está pendiente y al resultado v2 si ya se completó.
 
 ### 4.3 Cuestionario y matching v1
 
@@ -161,7 +159,8 @@ ProyectoENESZooMatch/
 - **Badges**: top 5 (romance) / top 3 (amistad) dimensiones por afinidad
   `1 - |a - b|`, con label e icono en español (`BADGE_METADATA`) y narrativa generada.
 - **Orquestación `POST /api/quiz-v2`** (service role): `submit_quiz_result_v2` →
-  `compute_dual_matches` → `notify_matches_v2` + notificación de bienvenida.
+  `recomputeAllMatchesV2` (TypeScript) → `replace_matches_v2` → `notify_matches_v2` +
+  notificación de bienvenida. El RPC SQL `compute_dual_matches` está deprecated.
 - **`GET /api/result-v2`**: `profiles_v2` + RPC `get_my_matches_v2` para el render del
   resultado con badges, percentajes y narrativa.
 
