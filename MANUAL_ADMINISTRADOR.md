@@ -393,7 +393,7 @@ sirve cada una**, sin revelar secretos:
 | `SUPABASE_SERVICE_ROLE_KEY` | Llave privilegiada que usa **solo el servidor** para operaciones de escritura (registro, guardado de cuestionarios, cálculo de coincidencias). Nunca se expone al navegador. | Sí |
 | `MATRICULA_HMAC_SECRET` | Secreto usado para **transformar la matrícula en un valor irreversible**. Debe tener al menos 32 caracteres. Si este secreto cambia, las matrículas ya registradas dejarían de coincidir con su hash guardado. | Sí |
 | `CORS_ALLOWED_ORIGINS` | Lista opcional de orígenes (sitios) adicionales autorizados a llamar a las interfaces. El propio origen siempre se permite. | Opcional |
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Habilitan el **control de peticiones por frecuencia (rate limiting)** de forma distribuida. Si no se configuran, el control de frecuencia opera en modo "abierto" (no bloquea por exceso). | Opcional |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Habilitan el **control de peticiones por frecuencia (rate limiting)** de forma distribuida. Sin ellas, el control opera en modo "abierto" (no bloquea por exceso). | Recomendado fuerte; **obligatorio para el evento** |
 
 > **Advertencia de seguridad:** las variables que empiezan con `NEXT_PUBLIC_` quedan visibles en
 > el navegador (es esperado). Las demás (`SUPABASE_SERVICE_ROLE_KEY`, `MATRICULA_HMAC_SECRET`) son
@@ -404,7 +404,7 @@ sirve cada una**, sin revelar secretos:
 | Qué quieres ajustar | Archivo / lugar | Cómo se aplica |
 |---|---|---|
 | Umbral de compatibilidad **v1** | `data/matching-config.json` (campo `minimum_similarity_exclusive`) | Editar el valor y recargar el sistema. |
-| Umbrales y pesos **v2** (romance 0.80 / amistad 0.75, pesos por categoría, filtros duros, dimensiones) | `data/matching-config-v2.json` | Editar y recargar. |
+| Umbrales y pesos **v2** (romance 0.65 / amistad 0.68, pesos por categoría, filtros duros, dimensiones) | `data/matching-config-v2.json` | Editar y recargar. |
 | Preguntas del cuestionario | `data/microtest_v1.json` (24 ítems) · `data/microtest_v2.json` (60 ítems) | Editar y recargar. |
 | Arquetipos / animalitos / colores | `data/arquetipos.json` · `data/catalogo_arquetipos_v2.json` | Editar/regenerar y **volver a sembrar** la base (`seed.sql` / `seed_v2.sql`). |
 
@@ -412,8 +412,8 @@ Notas para el operador:
 
 - **Umbrales actuales de referencia:** el umbral v1 vigente es un valor muy alto resultado de una
   calibración (no el `0.85` de documentación histórica, que es solo el valor de respaldo). En v2,
-  romance usa `0.80` y amistad `0.75`. Un umbral más alto = menos coincidencias; más bajo = más
-  coincidencias.
+  romance usa `0.65` y amistad `0.68`; ambos viven en `data/matching-config-v2.json`. Un umbral
+  más alto = menos coincidencias; más bajo = más coincidencias.
 - **No hay pantalla para editar nada de esto.** Los cambios se hacen sobre los archivos y se
   recargan; después conviene verificar en el panel que el umbral mostrado cambió.
 - Ciertos **textos fijos** (como el mensaje de "sin coincidencias") están **protegidos**: no deben
@@ -437,6 +437,12 @@ Notas para el operador:
 - **Comprobaciones recomendadas del sistema** (para quien da soporte técnico): existen comandos de
   verificación (`lint`, `typecheck`, `test`). No son acciones del panel, pero son la forma de
   confirmar que un cambio de configuración no rompió nada.
+- **Cierre del evento:** exporta el CSV agregado desde el panel y después ejecuta la purga
+  documentada en `DESPLIEGUE.md` (`supabase/purge_event.sql`). Borra participantes y sus datos en
+  cascada, conserva administradores y exige una confirmación explícita.
+- **Rate limiting:** sin Upstash configurado el sistema no bloquea por frecuencia. Para el evento
+  real, configura las dos variables y verifica que las respuestas incluyan
+  `X-RateLimit-Policy` distinto de `fail-open`.
 - **Arranque del proyecto** (referencia rápida):
   - Instalar dependencias: `npm install`.
   - Copiar la plantilla de entorno: `cp .env.example .env.local` (en Windows,

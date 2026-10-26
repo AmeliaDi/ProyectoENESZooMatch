@@ -4,6 +4,40 @@ Fecha: 2026-10-25 · Auditado: rama `devin/1792976834-unify-v2-flow` @ `3434817`
 Cuando la documentación contradice al código, manda el código (ver §3, Área "Docs").
 Evidencia local: Supabase CLI 2.54 + Docker (`supabase db reset` con las 5 migraciones y los seeds), app en `next dev`, Node 24.19.
 
+## 0. Estado de ejecución — 2026-10-25
+
+Esta sección es la fotografía más reciente; el resto del documento conserva el análisis
+original y debe leerse como histórico.
+
+- **Rama:** `main` @ `283a8a7`, sincronizada con `origin/main`. Los PRs #1–#3 ya están
+  mergeados, por lo que **B-01 queda cerrado**: lo desplegable es el flujo v2.
+- **Verificación local:** `typecheck` ✓, `lint` ✓, `build` ✓ y **476/476 tests en 26
+  archivos** ✓. El build local se ejecutó con `next build --webpack` porque el shell no
+  tiene `node` en PATH; Turbopack falla únicamente al intentar lanzar un proceso hijo
+  `node` para PostCSS. En Vercel/CI, donde Node sí existe, el build estándar es válido.
+- **Cerrados en esta ejecución:** H-02 (submit tolerante a ráfagas con
+  `recomputePending`), H-03 (`maxDuration` + `vercel.json`), M-01 (bandas de química
+  relativas al umbral), M-02 (copy de constelación evolutiva), M-06 (APIs v1 → 410),
+  L-01 (grants de tablas v2), L-02 (IDs de match opacos), L-04 (CSP para Supabase
+  local/custom), L-05 (tope de nodos + guarda de clústeres), L-06 (timeout de test),
+  L-07 (NotificationProvider sólo en resultado), L-08 (CI) y M-05 parcial (README,
+  DESPLIEGUE y SCORING actualizados; la wiki `.qoder` sigue marcada como histórica).
+- **Pendiente operativo (no verificable desde este entorno):**
+  1. **B-02:** aplicar la migración nueva `202610260001_table_grants_hygiene.sql` y
+     confirmar las 6 migraciones en el Supabase remoto con `supabase migration list`.
+  2. **H-01:** crear Upstash y configurar `UPSTASH_REDIS_REST_URL`/`_TOKEN` en Vercel.
+     Sin ellas el rate limit sigue en fail-open.
+  3. **M-03:** ejecutar `supabase/purge_event.sql` al terminar el evento, después de
+     exportar el CSV agregado del admin.
+  4. **Prueba de ráfaga real:** los 50 submits concurrentes contra Supabase local no se
+     pudieron correr aquí (no hay Docker/Supabase CLI en este host). La lógica está
+     cubierta por tests unitarios, pero la prueba de carga queda pendiente.
+  5. **Smoke remoto:** completar un participante en la URL de Vercel y verificar que las
+     RPC internas rechazan `anon`.
+- **Supabase remoto:** el MCP de Supabase no respondió (`list_projects` falló); no se
+  aplicaron migraciones ni se modificó ningún proyecto remoto desde esta sesión.
+
+
 ## 1. Resumen ejecutivo
 
 - **El código está funcionalmente completo en la rama del PR #1.** Flujo matrícula → cuestionario v2 (60 ítems) → Supabase → matching global TS → constelación. Se probó localmente con 400 participantes sintéticos: 400/400 completaron y la amistad tuvo 100% de cobertura. Además pasan lint, typecheck y build, los 424 tests y `npm audit` (0 vulnerabilidades).

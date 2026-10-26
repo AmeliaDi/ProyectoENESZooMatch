@@ -126,15 +126,15 @@ ProyectoENESZooMatch/
 - Las rutas `/api/register` y `/api/availability` fueron eliminadas.
 - La entrada dirige al cuestionario v2 si está pendiente y al resultado v2 si ya se completó.
 
-### 4.3 Cuestionario y matching v1
+### 4.3 Cuestionario y matching v1 (retirado de la API)
 
-- Rutas: `/cuestionario` (`PublicQuiz`) → `/resultado` (`PublicResultView`).
-- `POST /api/quiz` → RPC `submit_quiz_result`: guarda respuestas, calcula vectores
-  normalizados (Big Five + Género + Relaciones) en `score_vectors`.
-- Matching en `private.cosine_similarity` + `refresh_matches` / `get_my_matches`; el umbral
-  activo se lee de `data/matching-config.json` y la comparación es estrictamente mayor, con
-  fallback codificado (`SAFE_FALLBACK_THRESHOLD` en `src/lib/matching-config.ts`).
-- Sin match, la UI renderiza **literalmente** la constante:
+- Las rutas `/cuestionario` y `/resultado` **redirigen** a `/cuestionario-v2` y
+  `/resultado-v2`. Las APIs `/api/quiz` y `/api/result` responden **410 Gone** desde el
+  cierre del evento de migración; este apartado se conserva como referencia histórica.
+- El motor v1 (`private.cosine_similarity`, `refresh_matches`, `get_my_matches` y el
+  umbral de `data/matching-config.json`) sigue en la base y en el código por trazabilidad,
+  pero ninguna UI activa lo usa.
+- Sin match, la UI v2 renderiza **literalmente** la constante:
   `"aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor <3"`
   (ortografía y emoticon intocables, asertados por tests).
 
@@ -159,25 +159,32 @@ ProyectoENESZooMatch/
 - **Badges**: top 5 (romance) / top 3 (amistad) dimensiones por afinidad
   `1 - |a - b|`, con label e icono en español (`BADGE_METADATA`) y narrativa generada.
 - **Orquestación `POST /api/quiz-v2`** (service role): `submit_quiz_result_v2` →
-  `recomputeAllMatchesV2` (TypeScript) → `replace_matches_v2` → `notify_matches_v2` +
-  notificación de bienvenida. El RPC SQL `compute_dual_matches` está deprecated.
+  `recomputeAllMatchesV2` (TypeScript, hasta 5 intentos con backoff+jitter) →
+  `replace_matches_v2` → `notify_matches_v2` + notificación de bienvenida. Si el
+  recálculo global falla por concurrencia, el resultado ya guardado se devuelve con
+  `recomputePending: true` y la UI muestra un aviso; las notificaciones son best-effort y
+  nunca convierten un guardado exitoso en 503. El RPC SQL `compute_dual_matches` está
+  deprecated.
 - **`GET /api/result-v2`**: `profiles_v2` + RPC `get_my_matches_v2` para el render del
   resultado con badges, percentajes y narrativa.
 
 ### 4.5 Explainability (`src/lib/explainability.ts`)
 
 Traduce similitudes crudas a lenguaje afectivo es-MX determinista: bandas de química
-(`almas_gemelas >= 95` … `quimica_moderada`), desglose por categoría, resumen de
+**relativas al umbral del track** (`almas_gemelas` si la posición relativa es ≥ 0.70;
+`quimica_moderada` por debajo de 0.10), desglose por categoría, resumen de
 personalidad (máx. 3 líneas) y titular poético de una línea. Copy inclusivo, frases
-< 200 caracteres, nunca clínico.
+< 200 caracteres, nunca clínico. El contrato está en `SCORING.md` y en
+`src/lib/explainability.test.ts`.
 
 ### 4.6 Notificaciones
 
 - Tabla `notifications` + RPCs `get_my_notifications` / `mark_notifications_read`.
 - `GET|PATCH /api/notifications` (rate-limited). Copy centralizado en
   `src/lib/notification-copy.ts` (ej. `generateWelcomeMessage`).
-- `NotificationProvider` (`src/components/notification-provider.tsx`) montado en el layout:
-  sondeo de notificaciones pendientes de match/bienvenida en el cliente.
+- `NotificationProvider` (`src/components/notification-provider.tsx`) se monta sólo en
+  `/resultado-v2`: sondea notificaciones pendientes de match/bienvenida sin generar un
+  401 en el home público.
 
 ### 4.7 Admin
 
@@ -185,9 +192,9 @@ personalidad (máx. 3 líneas) y titular poético de una línea. Copy inclusivo,
   fila `role='admin'` en `user_roles`; no-admin se redirige a `/admin/login`.
 - **`/admin`** (`AdminDashboard`, Recharts): totales, distribución MBTI de 16 tipos,
   % de usuarios con al menos un match sobre el umbral, top 5 animalitos y export CSV.
-- **APIs**: `POST /api/admin/login|logout`, `GET /api/admin/metrics`
-  (RPC `get_admin_dashboard`) y `GET /api/admin/metrics-v2` (RPC `get_admin_dashboard_v2`,
-  recibe el umbral de romance activo como parámetro). Todo agregado por
+- **APIs**: `POST /api/admin/login|logout`, `GET /api/admin/metrics-v2`
+  (RPC `get_admin_dashboard_v2`, recibe el umbral activo como parámetro) y
+  `POST /api/admin/recompute-v2` (recálculo global manual). Todo agregado por
   `SECURITY DEFINER`: nunca expone matrículas, hashes, vectores ni respuestas crudas.
 
 ### 4.8 Capa de seguridad (todas las API routes)
@@ -196,9 +203,12 @@ Cada handler se envuelve en `withApiSecurity` (`src/lib/security/api.server.ts`)
 - **CORS**: allowlist del mismo origen + `CORS_ALLOWED_ORIGINS`; preflight vía
   `createPreflightHandler`.
 - **Rate limiting** por ruta/ventana (por defecto 60 s): registro 5/10 min, admin-login
-  5/15 min, login y admin-logout 10, envío de quiz (v1 y v2) 8, availability/result/
-  notifications/metrics 30–60; distribuido con Upstash Redis si está configurado, si no,
-  modo *fail-open* (`X-RateLimit-Policy: fail-open`).
+  5/15 min, login y admin-logout 10, envío de quiz v2 8, result/notifications/metrics 30–60;
+  distribuido con Upstash Redis si está configurado. **Para el evento es obligatorio
+  configurarlo**; sin Upstash el modo es *fail-open* (`X-RateLimit-Policy: fail-open`).
+- **Grants de tablas v2** (`202610260001_table_grants_hygiene.sql`): sólo `SELECT` para
+  `anon`/`authenticated`; las escrituras pasan por RPC `SECURITY DEFINER` o service role.
+- **IDs de match opacos:** `/api/result-v2` entrega hashes por espectador, no UUIDs.
 - Headers duros: `Cache-Control: no-store`, `X-Content-Type-Options: nosniff`.
 
 ### 4.9 Constelación, sprites y rutas de desarrollo (visualización v2)

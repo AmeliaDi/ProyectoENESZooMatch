@@ -170,6 +170,39 @@ validan las decisiones numéricas de este demo.
 la constelación. `/api/best-match` es un motor nuevo e independiente para
 ordenar matches románticos; su integración en la UI queda pendiente.
 
+## Bandas de química de la UI
+
+La etiqueta cualitativa que ve el usuario (`Almas gemelas`, `Química excepcional`,
+`Química fuerte`, `Buena química`, `Química moderada`) **no** usa cortes absolutos de
+80/85/90. El coseno v2 está centrado en 0.5 y ponderado por categorías, así que sus
+valores útiles viven en una banda estrecha alrededor del umbral del track (0.65 romance,
+0.68 amistad). Un corte absoluto de 0.85 etiquetaría casi todo como "moderada" y
+desalinearía el mensaje con "tu mejor pareja".
+
+Por eso `computeChemistrySummary` normaliza la similitud dentro del rango válido:
+
+```text
+relative = (similarity - threshold) / (1 - threshold)
+
+>= 0.70  Almas gemelas
+>= 0.45  Química excepcional
+>= 0.25  Química fuerte
+>= 0.10  Buena química
+<  0.10  Química moderada
+```
+
+El porcentaje mostrado sigue siendo `round(similarity * 100)`. La etiqueta es una
+presentación relativa al track, **no** un percentil poblacional ni una probabilidad. Un
+match siempre supera el umbral, pero puede seguir siendo "moderado" si está apenas por
+encima. `src/lib/explainability.test.ts` fija este contrato.
+
+El requisito original de "0.85" se pensó para una similitud coseno sin centrar. En v2 la
+similitud centrada y ponderada se comporta en otra escala; aplicar 0.85 literal dejaría
+casi cero matches. Los umbrales activos viven en `data/matching-config-v2.json` y son la
+única fuente de verdad; el dashboard y el motor leen el mismo archivo. El valor 0.85
+sigue siendo el umbral inicial documentado del motor v1 (`data/matching-config.json`),
+no el del flujo v2.
+
 ## Referencias
 
 - Malouff, J. M., Thorsteinsson, E. B., Schutte, N. S., Bhullar, N., & Rooke,

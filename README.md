@@ -13,6 +13,27 @@ cada capa, consulta [`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md) y el
 
 ---
 
+## 🚦 Estado del proyecto (2026-10-25)
+
+- `main` está sincronizado con GitHub (`283a8a7`) e incluye el flujo v2 de punta a punta:
+  matrícula → microtest de 60 ítems → persistencia Supabase → matching dual → resultado y
+  constelación.
+- Verificación local: **typecheck ✓ · lint ✓ · 476 tests en 26 archivos ✓ · build de
+  producción ✓**. El build local se corrió con `next build --webpack` porque este shell no
+  tiene `node` en PATH; CI y Vercel usan el build estándar con Node 24.
+- Hallazgos cerrados del [`AUDIT.md`](./AUDIT.md): submit tolerante a ráfagas
+  (`recomputePending`), `maxDuration`/`vercel.json`, bandas de química relativas al
+  umbral, APIs v1 en 410, IDs de match opacos, grants higiénicos de tablas v2, CSP para
+  Supabase local/custom, tope de nodos, CI y documentación.
+- Pendientes operativos (no verificables sin credenciales/entorno remoto): aplicar la
+  migración `202610260001_table_grants_hygiene.sql` al Supabase remoto, configurar Upstash
+  para el evento, correr la prueba real de 50 submits concurrentes y ejecutar la purga al
+  terminar. El detalle está en [`DESPLIEGUE.md`](./DESPLIEGUE.md) y [`AUDIT.md`](./AUDIT.md).
+- La wiki `.qoder/repowiki` es autogenerada y puede estar desactualizada; la fuente de
+  verdad es el código, `data/*.json`, `AUDIT.md`, `DESPLIEGUE.md` y `SCORING.md`.
+
+---
+
 ## 📑 Índice
 
 1. [¿De qué trata el proyecto?](#-de-qué-trata-el-proyecto)
@@ -93,6 +114,10 @@ El producto evolucionó en **dos versiones que conviven** en el mismo repositori
 La similitud v2 centra cada vector según `centering: 0.5`, calcula el cosine ponderado
 por categoría y lo escala a `[0,1]`. Los pesos activos están versionados en
 `data/matching-config-v2.json`.
+
+> **v1 retirado de la API:** las páginas `/cuestionario` y `/resultado` redirigen al flujo
+> v2, y `/api/quiz` y `/api/result` responden **410 Gone**. Las tablas v1 se conservan por
+> historial; ninguna UI activa las escribe.
 
 ---
 
@@ -245,12 +270,12 @@ entrada lleva al cuestionario de 60 ítems y las siguientes retoman el flujo v2.
 `/login`, `/cuestionario` y `/resultado` redirigen a la experiencia vigente; v1 queda
 como legado.
 
-### 3. Cuestionario y matching v1
-`POST /api/quiz` → RPC `submit_quiz_result` (guarda respuestas y calcula vectores
-normalizados en `score_vectors`). Matching en `private.cosine_similarity` +
-`refresh_matches` / `get_my_matches` con el umbral de `data/matching-config.json`.
-Sin match, la UI renderiza **literalmente** la constante `NO_MATCH_LITERAL` (ortografía y
-emoticon intocables, asertada por tests).
+### 3. Cuestionario y matching v1 (retirado de la API)
+`POST /api/quiz` → RPC `submit_quiz_result` (guardaba respuestas y calculaba vectores en
+`score_vectors`). Hoy `/api/quiz` y `/api/result` responden **410 Gone** y las páginas v1
+redirigen a v2; este apartado queda como referencia histórica. Sin match, la UI v2 renderiza
+**literalmente** la constante `NO_MATCH_MESSAGE_V2` (ortografía y emoticon intocables,
+asertada por tests).
 
 ### 4. Cuestionario y matching v2 (núcleo multidimensional)
 - **Validación** (`validation-v2.ts`): item IDs derivados directo de `microtest_v2.json`;
@@ -266,14 +291,16 @@ emoticon intocables, asertada por tests).
   aplica su umbral exclusivo y conserva la unión top-5 por persona.
 - **Orquestación** `POST /api/quiz-v2`: `submit_quiz_result_v2` → recomputación global
   determinista en TypeScript → reemplazo atómico mediante `replace_matches_v2` →
-  notificaciones y bienvenida. `GET /api/result-v2`: `profiles_v2` +
+  notificaciones y bienvenida. Si el recálculo global falla por concurrencia, el resultado
+  se conserva y la respuesta devuelve `recomputePending: true`; las notificaciones nunca
+  convierten un guardado exitoso en error. `GET /api/result-v2`: `profiles_v2` +
   `get_my_matches_v2`.
 
 ### 5. Explainability
 `src/lib/explainability.ts` traduce similitudes a lenguaje afectivo es-MX determinista:
-bandas de química (`almas_gemelas >= 95` … `quimica_moderada`), desglose por categoría,
-resumen de personalidad (máx. 3 líneas) y titular poético de una línea. Frases < 200
-caracteres, nunca clínico.
+bandas de química **relativas al umbral del track** (0.65 romance / 0.68 amistad), desglose
+por categoría, resumen de personalidad (máx. 3 líneas) y titular poético de una línea.
+Frases < 200 caracteres, nunca clínico. El detalle de las bandas está en `SCORING.md`.
 
 ### 6. Constelación y sprites (visualización)
 `constellation-layout.ts` es un **motor de física puro y determinista** (posiciones
@@ -287,7 +314,8 @@ matching:** se alimenta sólo de props/contratos puros. Los umbrales se **leen**
 ### 7. Notificaciones
 Tabla `notifications` + RPCs `get_my_notifications` / `mark_notifications_read`.
 `GET|PATCH /api/notifications` (rate-limited). Copy centralizado en
-`notification-copy.ts`. `NotificationProvider` montado en el layout hace sondeo en cliente.
+`notification-copy.ts`. `NotificationProvider` se monta sólo en `/resultado-v2` para evitar
+un GET 401 en páginas públicas sin sesión.
 
 ### 8. Admin
 `src/proxy.ts` (matcher `/admin/:path*`) exige sesión Supabase Auth **y** fila
@@ -312,6 +340,7 @@ duros (`Cache-Control: no-store`, `X-Content-Type-Options: nosniff`).
 | `animals`, `colors`, `quiz_items_v2`, `profiles_v2`, `quiz_responses_v2`, `matches_v2`, `notifications` | `202610230001_multidimensional_v2.sql` | v2: catálogo expandido, doble track y notificaciones |
 | (recrea `get_my_matches_v2`) | `202610240001_matches_v2_explainability.sql` | añade `other_user` al RPC para que el resultado pueda construir la explicación afectiva |
 | `replace_matches_v2` y permisos de RPC | `202610250001_global_matching_hardening.sql` | reemplazo atómico de matches, control de snapshots obsoletos y cierre de permisos por defecto |
+| Grants de tablas v2 | `202610260001_table_grants_hygiene.sql` | deja las tablas v2 en sólo `SELECT` para los roles de API; escrituras sólo por RPC/service role |
 
 `profiles_v2` guarda `romance_vector double precision[26]` y
 `amistad_vector double precision[16]`. **RPCs clave:** `submit_quiz_result`,
@@ -333,7 +362,7 @@ Contrato completo en [`.env.example`](./.env.example). Validadas con Zod en
 | `SUPABASE_SERVICE_ROLE_KEY` | rutas API de escritura (junto al HMAC, en `env.server.ts`) |
 | `MATRICULA_HMAC_SECRET` | hash determinista de matrículas (mín. 32 chars; `openssl rand -hex 32`) |
 | `CORS_ALLOWED_ORIGINS` | allowlist extra de orígenes (opcional) |
-| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | rate limiting distribuido; sin esto, *fail-open* (opcional) |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | rate limiting distribuido; **sí para el evento**; sin esto, *fail-open* |
 
 > Las variables `NEXT_PUBLIC_*` se hornean en el bundle de cliente en **build time**. Las
 > server-only (`SUPABASE_SERVICE_ROLE_KEY`, `MATRICULA_HMAC_SECRET`) sólo existen en código
@@ -375,13 +404,16 @@ pip install -r requirements.txt
 
 ## ✅ Tests
 
-Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Cubren, entre
-otros:
+Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Estado actual:
+**476 tests en 26 archivos** (2026-10-25). Cubren, entre otros:
 
 - `matching.test.ts` (v1) · `matching-v2.test.ts` (~960 líneas: scoring, filtros duros,
   similitud ponderada, badges, constante de "sin match").
 - `validation-v2.test.ts` · `profile-generator.test.ts` · `synthetic-profiles.test.ts`
   (calibración).
+- `explainability.test.ts` (bandas de química relativas al umbral) ·
+  `matching-recompute.server.test.ts` (reintentos con backoff) ·
+  `api/quiz-v2/route.test.ts` (camino `recomputePending`).
 - `constellation-layout.test.ts` · `constellation/*.test.ts` (`adapt-result`,
   `build-structure`, `render-helpers`) · `pixel-sprites.test.ts`.
 - `admin-dashboard.test.ts` · `env.test.ts` · `security/security-utils.test.ts` ·
@@ -402,8 +434,14 @@ otros:
 - **Matrícula irreversible:** sólo hash HMAC-SHA-256; se rechaza bcrypt porque su salt
   aleatorio haría el dedupe O(N) en vez de O(1).
 - **Admin agregado:** las métricas salen de RPCs `SECURITY DEFINER`, jamás de filas crudas.
-- **Rate limiting + CORS** por ruta en todas las API; fail-open documentado si no hay Redis.
-- **RLS** activo en todas las tablas; service role confinado a rutas server-side.
+  Los IDs de match que llegan al cliente son hashes opacos por espectador, no UUIDs.
+- **Rate limiting + CORS** por ruta en todas las API. Sin Upstash el modo es *fail-open*;
+  para el evento es **obligatorio configurarlo** (ver `DESPLIEGUE.md`).
+- **RLS** activo en todas las tablas; service role confinado a rutas server-side. La
+  migración `202610260001` deja las tablas v2 en sólo `SELECT` para los roles de API.
+- **Retención:** `supabase/purge_event.sql` borra participantes y sus datos en cascada al
+  terminar el evento, conservando cuentas admin.
+- **APIs v1:** `/api/quiz` y `/api/result` responden 410; las páginas v1 redirigen a v2.
 
 ---
 
