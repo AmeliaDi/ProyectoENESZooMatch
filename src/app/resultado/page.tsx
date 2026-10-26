@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
-
-import { PublicResultView } from "@/components/public-experience";
-
-export const metadata: Metadata = {
-  title: "Resultado | ZooMatch",
-};
+import { redirect } from "next/navigation";
 
 export default function ResultPage() {
-  return <PublicResultView />;
+  redirect("/resultado-v2");
 }

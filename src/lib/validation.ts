@@ -17,11 +17,6 @@ export const availabilityRequestSchema = z.object({
   matricula: matriculaSchema,
 });
 
-export const registrationRequestSchema = z.object({
-  matricula: matriculaSchema,
-  password: z.string().min(12).max(128),
-});
-
 const likertSchema = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]);
 const expectedItemIds = new Set<string>(QUIZ_ITEM_IDS);
 
