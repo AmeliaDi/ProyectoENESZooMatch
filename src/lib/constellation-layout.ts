@@ -129,12 +129,12 @@ export const DEFAULT_DISTANCE_CONFIG: DistanceConfig = {
 };
 
 /** Consecutive low-energy ticks required before declaring equilibrium. */
-const EQUILIBRIUM_TICKS = 10;
+export const EQUILIBRIUM_TICKS = 10;
 
 /** Default number of ticks `precomputeLayout` runs. Chosen high enough that a
  *  typical constellation (weak springs settling against center gravity) fully
  *  reaches equilibrium — empirically ~1750 ticks, so 2000 gives headroom. */
-const DEFAULT_PRECOMPUTE_TICKS = 2000;
+export const DEFAULT_PRECOMPUTE_TICKS = 2000;
 
 /** Radius constants: self is fixed, matches scale with similarity. */
 const SELF_RADIUS = 28;
@@ -144,19 +144,19 @@ const GHOST_RADIUS = 6;
 
 // ─── Orbital and clearance constants ──────────────────────────────────────────
 // The sprite occupies 16 px and reserves 12 px of breathing room, so two
-// centres must sit at least 28 + 28 = 56 px apart.
+// centres must sit at least 28 + 28 px apart, plus the δ cushion.
 const COLLISION_RADIUS = 28;
-export const MIN_CENTER_DISTANCE = COLLISION_RADIUS * 2;
+/** Render transforms are rounded to 2 decimals (~0.014 px worst-case loss). */
+const CLEARANCE_BUFFER = 0.55;
+export const MIN_CENTER_DISTANCE = COLLISION_RADIUS * 2 + CLEARANCE_BUFFER;
 const ORBIT_MIN_RADIUS = 90;
 const ORBIT_RADIUS_RATIO = 0.42;
-const ORBIT_GAMMA = 1.2;
+const ORBIT_GAMMA = 1.25;
 const ORBIT_BAND_COUNT = 10;
 const ORBIT_ANGLE_JITTER = 0.35;
 const ANGULAR_RADIUS_BAND = 40;
 const ANGULAR_FORCE_CAP = 0.4;
-const CLEARANCE_ITERATIONS = 12;
-/** Sub-pixel cushion so float/clamp rounding never lands just below 56 px. */
-const CLEARANCE_BUFFER = 0.5;
+const CLEARANCE_ITERATIONS = 64;
 
 /** Decorative ghost nodes: default 8, never more than 12. */
 const DEFAULT_GHOST_COUNT = 8;
@@ -647,18 +647,34 @@ export function createSimulationState(
   };
 }
 
-/** Hard separation radius: the sprite plus its collision padding. */
-function collisionRadiusOf(node: ConstellationNode): number {
-  if (node.isGhost) return 0;
+/** Hard separation radius: the sprite support plus its collision padding. */
+export function collisionRadiusOf(node: ConstellationNode): number {
+  if (node.isGhost) return GHOST_RADIUS;
   return node.isSelf ? SELF_RADIUS : COLLISION_RADIUS;
 }
 
+/** Required centre distance for a pair, including the safety cushion δ. */
+export function minimumCenterDistance(
+  first: ConstellationNode,
+  second: ConstellationNode,
+): number {
+  return collisionRadiusOf(first) + collisionRadiusOf(second) + CLEARANCE_BUFFER;
+}
+
 /**
- * Instantaneous circle-packing relaxation. Real nodes are separated along the
- * segment that joins their centres until they respect `MIN_CENTER_DISTANCE`.
- * The self node is anchored: when it overlaps a match, only the match moves.
- * Positions are clamped to the padded viewport, so this never pushes a sprite
- * off-screen. Ghost stars are decorative and intentionally ignored.
+ * Instantaneous projective circle-packing relaxation.
+ *
+ * For every pair closer than `R_i + R_j + δ`, both centres move along the
+ * normalized secant by half the overlap; anchored or decorative nodes are
+ * handled asymmetrically so the real constellation is never disturbed:
+ *
+ * - self + match: only the match moves;
+ * - real + ghost: only the ghost moves;
+ * - match + match / ghost + ghost: both move half the overlap.
+ *
+ * Positions are clamped to the padded viewport. Ghost stars are included, so
+ * every rendered sprite — not just interactive matches — ends the frame with
+ * disjoint support.
  */
 function relaxNodeOverlaps(
   nodes: ConstellationNode[],
@@ -671,12 +687,9 @@ function relaxNodeOverlaps(
     let moved = false;
     for (let i = 0; i < nodes.length; i++) {
       const a = nodes[i];
-      if (a.isGhost) continue;
       for (let j = i + 1; j < nodes.length; j++) {
         const b = nodes[j];
-        if (b.isGhost) continue;
-        const minDistance =
-          collisionRadiusOf(a) + collisionRadiusOf(b) + CLEARANCE_BUFFER;
+        const minDistance = minimumCenterDistance(a, b);
         let dx = b.x - a.x;
         let dy = b.y - a.y;
         let distance = Math.hypot(dx, dy);
@@ -694,17 +707,27 @@ function relaxNodeOverlaps(
         const ux = dx / distance;
         const uy = dy / distance;
         const overlap = minDistance - distance;
-        const aMovable = !a.isSelf;
-        const bMovable = !b.isSelf;
-        if (!aMovable && !bMovable) continue;
 
-        const shareA = aMovable && bMovable ? overlap / 2 : aMovable ? overlap : 0;
-        const shareB = aMovable && bMovable ? overlap / 2 : bMovable ? overlap : 0;
-        if (aMovable) {
+        let shareA = 0;
+        let shareB = 0;
+        if (a.isSelf) {
+          shareB = overlap;
+        } else if (b.isSelf) {
+          shareA = overlap;
+        } else if (a.isGhost !== b.isGhost) {
+          if (a.isGhost) shareA = overlap;
+          else shareB = overlap;
+        } else {
+          shareA = overlap / 2;
+          shareB = overlap / 2;
+        }
+        if (shareA === 0 && shareB === 0) continue;
+
+        if (shareA > 0) {
           a.x = clampToBounds(a.x - ux * shareA, width, padding).value;
           a.y = clampToBounds(a.y - uy * shareA, height, padding).value;
         }
-        if (bMovable) {
+        if (shareB > 0) {
           b.x = clampToBounds(b.x + ux * shareB, width, padding).value;
           b.y = clampToBounds(b.y + uy * shareB, height, padding).value;
         }
@@ -754,8 +777,8 @@ export function resolveOverlaps(
  *      dy = driftStrength * cos(tick * 0.013 + seed) * sin(tick * 0.009 + seed * 3)
  *    with seed = (hashSeed(id) % 1000) / 1000 * 2π. Drift never touches
  *    velocity, so it cannot re-energize the system.
- * 11. HARD CLEARANCE: circle-packing relaxation guarantees that no two real
- *    sprites end the frame closer than 28 + 28 px.
+ * 11. HARD CLEARANCE: circle-packing relaxation guarantees that every pair of
+ *    rendered sprites respects R_i + R_j + δ (match/match = 56.55 px).
  *
  * Returns a NEW state object (immutable — does not mutate input).
  */
@@ -800,8 +823,9 @@ export function stepSimulation(
   }
 
   // 2. Collision repulsion between all pairs of real nodes.
-  //    Ghost nodes are decorative: per spec they take part in drift + bounds
-  //    only, so they are excluded from collision (and from gravity below).
+  //    Ghost nodes are decorative boundary conditions: they join the hard
+  //    clearance pass (section 11) but carry no spring, gravity or collision
+  //    velocity, so they cannot re-energise the real subsystem.
   for (let i = 0; i < nodes.length; i++) {
     const a = nodes[i];
     if (a.isGhost) continue;

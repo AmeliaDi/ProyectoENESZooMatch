@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_DISTANCE_CONFIG,
+  DEFAULT_PRECOMPUTE_TICKS,
   DEFAULT_SIMULATION_PARAMS,
+  EQUILIBRIUM_TICKS,
   MAX_REAL_MATCHES,
   MIN_CENTER_DISTANCE,
   assignOrbitSlots,
@@ -14,6 +16,7 @@ import {
   generateGhostNodes,
   getTrackThreshold,
   hashSeed,
+  minimumCenterDistance,
   precomputeLayout,
   releaseNode,
   resolveOverlaps,
@@ -165,6 +168,20 @@ describe("computeOrbitRadius", () => {
   it("returns null at or below the exclusive threshold", () => {
     expect(computeOrbitRadius(ROMANCE_THRESHOLD, ROMANCE_THRESHOLD, 800, 600)).toBeNull();
     expect(computeOrbitRadius(ROMANCE_THRESHOLD - 0.01, ROMANCE_THRESHOLD, 800, 600)).toBeNull();
+  });
+
+  it("uses the γ = 1.25 inverse conformal mapping", () => {
+    const width = 800;
+    const height = 600;
+    const similarity = ROMANCE_THRESHOLD + (1 - ROMANCE_THRESHOLD) * 0.5;
+    const outer = Math.min(Math.min(width, height) * 0.42, Math.min(width, height) / 2 - 40);
+    const inner = Math.min(90, outer);
+    const expected = outer - Math.pow(0.5, 1.25) * (outer - inner);
+
+    expect(computeOrbitRadius(similarity, ROMANCE_THRESHOLD, width, height)).toBeCloseTo(
+      expected,
+      10,
+    );
   });
 
   it("is monotonically decreasing and stays inside a 360 px viewport", () => {
@@ -397,17 +414,18 @@ describe("hard clearance", () => {
       const matches = [0.9, 0.84, 0.77, 0.73, 0.7].map((similarity, index) =>
         makeMatch(`friend-${index}`, similarity),
       );
-      const graph = buildGraph(ME, matches, "amistad", AMISTAD_THRESHOLD, width, height, 0);
+      const graph = buildGraph(ME, matches, "amistad", AMISTAD_THRESHOLD, width, height, 8);
       const final = precomputeLayout(graph, width, height);
-      const real = final.nodes.filter((node) => !node.isGhost);
 
-      for (let i = 0; i < real.length; i++) {
-        for (let j = i + 1; j < real.length; j++) {
-          const distance = Math.hypot(real[i]!.x - real[j]!.x, real[i]!.y - real[j]!.y);
+      for (let i = 0; i < final.nodes.length; i++) {
+        for (let j = i + 1; j < final.nodes.length; j++) {
+          const first = final.nodes[i]!;
+          const second = final.nodes[j]!;
+          const distance = Math.hypot(first.x - second.x, first.y - second.y);
           expect(
             distance,
-            `${width}x${height}: ${real[i]!.id} vs ${real[j]!.id}`,
-          ).toBeGreaterThanOrEqual(MIN_CENTER_DISTANCE - 1e-6);
+            `${width}x${height}: ${first.id} vs ${second.id}`,
+          ).toBeGreaterThanOrEqual(minimumCenterDistance(first, second) - 1e-6);
         }
       }
 
@@ -597,6 +615,12 @@ describe("stepSimulation", () => {
     const snapshot = JSON.parse(JSON.stringify(state));
     stepSimulation(state, 1);
     expect(state).toEqual(snapshot);
+  });
+
+  it("publishes the ε, K and T constants of the deterministic simulation", () => {
+    expect(DEFAULT_SIMULATION_PARAMS.equilibriumThreshold).toBe(0.01);
+    expect(EQUILIBRIUM_TICKS).toBe(10);
+    expect(DEFAULT_PRECOMPUTE_TICKS).toBe(2000);
   });
 
   it("reaches equilibrium within 500 steps for a small 5-node graph", () => {
