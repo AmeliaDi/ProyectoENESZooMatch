@@ -18,7 +18,7 @@ cada capa, consulta [`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md) y el
 - `main` está sincronizado con GitHub (`283a8a7`) e incluye el flujo v2 de punta a punta:
   matrícula → microtest de 60 ítems → persistencia Supabase → matching dual → resultado y
   constelación. Los cierres de esta sesión están en la rama local
-  `audit/close-2026-10-25` (4 commits, pendiente de push/PR).
+  `audit/close-2026-10-25` (commits locales, pendiente de push/PR).
 - Verificación local: **typecheck ✓ · lint ✓ · 476 tests en 26 archivos ✓ · build de
   producción ✓**. El build local se corrió con `next build --webpack` porque este shell no
   tiene `node` en PATH; CI y Vercel usan el build estándar con Node 24.
