@@ -573,6 +573,79 @@ export function NodeDetailSheet({
                   ) : null}
                 </section>
               ) : null}
+
+              {/* Derived psychometric layer (Eneagram + Jung + attachment) */}
+              {node.explanation?.psychometrics ? (
+                <section aria-labelledby="constellation-sheet-psychometrics">
+                  <h3
+                    id="constellation-sheet-psychometrics"
+                    className="mb-2 font-mono text-[0.62rem] tracking-[0.18em] text-ink/45 uppercase"
+                  >
+                    {CONSTELLATION_COPY.sheetPsychometricsTitle}
+                  </h3>
+                  <div className="rounded-2xl border border-ink/10 bg-white/55 p-3">
+                    <p className="text-sm leading-relaxed text-ink/80">
+                      <strong className="font-semibold text-ink">
+                        {node.explanation.psychometrics.match.enneagram.code}
+                      </strong>{" "}
+                      · {node.explanation.psychometrics.match.enneagram.arquetipo}
+                    </p>
+                    <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs leading-relaxed">
+                      <div>
+                        <dt className="font-mono text-[0.58rem] tracking-[0.14em] text-ink/45 uppercase">
+                          {CONSTELLATION_COPY.sheetEnneagram}
+                        </dt>
+                        <dd className="text-ink/75">
+                          {node.explanation.psychometrics.match.enneagram.nombre} ·{" "}
+                          {node.explanation.psychometrics.match.enneagram.triada}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-mono text-[0.58rem] tracking-[0.14em] text-ink/45 uppercase">
+                          {CONSTELLATION_COPY.sheetCognitive}
+                        </dt>
+                        <dd className="text-ink/75">
+                          {node.explanation.psychometrics.match.cognitive.axis}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-mono text-[0.58rem] tracking-[0.14em] text-ink/45 uppercase">
+                          {CONSTELLATION_COPY.sheetAttachment}
+                        </dt>
+                        <dd className="text-ink/75">
+                          {node.explanation.psychometrics.match.attachment.label}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-mono text-[0.58rem] tracking-[0.14em] text-ink/45 uppercase">
+                          {CONSTELLATION_COPY.sheetCompatibility}
+                        </dt>
+                        <dd className="text-ink/75 tabular-nums">
+                          {Math.round(
+                            node.explanation.psychometrics.compatibility.overall * 100,
+                          )}
+                          %{" "}
+                          <span className="text-ink/45">
+                            (MBTI{" "}
+                            {Math.round(
+                              node.explanation.psychometrics.compatibility.mbti * 100,
+                            )}
+                            % · Enea{" "}
+                            {Math.round(
+                              node.explanation.psychometrics.compatibility.enneagram * 100,
+                            )}
+                            % · Apego{" "}
+                            {Math.round(
+                              node.explanation.psychometrics.compatibility.attachment * 100,
+                            )}
+                            %)
+                          </span>
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </section>
+              ) : null}
             </div>
           </motion.div>
         </motion.div>

@@ -63,7 +63,16 @@ describe("generateSyntheticMatches", () => {
       expect(colorIds.has(match.colorId)).toBe(true);
       expect(match.similarity).toBeGreaterThanOrEqual(0);
       expect(match.similarity).toBeLessThanOrEqual(1);
-      expect(match.explanation).toBeNull();
+      expect(match.explanation).not.toBeNull();
+      expect(match.explanation?.psychometrics?.match.enneagram.code).toMatch(
+        /^[1-9]w[1-9]$/,
+      );
+      expect(
+        match.explanation?.psychometrics?.compatibility.overall,
+      ).toBeGreaterThanOrEqual(0);
+      expect(
+        match.explanation?.psychometrics?.compatibility.overall,
+      ).toBeLessThanOrEqual(1);
     });
   });
 });

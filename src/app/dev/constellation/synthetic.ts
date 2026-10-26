@@ -12,13 +12,15 @@ import type {
   ConstellationMatchInput,
   ConstellationSelfInput,
 } from "@/components/constellation";
+import { generateMatchExplanation } from "@/lib/matching";
 import { getAllAnimalIds, getAllColorIds } from "@/lib/pixel-sprites";
-import type { MatchTrack } from "@/types/microtest";
-
-interface CatalogAnimal {
-  id: string;
-  diminutivo_es: string;
-}
+import { projectAnimalDimensions } from "@/lib/psychometrics";
+import type { ArchetypeAnimal } from "@/types/archetype";
+import {
+  FRIENDSHIP_VECTOR_DIMENSIONS,
+  ROMANCE_VECTOR_DIMENSIONS,
+  type MatchTrack,
+} from "@/types/microtest";
 
 interface CatalogColor {
   id: string;
@@ -26,7 +28,10 @@ interface CatalogColor {
   hex: string;
 }
 
-const ANIMALS = catalogoData.animales as unknown as CatalogAnimal[];
+const ANIMALS = catalogoData.animales as unknown as ArchetypeAnimal[];
+const ANIMAL_BY_ID = new Map<string, ArchetypeAnimal>(
+  ANIMALS.map((animal) => [animal.id, animal]),
+);
 const COLORS = catalogoData.colores as unknown as CatalogColor[];
 
 const ANIMAL_IDS = getAllAnimalIds();
@@ -45,6 +50,16 @@ export const DEV_SELF: ConstellationSelfInput = {
   alias: "tú (dev)",
   mbtiCode: null,
 };
+
+const SELF_ANIMAL = ANIMAL_BY_ID.get(DEV_SELF.animalId) ?? ANIMALS[0]!;
+const SELF_PROJECTION = projectAnimalDimensions(SELF_ANIMAL);
+const SELF_SCORES = SELF_PROJECTION.scores as Record<string, number>;
+
+function trackVector(scores: Record<string, number>, track: MatchTrack): number[] {
+  const dimensions =
+    track === "romance" ? ROMANCE_VECTOR_DIMENSIONS : FRIENDSHIP_VECTOR_DIMENSIONS;
+  return dimensions.map((dimension) => scores[dimension] ?? 0.5);
+}
 
 /** PRNG determinista y sembrable (mulberry32). Devuelve valores en [0, 1). */
 export function mulberry32(seed: number): () => number {
@@ -108,6 +123,23 @@ export function generateSyntheticMatches({
       : clamp01(threshold - rand() * threshold);
     const animalName = ANIMAL_NAME.get(animalId) ?? animalId;
     const colorName = (COLOR_NAME.get(colorId) ?? colorId).toLowerCase();
+    const roundedSimilarity = Math.round(similarity * 1000) / 1000;
+    const animal = ANIMAL_BY_ID.get(animalId)!;
+    const projection = projectAnimalDimensions(animal);
+    const matchScores = projection.scores as Record<string, number>;
+    const explanation = generateMatchExplanation(
+      roundedSimilarity,
+      trackVector(SELF_SCORES, track),
+      trackVector(matchScores, track),
+      track,
+      animalName,
+      colorName,
+      projection.mbti,
+      matchScores,
+      SELF_ANIMAL.diminutivo_es,
+      SELF_SCORES,
+      SELF_PROJECTION.mbti,
+    );
     matches.push({
       id: `dev-${seed}-${index}`,
       animalId,
@@ -116,10 +148,10 @@ export function generateSyntheticMatches({
       animalName,
       colorName,
       alias: `${animalName} ${colorName} · dev${index}`,
-      similarity: Math.round(similarity * 1000) / 1000,
+      similarity: roundedSimilarity,
       track,
       badges: [],
-      explanation: null,
+      explanation,
     });
   }
   return matches;

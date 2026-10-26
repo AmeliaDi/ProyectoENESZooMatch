@@ -23,8 +23,10 @@ import {
 } from "react";
 
 import catalogoData from "../../data/arquetipos.json";
+import type { ArchetypeAnimal } from "@/types/archetype";
 import { PixelAnimal } from "@/components/constellation/PixelAnimal";
 import { SharedHeart } from "@/components/constellation/RomanceHearts";
+import { deriveAnimalPsychometricProfile } from "@/lib/psychometrics";
 import {
   ALL_FAMILIES,
   GRID_SIZE,
@@ -38,13 +40,6 @@ import {
 
 // ─── Formas de los catálogos (sólo lectura) ────────────────────────────────────
 
-interface CatalogAnimal {
-  id: string;
-  nombre_fuente: string;
-  diminutivo_es: string;
-  categoria_fauna: string;
-}
-
 interface CatalogColor {
   id: string;
   nombre: string;
@@ -53,7 +48,7 @@ interface CatalogColor {
   temperatura: string;
 }
 
-const ANIMALS = catalogoData.animales as unknown as CatalogAnimal[];
+const ANIMALS = catalogoData.animales as unknown as ArchetypeAnimal[];
 const COLORS = catalogoData.colores as unknown as CatalogColor[];
 
 // ─── Utilidades puras ──────────────────────────────────────────────────────────
@@ -91,6 +86,8 @@ interface AnimalEntry {
   diminutivo: string;
   nombre: string;
   etiqueta: string;
+  enneagram: string;
+  attachment: string;
   family: ShapeFamily;
   needle: string;
 }
@@ -104,12 +101,15 @@ function buildNeedle(
 
 const ANIMALS_LIST: AnimalEntry[] = ANIMALS.map((animal) => {
   const family = getAnimalFamily(animal.id);
+  const psychometrics = deriveAnimalPsychometricProfile(animal);
   return {
     id: animal.id,
     diminutivo: animal.diminutivo_es,
     nombre: animal.nombre_fuente,
     etiqueta: animal.categoria_fauna,
     family,
+    enneagram: `${psychometrics.enneagram.code} · ${psychometrics.enneagram.arquetipo}`,
+    attachment: psychometrics.attachment.label,
     needle: buildNeedle(
       family,
       animal.diminutivo_es,
@@ -280,6 +280,9 @@ function SpriteCard({
         </span>
         <span className="font-mono text-[0.58rem] uppercase tracking-[0.12em] text-leaf">
           {entry.etiqueta} · {entry.family}
+        </span>
+        <span className="font-mono text-[0.56rem] uppercase tracking-[0.1em] text-clay/80">
+          {entry.enneagram} · {entry.attachment}
         </span>
       </figcaption>
 
