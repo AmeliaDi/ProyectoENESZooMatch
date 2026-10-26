@@ -18,7 +18,7 @@ cada capa, consulta [`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md) y el
 - El repositorio está en la rama `refactor/canonical`, que elimina por completo el flujo v1
   y deja una sola arquitectura: matrícula → microtest de 60 ítems → persistencia Supabase →
   matching dual (romance/amistad) → resultado y constelación.
-- Verificación local: **typecheck ✓ · lint ✓ · 513 tests en 27 archivos ✓**. El build local
+- Verificación local: **typecheck ✓ · lint ✓ · 520 tests en 27 archivos ✓**. El build local
   se corre con `next build --webpack` cuando el shell no tiene `node` en PATH; CI y Vercel
   usan el build estándar con Node 24.
 - Hallazgos cerrados del [`AUDIT.md`](./AUDIT.md): submit tolerante a ráfagas
@@ -115,9 +115,11 @@ El cuestionario tiene **60 ítems · 30 dimensiones · Likert 1–5**, catálogo
 - **Amistad** (`> 0.65`): 16 dimensiones, sin filtros duros. Conserva hasta **5** matches:
   es el track generoso y comunitario.
 
-La similitud centra cada vector en `0.5`, calcula cosine por categoría con sus pesos y lo
-escala a `[0,1]`. Los umbrales, pesos y coberturas objetivo viven en
-`data/matching-config.json`; la cobertura objetivo es 8 % en romance y 35 % en amistad.
+La similitud resta el centroide empírico de la población (o `0.5` si hay menos de 30
+perfiles), calcula un coseno ponderado con `W = diag(w_i)`, `Σ w_i = 1`, y lo escala a
+`[0,1]`. Los umbrales, pesos y coberturas objetivo viven en `data/matching-config.json`.
+La cobertura de calibración es 8 % en romance y 35 % en amistad; además, la cota matemática
+del romance es `P(Sim ≥ 0.78) ≤ 6 %` de los pares (0.46 % en la muestra sintética).
 
 Las rutas públicas canónicas son `/cuestionario` y `/resultado`; las APIs son `/api/quiz` y
 `/api/result`. El dashboard usa `/api/admin/metrics` y `/api/admin/recompute`.
@@ -282,11 +284,12 @@ cuestionario de 60 ítems y las siguientes retoman el resultado.
 - **Filtros duros** (sólo romance): atracción mutua entre orientación e identidad de
   género, comodines `todxs` / `prefiero no decir`, compatibilidad asexual y tipo de
   relación. `amistad` no aplica esos filtros.
-- **Similitud ponderada** (`trackSimilarity`): centra los vectores en `0.5`, calcula
-  cosine por categoría con sus pesos y transforma el resultado a `[0,1]`. Cada track
-  aplica su umbral exclusivo (0.78 romance / 0.65 amistad) y conserva la unión de los
-  top-3 románticos y top-5 de amistad por persona. En romance, la intimidad y la gestión
-  del conflicto desalineadas restan puntaje antes del umbral.
+- **Similitud ponderada** (`trackSimilarity`): centra contra el centroide empírico de la
+  población, calcula un coseno con métrica diagonal `W` (`Σ w_i = 1`) y transforma el
+  resultado a `[0,1]`. Cada track aplica su umbral exclusivo (0.78 romance / 0.65 amistad)
+  y conserva la unión de los top-3 románticos y top-5 de amistad por persona. En romance,
+  la intimidad y la gestión del conflicto desalineadas aplican factores multiplicativos
+  antes del umbral.
 - **Orquestación** `POST /api/quiz`: `submit_quiz_result_v2` → recomputación global
   determinista en TypeScript → reemplazo atómico mediante `replace_matches_v2` →
   notificaciones y bienvenida. Los nombres `*_v2` son identificadores físicos de la base
@@ -309,9 +312,11 @@ convierte ese estado en un cielo SVG con sprite sheets memoizados, aristas, *joi
 etiquetas ARIA y soporte de movimiento reducido. **Nunca toca Supabase ni el motor de
 matching:** se alimenta sólo de props/contratos puros. Los umbrales se **leen** de
 `data/matching-config.json` vía `getTrackThreshold`, nunca se hardcodean. El acomodo usa
-bandas orbitales por decil de afinidad, ranuras angulares equidistantes, repulsión
-tangencial y un pase de *circle packing* que garantiza 56 px entre centros (28 px de
-sprite + 12 px de colchón por lado) desde 360 px hasta 4K.
+la ley radial `r(s) = R_max - t^1.25 · (R_max - R_min)`, bandas orbitales por decil,
+ranuras angulares equidistantes, repulsión tangencial y un pase de *circle packing* que
+garantiza `R_i + R_j + δ` entre **todos** los sprites, fantasmas incluidos (56.55 px entre
+matches), desde 360 px hasta 4K. La precomputación corre hasta 2000 pasos deterministas y
+declara equilibrio con `E_k < 0.01` durante 10 ticks consecutivos.
 
 ### 7. Notificaciones
 Tabla `notifications` + RPCs `get_my_notifications` / `mark_notifications_read`.
@@ -406,7 +411,7 @@ pip install -r requirements.txt
 ## ✅ Tests
 
 Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Estado actual:
-**513 tests en 27 archivos** (2026-10-25). Cubren, entre otros:
+**520 tests en 27 archivos** (2026-10-25). Cubren, entre otros:
 
 - `matching/engine.test.ts` (~960 líneas: scoring, filtros duros, similitud ponderada,
   badges, constante de "sin match").

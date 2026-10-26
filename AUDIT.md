@@ -19,7 +19,7 @@ que aparezca allí describe la estructura anterior al refactor canónico.
 - **Dominios:** `src/lib/matching/`, `src/lib/scoring/`, `src/lib/admin/`, `src/lib/auth/`
   y `src/lib/validation/`. Datos canónicos: `data/microtest.json`, `data/arquetipos.json`
   y `data/matching-config.json`. Semilla única: `supabase/seed.sql`.
-- **Verificación local:** `typecheck` ✓, `lint` ✓ y **513/513 tests en 27 archivos** ✓. El
+- **Verificación local:** `typecheck` ✓, `lint` ✓ y **520/520 tests en 27 archivos** ✓. El
   build local se ejecutó con `next build --webpack` porque el shell no tiene `node` en
   PATH; Turbopack falla únicamente al intentar lanzar un proceso hijo `node` para PostCSS.
   En Vercel/CI, donde Node sí existe, el build estándar es válido.
@@ -65,8 +65,9 @@ que aparezca allí describe la estructura anterior al refactor canónico.
                       borrador en localStorage `zoomatch:quiz-draft` (sobrevive recarga)
 [3] POST /api/quiz ── scoreQuiz (inversos 6-v, normaliza [0,1], MBTI por umbral .5) → RPC submit_quiz_result_v2 (service_role)
                        → profiles_v2 / quiz_responses_v2 persistidos
-[4] recomputeAllMatches ── carga TODOS los perfiles (paginado 1000) → computeAllMatches (coseno ponderado centrado,
-                           filtros duros + penalizaciones romance, top-3/top-5 por usuario) → RPC replace_matches_v2 (advisory lock, reintento ×3)
+[4] recomputeAllMatches ── carga TODOS los perfiles (paginado 1000) → centroide empírico μ por track
+                           → computeAllMatches (coseno ponderado W=diag, filtros duros + factores
+                           romance, top-3/top-5 por usuario) → RPC replace_matches_v2 (advisory lock, reintento ×3)
                        → notify_matches_v2 (usuario + contrapartes)
 [5] /resultado ── GET /api/result → alias/animal/color/narrativa + matches por track + explicabilidad
                 └─ Constelación (buildGraph + precomputeLayout determinista, sprites pixel 12×12)
@@ -199,9 +200,9 @@ La firma exacta puede variar; se obtiene con `\df public.submit_quiz_result_v2`.
 - **Normalización:** Likert 1–5. Los ítems inversos se calculan como `6 - v` y luego se escalan a [0,1]. Una dimensión sin ítems vale 0.5 neutro (`:45-50,201-205`). MBTI sale de 4 dimensiones con umbral 0.5 (`:186-193`).
 - **Datos faltantes:** imposibles por diseño. Zod exige los 60 ítems y todos los filtros, sin duplicados (`src/lib/validation-v2.ts:20-66`).
 - **Vectores:** romance usa 26 dimensiones con pesos por categoría .25/.05/.20/.25/.25; amistad usa 16 con .40/.35/.25. Cada juego de pesos suma 1.
-- **Similitud:** se centra en 0.5, se calcula coseno ponderado por categoría y se remapea a [0,1] (`:406-449`).
+- **Similitud:** se resta el centroide empírico μ (o 0.5 con <30 perfiles), se calcula un coseno ponderado con métrica diagonal `W` normalizada a `Σw_i=1` y se remapea a [0,1] (`:406-449`).
 - **Filtros duros (solo romance):** atracción mutua orientación↔identidad, reglas para asexual/demisexual, tipo de relación, y `solo_amistad` excluye del track (`:290-347`). Amistad no tiene filtros.
-- **Selección:** se exige `> umbral` (0.78 romance / 0.65 amistad). Romance aplica filtros duros bidireccionales y penalizaciones de intimidad/conflicto antes del corte; cada usuario toma su top-3 romántico y top-5 de amistad, y los pares se unen. Es determinista: desempate por id y sin `Math.random`.
+- **Selección:** se exige `> umbral` (0.78 romance / 0.65 amistad). Romance aplica filtros duros bidireccionales y factores de intimidad/conflicto antes del corte; cada usuario toma su top-3 romántico y top-5 de amistad, y los pares se unen. La cola observada es 0.46 % de pares, bajo la cota de 6 %. Es determinista: desempate por id y sin `Math.random`.
 - **Explicabilidad:** badges por dimensión, narrativa por similitud y desglose por categoría. Problema de calibración en las bandas: M-01.
 
 **Visualización** (`src/lib/constellation-layout.ts`, `src/components/constellation/`)
@@ -218,7 +219,7 @@ La firma exacta puede variar; se obtiene con `\df public.submit_quiz_result_v2`.
 | `npm run lint` | ✓ |
 | `npm run typecheck` | ✓ |
 | `npm run build` | ✓ |
-| `npm run test` | ✓ 513/513 en 27 archivos |
+| `npm run test` | ✓ 520/520 en 27 archivos |
 | `npm audit --omit=dev` | 0 vulnerabilidades |
 
 ## 7. Plan de acción priorizado

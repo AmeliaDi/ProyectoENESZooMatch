@@ -398,7 +398,7 @@ sirve cada una**, sin revelar secretos:
 
 | Qué quieres ajustar | Archivo / lugar | Cómo se aplica |
 |---|---|---|
-| Umbrales y pesos (romance 0.78 / amistad 0.65, top-3/top-5, penalizaciones de intimidad y conflicto, filtros duros, dimensiones) | `data/matching-config.json` | Editar y recargar. |
+| Umbrales y pesos (romance 0.78 / amistad 0.65, top-3/top-5, factores de intimidad y conflicto, filtros duros, dimensiones) | `data/matching-config.json` | Editar y recargar. |
 | Preguntas del cuestionario | `data/microtest.json` (60 ítems) | Editar y recargar. |
 | Arquetipos / animalitos / colores | `data/arquetipos.json` | Editar/regenerar y **volver a sembrar** la base (`seed.sql`). |
 
@@ -406,8 +406,9 @@ Notas para el operador:
 
 - **Umbrales actuales de referencia:** romance usa `0.78` y amistad `0.65`; ambos viven en
   `data/matching-config.json`. Un umbral más alto = menos coincidencias; más bajo = más
-  coincidencias. Romance es deliberadamente escaso (máx. 3 matches, cobertura 8 %); amistad
-  es más generosa (máx. 5, cobertura 35 %). `0.85` no es un umbral activo del motor canónico.
+  coincidencias. Romance es deliberadamente escaso (máx. 3 matches; `P(Sim ≥ 0.78) ≤ 6 %`
+  de los pares, 0.46 % en la muestra sintética); amistad es más generosa (máx. 5, cobertura
+  de calibración 35 %). `0.85` no es un umbral activo del motor canónico.
 - **No hay pantalla para editar nada de esto.** Los cambios se hacen sobre los archivos y se
   recargan; después conviene verificar en el panel que el umbral mostrado cambió.
 - Ciertos **textos fijos** (como el mensaje de "sin coincidencias") están **protegidos**: no deben

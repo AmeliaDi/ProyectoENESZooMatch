@@ -22,9 +22,11 @@ El producto tiene una sola arquitectura canónica:
 | Umbrales | romance `> 0.78` (26 dimensiones + penalizaciones de intimidad/conflicto), amistad `> 0.65` (16 dimensiones, sin filtros duros) |
 | Catálogo | 103 animales en 13 familias morfológicas × 55 colores/texturas |
 
-Ambos tracks centran sus vectores en `0.5`; romance selecciona su top-3 y amistad su top-5 por
-persona, y los pares finales se combinan por unión. La cobertura objetivo es 8 % en romance y
-35 % en amistad. Los umbrales viven en `data/matching-config.json`.
+Ambos tracks centran sus vectores contra el centroide empírico de la población (o `0.5` si
+hay menos de 30 perfiles); romance selecciona su top-3 y amistad su top-5 por persona, y los
+pares finales se combinan por unión. La cobertura de calibración es 8 % en romance y 35 % en
+amistad, con la cota adicional `P(Sim ≥ 0.78) ≤ 6 %` de los pares. Los umbrales viven en
+`data/matching-config.json`.
 
 El resultado se presenta además como una **constelación interactiva** de animalitos en
 pixel-art con física determinista (ver §4.9), sobre sprites generados por código
@@ -133,10 +135,10 @@ ProyectoENESZooMatch/
   `todxs` / `prefiero no decir`), identidad de género (deliberadamente permisiva) y tipo de
   relación buscada (monogamia vs. no-monogamia ética / poliamor / anarquía relacional /
   `sin_definir` / `solo_amistad`). AND de los tres.
-- **Similitud ponderada** (`weightedTrackSimilarity`): cosine por sub-vector de categoría y
-  media ponderada con pesos de config (romance: personalidad .25, intimidad .25, valores .25,
-  cultural .20, identidad .05) — evita que categorías con muchas dimensiones (intimidad, 8)
-  tapen a las pequeñas (identidad, 2).
+- **Similitud ponderada** (`weightedTrackSimilarity`): coseno en el espacio de Hilbert con
+  métrica diagonal `W = diag(w_i)`, donde el peso de cada categoría se reparte entre sus
+  dimensiones y se normaliza a `Σ w_i = 1` (romance: personalidad .25, intimidad .25, valores
+  .25, cultural .20, identidad .05). Los vectores se centran contra el centroide empírico μ.
 - **Badges**: top 5 (romance) / top 3 (amistad) dimensiones por afinidad
   `1 - |a - b|`, con label e icono en español (`BADGE_METADATA`) y narrativa generada.
 - **Orquestación `POST /api/quiz`** (service role): `submit_quiz_result_v2` →
@@ -212,16 +214,17 @@ separa tres responsabilidades que nunca se tocan entre sí:
 - **Motor de física** (`src/lib/constellation-layout.ts`, puro y determinista): posiciones
   iniciales sembradas con hashes de node-id (mulberry32, **sin `Math.random` ni relojes**);
   `stepSimulation` no muta su entrada (devuelve estado nuevo); radio orbital no lineal por
-  afinidad (`R_min 90 px`, `R_max 42 %` del lado menor, exponente 1.2), ranuras angulares
+  afinidad (`R_min 90 px`, `R_max 42 %` del lado menor, exponente 1.25), ranuras angulares
   equidistantes por decil, repulsión tangencial entre nodos de radio similar, resortes hacia
   una distancia objetivo (`similarityToDistance`), repulsión por colisión, gravedad al centro
-  (el nodo propio queda anclado), tope de velocidad, límites y amortiguación; pase final de
-  *circle packing* que garantiza 56 px entre centros; equilibrio por energía
-  cinética (latch tras ticks de baja energía) y **deriva ambiental** aplicada como posición
+  (el nodo propio queda anclado), tope de velocidad, límites y amortiguación; precomputación
+  determinista de hasta 2000 pasos; pase final de *circle packing* que garantiza
+  `R_i + R_j + δ` entre todos los sprites (56.55 px entre matches); equilibrio con
+  `E_k < 0.01` durante 10 ticks consecutivos y **deriva ambiental** aplicada como posición
   *después* del equilibrio (no como velocidad, para no re-energizar). Los umbrales se **leen**
   de `data/matching-config.json` vía `getTrackThreshold`, nunca se hardcodean. Aristas sólo
   entre pares sobre el umbral del track; la similitud entre dos nodos no-yo se estima como
-  `simA * simB`. Ghost nodes sólo participan en deriva/límites.
+  `simA * simB`. Los ghost nodes participan en deriva/límites y en el clearance final.
 - **Capa de render** (`src/components/constellation/`): `ConstellationView` (entrada de la
   Fase C, dueña del track activo, nodo seleccionado y preferencia de movimiento reducido) →
   `ConstellationCanvas` (cielo SVG con loop `requestAnimationFrame` que muta atributos por

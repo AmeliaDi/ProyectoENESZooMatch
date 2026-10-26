@@ -168,14 +168,32 @@ validan las decisiones numéricas de este demo.
 
 `computeAllMatches` alimenta las parejas que aparecen en la UI de la constelación.
 
+## Métrica de similitud y centroide empírico
+
+Cada track vive en `R^n` (`n = 26` romance, `16` amistad). Los pesos por categoría se
+reparten uniformemente entre las dimensiones de esa categoría y se normalizan para formar
+una matriz diagonal `W = diag(w_1, …, w_n)` con `Σ w_i = 1`. La similitud es el coseno
+ponderado en ese espacio de Hilbert:
+
+```text
+⟨u, v⟩_W = Σ w_i · u_i · v_i
+Sim_W(u, v) = ⟨u, v⟩_W / (‖u‖_W · ‖v‖_W) ∈ [-1, 1]
+S(u, v) = (1 + Sim_W(u, v)) / 2 ∈ [0, 1]
+```
+
+Antes del coseno se resta el **centroide empírico** `μ` (media por dimensión de la
+población), no un 0.5 fijo. Con menos de 30 perfiles el centroide muestral no es
+estimable —centrar ambos miembros de una pareja por su propia media forzaría `Sim_W = -1`—
+y se usa `0.5` como referencia neutra. El porcentaje de UI es `round(S · 100)`.
+
 ## Bandas de química de la UI
 
 La etiqueta cualitativa que ve el usuario (`Almas gemelas`, `Química excepcional`,
 `Química fuerte`, `Buena química`, `Química moderada`) **no** usa cortes absolutos de
-80/85/90. El coseno canónico está centrado en 0.5 y ponderado por categorías, así que sus
-valores útiles viven en una banda estrecha alrededor del umbral del track (0.78 romance,
-0.65 amistad). Un corte absoluto de 0.85 etiquetaría casi todo como "moderada" y
-desalinearía el mensaje con "tu mejor pareja".
+80/85/90. El coseno canónico está centrado en el centroide empírico y ponderado por
+categorías, así que sus valores útiles viven en una banda estrecha alrededor del umbral del
+track (0.78 romance, 0.65 amistad). Un corte absoluto de 0.85 etiquetaría casi todo como
+"moderada" y desalinearía el mensaje con "tu mejor pareja".
 
 Por eso `computeChemistrySummary` normaliza la similitud dentro del rango válido:
 
@@ -209,10 +227,16 @@ cognitiva MBTI (`Ne ↔ Ni`, `Se ↔ Si`, `Ti ↔ Fe`, `Te ↔ Fi`). Los filtros
 verificaron antes de que una pareja llegue a este motor. El frame de sprite
 `romance_pulse` se activa en la constelación a partir de **75%** de afinidad romántica.
 
-El track de romance aplica además una **penalización de selectividad** antes del umbral:
-si la afinidad media de las ocho dimensiones de intimidad cae por debajo de `0.60`, o la
-afinidad en `valores_gestion_conflicto` por debajo de `0.55`, la similitud se multiplica
-por un factor menor que uno. Los vectores idénticos no se penalizan. Los umbrales, topes y
+El track de romance aplica además dos **factores de selectividad** antes del umbral:
+
+- **Intimidad:** si la afinidad media de las ocho dimensiones `intimidad_*` cae por debajo
+  de `0.60`, el factor es `1 - 0.45 · (0.60 - afinidad) / 0.60`.
+- **Conflicto:** con `Δc = |a_conflicto - b_conflicto|`, el factor es la penalización suave
+  de Lipschitz `exp(-3.5 · max(0, Δc - 0.40)²)`.
+
+El puntaje final es `S · f_intimidad · f_conflicto`; los vectores idénticos no se penalizan.
+En la población sintética de calibración, el umbral `0.78` deja **0.46 % de los pares**
+por encima del corte, dentro de la cota `P(Sim ≥ τ) ≤ 6 %`. Los umbrales, topes y
 penalizaciones activos viven en `data/matching-config.json` y son la única fuente de
 verdad; el dashboard y el motor leen el mismo archivo. `0.85` no es un umbral activo del
 motor canónico.
