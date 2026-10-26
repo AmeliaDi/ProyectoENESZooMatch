@@ -67,7 +67,7 @@ export function parseAdminMetrics(raw: unknown): AdminMetrics | null {
  * cell that starts with `=`, `+`, `-` or `@`.
  */
 export function protectCsvCell(value: string): string {
-  if (/^[=+\-@]/.test(value)) return `'${value}`;
+  if (/^[\t\r\n]/.test(value) || /^\s*[=+\-@]/.test(value)) return `'${value}`;
   return value;
 }
 

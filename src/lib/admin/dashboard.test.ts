@@ -46,6 +46,8 @@ describe("CSV export", () => {
     expect(protectCsvCell("+1")).toBe("'+1");
     expect(protectCsvCell("-1")).toBe("'-1");
     expect(protectCsvCell("@cmd")).toBe("'@cmd");
+    expect(protectCsvCell("  =SUM(A1:A2)")).toBe("'  =SUM(A1:A2)");
+    expect(protectCsvCell("\t=SUM(A1:A2)")).toBe("'\t=SUM(A1:A2)");
     expect(protectCsvCell("ajolotito")).toBe("ajolotito");
   });
 
