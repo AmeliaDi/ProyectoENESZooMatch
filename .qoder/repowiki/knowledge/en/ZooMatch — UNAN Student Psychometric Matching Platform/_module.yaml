@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: ""
-title: ENES ZooMatch — Next.js Matching Platform
+title: ZooMatch — UNAN Student Psychometric Matching Platform
 scope:
     - CONTEXTO_PROYECTO.md
     - .gitignore

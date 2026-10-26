@@ -133,9 +133,9 @@ ProyectoENESZooMatch/
 - Rutas: `/cuestionario` (`PublicQuiz`) → `/resultado` (`PublicResultView`).
 - `POST /api/quiz` → RPC `submit_quiz_result`: guarda respuestas, calcula vectores
   normalizados (Big Five + Género + Relaciones) en `score_vectors`.
-- Matching en `private.cosine_similarity` + `refresh_matches` / `get_my_matches`; umbral
-  estrictamente `> 0.85` desde `data/matching-config.json` con fallback codificado
-  (`SAFE_FALLBACK_THRESHOLD` en `src/lib/matching-config.ts`).
+- Matching en `private.cosine_similarity` + `refresh_matches` / `get_my_matches`; el umbral
+  activo se lee de `data/matching-config.json` y la comparación es estrictamente mayor, con
+  fallback codificado (`SAFE_FALLBACK_THRESHOLD` en `src/lib/matching-config.ts`).
 - Sin match, la UI renderiza **literalmente** la constante:
   `"aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor <3"`
   (ortografía y emoticon intocables, asertados por tests).

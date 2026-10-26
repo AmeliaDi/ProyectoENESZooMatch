@@ -1,0 +1,57 @@
+schema_version: 1
+module_path: root
+title: ZooMatch Next.js 应用根配置
+scope:
+    - README.md
+    - CONTEXTO_PROYECTO.md
+    - MANUAL_ADMINISTRADOR.md
+    - .gitignore
+    - next.config.ts
+    - package.json
+    - tsconfig.json
+    - vitest.config.ts
+    - eslint.config.mjs
+    - postcss.config.mjs
+    - requirements.txt
+    - next-env.d.ts
+source_files: []
+depends_on: []
+related_to: []
+kk_module_id: 2e32e214-484a-4b6e-9eb2-7f26474752a1
+kk_cards:
+    architecture_design:
+        id: 1cb9ef5f-6b5e-498c-897b-f0a5f6550c73
+        title: ZooMatch Next.js 应用根配置
+    coding_conventions:
+        id: f0d418d8-253a-460d-a96e-72e5e061b97e
+        title: ZooMatch Next.js 应用根配置
+    overview:
+        id: d6cc4484-b7ae-44d9-b2f6-4ac4c8e1f064
+        title: ZooMatch Next.js 应用根配置
+    tech_stack:
+        id: dbcd79fa-280d-4725-ba90-337d5691c570
+        title: ZooMatch Next.js 应用根配置
+    unique_setup_and_commands:
+        id: f81bcb32-2fb6-4d59-9b7a-27ade5102c18
+        title: ZooMatch Next.js 应用根配置
+    build_system:
+        id: a56747a4-896d-47bd-8b0d-e48d0b748257
+        title: Next.js + npm Scripts 构建系统（双栈 Node/Python，无 CI/Docker）
+    configuration_system:
+        id: 5a220268-cb09-47eb-a2ab-a27ba2717901
+        title: 基于 Zod 的运行时环境变量与 Next.js 安全头配置系统
+    dependency_management:
+        id: d643b063-e4de-4d99-909d-f770d29f565c
+        title: npm + pip 双栈依赖管理（含锁文件与版本范围）
+    error_handling:
+        id: 19d647d0-fbfc-4e8d-8d34-2a02ba44c66e
+        title: ZooMatch Next.js 应用错误处理：Zod 校验、withApiSecurity 中间件与 fail-open 速率限制
+    frontend_style:
+        id: 15c6872f-1f2e-43a1-a708-b2ae94d2a30f
+        title: Tailwind CSS v4 + CSS @theme 设计令牌与 Framer Motion 动画风格系统
+kk_repo_cards:
+    - build_system
+    - configuration_system
+    - dependency_management
+    - error_handling
+    - frontend_style

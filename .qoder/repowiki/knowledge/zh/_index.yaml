@@ -1,0 +1,27 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+commit: 6e849fa1dfc8be845676f15796a191e5bd60c6e8
+branch: main
+exported_at: "2026-10-25T02:44:17Z"
+modules:
+    root:
+        dir_name: ZooMatch Next.js 应用根配置
+        title: ZooMatch Next.js 应用根配置
+        scope:
+            - README.md
+            - CONTEXTO_PROYECTO.md
+            - MANUAL_ADMINISTRADOR.md
+            - .gitignore
+            - next.config.ts
+            - package.json
+            - tsconfig.json
+            - vitest.config.ts
+            - eslint.config.mjs
+            - postcss.config.mjs
+            - requirements.txt
+            - next-env.d.ts
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

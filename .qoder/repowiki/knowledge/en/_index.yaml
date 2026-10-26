@@ -3,11 +3,11 @@ schema_version: 1
 locale: en-US
 branch: main
 nodes_managed: true
-exported_at: "2026-10-23T07:34:25Z"
+exported_at: "2026-10-25T02:39:38Z"
 modules:
     "":
-        dir_name: ENES ZooMatch — Next.js Matching Platform
-        title: ENES ZooMatch — Next.js Matching Platform
+        dir_name: ZooMatch — UNAN Student Psychometric Matching Platform
+        title: ZooMatch — UNAN Student Psychometric Matching Platform
         scope:
             - CONTEXTO_PROYECTO.md
             - .gitignore

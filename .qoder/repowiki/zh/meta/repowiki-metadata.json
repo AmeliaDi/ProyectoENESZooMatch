@@ -1,0 +1,2617 @@
+{
+  "wiki_repo": {
+    "id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+    "name": "ProyectoENESZooMatch",
+    "progress_status": "completed",
+    "wiki_present_status": "COMPLETED",
+    "recovery_checkpoint": "wiki_generation_completed",
+    "last_commit_id": "6e849fa1dfc8be845676f15796a191e5bd60c6e8",
+    "last_commit_update": "2026-10-25T03:07:40Z",
+    "gmt_create": "2026-10-25T03:07:40Z",
+    "gmt_modified": "2026-10-25T03:07:40Z",
+    "extend_info": "{\"language\":\"zh\",\"active\":true,\"branch\":\"main\"}"
+  },
+  "wiki_catalogs": [
+    {
+      "id": "009f507b-f44e-4ada-a2ae-e736be0574a4",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "API 路由设计",
+      "description": "api-routing-design",
+      "prompt": "为 ENES ZooMatch API 路由设计创建详细文档。说明 Next.js App Router 的路由组织结构：RESTful 端点命名规范、版本控制策略（v1/v2）、参数验证机制。详细描述核心 API 端点的职责划分：用户认证路由（/api/login, /api/register）、心理测量路由（/api/quiz-v2）、匹配结果路由（/api/result-v2）、可用性检查路由（/api/availability）。解释请求处理流程：从 HTTP 请求到业务逻辑调用的完整链路，包括中间件执行顺序、参数解析、响应格式化。包含具体的代码示例展示路由函数的标准结构和最佳实践模式。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/quiz-v2/route.ts,src/app/api/result-v2/route.ts,src/app/api/register/route.ts,src/app/api/login/route.ts,src/app/api/availability/route.ts,src/app/api/admin/metrics-v2/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "layer_level": 2,
+      "kk_dependent_files": [
+        "src/app/api/quiz-v2/route.ts",
+        "src/app/api/result-v2/route.ts",
+        "src/app/api/register/route.ts",
+        "src/app/api/login/route.ts",
+        "src/app/api/availability/route.ts",
+        "src/app/api/admin/metrics-v2/route.ts"
+      ]
+    },
+    {
+      "id": "0e48c7ca-fe45-4f01-b96f-a63383e58402",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "星座图渲染引擎",
+      "description": "constellation-renderer",
+      "prompt": "为 ENES ZooMatch 的星座图渲染引擎创建详细的技术文档。深入解释 ConstellationSection 组件的数据适配流程：如何将 PublicResultV2 转换为适配后的匹配数据结构，加载状态、错误处理和空结果的处理逻辑。说明 ConstellationView 主视图组件的实现：Canvas 初始化、视口管理、渲染循环控制。详细描述 render-helpers.ts 中的绘制辅助函数：节点绘制、连线绘制、文字渲染、颜色处理。解释 types.ts 中定义的渲染类型系统：SpriteFrameName、ConstellationRenderState、渲染配置接口。包含 Canvas 性能优化策略、离屏渲染、增量更新机制。提供自定义绘制样式的扩展指南和调试技巧。",
+      "progress_status": "completed",
+      "dependent_files": "src/components/constellation/ConstellationSection.tsx,src/components/constellation/ConstellationView.tsx,src/components/constellation/render-helpers.ts,src/components/constellation/types.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "src/components/constellation/ConstellationSection.tsx",
+        "src/components/constellation/ConstellationView.tsx",
+        "src/components/constellation/render-helpers.ts",
+        "src/components/constellation/types.ts"
+      ]
+    },
+    {
+      "id": "133de95b-be11-4a05-8a96-43ef13d9fcc3",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "用户管理系统",
+      "description": "user-management-system",
+      "prompt": "为 ENES ZooMatch 平台的用户管理系统创建详细文档。深入解释基于 UNAM 学籍号的匿名注册流程、HMAC-SHA-256 哈希隐私保护机制、Supabase Auth 集成实现。详细说明学籍号可用性检查逻辑、虚拟邮箱生成策略、会话管理机制。包含用户数据流：学籍号 → HMAC 哈希 → Supabase Auth → 数据库存储的完整流程。提供具体的代码示例展示注册、登录、可用性验证的实现方式。说明安全考虑因素，包括敏感信息处理、数据加密、隐私保护措施。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/register/route.ts,src/app/api/login/route.ts,src/lib/identity.server.ts,src/app/api/availability/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "layer_level": 2,
+      "kk_dependent_files": [
+        "src/app/api/register/route.ts",
+        "src/app/api/login/route.ts",
+        "src/lib/identity.server.ts",
+        "src/app/api/availability/route.ts"
+      ]
+    },
+    {
+      "id": "16c817c0-a27f-4efb-b9c9-06e1428d7f0c",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "数据库架构设计",
+      "description": "database-schema",
+      "prompt": "为 ENES ZooMatch 创建详细的数据库架构文档。详细说明核心表结构：users（用户表）、quiz_responses（问卷答案表）、profiles（性格档案表）、matches（匹配结果表）、notifications（通知表）的字段定义、数据类型、约束条件。解释表间关系：外键关联、一对多、多对多关系的实现。说明索引策略：主键索引、复合索引、全文搜索索引的设计考虑。描述 SQL 函数和存储过程：RPC 函数的用途、参数定义、返回值格式。包含数据迁移历史：版本管理策略、增量更新流程、回滚机制。提供种子数据说明：初始数据的结构、业务含义、测试用途。说明性能优化：查询优化建议、分表策略、缓存方案。",
+      "progress_status": "completed",
+      "dependent_files": "supabase/migrations/202610230001_multidimensional_v2.sql,supabase/migrations/202610240001_matches_v2_explainability.sql,supabase/seed_v2.sql",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "8c05aa88-4429-4f8e-8afa-88a05b2cfdd0",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "supabase/migrations/202610230001_multidimensional_v2.sql",
+        "supabase/migrations/202610240001_matches_v2_explainability.sql",
+        "supabase/seed_v2.sql"
+      ]
+    },
+    {
+      "id": "1c777e5c-b8cb-4964-94b3-3ed6296806e8",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "余弦相似度计算",
+      "description": "cosine-similarity-calculation",
+      "prompt": "为 ENES ZooMatch 的余弦相似度计算模块创建详细的技术文档。解释余弦相似度的数学原理：向量夹角的余弦值计算公式及其在性格匹配中的意义。详细说明维度向量的构建过程：如何将用户的心理测量答案转换为标准化数值向量，包括反向计分处理（LIKERT_REVERSE_PIVOT = 6 - value）和中性分数（NEUTRAL_SCORE = 0.5）。描述向量化存储机制：ROMANCE_VECTOR_DIMENSIONS 和 FRIENDSHIP_VECTOR_DIMENSIONS 两个维度的差异。解释相似度阈值的过滤逻辑：minimum_similarity_exclusive 的作用机制。包含具体的计算示例和性能优化建议。说明如何处理缺失值和边界情况。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/types/microtest-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/types/microtest-v2.ts"
+      ]
+    },
+    {
+      "id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "项目概览",
+      "description": "project-overview",
+      "prompt": "为 ENES ZooMatch 心理测量匹配平台创建全面的项目概览内容。解释项目的核心目标——为 UNAM ENES 学生提供匿名性格匹配服务，以及其双轨道匹配系统（浪漫关系和友谊）的设计初衷。描述项目的技术栈选择：Next.js App Router + React 19 + TypeScript 前端、Supabase 后端、Tailwind CSS v4 样式系统、Framer Motion 动画等。说明项目的整体架构模式（分层架构、组件化、函数式编程）和关键设计原则（隐私优先、配置驱动、游戏化体验）。包含项目的业务背景、用户群体、核心价值主张和技术创新点。提供清晰的术语表，确保读者理解 zoo match、constellation visualization、archetype 等专有概念。",
+      "progress_status": "completed",
+      "dependent_files": "README.md,CONTEXTO_PROYECTO.md,package.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "kk_dependent_files": [
+        "README.md",
+        "CONTEXTO_PROYECTO.md",
+        "package.json"
+      ]
+    },
+    {
+      "id": "5822315a-bbfa-45c8-8969-9150f93217fc",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "星座图渲染引擎",
+      "description": "constellation-rendering",
+      "prompt": "为 ENES ZooMatch 的星座图渲染引擎创建详细文档。深入解释 ConstellationSection 和 ConstellationCanvas 组件的架构设计，说明 Canvas 渲染性能优化策略。详细描述星座节点的数据结构、渲染流程、动画循环机制。包含帧率控制、视口管理、缩放平移交互等技术实现。提供星座图配置参数、样式定制、颜色主题设置的代码示例。解释与物理引擎的集成方式，包括节点位置更新、碰撞检测、力场计算等核心算法。",
+      "progress_status": "completed",
+      "dependent_files": "src/components/constellation/ConstellationSection.tsx,src/components/constellation/ConstellationCanvas.tsx,src/components/constellation/ConstellationView.tsx",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "layer_level": 3,
+      "kk_dependent_files": [
+        "src/components/constellation/ConstellationSection.tsx",
+        "src/components/constellation/ConstellationCanvas.tsx",
+        "src/components/constellation/ConstellationView.tsx"
+      ]
+    },
+    {
+      "id": "6716a552-30bd-44e6-85f8-e9077090f39b",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "环境部署",
+      "description": "environment-deployment",
+      "prompt": "为 ENES ZooMatch 创建详细的环境部署文档。说明 Next.js 应用的生产环境构建和部署流程，包括 Docker 容器化、Vercel 平台部署、Node.js 服务器部署等方案。详细解释环境变量配置：Supabase 连接字符串、API 密钥、JWT 设置、数据库凭证等敏感信息的管理策略。描述域名和 SSL 证书配置，包括自定义域名绑定、HTTPS 强制重定向、安全头配置。说明构建优化：代码分割、静态资源优化、图片处理、缓存策略。包含多环境管理：开发、测试、生产环境的差异化配置。提供部署脚本和自动化流程示例。",
+      "progress_status": "completed",
+      "dependent_files": "next.config.ts,postcss.config.mjs,package.json,.env.example",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1f162d04-9a41-4fe4-b0a9-2f8be900b601",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "next.config.ts",
+        "postcss.config.mjs",
+        "package.json",
+        ".env.example"
+      ]
+    },
+    {
+      "id": "7360c909-879b-418c-a642-9e46f0314393",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "项目背景与业务价值",
+      "description": "project-background",
+      "prompt": "为 ENES ZooMatch 心理测量匹配平台创建详细的业务背景文档。解释 UNAM ENES 学生群体的特点和需求，说明为什么需要匿名性格匹配服务。详细描述项目的核心价值主张：通过科学心理测量帮助学生在校园环境中建立有意义的社交连接。阐述隐私优先设计的重要性，特别是使用 HMAC-SHA-256 哈希保护学籍号等敏感信息的原因。说明双轨道匹配系统（浪漫关系和友谊）的业务意义和设计考量。包含用户故事、使用场景和价值量化指标。",
+      "progress_status": "completed",
+      "dependent_files": "CONTEXTO_PROYECTO.md,README.md",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "CONTEXTO_PROYECTO.md",
+        "README.md"
+      ]
+    },
+    {
+      "id": "999145d6-eb27-4071-9a82-b87d8b8df554",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "问卷数据结构设计",
+      "description": "quiz-data-structure",
+      "prompt": "为 ENES ZooMatch 的心理测量问卷数据结构创建详细的技术文档。深入解释 v2 版本的数据模型设计：60 道题目如何组织、30 个心理维度的定义和映射关系、选项系统的扩展机制。详细说明 JSON 配置文件结构：题目元数据、分类标签、难度系数、维度归属。解释 TypeScript 类型定义：MicroTestItemV2、DimensionDefinition、AnswerOption 等核心接口。描述数据验证规则：题目完整性检查、维度权重校验、答案格式约束。包含数据迁移指南：从 v1 到 v2 的字段映射和转换逻辑。提供添加新题目和新维度的完整示例，包括配置文件修改和类型定义更新步骤。",
+      "progress_status": "completed",
+      "dependent_files": "data/microtest_v2.json,src/types/microtest-v2.ts,src/types/microtest.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "data/microtest_v2.json",
+        "src/types/microtest-v2.ts",
+        "src/types/microtest.ts"
+      ]
+    },
+    {
+      "id": "9df1cc46-eb38-48df-ae61-5ac1b8aaf616",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "前端架构",
+      "description": "frontend-architecture",
+      "prompt": "为 ENES ZooMatch 前端架构创建详细文档。详细说明 Next.js App Router 的页面组织结构和路由策略：App Router vs Pages Router 的选择原因、Server Components 与 Client Components 的使用场景。解释 React 组件层次结构：PublicExperienceV2 作为主容器组件，ConstellationSection 作为可视化核心组件的设计模式。描述状态管理策略：本地状态、全局状态、服务器状态的分离原则。说明样式系统设计：Tailwind CSS v4 的主题配置、自定义设计令牌、响应式布局策略。包含组件交互图和数据流向图，展示从用户输入到 UI 更新的完整流程。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/layout.tsx,src/app/page.tsx,src/components/public-experience-v2.tsx,src/components/constellation/ConstellationSection.tsx,next.config.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "src/app/layout.tsx",
+        "src/app/page.tsx",
+        "src/components/public-experience-v2.tsx",
+        "src/components/constellation/ConstellationSection.tsx",
+        "next.config.ts"
+      ]
+    },
+    {
+      "id": "9f29040a-20cf-467e-b7f6-72a8f2c0d83d",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "用户注册数据流",
+      "description": "user-registration-data-flow",
+      "prompt": "为 ENES ZooMatch 用户注册数据流创建详细文档。详细说明从前端输入学籍号到数据库存储的完整数据流转过程。解释HMAC-SHA-256哈希算法在隐私保护中的应用，说明虚拟邮箱生成机制和Supabase Auth集成流程。描述数据验证规则：学籍号格式校验、可用性检查、重复注册防护。包含错误处理策略和安全防护措施。提供数据流图展示用户数据的加密、传输、存储全过程。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/register/route.ts,src/lib/identity.server.ts,src/lib/security/api.server.ts,supabase/migrations/202610230001_multidimensional_v2.sql",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "layer_level": 2,
+      "kk_dependent_files": [
+        "src/app/api/register/route.ts",
+        "src/lib/identity.server.ts",
+        "src/lib/security/api.server.ts",
+        "supabase/migrations/202610230001_multidimensional_v2.sql"
+      ]
+    },
+    {
+      "id": "a9b794dd-9adf-483e-ae60-1ae035bce3c2",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "问卷设计与结构",
+      "description": "questionnaire-design",
+      "prompt": "为 ENES ZooMatch 心理测量系统的问卷设计创建详细文档。深入解释 v1（24题，17维度）和 v2（60题，30维度）问卷的架构差异。详细说明 BigFive 人格特质（开放性、尽责性、外向性、宜人性、神经质）和 MBTI 类型指标在题目设计中的应用。解释 Likert 量表的设计原理：v1 使用 1-4 级评分，v2 升级到 1-5 级以提高区分度。包含题目分类、维度映射关系、权重分配策略。提供 JSON 配置文件的字段说明，包括题目文本、选项定义、所属维度、计分规则等。展示 TypeScript 类型定义的结构，说明如何扩展新题目和维度。",
+      "progress_status": "completed",
+      "dependent_files": "data/microtest_v2.json,src/types/microtest-v2.ts,data/microtest_v1.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "99933ad7-a13c-407f-a5fb-c476d8037d28",
+      "layer_level": 3,
+      "kk_dependent_files": [
+        "data/microtest_v2.json",
+        "src/types/microtest-v2.ts",
+        "data/microtest_v1.json"
+      ]
+    },
+    {
+      "id": "af095bfc-4d57-4acf-982b-6641adbe49e9",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "双轨道匹配机制",
+      "description": "dual-track-matching",
+      "prompt": "为 ENES ZooMatch 的双轨道匹配机制创建详细文档。深入解释浪漫关系轨道和友谊轨道的独立计算逻辑，说明两个轨道如何并行处理相同的心理测量数据但产生不同的匹配结果。详细分析轨道分离的数据流，包括如何从用户向量中分别计算浪漫匹配度和友谊匹配度。解释轨道权重配置的作用，以及如何通过配置文件调整不同轨道的重要性。包含具体的代码示例展示双轨道计算的实现方式，以及如何处理轨道间的数据共享和隔离。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/types/archetype.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "layer_level": 3,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/types/archetype.ts"
+      ]
+    },
+    {
+      "id": "b725cd8b-7d8b-4eb9-895a-1bceb89e25fc",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "API 安全防护",
+      "description": "api-security",
+      "prompt": "为 ENES ZooMatch 的 API 安全机制创建详细文档。解释 HMAC-SHA-256 哈希验证的实现原理和配置方法，包括密钥管理、时间戳验证和签名生成。详细说明请求签名验证流程：客户端如何生成签名、服务器端如何验证签名完整性。描述防重放攻击机制：时间窗口控制、nonce 使用、请求去重策略。说明 API 路由级别的安全中间件实现，包括身份验证、权限检查、数据过滤。提供具体的代码示例展示如何正确集成这些安全机制。包含常见安全漏洞的防护措施和最佳实践建议。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/security/api.server.ts,src/app/api/register/route.ts,src/app/api/login/route.ts,src/app/api/quiz-v2/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "src/lib/security/api.server.ts",
+        "src/app/api/register/route.ts",
+        "src/app/api/login/route.ts",
+        "src/app/api/quiz-v2/route.ts"
+      ]
+    },
+    {
+      "id": "cbe699b7-3e63-4943-be47-17e22996e415",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "用户注册流程",
+      "description": "user-registration-flow",
+      "prompt": "为 ENES ZooMatch 的用户注册流程创建详细的技术文档。深入解释基于 UNAM 学籍号的匿名注册机制：学籍号格式验证、HMAC-SHA-256 哈希处理、虚拟邮箱生成算法。详细说明注册 API 的完整流程：可用性检查 → 身份验证 → Supabase Auth 集成 → 用户档案创建。解释隐私保护机制：如何通过哈希技术确保学籍号不被明文存储，虚拟邮箱如何保护用户真实身份。包含完整的错误处理策略：重复学籍号处理、网络异常重试、数据验证失败。提供实际的代码示例展示注册流程的实现细节和扩展方法。说明与可用性检查接口的协作关系和并发安全保证。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/register/route.ts,src/app/api/availability/route.ts,src/lib/identity.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "07aaaa62-eb59-4bde-befb-07abebc66c77",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "src/app/api/register/route.ts",
+        "src/app/api/availability/route.ts",
+        "src/lib/identity.server.ts"
+      ]
+    },
+    {
+      "id": "d5ae811e-d7cf-436f-9ec5-336abe38a03a",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "用户管理 API",
+      "description": "user-management-api",
+      "prompt": "为 ENES ZooMatch 的用户管理功能创建详细的 API 文档。详细说明注册接口 /api/register：HTTP POST 方法、请求体包含学籍号字段、HMAC-SHA-256 哈希处理、Supabase Auth 集成、响应格式和错误码。记录登录接口 /api/login：认证流程、会话管理、令牌机制、安全头设置。说明可用性检查接口 /api/availability：学籍号验证逻辑、并发处理、缓存策略。提供每个接口的完整请求示例、响应示例、错误处理场景。解释隐私保护机制：敏感数据处理、匿名化策略、数据生命周期。包含速率限制配置、安全防护措施、最佳实践指南。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/register/route.ts,src/app/api/login/route.ts,src/app/api/availability/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "2b681de1-472e-4a7a-afd3-ebbdc58e436b",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "src/app/api/register/route.ts",
+        "src/app/api/login/route.ts",
+        "src/app/api/availability/route.ts"
+      ]
+    },
+    {
+      "id": "fb790ec0-878f-4fc6-95ce-af13a3c7816d",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "代码规范与风格指南",
+      "description": "coding-standards",
+      "prompt": "为 ENES ZooMatch 项目创建详细的代码规范与风格指南文档。详细说明 ESLint 配置规则：TypeScript 严格模式、React Hooks 规则、Next.js 特定规则、导入顺序和命名约定。解释代码组织规范：文件结构约定、组件命名规则、函数命名规范、变量命名约定。描述注释规范：JSDoc 注释格式、复杂逻辑注释要求、API 文档注释标准。说明 TypeScript 类型定义规范：接口命名、泛型使用、类型守卫编写。包含 Git 提交信息规范和 .gitignore 忽略规则。提供代码审查检查清单，确保团队成员遵循统一的编码标准。",
+      "progress_status": "completed",
+      "dependent_files": "eslint.config.mjs,.gitignore,tsconfig.json,package.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "layer_level": 1,
+      "kk_dependent_files": [
+        "eslint.config.mjs",
+        ".gitignore",
+        "tsconfig.json",
+        "package.json"
+      ]
+    },
+    {
+      "id": "1b94a8a5-7ef3-466f-83de-063240734b7f",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "安全中间件",
+      "description": "security-middleware",
+      "prompt": "为 ENES ZooMatch 安全中间件系统创建全面文档。详细说明 withApiSecurity 装饰器的实现原理：HMAC-SHA-256 签名验证、时间戳防重放攻击、密钥管理机制。解释速率限制策略：基于 IP 的请求频率控制、滑动窗口算法、限流阈值配置。描述跨域安全机制：Origin 验证、CORS 配置、CSRF 防护。说明身份验证流程：JWT token 管理、会话状态维护、权限级别控制。包含安全攻击防护示例和常见安全漏洞的防御措施。提供安全配置的最佳实践和故障排查指南。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/security/api.server.ts,src/lib/security/rate-limit.server.ts,src/lib/security/origin.ts,src/lib/security/security-utils.test.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "layer_level": 2,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/lib/security/api.server.ts",
+        "src/lib/security/rate-limit.server.ts",
+        "src/lib/security/origin.ts",
+        "src/lib/security/security-utils.test.ts"
+      ]
+    },
+    {
+      "id": "1ee2733b-35fb-4986-b8fa-c4947cdc92a0",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "测试策略与实践",
+      "description": "testing-strategy",
+      "prompt": "为 ENES ZooMatch 项目创建全面的测试策略文档。详细说明 Vitest 测试框架配置和最佳实践：单元测试编写、异步测试处理、Mock 数据管理。解释测试分类：单元测试（lib 目录业务逻辑）、组件测试（React 组件行为）、集成测试（API 路由测试）。描述测试数据管理：模拟用户数据、匹配结果、星座图数据。说明覆盖率要求和持续集成中的测试执行。包含常见测试场景示例：匹配算法测试、表单验证测试、API 错误处理测试。提供调试失败测试的方法和工具推荐。",
+      "progress_status": "completed",
+      "dependent_files": "vitest.config.ts,src/lib/matching.test.ts,src/lib/admin-dashboard.test.ts,src/components/public-experience-utils.test.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "vitest.config.ts",
+        "src/lib/matching.test.ts",
+        "src/lib/admin-dashboard.test.ts",
+        "src/components/public-experience-utils.test.ts"
+      ]
+    },
+    {
+      "id": "29039f92-aad7-4453-b28d-e0e8060e24a8",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "TypeScript 类型系统",
+      "description": "typescript-types",
+      "prompt": "为 ENES ZooMatch 创建全面的 TypeScript 类型系统文档。详细解释核心接口定义：Archetype（性格原型）、QuizSubmissionV2（问卷提交）、ScoredProfileV2（评分档案）、DualMatchResult（双轨道匹配结果）的属性和方法。说明枚举类型：维度类型、轨道类型、徽章类型的定义和使用场景。描述泛型约束：类型参数的边界、约束条件的应用、类型安全的最佳实践。解释类型守卫：运行时类型检查、错误处理、类型收窄技巧。说明类型继承和组合：接口的扩展、交叉类型、联合类型的使用模式。包含类型验证：Zod schema 与 TypeScript 类型的映射、运行时验证策略、错误消息定制。提供类型使用示例：从 API 响应到 UI 组件的完整类型流转。",
+      "progress_status": "completed",
+      "dependent_files": "src/types/archetype.ts,src/types/microtest-v2.ts,src/lib/validation-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "8c05aa88-4429-4f8e-8afa-88a05b2cfdd0",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/types/archetype.ts",
+        "src/types/microtest-v2.ts",
+        "src/lib/validation-v2.ts"
+      ]
+    },
+    {
+      "id": "2aa30883-7958-4f70-b6a1-d8a21beab014",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "输入验证与清理",
+      "description": "input-validation",
+      "prompt": "为 ENES ZooMatch 的输入验证系统创建全面文档。详细说明 Zod schema 验证的实现：字段类型检查、必填验证、范围限制、自定义验证规则。解释 SQL 注入防护机制：参数化查询、SQL 语句白名单、数据库权限最小化原则。描述 XSS 防护策略：输出编码、Content Security Policy、输入净化。说明心理测量数据的特殊验证规则：答案范围检查、维度一致性验证、逻辑关系校验。提供不同类型输入的验证示例和错误处理模式。包含性能优化建议和批量验证的最佳实践。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/validation-v2.ts,src/lib/validation.ts,src/lib/matching-config-v2.ts,data/microtest_v2.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/lib/validation-v2.ts",
+        "src/lib/validation.ts",
+        "src/lib/matching-config-v2.ts",
+        "data/microtest_v2.json"
+      ]
+    },
+    {
+      "id": "2b2caf5c-2f13-429d-82fb-b642d2024447",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "认证与会话管理",
+      "description": "authentication-session-management",
+      "prompt": "为 ENES ZooMatch 的认证与会话管理系统创建详细的技术文档。深入解释用户登录验证流程：学籍号密码验证、会话令牌生成、Supabase Auth 集成。详细说明会话管理机制：Cookie 设置、会话持久化、自动过期处理。解释管理员认证系统与用户认证系统的区别：不同的权限模型、访问控制策略、路由保护机制。描述安全最佳实践：密码哈希存储、会话劫持防护、CSRF 保护。包含完整的认证状态管理：登录状态检测、权限检查、登出处理。提供实际的代码示例展示如何实现自定义认证中间件和权限守卫。说明与 Next.js App Router 的集成方式和客户端状态同步。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/login/route.ts,src/lib/identity.server.ts,src/lib/admin-auth.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "07aaaa62-eb59-4bde-befb-07abebc66c77",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/app/api/login/route.ts",
+        "src/lib/identity.server.ts",
+        "src/lib/admin-auth.server.ts"
+      ]
+    },
+    {
+      "id": "3351628f-3189-4cea-8a96-d4ebc853fb27",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "技术栈与工具链",
+      "description": "technology-stack",
+      "prompt": "为 ENES ZooMatch 项目创建全面的技术栈文档。详细说明前端技术选型：Next.js 16.4.2 App Router、React 19、TypeScript 的架构优势；后端技术：Supabase (PostgreSQL + Auth) 的选择理由；样式系统：Tailwind CSS v4 的设计令牌和主题定制；动画库：Framer Motion 的交互体验提升。描述开发工具链：Vitest 测试框架、ESLint 代码规范、npm scripts 构建系统。说明 Python 脚本在数据处理中的作用。解释各技术版本兼容性和依赖管理策略。",
+      "progress_status": "completed",
+      "dependent_files": "package.json,requirements.txt,next.config.ts,tsconfig.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "package.json",
+        "requirements.txt",
+        "next.config.ts",
+        "tsconfig.json"
+      ]
+    },
+    {
+      "id": "36fe4283-67b0-4aee-8104-d11b053a4e47",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "快速开始",
+      "description": "getting-started",
+      "prompt": "为 ENES ZooMatch 项目创建详细的快速开始指南。包含完整的环境准备步骤：Node.js 版本要求、Python 环境设置、Supabase 账户注册和数据库配置。提供分步安装说明：依赖安装、环境变量配置、数据库迁移执行、种子数据导入。包含本地开发服务器启动命令、常见环境配置问题排查、首次运行验证步骤。说明开发工具链配置：VS Code 推荐扩展、调试器设置、代码格式化规则。提供最小可行环境的搭建方案，让初学者能够快速跑通整个应用流程。",
+      "progress_status": "completed",
+      "dependent_files": "package.json,.env.example,next.config.ts,requirements.txt",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 1,
+      "kk_dependent_files": [
+        "package.json",
+        ".env.example",
+        "next.config.ts",
+        "requirements.txt"
+      ]
+    },
+    {
+      "id": "373fbb2c-af98-402c-9ec1-4eb779cc7641",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "物理引擎系统",
+      "description": "physics-engine",
+      "prompt": "为 ENES ZooMatch 的物理引擎系统创建全面的技术文档。深入解释确定性物理模拟的核心算法：弹簧力计算、斥力模型、中心重力、速度阻尼。详细说明碰撞检测机制：节点间距离计算、最小距离约束、边界处理。描述能量收敛算法：动能计算、平衡检测、稳态判断。解释初始布局生成：基于哈希的种子位置、聚类算法、簇质心计算。说明 build-structure.ts 中的图结构构建：节点关系建立、边权重计算、相似度估计。包含 SimulationParams 参数的调优指南、性能优化策略、内存管理最佳实践。提供物理效果自定义的配置方法和调试工具使用。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/constellation-layout.ts,src/components/constellation/build-structure.ts,src/components/constellation/adapt-result.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/lib/constellation-layout.ts",
+        "src/components/constellation/build-structure.ts",
+        "src/components/constellation/adapt-result.ts"
+      ]
+    },
+    {
+      "id": "3a4fd40a-cdff-41b7-ad94-2646c251344c",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "余弦相似度计算",
+      "description": "cosine-similarity-calculation",
+      "prompt": "为余弦相似度算法创建技术文档。详细解释余弦相似度的数学原理，包括向量点积、模长计算和相似度公式。说明如何将用户的心理测量维度转换为数值向量，以及向量标准化过程。深入分析匹配引擎中的具体实现，包括向量化表示、相似度阈值处理和性能优化策略。提供数学公式推导、代码实现示例和调试技巧。解释如何处理高维稀疏向量和数值精度问题。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/lib/matching-config-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "layer_level": 3,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/lib/matching-config-v2.ts"
+      ]
+    },
+    {
+      "id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "后端架构",
+      "description": "backend-architecture",
+      "prompt": "为 ENES ZooMatch 后端架构创建全面文档。详细说明 API Routes 的分层设计：路由层（route.ts）、业务逻辑层（lib 目录）、数据访问层的职责分离。解释安全中间件架构：withApiSecurity 装饰器模式、HMAC 验证、速率限制机制。描述错误处理策略：Zod 运行时验证、统一错误响应格式、日志记录机制。说明性能优化策略：缓存策略、数据库查询优化、API 响应压缩。包含 API 调用流程图和错误处理流程图，展示从请求接收到响应的完整处理链。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/quiz-v2/route.ts,src/app/api/result-v2/route.ts,src/lib/security/api.server.ts,src/lib/validation-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/app/api/quiz-v2/route.ts",
+        "src/app/api/result-v2/route.ts",
+        "src/lib/security/api.server.ts",
+        "src/lib/validation-v2.ts"
+      ]
+    },
+    {
+      "id": "474f591d-cf7a-42ec-8377-732f7ecc3318",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "答案处理与验证",
+      "description": "answer-processing",
+      "prompt": "为 ENES ZooMatch 心理测量系统的答案处理与验证机制创建综合文档。详细说明 Zod 运行时验证的实现原理，包括答案格式校验、数值范围检查、必填字段验证。解释本地存储策略：草稿自动保存、数据持久化、跨会话恢复机制。说明答案收集流程：前端表单处理、实时验证反馈、错误提示机制。包含进度指示系统：完成百分比计算、章节导航、跳过功能。提供用户交互优化：键盘快捷键支持、移动端适配、无障碍访问。展示代码示例：Zod schema 定义、验证函数调用、错误处理逻辑。强调数据完整性保证和用户体验优化的最佳实践。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/validation-v2.ts,src/components/public-experience-v2.tsx,src/lib/validation.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "99933ad7-a13c-407f-a5fb-c476d8037d28",
+      "layer_level": 3,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/lib/validation-v2.ts",
+        "src/components/public-experience-v2.tsx",
+        "src/lib/validation.ts"
+      ]
+    },
+    {
+      "id": "5022991b-d693-491f-b72e-8d6251bd2dea",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "物理引擎系统",
+      "description": "physics-engine",
+      "prompt": "为 ENES ZooMatch 的物理引擎系统创建详细文档。深入解释确定性物理模拟的实现原理，包括弹簧力、斥力、重力的数学模型和计算公式。详细说明 ConstellationLayout 中的节点布局算法，如何确保每次运行产生相同的星座图结构。包含力场平衡算法、收敛条件判断、迭代次数控制等核心技术。提供物理参数调优指南，如弹性系数、阻尼系数、引力常量的设置方法。解释构建星座结构的步骤，从原始数据到最终布局的完整转换流程。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/constellation-layout.ts,src/components/constellation/build-structure.ts,src/components/constellation/render-helpers.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "layer_level": 3,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/lib/constellation-layout.ts",
+        "src/components/constellation/build-structure.ts",
+        "src/components/constellation/render-helpers.ts"
+      ]
+    },
+    {
+      "id": "785db13e-7458-4410-b4e2-faf61ce60000",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "v1 与 v2 版本对比",
+      "description": "v1-v2-version-comparison",
+      "prompt": "创建 ENES ZooMatch 心理测量系统 v1 与 v2 版本的全面对比文档。详细分析两个版本的核心差异：题目数量从 24 题增加到 60 题（增加 150%），心理维度从 17 个扩展到 30 个（增加 76%），评分标准从 Likert 1-4 改为 1-5（提升区分度）。解释算法改进：v2 版本引入双轨道匹配机制、更精确的余弦相似度计算、硬过滤器优化。说明性能影响：数据处理时间、内存占用、API 响应时间的变化。描述向后兼容性策略：v1 API 的保留原因、数据格式转换层、渐进式迁移方案。提供版本选择指南：何时使用 v1 vs v2、性能基准测试结果、功能特性对照表。",
+      "progress_status": "completed",
+      "dependent_files": "data/microtest_v1.json,data/microtest_v2.json,src/lib/matching.ts,src/lib/matching-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "data/microtest_v1.json",
+        "data/microtest_v2.json",
+        "src/lib/matching.ts",
+        "src/lib/matching-v2.ts"
+      ]
+    },
+    {
+      "id": "79c3d71f-6b9b-47a6-a8d7-d6a0db3ed87d",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "心理测量 API",
+      "description": "quiz-api",
+      "prompt": "为 ENES ZooMatch 的心理测量系统创建完整的 API 文档。详细说明问卷提交流程 /api/quiz-v2：HTTP POST 方法、QuizSubmissionV2 数据结构、Zod 验证规则、答案存储格式。解释双轨道支持：浪漫关系和友谊模式的独立提交、维度映射、权重计算。记录 v1 与 v2 版本的差异：题目数量变化（24题到60题）、评分量表调整（Likert 1-4到1-5）、新增维度支持。提供完整的请求响应示例、批量提交优化、草稿保存机制。说明数据验证规则：必填字段、数值范围、业务逻辑约束。包含错误处理策略、重试机制、性能优化建议。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/quiz-v2/route.ts,src/lib/validation-v2.ts,data/microtest_v2.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "2b681de1-472e-4a7a-afd3-ebbdc58e436b",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/app/api/quiz-v2/route.ts",
+        "src/lib/validation-v2.ts",
+        "data/microtest_v2.json"
+      ]
+    },
+    {
+      "id": "85fc0c2c-7e05-4c91-b2d3-bf132842e822",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "双轨道匹配机制",
+      "description": "dual-track-matching",
+      "prompt": "为 ENES ZooMatch 的双轨道匹配机制创建深入的技术文档。详细解释浪漫关系轨道（romance）和友谊轨道（amistad）的并行计算架构。说明两个轨道的差异：浪漫轨道使用26个维度并应用硬过滤器，友谊轨道使用16个维度且无硬过滤器。描述 TrackConfig 结构：dimensions、hard_filters、weights、minimum_similarity_exclusive 的配置方式。解释双轨道结果如何合并为 DualMatchResult 数据结构。包含轨道选择逻辑、独立评分计算、结果聚合的具体实现。提供配置不同轨道行为的实际案例和最佳实践。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,data/matching-config-v2.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "data/matching-config-v2.json"
+      ]
+    },
+    {
+      "id": "99933ad7-a13c-407f-a5fb-c476d8037d28",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "心理测量系统",
+      "description": "psychometric-assessment-system",
+      "prompt": "为 ENES ZooMatch 平台的心理测量系统创建综合文档。详细介绍 v1（24题，17维度）与 v2（60题，30维度）问卷系统的差异和改进。解释 BigFive 和 MBTI 理论在问卷设计中的应用，Likert 量表的使用（v1: 1-4, v2: 1-5）。说明答案收集流程、Zod 运行时验证机制、本地存储策略。包含数据结构定义、字段映射关系、维度计算逻辑。提供问卷渲染、答案提交、结果计算的代码示例。强调用户体验优化：进度指示、草稿保存、错误提示等功能。",
+      "progress_status": "completed",
+      "dependent_files": "data/microtest_v2.json,src/types/microtest-v2.ts,src/lib/validation-v2.ts,src/components/public-experience-v2.tsx",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "layer_level": 2,
+      "order": 1,
+      "kk_dependent_files": [
+        "data/microtest_v2.json",
+        "src/types/microtest-v2.ts",
+        "src/lib/validation-v2.ts",
+        "src/components/public-experience-v2.tsx"
+      ]
+    },
+    {
+      "id": "a9e8f5fb-6bc0-4395-a37a-aeb84b712ed4",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "问卷数据处理流",
+      "description": "quiz-data-processing-flow",
+      "prompt": "为 ENES ZooMatch 问卷数据处理流创建详细文档。详细说明心理测量答案从前端收集到后端处理的完整流程。解释v2版本的60题结构设计和双轨道支持机制。描述Zod验证规则对答案数据的严格校验，包括维度映射、数值范围检查、必填字段验证。说明数据标准化处理和向量表示转换过程。包含数据完整性检查和异常处理机制。提供问卷数据结构图和验证流程图。",
+      "progress_status": "completed",
+      "dependent_files": "data/microtest_v2.json,src/types/microtest-v2.ts,src/lib/validation-v2.ts,src/app/api/quiz-v2/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "layer_level": 2,
+      "order": 1,
+      "kk_dependent_files": [
+        "data/microtest_v2.json",
+        "src/types/microtest-v2.ts",
+        "src/lib/validation-v2.ts",
+        "src/app/api/quiz-v2/route.ts"
+      ]
+    },
+    {
+      "id": "eebd775b-97a6-4025-94e6-425651b0d17a",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "监控告警",
+      "description": "monitoring-alerting",
+      "prompt": "为 ENES ZooMatch 创建全面的监控告警文档。详细说明应用性能监控：响应时间、错误率、吞吐量等关键指标的收集和展示。解释用户行为分析：问卷完成率、匹配成功率、用户留存等核心业务指标。描述系统健康检查：数据库连接状态、API 服务可用性、外部依赖健康状态。说明日志管理：结构化日志格式、日志级别控制、日志聚合和分析。包含告警规则配置：阈值告警、异常检测、通知渠道（邮件、短信、Slack）。提供监控仪表板配置示例和告警触发流程。说明性能瓶颈识别和优化建议。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/admin/metrics/route.ts,src/app/api/admin/metrics-v2/route.ts,src/lib/security/api.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1f162d04-9a41-4fe4-b0a9-2f8be900b601",
+      "layer_level": 1,
+      "order": 1,
+      "kk_dependent_files": [
+        "src/app/api/admin/metrics/route.ts",
+        "src/app/api/admin/metrics-v2/route.ts",
+        "src/lib/security/api.server.ts"
+      ]
+    },
+    {
+      "id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "数据流设计",
+      "description": "data-flow-design",
+      "prompt": "为 ENES ZooMatch 数据流设计创建详细文档。详细说明核心数据流：用户注册流程、心理测量数据流、匹配计算流程、结果存储流程。解释数据结构设计：QuizSubmissionV2、ScoredProfileV2、DualMatchResult 等关键数据模型的设计原则。描述数据转换管道：原始答案 → 向量表示 → 相似度计算 → 徽章生成 → 最终结果的完整转换链。说明数据一致性保证：事务处理、并发控制、数据验证规则。包含数据流图和实体关系图，展示数据在系统中的流转路径和转换过程。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/lib/profile-generator.ts,supabase/migrations/202610230001_multidimensional_v2.sql,data/microtest_v2.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/lib/profile-generator.ts",
+        "supabase/migrations/202610230001_multidimensional_v2.sql",
+        "data/microtest_v2.json"
+      ]
+    },
+    {
+      "id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "架构设计",
+      "description": "architecture-overview",
+      "prompt": "为 ENES ZooMatch 创建全面的架构设计文档。详细描述系统的整体架构模式：Next.js App Router 的前端路由架构、API Routes 的后端服务层、Supabase 的数据访问层。解释分层架构的具体实现：表现层（React 组件）、业务逻辑层（lib 目录）、数据访问层（Supabase 客户端）。说明关键架构决策：为什么选择 Next.js、为什么使用 Supabase、为什么采用函数式编程模式。包含系统边界定义、组件交互图、数据流向图。解释横切关注点的处理方式：安全中间件、错误处理、日志记录、性能监控。提供部署架构图和基础设施依赖说明。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/layout.tsx,src/proxy.ts,next.config.ts,src/lib/env.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 2,
+      "kk_dependent_files": [
+        "src/app/layout.tsx",
+        "src/proxy.ts",
+        "next.config.ts",
+        "src/lib/env.ts"
+      ]
+    },
+    {
+      "id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "核心功能特性",
+      "description": "core-features",
+      "prompt": "为 ENES ZooMatch 平台创建核心功能特性的综合文档。详细介绍五大核心功能模块：用户管理系统（注册认证、隐私保护）、心理测量系统（v1/v2 问卷、答案处理）、匹配引擎（双轨道算法、余弦相似度）、可视化系统（星座图、精灵动画）、管理仪表板（数据统计、实时监控）。说明每个功能的业务流程、用户交互和数据流转。强调游戏化设计元素：动物头像、颜色主题、交互式星座图等用户体验增强特性。包含功能间的依赖关系和集成模式。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/page.tsx,src/components/public-experience-v2.tsx,data/microtest_v2.json,src/lib/matching-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/app/page.tsx",
+        "src/components/public-experience-v2.tsx",
+        "data/microtest_v2.json",
+        "src/lib/matching-v2.ts"
+      ]
+    },
+    {
+      "id": "202a8641-9ed3-409a-9d79-5b8aebf1e39e",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "匹配计算数据流",
+      "description": "matching-calculation-data-flow",
+      "prompt": "为 ENES ZooMatch 匹配计算数据流创建详细文档。详细说明从用户向量到匹配结果的完整计算流程。解释余弦相似度算法的实现原理和性能优化策略。描述双轨道匹配机制：浪漫关系和友谊轨道的独立计算逻辑。说明权重配置系统如何影响匹配结果，包括类别权重和个人偏好调整。解释硬过滤器机制和徽章系统的实现。包含数学公式、算法伪代码和性能基准测试结果。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/lib/matching-config-v2.ts,data/matching-config-v2.json,src/lib/profile-generator.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "layer_level": 2,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/lib/matching-config-v2.ts",
+        "data/matching-config-v2.json",
+        "src/lib/profile-generator.ts"
+      ]
+    },
+    {
+      "id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "匹配引擎核心",
+      "description": "matching-engine-core",
+      "prompt": "为 ENES ZooMatch 平台的匹配引擎创建核心技术文档。详细解释双轨道匹配机制（浪漫关系 vs 友谊）的实现原理，余弦相似度算法的数学基础和计算方法。说明加权类别评分系统、硬过滤器机制的工作原理。深入分析徽章系统的逻辑实现，解释如何根据匹配结果生成个性化徽章。包含 explainability 模块的情感叙事生成功能，如何将技术匹配结果转化为用户友好的描述。提供匹配算法的代码实现示例，配置参数的调整方法，性能优化策略。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/lib/matching-config-v2.ts,data/matching-config-v2.json,src/lib/explainability.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "layer_level": 2,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/lib/matching-config-v2.ts",
+        "data/matching-config-v2.json",
+        "src/lib/explainability.ts"
+      ]
+    },
+    {
+      "id": "3d77def3-a5f8-407d-b239-85f58aa84bd3",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "匹配结果 API",
+      "description": "matching-results-api",
+      "prompt": "为 ENES ZooMatch 的匹配结果功能创建详细的 API 文档。详细说明结果查询接口 /api/result-v2：HTTP GET/POST 方法、匹配参数传递、DualMatchResult 数据结构、星座图数据格式。解释匹配算法返回的数据结构：相似度评分、硬过滤器结果、徽章系统、情感叙事生成。记录通知管理系统：实时通知推送、消息格式、状态管理。说明双轨道结果的区分处理：浪漫匹配和友谊匹配的独立展示逻辑。提供完整的响应示例、数据转换过程、前端适配指南。包含缓存策略、性能优化、错误处理和降级方案。解释隐私保护机制：匿名数据处理、敏感信息过滤。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/result-v2/route.ts,src/lib/matching-v2.ts,src/components/public-experience-utils-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "2b681de1-472e-4a7a-afd3-ebbdc58e436b",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/app/api/result-v2/route.ts",
+        "src/lib/matching-v2.ts",
+        "src/components/public-experience-utils-v2.ts"
+      ]
+    },
+    {
+      "id": "412e67a5-f631-4599-874f-02c172907c48",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "答案处理流程",
+      "description": "answer-processing-pipeline",
+      "prompt": "为 ENES ZooMatch 的答案处理流水线创建详细的技术文档。深入解释完整的处理流程：前端表单提交 → Zod 运行时验证 → 后端安全中间件 → 数据清洗 → 向量转换 → 档案生成。详细说明每个阶段的数据转换：原始答案到标准化分数、维度得分计算、权重应用、异常值检测。解释错误处理机制：无效答案的处理策略、部分提交的容错处理、重试机制。描述性能优化技术：批量处理、缓存策略、异步处理。包含安全考虑：输入 sanitization、SQL 注入防护、速率限制。提供调试工具和日志分析方法，以及常见问题的故障排除指南。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/quiz-v2/route.ts,src/lib/validation-v2.ts,src/lib/profile-generator.ts,src/lib/security/api.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/app/api/quiz-v2/route.ts",
+        "src/lib/validation-v2.ts",
+        "src/lib/profile-generator.ts",
+        "src/lib/security/api.server.ts"
+      ]
+    },
+    {
+      "id": "7c830063-0865-449b-8372-af947be2957b",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "备份恢复",
+      "description": "backup-disaster-recovery",
+      "prompt": "为 ENES ZooMatch 创建详细的备份恢复文档。说明数据库备份策略：全量备份、增量备份、实时备份的配置和调度。详细解释数据恢复流程：从备份文件恢复、版本回滚、数据一致性验证。描述灾难恢复计划：故障场景模拟、RTO/RPO 目标设定、应急响应流程。包含数据迁移管理：Schema 变更、数据转换、版本兼容性检查。说明敏感数据处理：加密备份、访问控制、审计日志。提供自动化备份脚本和恢复演练流程。包含数据清理策略：过期数据归档、存储空间优化、合规性要求。",
+      "progress_status": "completed",
+      "dependent_files": "supabase/seed.sql,supabase/seed_v2.sql,supabase/promote_admin.sql",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1f162d04-9a41-4fe4-b0a9-2f8be900b601",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "supabase/seed.sql",
+        "supabase/seed_v2.sql",
+        "supabase/promote_admin.sql"
+      ]
+    },
+    {
+      "id": "7d3d071a-d485-43c4-b67f-320d5177181b",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "加权类别评分系统",
+      "description": "weighted-category-scoring",
+      "prompt": "为 ENES ZooMatch 的加权类别评分系统创建详细的技术文档。解释五大类别体系：personalidad（个人特质）、afinidad_cultural（文化亲和）、intimidad_afecto（亲密情感）、valores_relacionales（关系价值）、identidad（身份认同）。详细说明 CategoryWeights 结构和权重归一化过程（normalizeWeights 函数）。描述加权平均分的计算方法：如何在余弦相似度基础上应用类别权重。解释不同轨道的权重配置差异：浪漫轨道各占25%，友谊轨道侧重个人特质（40%）和文化亲和（35%）。包含权重调整的实际案例、动态调整机制、以及权重对最终匹配结果的影响分析。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/lib/matching-config-v2.ts,data/matching-config-v2.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/lib/matching-config-v2.ts",
+        "data/matching-config-v2.json"
+      ]
+    },
+    {
+      "id": "8f3a62bf-a406-4cab-8e69-8f98e75d92e1",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "加权类别评分系统",
+      "description": "weighted-category-scoring",
+      "prompt": "为加权类别评分系统创建详细文档。解释如何通过配置文件定义不同类别的权重分配，包括性格维度、兴趣领域和行为特征的权重设置。详细说明权重计算公式，如何将基础相似度分数转换为最终类别得分。分析动态权重调整机制，包括如何根据用户历史数据和系统反馈优化权重配置。提供配置文件的结构说明，权重调优的最佳实践，以及权重变更对匹配结果的影响分析。",
+      "progress_status": "completed",
+      "dependent_files": "data/matching-config-v2.json,src/lib/matching-config-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "layer_level": 3,
+      "order": 2,
+      "kk_dependent_files": [
+        "data/matching-config-v2.json",
+        "src/lib/matching-config-v2.ts"
+      ]
+    },
+    {
+      "id": "9662c915-4660-4da2-9177-047a33c5ffad",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "静态数据结构",
+      "description": "static-data-models",
+      "prompt": "为 ENES ZooMatch 创建静态数据结构文档。详细说明性格原型目录：archetype_id、name、description、color_theme、pixel_art 等字段的业务含义和配置规则。解释匹配配置结构：dimension_weights（维度权重）、track_rules（轨道规则）、badge_criteria（徽章标准）、threshold_values（阈值设置）。描述题库数据模型：question_id、text、dimension_mapping、answer_options、scoring_logic 的定义规范。说明校准数据格式：synthetic_profiles 的生成规则、统计分布、验证指标。解释数据版本管理：JSON Schema 验证、向后兼容性、渐进式升级策略。包含数据验证规则：必填字段、取值范围、依赖关系的校验逻辑。提供数据加载机制：文件解析、缓存策略、错误处理的实现方式。说明数据更新流程：编辑工具、发布流程、热重载支持。",
+      "progress_status": "completed",
+      "dependent_files": "data/catalogo_arquetipos_v2.json,data/matching-config-v2.json,data/microtest_v2.json,data/synthetic-calibration.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "8c05aa88-4429-4f8e-8afa-88a05b2cfdd0",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "data/catalogo_arquetipos_v2.json",
+        "data/matching-config-v2.json",
+        "data/microtest_v2.json",
+        "data/synthetic-calibration.json"
+      ]
+    },
+    {
+      "id": "99729cdb-7ef4-4e64-8f28-06cd20211ebf",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "速率限制系统",
+      "description": "rate-limiting",
+      "prompt": "为 ENES ZooMatch 的速率限制系统创建详细技术文档。解释滑动窗口算法的实现原理和时间复杂度分析。详细说明 IP 级限流策略：IP 地址提取、黑名单处理、代理支持。描述用户级限流机制：基于会话的计数、账户级别的限制、优先级队列。说明不同 API 端点的差异化限流配置：注册接口的严格限制、问卷提交的合理配额、结果查询的宽松策略。提供限流统计和监控指标的设计方案。包含限流配置调优指南和故障排除方法。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/security/rate-limit.server.ts,src/lib/security/api.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/lib/security/rate-limit.server.ts",
+        "src/lib/security/api.server.ts"
+      ]
+    },
+    {
+      "id": "a649e95d-8f8b-473a-9308-18707ff7bd5c",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "错误处理系统",
+      "description": "error-handling-system",
+      "prompt": "为 ENES ZooMatch 错误处理系统创建详细文档。说明 Zod 运行时验证框架的使用：数据模式定义、验证错误捕获、自定义验证规则。描述统一的错误响应格式：标准错误对象结构、HTTP 状态码映射、错误消息国际化支持。解释错误分类机制：业务逻辑错误、数据验证错误、系统级错误的不同处理策略。说明日志记录系统：结构化日志输出、敏感信息脱敏、错误追踪和监控集成。包含错误处理的代码示例和最佳实践，展示如何正确处理异步操作中的异常情况和降级策略。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/validation-v2.ts,src/lib/validation.ts,src/app/api/quiz-v2/route.ts,src/app/api/result-v2/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "layer_level": 2,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/lib/validation-v2.ts",
+        "src/lib/validation.ts",
+        "src/app/api/quiz-v2/route.ts",
+        "src/app/api/result-v2/route.ts"
+      ]
+    },
+    {
+      "id": "c3b7620e-603a-4d2d-bf54-e409c190c973",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "像素精灵生成器",
+      "description": "pixel-sprite-generator",
+      "prompt": "为 ENES ZooMatch 的像素精灵生成器创建详细的技术文档。深入解释程序化图形生成的核心流程：形状家族模板系统、哈希变化生成、轮廓独特性保证。详细说明12种形状家族的设计原理：felino、canino、ave、roedor等动物的抽象表示。描述动画帧系统：idle_1、idle_2、happy三种状态的切换机制。解释纹理系统：色彩映射、阴影高光、眼睛特殊处理。说明distinctness pass的独特性保证算法：半网格距离约束、冲突检测、轮廓验证。包含catalogo_arquetipos_v2.json数据结构的详细说明、新增动物精灵的开发流程、调色板定制方法。提供性能优化技巧和调试工具使用指南。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/pixel-sprites.ts,data/catalogo_arquetipos_v2.json,data/arquetipos.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/lib/pixel-sprites.ts",
+        "data/catalogo_arquetipos_v2.json",
+        "data/arquetipos.json"
+      ]
+    },
+    {
+      "id": "d343be2d-c743-4283-85ca-955335f07c89",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "调试技巧与问题排查",
+      "description": "debugging-guide",
+      "prompt": "为 ENES ZooMatch 项目创建详细的调试指南。说明浏览器端调试：Chrome DevTools 使用技巧、React Developer Tools、网络请求调试、性能分析工具。描述 Node.js 后端调试：VS Code 调试配置、断点设置、日志输出策略。解释 Supabase 数据库调试：查询性能分析、实时订阅调试、认证问题排查。说明环境变量调试：.env 文件配置验证、运行时环境检查。包含常见错误排查：依赖冲突解决、构建错误诊断、运行时异常处理。提供调试工具和扩展推荐，帮助开发者快速定位和解决问题。",
+      "progress_status": "completed",
+      "dependent_files": "next.config.ts,src/lib/env.server.ts,src/app/api/*/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "next.config.ts",
+        "src/lib/env.server.ts",
+        "src/app/api/*/route.ts"
+      ]
+    },
+    {
+      "id": "ede89768-dd8d-4a07-b68e-3971a5236bf3",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "像素精灵生成器",
+      "description": "sprite-generation",
+      "prompt": "为 ENES ZooMatch 的像素精灵生成器创建详细文档。深入解释程序化像素艺术生成算法，如何通过算法而非预设图像创建动物头像。详细说明 PixelAnimal 组件的设计模式，支持的颜色方案、尺寸规格、表情变化等特性。包含精灵图库管理系统，如何动态加载和缓存精灵资源。提供精灵样式自定义的配置选项，如调色板选择、像素密度调整、动画效果设置等。解释与星座图的集成方式，精灵在Canvas中的渲染优化和批量绘制技术。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/pixel-sprites.ts,src/components/constellation/PixelAnimal.tsx,src/components/sprite-gallery.tsx",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "layer_level": 3,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/lib/pixel-sprites.ts",
+        "src/components/constellation/PixelAnimal.tsx",
+        "src/components/sprite-gallery.tsx"
+      ]
+    },
+    {
+      "id": "f1dd7d37-c87e-4b29-b92b-6abce3d54cda",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "学籍号验证与可用性检查",
+      "description": "student-id-validation",
+      "prompt": "为 ENES ZooMatch 的学籍号验证与可用性检查系统创建详细的技术文档。深入解释学籍号格式验证规则：UNAM 学籍号标准格式、正则表达式匹配、输入清洗。详细说明可用性检查机制：数据库查询优化、缓存策略、并发安全保证。解释重复检测算法：精确匹配 vs 模糊匹配、冲突解决策略。描述性能优化措施：查询索引设计、批量检查支持、响应时间优化。包含完整的错误处理：无效格式提示、数据库连接异常、超时处理。提供实际的代码示例展示如何扩展验证规则和添加新的检查逻辑。说明与注册流程的集成方式和前端交互模式。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/availability/route.ts,src/lib/identity.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "07aaaa62-eb59-4bde-befb-07abebc66c77",
+      "layer_level": 1,
+      "order": 2,
+      "kk_dependent_files": [
+        "src/app/api/availability/route.ts",
+        "src/lib/identity.server.ts"
+      ]
+    },
+    {
+      "id": "02dc3987-776f-4ec9-976f-184dc662e324",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "精灵表管理器",
+      "description": "sprite-sheet-manager",
+      "prompt": "为 ENES ZooMatch 的精灵表管理器创建详细的技术文档。深入解释精灵表的构建原理：将12×12像素网格转换为优化的SVG路径、运行长度编码压缩、内联SVG URL生成。详细说明缓存机制：MAX_CACHED_SHEETS限制、LRU缓存策略、内存管理。描述frame-ticker.ts的共享动画系统：单例定时器模式、订阅者模式、无React重渲染优化。解释性能优化技术：DOM元素数量减少、内存占用控制、SSR兼容性设计。包含精灵表尺寸优化、颜色深度控制、浏览器兼容性处理。提供自定义动画效果的扩展方法和性能监控技巧。",
+      "progress_status": "completed",
+      "dependent_files": "src/components/constellation/sprite-sheet.ts,src/components/constellation/frame-ticker.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/components/constellation/sprite-sheet.ts",
+        "src/components/constellation/frame-ticker.ts"
+      ]
+    },
+    {
+      "id": "07aaaa62-eb59-4bde-befb-07abebc66c77",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "用户管理系统",
+      "description": "user-management-system",
+      "prompt": "为 ENES ZooMatch 的用户管理系统创建详细的技术文档。深入解释基于 UNAM 学籍号的匿名注册机制，包括 HMAC-SHA-256 哈希保护、虚拟邮箱生成、Supabase Auth 集成。详细说明身份验证流程：登录验证、会话管理、权限控制。解释可用性检查机制：学籍号格式验证、重复检测、并发安全。描述管理员认证系统与用户认证系统的区别和权限模型。包含完整的 API 接口规范：请求参数、响应格式、错误处理。提供实际的代码示例展示如何扩展用户管理功能。说明隐私保护措施和安全最佳实践。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/register/route.ts,src/app/api/login/route.ts,src/app/api/availability/route.ts,src/lib/identity.server.ts,src/lib/admin-auth.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 3,
+      "kk_dependent_files": [
+        "src/app/api/register/route.ts",
+        "src/app/api/login/route.ts",
+        "src/app/api/availability/route.ts",
+        "src/lib/identity.server.ts",
+        "src/lib/admin-auth.server.ts"
+      ]
+    },
+    {
+      "id": "11e04995-724f-4d00-9b40-ed8e03a68728",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "构建与部署流程",
+      "description": "build-deployment",
+      "prompt": "为 ENES ZooMatch 项目创建完整的构建与部署文档。详细说明 Next.js 构建配置：优化选项、代码分割策略、静态资源处理。解释开发环境搭建：Node.js 版本要求、依赖安装、环境变量配置。描述生产构建优化：Tree Shaking、Bundle 分析、性能监控。说明部署流程：Vercel 部署、自定义服务器部署、Supabase 服务配置。包含 Docker 化部署（如适用）和环境隔离方案。提供构建脚本说明：npm scripts 使用、Python 数据处理脚本执行。包含故障排除指南：构建失败、依赖冲突、环境变量错误的解决方案。",
+      "progress_status": "completed",
+      "dependent_files": "next.config.ts,postcss.config.mjs,package.json,requirements.txt",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "next.config.ts",
+        "postcss.config.mjs",
+        "package.json",
+        "requirements.txt"
+      ]
+    },
+    {
+      "id": "238b0b63-6192-4d27-bce7-5fbd8e6796ab",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "硬过滤器系统",
+      "description": "hard-filters-system",
+      "prompt": "为 ENES ZooMatch 的硬过滤器系统创建全面的技术文档。详细解释硬性不兼容条件的判断逻辑：orientacion_sexual（性取向）、identidad_genero（性别认同）、tipo_relacion_busca（关系类型）三个字段。说明兼容性映射表的设计：ORIENTATION_COMPATIBILITY、RELATIONSHIP_COMPATIBILITY 的实现原理。解释通配符机制：'todxs'、'prefiero no decir' 等特殊值的处理逻辑。描述过滤器优先级和执行顺序：为什么只应用于浪漫轨道。包含具体的过滤规则矩阵、兼容性检查算法、以及扩展新过滤器的方法。提供常见场景的过滤结果示例和调试技巧。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts"
+      ]
+    },
+    {
+      "id": "46792b36-3469-4e81-9729-6729b1397278",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "双轨道匹配机制",
+      "description": "dual-track-mechanism",
+      "prompt": "为 ENES ZooMatch 的双轨道匹配机制创建专门的技术文档。详细解释浪漫关系轨道和友谊轨道的独立计算逻辑：不同的权重配置、阈值设置、匹配标准。说明轨道分离的设计原理：为什么需要双轨道而非单一匹配结果、用户体验优势、算法复杂性权衡。描述轨道切换机制：用户如何选择目标轨道、动态配置加载、实时结果更新。解释配置管理系统：matching-config-v2.json 的结构、轨道特定参数的调整方法。包含算法细节：轨道间的独立性保证、资源隔离、并发处理。提供轨道定制指南：如何添加新的匹配轨道、调整匹配策略、监控轨道性能。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,data/matching-config-v2.json,src/components/public-experience-utils-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "data/matching-config-v2.json",
+        "src/components/public-experience-utils-v2.ts"
+      ]
+    },
+    {
+      "id": "4bedcddc-5af6-43c8-b609-be8b0f1a0157",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "结果存储持久化流",
+      "description": "result-storage-persistence-flow",
+      "prompt": "为 ENES ZooMatch 结果存储持久化流创建详细文档。详细说明匹配结果从内存计算到数据库存储的完整流程。解释PostgreSQL表结构设计，包括主表、维度得分表、匹配关系表的关联关系。描述事务处理机制确保数据一致性，索引设计优化查询性能。说明数据归档策略和历史版本管理。包含数据库Schema图、插入更新流程和查询优化建议。解释与管理员仪表板的数据交互模式。",
+      "progress_status": "completed",
+      "dependent_files": "supabase/migrations/202610230001_multidimensional_v2.sql,src/app/api/result-v2/route.ts,src/lib/admin-dashboard-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "layer_level": 2,
+      "order": 3,
+      "kk_dependent_files": [
+        "supabase/migrations/202610230001_multidimensional_v2.sql",
+        "src/app/api/result-v2/route.ts",
+        "src/lib/admin-dashboard-v2.ts"
+      ]
+    },
+    {
+      "id": "5938137b-cbf6-48e7-b90a-7d9cc8a88fd5",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "安全架构",
+      "description": "security-architecture",
+      "prompt": "为 ENES ZooMatch 安全架构创建全面文档。详细说明多层安全防护体系：API 安全中间件、输入验证、输出编码、会话管理。解释隐私保护机制：HMAC-SHA-256 哈希处理、匿名学籍号映射、敏感数据脱敏策略。描述认证授权架构：Supabase Auth 集成、角色权限控制、API 访问控制。说明威胁防护措施：SQL 注入防护、XSS 防护、CSRF 防护、DDoS 防护。包含安全架构图和威胁模型分析，展示各安全层的作用和相互关系。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/security/api.server.ts,src/lib/security/rate-limit.server.ts,src/lib/security/origin.ts,src/lib/identity.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/lib/security/api.server.ts",
+        "src/lib/security/rate-limit.server.ts",
+        "src/lib/security/origin.ts",
+        "src/lib/identity.server.ts"
+      ]
+    },
+    {
+      "id": "5b125e85-b5f6-4afc-bb92-9ac7c72d52ec",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "硬过滤器机制",
+      "description": "hard-filters-system",
+      "prompt": "为硬过滤器机制创建技术文档。详细解释硬过滤器的作用原理，包括硬性条件检查和快速淘汰机制。说明如何定义和配置过滤规则，如年龄范围、地理位置、兴趣爱好等硬性要求。分析过滤器的执行顺序和性能优化，包括如何在早期阶段快速排除不匹配的候选者。提供过滤规则的编写指南，常见过滤场景的实现示例，以及过滤器调试和性能监控的方法。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/lib/matching-config-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "layer_level": 3,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/lib/matching-config-v2.ts"
+      ]
+    },
+    {
+      "id": "68f15f3a-32ee-4fd1-af6c-560d232adfdc",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "用户交互系统",
+      "description": "interaction-system",
+      "prompt": "为 ENES ZooMatch 的用户交互系统创建详细文档。深入解释星座图的交互响应机制，包括鼠标悬停、点击选择、拖拽移动等手势处理。详细说明 NodeDetailSheet 组件如何展示匹配节点的详细信息，TrackToggle 如何切换不同的匹配轨道。包含自定义 Hooks 的设计模式，如 useConstellationInteraction、useAnimationFrame 等状态管理方案。提供交互事件的监听和处理方法，手势识别算法，以及移动端适配策略。解释与动画系统的集成，确保交互反馈的流畅性和一致性。",
+      "progress_status": "completed",
+      "dependent_files": "src/components/constellation/NodeDetailSheet.tsx,src/components/constellation/TrackToggle.tsx,src/components/constellation/hooks.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "layer_level": 3,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/components/constellation/NodeDetailSheet.tsx",
+        "src/components/constellation/TrackToggle.tsx",
+        "src/components/constellation/hooks.ts"
+      ]
+    },
+    {
+      "id": "8b4fcc41-b81f-4a59-b0b7-2fd03017854d",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "管理端 API",
+      "description": "admin-api",
+      "prompt": "为 ENES ZooMatch 的管理后台创建完整的 API 文档。详细说明管理员认证接口：/api/admin/login 登录流程、权限验证、会话管理；/api/admin/logout 登出处理、会话清理。记录统计分析接口：/api/admin/metrics 和 /api/admin/metrics-v2 的用户统计、系统指标、数据分析功能。解释管理权限控制：角色验证、访问日志、操作审计。提供完整的接口规范：请求头要求、权限令牌、响应数据格式。说明数据导出功能：CSV 生成、报表格式、批量操作。包含安全考虑：IP 白名单、操作频率限制、敏感数据保护。提供使用示例、错误处理、监控告警配置。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/admin/login/route.ts,src/app/api/admin/logout/route.ts,src/app/api/admin/metrics/route.ts,src/app/api/admin/metrics-v2/route.ts,src/lib/admin-auth.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "2b681de1-472e-4a7a-afd3-ebbdc58e436b",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/app/api/admin/login/route.ts",
+        "src/app/api/admin/logout/route.ts",
+        "src/app/api/admin/metrics/route.ts",
+        "src/app/api/admin/metrics-v2/route.ts",
+        "src/lib/admin-auth.server.ts"
+      ]
+    },
+    {
+      "id": "9a14cb31-3a70-411e-8719-a20392cecdcc",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "架构设计理念",
+      "description": "architecture-design",
+      "prompt": "为 ENES ZooMatch 平台创建架构设计理念文档。详细阐述分层架构模式：表现层（Next.js Pages/Components）、业务逻辑层（lib 目录）、数据访问层（Supabase 客户端）的职责划分。说明组件化架构设计原则：可复用 React 组件、组合式 API 设计。解释函数式编程模式的应用：纯函数实现核心算法、不可变数据流。描述关键设计原则：隐私优先（HMAC 哈希、最小权限）、配置驱动（JSON 配置文件）、可扩展性（插件接口）。包含系统边界定义、外部系统集成模式和部署拓扑。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/layout.tsx,src/proxy.ts,next.config.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/app/layout.tsx",
+        "src/proxy.ts",
+        "next.config.ts"
+      ]
+    },
+    {
+      "id": "9c841281-8b17-4227-a2d4-ab8c5b6c87df",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "来源验证机制",
+      "description": "origin-validation",
+      "prompt": "为 ENES ZooMatch 的来源验证机制创建综合文档。详细说明 CORS 配置的完整实现：允许的源列表、预检请求处理、凭据支持。解释 Referer 头验证策略：来源域名白名单、子域匹配规则、内部请求识别。描述 Origin 验证的具体实现：HTTP 头解析、协议验证、端口检查。说明开发环境和生产环境的差异化配置：本地开发允许、生产环境严格验证。提供跨域请求的最佳实践和常见问题的解决方案。包含浏览器兼容性考虑和安全测试用例。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/security/origin.ts,next.config.ts,src/app/layout.tsx",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/lib/security/origin.ts",
+        "next.config.ts",
+        "src/app/layout.tsx"
+      ]
+    },
+    {
+      "id": "b47b5a7c-2836-4292-b8bc-0f363befaea9",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "数据生命周期管理",
+      "description": "data-lifecycle",
+      "prompt": "为 ENES ZooMatch 创建数据生命周期管理文档。详细说明数据创建流程：用户注册时的数据初始化、问卷填写时的增量更新、匹配计算时的临时数据管理。解释数据转换过程：原始答案到向量表示的转换、多维度评分的计算逻辑、匹配结果的排序和筛选。描述数据同步机制：前端本地存储与后端数据库的同步策略、冲突解决、数据一致性保证。说明数据清理策略：过期会话的清理、临时文件的删除、日志归档的管理。解释数据备份恢复：定期备份策略、灾难恢复流程、数据完整性检查。包含数据监控和审计：关键操作的日志记录、性能指标的收集、异常数据的检测。提供数据迁移工具：版本升级脚本、数据修复工具、批量操作接口。说明数据隐私保护：敏感信息脱敏、访问权限控制、合规性要求。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/profile-generator.ts,src/lib/matching-v2.ts,src/lib/admin-dashboard-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "8c05aa88-4429-4f8e-8afa-88a05b2cfdd0",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/lib/profile-generator.ts",
+        "src/lib/matching-v2.ts",
+        "src/lib/admin-dashboard-v2.ts"
+      ]
+    },
+    {
+      "id": "bf3efb48-4be2-46f8-aa50-da1430c481aa",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "性能优化策略",
+      "description": "performance-optimization",
+      "prompt": "为 ENES ZooMatch 性能优化策略创建综合文档。详细说明缓存策略：内存缓存实现、Redis 缓存集成、缓存失效机制。解释数据库查询优化：索引设计、查询计划分析、批量操作优化。描述计算密集型任务优化：匹配算法的性能调优、向量计算的并行处理、内存使用优化。说明前端渲染优化：组件懒加载、虚拟滚动、动画性能优化。包含性能监控指标：关键性能指标（KPI）定义、性能基准测试、瓶颈分析方法。提供性能优化的实际案例和优化前后的对比数据。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/lib/constellation-layout.ts,src/app/api/metrics-v2/route.ts,next.config.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "layer_level": 2,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/lib/constellation-layout.ts",
+        "src/app/api/metrics-v2/route.ts",
+        "next.config.ts"
+      ]
+    },
+    {
+      "id": "c73d8327-966c-402b-bd64-1b75f28ac83e",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "隐私保护与安全措施",
+      "description": "privacy-security-measures",
+      "prompt": "为 ENES ZooMatch 的隐私保护与安全措施创建详细的技术文档。深入解释 HMAC-SHA-256 哈希机制：单向加密原理、盐值使用、防彩虹表攻击。详细说明数据最小化原则：只收集必要信息、匿名化处理、敏感数据脱敏。解释 API 安全防护：请求速率限制、IP 白名单、SQL 注入防护。描述会话安全措施：HTTPS 强制、Cookie 安全属性、跨站请求伪造防护。包含完整的审计日志机制：关键操作记录、异常行为监控、合规性报告。提供实际的安全配置示例和环境变量管理。说明隐私政策实施和用户数据生命周期管理。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/identity.server.ts,src/lib/security/api.server.ts,src/lib/security/rate-limit.server.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "07aaaa62-eb59-4bde-befb-07abebc66c77",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/lib/identity.server.ts",
+        "src/lib/security/api.server.ts",
+        "src/lib/security/rate-limit.server.ts"
+      ]
+    },
+    {
+      "id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "可视化展示系统",
+      "description": "visualization-system",
+      "prompt": "为 ENES ZooMatch 平台的可视化展示系统创建详细文档。深入解释交互式星座图的渲染原理，物理引擎驱动的动画效果实现。详细说明像素艺术精灵生成算法，如何通过程序化方式创建动物头像。解释 ConstellationLayout 中的确定性物理模拟，包括弹簧力、斥力、重力等力的计算。包含 Canvas 渲染优化、帧率控制、交互响应等技术细节。提供星座图配置、精灵样式定制、动画参数调节的代码示例。强调游戏化体验设计：颜色主题、动态效果、用户交互反馈等增强特性。",
+      "progress_status": "completed",
+      "dependent_files": "src/components/constellation/ConstellationSection.tsx,src/lib/constellation-layout.ts,src/lib/pixel-sprites.ts,src/components/constellation/ConstellationCanvas.tsx",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "layer_level": 2,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/components/constellation/ConstellationSection.tsx",
+        "src/lib/constellation-layout.ts",
+        "src/lib/pixel-sprites.ts",
+        "src/components/constellation/ConstellationCanvas.tsx"
+      ]
+    },
+    {
+      "id": "dcd12e96-3024-493b-91ef-9bdda6a8d194",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "故障排除",
+      "description": "troubleshooting-operations",
+      "prompt": "为 ENES ZooMatch 创建全面的故障排除文档。详细说明常见生产问题诊断：应用启动失败、数据库连接超时、API 响应缓慢等问题的定位方法。解释性能瓶颈分析：CPU 使用率过高、内存泄漏、数据库查询慢等性能问题的检测和优化。描述安全事件响应：异常登录尝试、SQL 注入攻击、XSS 攻击的检测和处理流程。说明日志分析方法：错误堆栈追踪、请求链路追踪、用户会话分析。包含紧急修复流程：热修复发布、配置热更新、服务降级策略。提供故障排查工具链：调试命令、诊断脚本、监控面板使用指南。说明预防性措施：定期健康检查、容量规划、压力测试。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/env.server.ts,src/lib/security/api.server.ts,next.config.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1f162d04-9a41-4fe4-b0a9-2f8be900b601",
+      "layer_level": 1,
+      "order": 3,
+      "kk_dependent_files": [
+        "src/lib/env.server.ts",
+        "src/lib/security/api.server.ts",
+        "next.config.ts"
+      ]
+    },
+    {
+      "id": "0ffcf415-1041-4f1e-9210-779e68accbc6",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "徽章生成系统",
+      "description": "badge-generation-system",
+      "prompt": "为徽章生成系统创建详细文档。解释徽章系统的业务逻辑，包括如何根据匹配结果的特征自动生成个性化徽章。详细说明徽章分类体系，包括情感徽章、行为徽章、特质徽章等不同类型。分析徽章生成算法，包括匹配度阈值、特征组合逻辑和徽章优先级排序。提供徽章配置的自定义方法，新徽章类型的添加流程，以及徽章视觉表现的设计规范。包含徽章生成的代码示例和测试用例。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,data/catalogo_arquetipos_v2.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "layer_level": 3,
+      "order": 4,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "data/catalogo_arquetipos_v2.json"
+      ]
+    },
+    {
+      "id": "3f1500ae-449e-4bdb-95c5-1f81efa8ee38",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "交互控制系统",
+      "description": "interactive-controls",
+      "prompt": "为 ENES ZooMatch 的交互控制系统创建详细的技术文档。深入解释节点详情面板的实现：拖拽交互、缩放平移、点击选择、信息展示。详细说明轨道切换组件：romance/amistad双轨道切换、状态同步、过渡动画。描述hooks.ts中的自定义钩子：useConstellationInteraction、useViewportManager、useNodeSelection。解释手势处理：鼠标事件、触摸支持、键盘导航、无障碍访问。包含响应式设计适配、移动端优化、性能考虑。提供自定义交互行为的扩展指南和调试工具使用。",
+      "progress_status": "completed",
+      "dependent_files": "src/components/constellation/NodeDetailSheet.tsx,src/components/constellation/TrackToggle.tsx,src/components/constellation/hooks.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "layer_level": 1,
+      "order": 4,
+      "kk_dependent_files": [
+        "src/components/constellation/NodeDetailSheet.tsx",
+        "src/components/constellation/TrackToggle.tsx",
+        "src/components/constellation/hooks.ts"
+      ]
+    },
+    {
+      "id": "5b478db3-10a2-4b68-a106-dbae744ce9b9",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "徽章生成系统",
+      "description": "badge-generation-system",
+      "prompt": "为 ENES ZooMatch 的徽章生成系统创建详细的技术文档。解释徽章系统的目的：根据匹配结果生成个性化标签和情感化推荐语。详细说明 BadgeMeta 结构：label（人类可读标签）和 icon（emoji图标）的定义。描述 BADGE_METADATA 映射表：每个维度对应的徽章文案和设计。解释徽章筛选逻辑：DEFAULT_ROMANCE_BADGES = 5、DEFAULT_FRIENDSHIP_BADGES = 3 的选择策略。说明徽章与维度分数的关联机制：如何根据得分高低选择最相关的徽章。包含徽章文案模板、图标选择规则、以及自定义徽章扩展的方法。提供徽章展示的最佳实践和用户界面集成建议。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "layer_level": 1,
+      "order": 4,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts"
+      ]
+    },
+    {
+      "id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "心理测量问卷系统",
+      "description": "psychometric-quiz-system",
+      "prompt": "为 ENES ZooMatch 的心理测量问卷系统创建全面的技术文档。详细解释 v1 和 v2 版本的差异：题目数量从 24 题扩展到 60 题，维度从 17 个增加到 30 个，评分标准从 Likert 1-4 改为 1-5。说明问卷数据结构设计：题目分类、选项定义、维度映射。解释答案收集和处理流程：前端表单验证、后端 Zod 校验、数据存储格式。描述双轨道支持机制：如何同时计算浪漫关系和友谊两个维度的匹配结果。包含问卷渲染引擎的实现细节、状态管理机制、草稿保存功能。提供扩展新题目的指导方法和配置示例。",
+      "progress_status": "completed",
+      "dependent_files": "data/microtest_v2.json,src/types/microtest-v2.ts,src/app/api/quiz-v2/route.ts,src/lib/validation-v2.ts,src/components/public-experience-v2.tsx",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 4,
+      "kk_dependent_files": [
+        "data/microtest_v2.json",
+        "src/types/microtest-v2.ts",
+        "src/app/api/quiz-v2/route.ts",
+        "src/lib/validation-v2.ts",
+        "src/components/public-experience-v2.tsx"
+      ]
+    },
+    {
+      "id": "a095b0b6-0746-4d5a-a779-62418f900054",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "管理仪表板系统",
+      "description": "admin-dashboard-system",
+      "prompt": "为 ENES ZooMatch 平台的管理仪表板系统创建综合文档。详细介绍管理员认证机制、权限控制实现。解释数据统计功能：用户数量、匹配成功率、系统使用情况的实时监控。说明 CSV 导出功能的实现，报表生成的逻辑。包含指标 API 的设计和使用方法，实时数据更新的机制。提供管理界面的代码示例，图表渲染的实现方式，数据过滤和搜索功能。强调安全性考虑：管理员权限验证、敏感数据访问控制、操作日志记录等安全措施。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/admin/page.tsx,src/components/admin-dashboard.tsx,src/lib/admin-dashboard-v2.ts,src/app/api/admin/metrics-v2/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "layer_level": 2,
+      "order": 4,
+      "kk_dependent_files": [
+        "src/app/admin/page.tsx",
+        "src/components/admin-dashboard.tsx",
+        "src/lib/admin-dashboard-v2.ts",
+        "src/app/api/admin/metrics-v2/route.ts"
+      ]
+    },
+    {
+      "id": "b5633524-b792-43ae-90c8-3d336d5eb581",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "部署架构",
+      "description": "deployment-architecture",
+      "prompt": "为 ENES ZooMatch 部署架构创建详细文档。详细说明部署环境要求：Node.js 版本、Python 环境、Supabase 服务依赖。解释构建流程：Next.js 构建配置、TypeScript 编译、静态资源处理、依赖管理策略。描述环境变量管理：生产环境配置、开发环境配置、敏感信息保护。说明监控告警体系：性能指标收集、错误日志监控、业务指标追踪。包含部署拓扑图和基础设施依赖图，展示各组件之间的依赖关系和通信方式。提供故障排除指南和性能调优建议。",
+      "progress_status": "completed",
+      "dependent_files": "next.config.ts,package.json,.env.example,requirements.txt",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "layer_level": 1,
+      "order": 4,
+      "kk_dependent_files": [
+        "next.config.ts",
+        "package.json",
+        ".env.example",
+        "requirements.txt"
+      ]
+    },
+    {
+      "id": "b6cfec06-3cb5-45d8-8eea-d0b366eea8e4",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "前端问卷交互界面",
+      "description": "frontend-quiz-interface",
+      "prompt": "为 ENES ZooMatch 的前端问卷交互界面创建详细的技术文档。深入解释 React 组件架构：PublicExperienceV2 主组件的职责划分、状态管理策略、生命周期管理。详细描述用户交互流程：页面初始化、题目渲染、进度跟踪、自动保存、提交反馈。说明响应式设计实现：移动端适配、触摸操作优化、无障碍访问支持。解释本地存储机制：草稿保存策略、数据同步、离线支持。描述动画和过渡效果：Framer Motion 的使用、用户反馈动画、加载状态可视化。包含性能优化技术：懒加载题目、虚拟滚动、内存管理。提供组件扩展指南：自定义题目类型、主题定制、国际化支持。",
+      "progress_status": "completed",
+      "dependent_files": "src/components/public-exphere-v2.tsx,src/app/cuestionario-v2/page.tsx,src/components/public-experience-utils-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "layer_level": 1,
+      "order": 4,
+      "kk_dependent_files": [
+        "src/components/public-exphere-v2.tsx",
+        "src/app/cuestionario-v2/page.tsx",
+        "src/components/public-experience-utils-v2.ts"
+      ]
+    },
+    {
+      "id": "da77b593-de2d-4dde-809c-3d3a673be285",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "性能优化指南",
+      "description": "performance-optimization",
+      "prompt": "为 ENES ZooMatch 项目创建专业的性能优化指南。详细说明前端性能优化：React 组件渲染优化、虚拟列表使用、图片懒加载、CSS 动画优化。解释 API 性能优化：数据库查询优化、缓存策略、响应时间优化。描述匹配引擎性能：向量计算优化、批量处理、内存管理。说明星座图渲染优化：Canvas 性能、精灵表优化、物理引擎调优。包含性能监控工具：Web Vitals 指标、Lighthouse 审计、性能基准测试。提供性能瓶颈识别方法和优化建议，确保应用在高并发场景下的稳定表现。",
+      "progress_status": "completed",
+      "dependent_files": "next.config.ts,src/lib/matching-v2.ts,src/lib/constellation-layout.ts,src/components/constellation/sprite-sheet.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "layer_level": 1,
+      "order": 4,
+      "kk_dependent_files": [
+        "next.config.ts",
+        "src/lib/matching-v2.ts",
+        "src/lib/constellation-layout.ts",
+        "src/components/constellation/sprite-sheet.ts"
+      ]
+    },
+    {
+      "id": "f464031b-05a6-42d3-984a-f1e6ed168f2c",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "会话安全管理",
+      "description": "session-management",
+      "prompt": "为 ENES ZooMatch 的会话管理系统创建安全文档。详细说明 Cookie 安全属性配置：HttpOnly、Secure、SameSite 设置、过期时间管理。解释 CSRF 防护机制：令牌生成、请求验证、表单保护。描述会话生命周期管理：登录验证、自动登出、并发会话控制。说明管理员会话的特殊安全措施：权限提升检查、操作审计、敏感操作二次验证。提供会话存储的安全设计：内存缓存、Redis 持久化、数据加密。包含会话劫持防护和异常检测机制。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/identity.server.ts,src/app/api/admin/login/route.ts,src/app/api/admin/logout/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "layer_level": 1,
+      "order": 4,
+      "kk_dependent_files": [
+        "src/lib/identity.server.ts",
+        "src/app/api/admin/login/route.ts",
+        "src/app/api/admin/logout/route.ts"
+      ]
+    },
+    {
+      "id": "5e11b886-0108-484b-bc51-0fe9bc623e2b",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "敏感数据处理",
+      "description": "sensitive-data-protection",
+      "prompt": "为 ENES ZooMatch 的敏感数据处理机制创建全面保护文档。详细说明 PII（个人身份信息）的加密存储：HMAC-SHA-256 哈希、盐值生成、单向加密。解释日志脱敏策略：敏感字段过滤、结构化日志、审计追踪。描述数据传输安全：HTTPS 强制、TLS 配置、证书管理。说明数据库安全：字段级加密、访问控制、备份加密。提供敏感数据的生命周期管理：创建、存储、传输、销毁的完整安全流程。包含数据泄露应急响应和合规性要求。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/identity.server.ts,src/lib/security/security-utils.test.ts,supabase/seed.sql",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "layer_level": 1,
+      "order": 5,
+      "kk_dependent_files": [
+        "src/lib/identity.server.ts",
+        "src/lib/security/security-utils.test.ts",
+        "supabase/seed.sql"
+      ]
+    },
+    {
+      "id": "b8eafa1b-6627-4115-84e0-0530b29a670f",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "可解释性叙事生成",
+      "description": "explainability-narrative-generation",
+      "prompt": "为可解释性叙事生成功能创建详细文档。解释如何将技术性的匹配结果转化为用户友好的自然语言描述。详细说明情感叙事的生成逻辑，包括如何分析匹配特征、选择关键信息点和组织语言结构。分析叙事模板系统，包括不同类型的匹配场景对应的叙事模式。提供叙事内容的定制方法，多语言支持实现，以及叙事质量的评估指标。包含具体的生成示例和调试工具使用方法。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/explainability.ts,src/lib/matching-v2.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "layer_level": 3,
+      "order": 5,
+      "kk_dependent_files": [
+        "src/lib/explainability.ts",
+        "src/lib/matching-v2.ts"
+      ]
+    },
+    {
+      "id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "匹配引擎",
+      "description": "matching-engine",
+      "prompt": "为 ENES ZooMatch 的匹配引擎创建深入的技术文档。详细解释余弦相似度算法的数学原理和在性格匹配中的应用。说明双轨道匹配机制：如何并行计算浪漫关系和友谊两个维度的兼容性得分。解释加权类别评分系统：不同性格特质的权重配置和动态调整机制。描述硬过滤器的工作原理：硬性不兼容条件的判断逻辑和优先级。说明徽章系统的生成规则：如何根据匹配结果生成个性化标签和推荐语。解释可解释性功能的实现：如何生成情感化的匹配解释文本。包含完整的配置系统说明：JSON 配置文件结构、权重调整方法、阈值校准。提供算法调优的实际案例和性能优化建议。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-v2.ts,src/lib/matching-config-v2.ts,data/matching-config-v2.json,src/lib/explainability.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 5,
+      "kk_dependent_files": [
+        "src/lib/matching-v2.ts",
+        "src/lib/matching-config-v2.ts",
+        "data/matching-config-v2.json",
+        "src/lib/explainability.ts"
+      ]
+    },
+    {
+      "id": "e2579c73-52cd-455b-9c04-cb4e85da63a0",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "可解释性引擎",
+      "description": "explainability-engine",
+      "prompt": "为 ENES ZooMatch 的可解释性引擎创建深入的技术文档。详细解释如何将机器计算的相似度结果转化为温暖、人性化的西班牙语情感文本。说明 ChemistrySummary 结构：百分比、显示文本、质量级别（almas_gemelas、quimica_excepcional等）的分级逻辑。描述 AffinityBreakdown 生成：五个亲和类别的动态情感短语选择机制。解释 PersonalitySummary 生成：MBTI 代码推导、关键特质提取、个性总结的算法。说明 MatchExplanation 整合：化学摘要、分类详情、个性总结、诗意标题的组合逻辑。包含短语模板系统、确定性哈希算法、以及本地化文案管理。提供可解释性输出的质量控制和用户体验优化建议。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/explainability.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "layer_level": 1,
+      "order": 5,
+      "kk_dependent_files": [
+        "src/lib/explainability.ts"
+      ]
+    },
+    {
+      "id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "可视化系统",
+      "description": "visualization-system",
+      "prompt": "为 ENES ZooMatch 的可视化系统创建详细的技术文档。深入解释星座图渲染引擎的实现：Canvas 绘制、物理引擎模拟、碰撞检测算法。说明像素艺术精灵生成系统：程序化图形创建、帧动画机制、精灵表管理。描述交互式星座图的实现：拖拽交互、缩放平移、节点详情展示。解释物理引擎的核心算法：弹簧力、斥力、重力模拟、能量衰减。说明动画系统的帧率控制、性能优化、内存管理。包含自定义主题的配置方法、颜色主题切换、响应式设计适配。提供扩展新的可视化效果的开发指南和最佳实践。",
+      "progress_status": "completed",
+      "dependent_files": "src/components/constellation/ConstellationSection.tsx,src/lib/constellation-layout.ts,src/lib/pixel-sprites.ts,src/components/constellation/sprite-sheet.ts,src/components/constellation/frame-ticker.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 6,
+      "kk_dependent_files": [
+        "src/components/constellation/ConstellationSection.tsx",
+        "src/lib/constellation-layout.ts",
+        "src/lib/pixel-sprites.ts",
+        "src/components/constellation/sprite-sheet.ts",
+        "src/components/constellation/frame-ticker.ts"
+      ]
+    },
+    {
+      "id": "d8b82917-c815-4a34-8295-40634032666f",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "匹配配置系统",
+      "description": "matching-configuration",
+      "prompt": "为 ENES ZooMatch 的匹配配置系统创建全面的技术文档。详细解释 Zod 验证机制：configSchema 和 trackSchema 的定义和作用。说明配置文件结构：version、tracks、calibration 字段的含义和约束。描述安全回退机制：当配置验证失败时如何应用默认阈值（romance: 0.8, amistad: 0.75）。解释 getMatchingConfigV2、getRomanceThreshold、getAmistadThreshold 函数的作用。说明校准配置：method（bisection）、target_coverage（0.30）、max_users（300）的含义。包含配置文件的完整示例、字段说明、验证规则和错误处理。提供配置调优的实际案例和部署最佳实践。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/matching-config-v2.ts,data/matching-config-v2.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "parent_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "layer_level": 1,
+      "order": 6,
+      "kk_dependent_files": [
+        "src/lib/matching-config-v2.ts",
+        "data/matching-config-v2.json"
+      ]
+    },
+    {
+      "id": "0a601771-0cc0-4351-b684-dc36550e393c",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "管理仪表板",
+      "description": "admin-dashboard",
+      "prompt": "为 ENES ZooMatch 的管理仪表板创建全面的技术文档。详细解释管理端的安全认证机制：管理员权限验证、会话管理、访问控制。说明数据统计功能的实现：用户活跃度分析、匹配成功率统计、系统性能监控。描述实时指标展示：图表渲染、数据刷新机制、缓存策略。解释 CSV 导出功能：数据格式化、批量处理、文件下载。说明仪表盘的配置选项：可定制指标、报表模板、通知设置。包含管理员操作的安全审计、日志记录、异常处理。提供扩展新的管理功能的开发指南和数据接口规范。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/admin/page.tsx,src/components/admin-dashboard.tsx,src/lib/admin-dashboard-v2.ts,src/app/api/admin/metrics-v2/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 7,
+      "kk_dependent_files": [
+        "src/app/admin/page.tsx",
+        "src/components/admin-dashboard.tsx",
+        "src/lib/admin-dashboard-v2.ts",
+        "src/app/api/admin/metrics-v2/route.ts"
+      ]
+    },
+    {
+      "id": "2b681de1-472e-4a7a-afd3-ebbdc58e436b",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "API 接口参考",
+      "description": "api-reference",
+      "prompt": "为 ENES ZooMatch 创建完整的 API 接口参考文档。详细记录所有 RESTful API 端点：HTTP 方法、URL 模式、请求头、请求体、响应体、错误码。包含用户管理 API：注册、登录、可用性检查的完整接口规范。说明心理测量 API：问卷提交、答案验证、数据存储的详细协议。解释匹配结果 API：匹配查询、结果获取、通知管理的接口定义。描述管理端 API：统计分析、系统配置的权限控制和数据格式。提供每个接口的实际调用示例、错误处理场景、速率限制策略。包含 API 版本管理、向后兼容性保证、弃用迁移指南。说明安全机制：认证令牌、输入验证、安全防护措施。",
+      "progress_status": "completed",
+      "dependent_files": "src/app/api/register/route.ts,src/app/api/login/route.ts,src/app/api/quiz-v2/route.ts,src/app/api/result-v2/route.ts,src/app/api/notifications/route.ts,src/app/api/admin/*/route.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 8,
+      "kk_dependent_files": [
+        "src/app/api/register/route.ts",
+        "src/app/api/login/route.ts",
+        "src/app/api/quiz-v2/route.ts",
+        "src/app/api/result-v2/route.ts",
+        "src/app/api/notifications/route.ts",
+        "src/app/api/admin/*/route.ts"
+      ]
+    },
+    {
+      "id": "8c05aa88-4429-4f8e-8afa-88a05b2cfdd0",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "数据模型",
+      "description": "data-models",
+      "prompt": "为 ENES ZooMatch 创建全面的数据模型文档。详细解释实体关系图：用户档案、性格维度、匹配结果、通知消息等实体的关联关系。说明数据库表结构设计：字段定义、数据类型、约束条件、索引策略。描述 TypeScript 类型系统：接口定义、枚举类型、泛型约束、类型守卫。解释静态数据模型：性格原型、题库结构、配置参数的数据格式。说明数据迁移策略：版本管理、增量更新、回滚机制。包含数据验证规则：Zod schema 定义、业务规则约束、完整性检查。提供数据生命周期管理：创建、更新、删除、归档的策略。说明数据安全要求：敏感信息保护、访问控制、审计日志。",
+      "progress_status": "completed",
+      "dependent_files": "src/types/archetype.ts,src/types/microtest-v2.ts,supabase/migrations/202610230001_multidimensional_v2.sql,supabase/seed_v2.sql,data/catalogo_arquetipos_v2.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 9,
+      "kk_dependent_files": [
+        "src/types/archetype.ts",
+        "src/types/microtest-v2.ts",
+        "supabase/migrations/202610230001_multidimensional_v2.sql",
+        "supabase/seed_v2.sql",
+        "data/catalogo_arquetipos_v2.json"
+      ]
+    },
+    {
+      "id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "安全设计",
+      "description": "security-design",
+      "prompt": "为 ENES ZooMatch 创建全面的安全设计文档。详细解释 API 安全防护机制：HMAC-SHA-256 哈希验证、请求签名、防重放攻击。说明输入验证和清理：Zod schema 验证、SQL 注入防护、XSS 防护。描述速率限制系统：IP 级限流、用户级限流、滑动窗口算法。解释来源验证机制：CORS 配置、Referer 检查、Origin 白名单。说明会话安全管理：Cookie 安全属性、CSRF 防护、会话超时。包含敏感数据处理：PII 信息加密、日志脱敏、数据传输安全。提供安全配置的最佳实践、漏洞扫描、渗透测试指南。说明安全事件的监控和响应机制。",
+      "progress_status": "completed",
+      "dependent_files": "src/lib/security/api.server.ts,src/lib/security/rate-limit.server.ts,src/lib/security/origin.ts,src/lib/security/security-utils.test.ts",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 10,
+      "kk_dependent_files": [
+        "src/lib/security/api.server.ts",
+        "src/lib/security/rate-limit.server.ts",
+        "src/lib/security/origin.ts",
+        "src/lib/security/security-utils.test.ts"
+      ]
+    },
+    {
+      "id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "开发指南",
+      "description": "development-guide",
+      "prompt": "为 ENES ZooMatch 创建详细的开发指南。说明代码规范和风格指南：ESLint 规则、Prettier 配置、命名约定、注释规范。解释测试策略：Vitest 单元测试、集成测试、E2E 测试的编写和执行。描述调试技巧：Chrome DevTools 调试、Node.js 调试、Supabase 调试。说明 Git 工作流：分支策略、提交规范、代码审查流程。包含构建和打包过程：Next.js 构建优化、Tree Shaking、代码分割。提供性能优化指南：前端性能、API 响应、数据库查询优化。说明常见问题排查：环境问题、依赖冲突、运行时错误的诊断和解决。包含贡献代码的流程和规范。",
+      "progress_status": "completed",
+      "dependent_files": "vitest.config.ts,eslint.config.mjs,tsconfig.json,.gitignore,package.json",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 11,
+      "kk_dependent_files": [
+        "vitest.config.ts",
+        "eslint.config.mjs",
+        "tsconfig.json",
+        ".gitignore",
+        "package.json"
+      ]
+    },
+    {
+      "id": "1f162d04-9a41-4fe4-b0a9-2f8be900b601",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "name": "部署运维",
+      "description": "deployment-operations",
+      "prompt": "为 ENES ZooMatch 创建全面的部署运维文档。详细说明生产环境部署：Next.js 应用部署、Supabase 环境配置、域名和 SSL 证书设置。解释环境变量管理：敏感信息配置、多环境管理、密钥轮换。描述监控和告警：应用性能监控、错误追踪、用户行为分析。说明备份和恢复：数据库备份策略、灾难恢复计划、数据迁移。包含日志管理和审计：应用日志、访问日志、安全审计。提供扩容和负载均衡：水平扩展、CDN 配置、缓存策略。说明故障排除：常见生产问题、性能瓶颈分析、紧急修复流程。包含运维自动化脚本和 CI/CD 管道配置。",
+      "progress_status": "completed",
+      "dependent_files": "next.config.ts,postcss.config.mjs,package.json,requirements.txt,supabase/promote_admin.sql",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z",
+      "order": 12,
+      "kk_dependent_files": [
+        "next.config.ts",
+        "postcss.config.mjs",
+        "package.json",
+        "requirements.txt",
+        "supabase/promote_admin.sql"
+      ]
+    }
+  ],
+  "wiki_items": [
+    {
+      "id": "133de95b-be11-4a05-8a96-43ef13d9fcc3",
+      "catalog_id": "133de95b-be11-4a05-8a96-43ef13d9fcc3",
+      "title": "用户管理系统",
+      "description": "user-management-system",
+      "extend": "{}",
+      "progress_status": "completed",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "reference_count": 0,
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "catalog_id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "title": "项目概览",
+      "description": "project-overview",
+      "extend": "{}",
+      "progress_status": "completed",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "reference_count": 0,
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": "7360c909-879b-418c-a642-9e46f0314393",
+      "catalog_id": "7360c909-879b-418c-a642-9e46f0314393",
+      "title": "项目背景与业务价值",
+      "description": "project-background",
+      "extend": "{}",
+      "progress_status": "completed",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "reference_count": 0,
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": "a9b794dd-9adf-483e-ae60-1ae035bce3c2",
+      "catalog_id": "a9b794dd-9adf-483e-ae60-1ae035bce3c2",
+      "title": "问卷设计与结构",
+      "description": "questionnaire-design",
+      "extend": "{}",
+      "progress_status": "completed",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "reference_count": 0,
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": "3351628f-3189-4cea-8a96-d4ebc853fb27",
+      "catalog_id": "3351628f-3189-4cea-8a96-d4ebc853fb27",
+      "title": "技术栈与工具链",
+      "description": "technology-stack",
+      "extend": "{}",
+      "progress_status": "completed",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "reference_count": 0,
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": "474f591d-cf7a-42ec-8377-732f7ecc3318",
+      "catalog_id": "474f591d-cf7a-42ec-8377-732f7ecc3318",
+      "title": "答案处理与验证",
+      "description": "answer-processing",
+      "extend": "{}",
+      "progress_status": "completed",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "reference_count": 0,
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": "99933ad7-a13c-407f-a5fb-c476d8037d28",
+      "catalog_id": "99933ad7-a13c-407f-a5fb-c476d8037d28",
+      "title": "心理测量系统",
+      "description": "psychometric-assessment-system",
+      "extend": "{}",
+      "progress_status": "completed",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "reference_count": 0,
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "catalog_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "title": "核心功能特性",
+      "description": "core-features",
+      "extend": "{}",
+      "progress_status": "completed",
+      "repo_id": "01117c9b-dfb7-c578-da71-f2049aaa6754",
+      "reference_count": 0,
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    }
+  ],
+  "knowledge_relations": [
+    {
+      "id": 1,
+      "source_id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "target_id": "009f507b-f44e-4ada-a2ae-e736be0574a4",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 2,
+      "source_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "target_id": "0e48c7ca-fe45-4f01-b96f-a63383e58402",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 3,
+      "source_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "target_id": "133de95b-be11-4a05-8a96-43ef13d9fcc3",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 4,
+      "source_id": "8c05aa88-4429-4f8e-8afa-88a05b2cfdd0",
+      "target_id": "16c817c0-a27f-4efb-b9c9-06e1428d7f0c",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 5,
+      "source_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "target_id": "1c777e5c-b8cb-4964-94b3-3ed6296806e8",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 6,
+      "source_id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "target_id": "5822315a-bbfa-45c8-8969-9150f93217fc",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 7,
+      "source_id": "1f162d04-9a41-4fe4-b0a9-2f8be900b601",
+      "target_id": "6716a552-30bd-44e6-85f8-e9077090f39b",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 8,
+      "source_id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "target_id": "7360c909-879b-418c-a642-9e46f0314393",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 9,
+      "source_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "target_id": "999145d6-eb27-4071-9a82-b87d8b8df554",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 10,
+      "source_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "target_id": "9df1cc46-eb38-48df-ae61-5ac1b8aaf616",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 11,
+      "source_id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "target_id": "9f29040a-20cf-467e-b7f6-72a8f2c0d83d",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 12,
+      "source_id": "99933ad7-a13c-407f-a5fb-c476d8037d28",
+      "target_id": "a9b794dd-9adf-483e-ae60-1ae035bce3c2",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 13,
+      "source_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "target_id": "af095bfc-4d57-4acf-982b-6641adbe49e9",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 14,
+      "source_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "target_id": "b725cd8b-7d8b-4eb9-895a-1bceb89e25fc",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 15,
+      "source_id": "07aaaa62-eb59-4bde-befb-07abebc66c77",
+      "target_id": "cbe699b7-3e63-4943-be47-17e22996e415",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 16,
+      "source_id": "2b681de1-472e-4a7a-afd3-ebbdc58e436b",
+      "target_id": "d5ae811e-d7cf-436f-9ec5-336abe38a03a",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 17,
+      "source_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "target_id": "fb790ec0-878f-4fc6-95ce-af13a3c7816d",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 18,
+      "source_id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "target_id": "1b94a8a5-7ef3-466f-83de-063240734b7f",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 19,
+      "source_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "target_id": "1ee2733b-35fb-4986-b8fa-c4947cdc92a0",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 20,
+      "source_id": "8c05aa88-4429-4f8e-8afa-88a05b2cfdd0",
+      "target_id": "29039f92-aad7-4453-b28d-e0e8060e24a8",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 21,
+      "source_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "target_id": "2aa30883-7958-4f70-b6a1-d8a21beab014",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 22,
+      "source_id": "07aaaa62-eb59-4bde-befb-07abebc66c77",
+      "target_id": "2b2caf5c-2f13-429d-82fb-b642d2024447",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 23,
+      "source_id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "target_id": "3351628f-3189-4cea-8a96-d4ebc853fb27",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 24,
+      "source_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "target_id": "373fbb2c-af98-402c-9ec1-4eb779cc7641",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 25,
+      "source_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "target_id": "3a4fd40a-cdff-41b7-ad94-2646c251344c",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 26,
+      "source_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "target_id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 27,
+      "source_id": "99933ad7-a13c-407f-a5fb-c476d8037d28",
+      "target_id": "474f591d-cf7a-42ec-8377-732f7ecc3318",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 28,
+      "source_id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "target_id": "5022991b-d693-491f-b72e-8d6251bd2dea",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 29,
+      "source_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "target_id": "785db13e-7458-4410-b4e2-faf61ce60000",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 30,
+      "source_id": "2b681de1-472e-4a7a-afd3-ebbdc58e436b",
+      "target_id": "79c3d71f-6b9b-47a6-a8d7-d6a0db3ed87d",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 31,
+      "source_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "target_id": "85fc0c2c-7e05-4c91-b2d3-bf132842e822",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 32,
+      "source_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "target_id": "99933ad7-a13c-407f-a5fb-c476d8037d28",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 33,
+      "source_id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "target_id": "a9e8f5fb-6bc0-4395-a37a-aeb84b712ed4",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 34,
+      "source_id": "1f162d04-9a41-4fe4-b0a9-2f8be900b601",
+      "target_id": "eebd775b-97a6-4025-94e6-425651b0d17a",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 35,
+      "source_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "target_id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 36,
+      "source_id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "target_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 37,
+      "source_id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "target_id": "202a8641-9ed3-409a-9d79-5b8aebf1e39e",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 38,
+      "source_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "target_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 39,
+      "source_id": "2b681de1-472e-4a7a-afd3-ebbdc58e436b",
+      "target_id": "3d77def3-a5f8-407d-b239-85f58aa84bd3",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 40,
+      "source_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "target_id": "412e67a5-f631-4599-874f-02c172907c48",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 41,
+      "source_id": "1f162d04-9a41-4fe4-b0a9-2f8be900b601",
+      "target_id": "7c830063-0865-449b-8372-af947be2957b",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 42,
+      "source_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "target_id": "7d3d071a-d485-43c4-b67f-320d5177181b",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 43,
+      "source_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "target_id": "8f3a62bf-a406-4cab-8e69-8f98e75d92e1",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 44,
+      "source_id": "8c05aa88-4429-4f8e-8afa-88a05b2cfdd0",
+      "target_id": "9662c915-4660-4da2-9177-047a33c5ffad",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 45,
+      "source_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "target_id": "99729cdb-7ef4-4e64-8f28-06cd20211ebf",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 46,
+      "source_id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "target_id": "a649e95d-8f8b-473a-9308-18707ff7bd5c",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 47,
+      "source_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "target_id": "c3b7620e-603a-4d2d-bf54-e409c190c973",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 48,
+      "source_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "target_id": "d343be2d-c743-4283-85ca-955335f07c89",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 49,
+      "source_id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "target_id": "ede89768-dd8d-4a07-b68e-3971a5236bf3",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 50,
+      "source_id": "07aaaa62-eb59-4bde-befb-07abebc66c77",
+      "target_id": "f1dd7d37-c87e-4b29-b92b-6abce3d54cda",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 51,
+      "source_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "target_id": "02dc3987-776f-4ec9-976f-184dc662e324",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 52,
+      "source_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "target_id": "11e04995-724f-4d00-9b40-ed8e03a68728",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 53,
+      "source_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "target_id": "238b0b63-6192-4d27-bce7-5fbd8e6796ab",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 54,
+      "source_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "target_id": "46792b36-3469-4e81-9729-6729b1397278",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 55,
+      "source_id": "01c395d3-3143-4819-8081-ba27f94720a4",
+      "target_id": "4bedcddc-5af6-43c8-b609-be8b0f1a0157",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 56,
+      "source_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "target_id": "5938137b-cbf6-48e7-b90a-7d9cc8a88fd5",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 57,
+      "source_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "target_id": "5b125e85-b5f6-4afc-bb92-9ac7c72d52ec",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 58,
+      "source_id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "target_id": "68f15f3a-32ee-4fd1-af6c-560d232adfdc",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 59,
+      "source_id": "2b681de1-472e-4a7a-afd3-ebbdc58e436b",
+      "target_id": "8b4fcc41-b81f-4a59-b0b7-2fd03017854d",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 60,
+      "source_id": "2afdfeaf-4918-49fd-99ec-aa81bcf67bb1",
+      "target_id": "9a14cb31-3a70-411e-8719-a20392cecdcc",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 61,
+      "source_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "target_id": "9c841281-8b17-4227-a2d4-ab8c5b6c87df",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 62,
+      "source_id": "8c05aa88-4429-4f8e-8afa-88a05b2cfdd0",
+      "target_id": "b47b5a7c-2836-4292-b8bc-0f363befaea9",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 63,
+      "source_id": "3efd4fa9-2ab0-476d-a426-53bcd8263f5a",
+      "target_id": "bf3efb48-4be2-46f8-aa50-da1430c481aa",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 64,
+      "source_id": "07aaaa62-eb59-4bde-befb-07abebc66c77",
+      "target_id": "c73d8327-966c-402b-bd64-1b75f28ac83e",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 65,
+      "source_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "target_id": "d1ddcb22-718a-4c25-b142-44d20f8b08a9",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 66,
+      "source_id": "1f162d04-9a41-4fe4-b0a9-2f8be900b601",
+      "target_id": "dcd12e96-3024-493b-91ef-9bdda6a8d194",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 67,
+      "source_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "target_id": "0ffcf415-1041-4f1e-9210-779e68accbc6",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 68,
+      "source_id": "a0f78f08-013f-4a6c-bd96-42c73f5c63aa",
+      "target_id": "3f1500ae-449e-4bdb-95c5-1f81efa8ee38",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 69,
+      "source_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "target_id": "5b478db3-10a2-4b68-a106-dbae744ce9b9",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 70,
+      "source_id": "1f3ce657-caee-4543-b117-bda0f7f91fc7",
+      "target_id": "a095b0b6-0746-4d5a-a779-62418f900054",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 71,
+      "source_id": "1707305a-e67e-4fb1-a4f3-9e9becb7db7e",
+      "target_id": "b5633524-b792-43ae-90c8-3d336d5eb581",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 72,
+      "source_id": "7eecd610-4ef1-40c7-afa9-7ad795f910f9",
+      "target_id": "b6cfec06-3cb5-45d8-8eea-d0b366eea8e4",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 73,
+      "source_id": "06acedf3-2133-4454-84d9-c257241ece9b",
+      "target_id": "da77b593-de2d-4dde-809c-3d3a673be285",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 74,
+      "source_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "target_id": "f464031b-05a6-42d3-984a-f1e6ed168f2c",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 75,
+      "source_id": "3b96ac22-50f1-4fc8-9f18-766cb0c7b1d8",
+      "target_id": "5e11b886-0108-484b-bc51-0fe9bc623e2b",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 76,
+      "source_id": "33c3a948-3de6-4abe-a860-401f7baa7d37",
+      "target_id": "b8eafa1b-6627-4115-84e0-0530b29a670f",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 77,
+      "source_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "target_id": "e2579c73-52cd-455b-9c04-cb4e85da63a0",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    },
+    {
+      "id": 78,
+      "source_id": "d53805e8-3ede-4c43-aabd-75cf00e069e0",
+      "target_id": "d8b82917-c815-4a34-8295-40634032666f",
+      "source_type": "WIKI_ITEM",
+      "target_type": "WIKI_ITEM",
+      "relationship_type": "PARENT_CHILD",
+      "gmt_create": "2026-10-25T03:07:40Z",
+      "gmt_modified": "2026-10-25T03:07:40Z"
+    }
+  ]
+}
