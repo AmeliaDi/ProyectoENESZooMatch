@@ -23,16 +23,17 @@ import {
   FRIENDSHIP_VECTOR_DIMENSIONS,
   ROMANCE_VECTOR_DIMENSIONS,
 } from "@/types/microtest-v2";
+import { getMatchingConfigV2 } from "@/lib/matching-config-v2";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
 /** Qualitative chemistry bands, from highest to lowest affinity. */
 export type ChemistryLevel =
-  | "almas_gemelas" //       >= 95
-  | "quimica_excepcional" // >= 90
-  | "quimica_fuerte" //      >= 85
-  | "buena_quimica" //       >= 80
-  | "quimica_moderada"; //    everything else (>= 70 by construction)
+  | "almas_gemelas" //       relative position >= 0.70
+  | "quimica_excepcional" // >= 0.45
+  | "quimica_fuerte" //      >= 0.25
+  | "buena_quimica" //       >= 0.10
+  | "quimica_moderada"; //    everything else (at or below the track threshold)
 
 export interface ChemistrySummary {
   /** Integer percentage, 0-100. */
@@ -43,6 +44,10 @@ export interface ChemistrySummary {
   level: ChemistryLevel;
   /** Human-readable Spanish label for the band. */
   levelLabel: string;
+  /** Track similarity threshold used to normalize the band (0-1). */
+  threshold: number;
+  /** Position within [threshold, 1]; 0 means at/below the threshold. */
+  relativePosition: number;
 }
 
 /** The five affinity categories surfaced in the breakdown. */
@@ -93,6 +98,12 @@ const LOW_SCORE = 0.4;
 const TRACK_DIMENSIONS: Record<MatchTrack, readonly string[]> = {
   romance: ROMANCE_VECTOR_DIMENSIONS,
   amistad: FRIENDSHIP_VECTOR_DIMENSIONS,
+};
+
+const MATCHING_CONFIG = getMatchingConfigV2();
+const TRACK_THRESHOLDS: Record<MatchTrack, number> = {
+  romance: MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive,
+  amistad: MATCHING_CONFIG.tracks.amistad.minimum_similarity_exclusive,
 };
 
 /** Fixed display order for categories (only those present in a track appear). */
@@ -567,17 +578,25 @@ const FALLBACK_HEADLINE = "Dos energías que se encontraron en el mismo campus";
  * - `percentage` is `round(similarity * 100)`.
  * - `displayText` is track-aware ("Compatibilidad" for romance,
  *   "Química Amistosa" for friendship).
- * - `level` maps to qualitative bands (see {@link ChemistryLevel}).
+ * - `level` maps the similarity onto the track's valid range. Because raw
+ *   centered/category-weighted cosine values are compressed (typically
+ *   0.65-0.80), absolute 80/85/90 bands would label almost every valid match
+ *   "moderada". Bands are therefore relative to the configured threshold:
+ *   `relative = (similarity - threshold) / (1 - threshold)`.
  */
 export function computeChemistrySummary(similarity: number, track: MatchTrack): ChemistrySummary {
-  const percentage = Math.round(clamp01(similarity) * 100);
+  const normalized = clamp01(similarity);
+  const percentage = Math.round(normalized * 100);
   const noun = track === "romance" ? "Compatibilidad" : "Química Amistosa";
+  const threshold = TRACK_THRESHOLDS[track];
+  const span = Math.max(1e-9, 1 - threshold);
+  const relativePosition = clamp01((normalized - threshold) / span);
 
   let level: ChemistryLevel;
-  if (percentage >= 95) level = "almas_gemelas";
-  else if (percentage >= 90) level = "quimica_excepcional";
-  else if (percentage >= 85) level = "quimica_fuerte";
-  else if (percentage >= 80) level = "buena_quimica";
+  if (relativePosition >= 0.70) level = "almas_gemelas";
+  else if (relativePosition >= 0.45) level = "quimica_excepcional";
+  else if (relativePosition >= 0.25) level = "quimica_fuerte";
+  else if (relativePosition >= 0.10) level = "buena_quimica";
   else level = "quimica_moderada";
 
   return {
@@ -585,6 +604,8 @@ export function computeChemistrySummary(similarity: number, track: MatchTrack): 
     displayText: `${percentage}% de ${noun}`,
     level,
     levelLabel: LEVEL_LABELS[level],
+    threshold,
+    relativePosition,
   };
 }
 
