@@ -115,9 +115,9 @@
 La recomputación global recorre cada pareja de perfiles completados para ambos tracks:
 con 400 estudiantes son 79,800 parejas no ordenadas por track (aprox. 159,600
 comparaciones de similitud). Es un volumen pequeño para la implementación en memoria
-de TypeScript y Postgres sólo recibe el snapshot atómico final. El límite top-5 se
-aplica por persona y track; se conserva una pareja si cualquiera de las dos personas
-la tiene en su top-5.
+de TypeScript y Postgres sólo recibe el snapshot atómico final. El límite es top-3 en
+romance y top-5 en amistad por persona; se conserva una pareja si cualquiera de las dos
+personas la tiene en su lista.
 
 ## Desarrollo local
 

@@ -173,8 +173,8 @@ validan las decisiones numéricas de este demo.
 La etiqueta cualitativa que ve el usuario (`Almas gemelas`, `Química excepcional`,
 `Química fuerte`, `Buena química`, `Química moderada`) **no** usa cortes absolutos de
 80/85/90. El coseno canónico está centrado en 0.5 y ponderado por categorías, así que sus
-valores útiles viven en una banda estrecha alrededor del umbral del track (0.65 romance,
-0.68 amistad). Un corte absoluto de 0.85 etiquetaría casi todo como "moderada" y
+valores útiles viven en una banda estrecha alrededor del umbral del track (0.78 romance,
+0.65 amistad). Un corte absoluto de 0.85 etiquetaría casi todo como "moderada" y
 desalinearía el mensaje con "tu mejor pareja".
 
 Por eso `computeChemistrySummary` normaliza la similitud dentro del rango válido:
@@ -209,11 +209,13 @@ cognitiva MBTI (`Ne ↔ Ni`, `Se ↔ Si`, `Ti ↔ Fe`, `Te ↔ Fi`). Los filtros
 verificaron antes de que una pareja llegue a este motor. El frame de sprite
 `romance_pulse` se activa en la constelación a partir de **75%** de afinidad romántica.
 
-El requisito original de "0.85" se pensó para una similitud coseno sin centrar. La
-similitud centrada y ponderada se comporta en otra escala; aplicar 0.85 literal dejaría
-casi cero matches. Los umbrales activos viven en `data/matching-config.json` y son la
-única fuente de verdad; el dashboard y el motor leen el mismo archivo. `0.85` no es un
-umbral activo del motor canónico.
+El track de romance aplica además una **penalización de selectividad** antes del umbral:
+si la afinidad media de las ocho dimensiones de intimidad cae por debajo de `0.60`, o la
+afinidad en `valores_gestion_conflicto` por debajo de `0.55`, la similitud se multiplica
+por un factor menor que uno. Los vectores idénticos no se penalizan. Los umbrales, topes y
+penalizaciones activos viven en `data/matching-config.json` y son la única fuente de
+verdad; el dashboard y el motor leen el mismo archivo. `0.85` no es un umbral activo del
+motor canónico.
 
 ## Referencias
 

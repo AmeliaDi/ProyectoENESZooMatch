@@ -19,12 +19,12 @@ El producto tiene una sola arquitectura canónica:
 |---|---|
 | Cuestionario | 60 ítems / 30 dimensiones (BigFive, MBTI, Identidad, Cultural, Intimidad, Valores), Likert 1–5 |
 | Matching | Doble track romance + amistad; cosine **ponderado por categoría** + **filtros duros** (orientación, identidad de género, tipo de relación) |
-| Umbrales | romance `> 0.65` (26 dimensiones), amistad `> 0.68` (16 dimensiones, sin filtros duros) |
+| Umbrales | romance `> 0.78` (26 dimensiones + penalizaciones de intimidad/conflicto), amistad `> 0.65` (16 dimensiones, sin filtros duros) |
 | Catálogo | 103 animales en 13 familias morfológicas × 55 colores/texturas |
 
-Ambos tracks centran sus vectores en `0.5` y seleccionan hasta cinco candidatos por persona;
-los pares finales se combinan por unión, por lo que el grado puede superar cinco. Los
-umbrales viven en `data/matching-config.json`.
+Ambos tracks centran sus vectores en `0.5`; romance selecciona su top-3 y amistad su top-5 por
+persona, y los pares finales se combinan por unión. La cobertura objetivo es 8 % en romance y
+35 % en amistad. Los umbrales viven en `data/matching-config.json`.
 
 El resultado se presenta además como una **constelación interactiva** de animalitos en
 pixel-art con física determinista (ver §4.9), sobre sprites generados por código
@@ -104,7 +104,7 @@ ProyectoENESZooMatch/
 2. `scripts/generar_catalogo.py` produce `data/arquetipos.json` (validación de integridad +
    escritura atómica).
 3. `scripts/generate-synthetic-profiles.ts` genera 500 perfiles con semilla fija para
-   calibrar umbrales (cobertura objetivo 30 %, método bisección); la calibración sólo
+   calibrar umbrales (cobertura objetivo 8 % romance / 35 % amistad, método bisección); la calibración sólo
    escribe en `data/` o fixtures de prueba, **nunca reescribe código fuente**.
 4. Los JSON de `data/` se importan estáticamente en TS (`import ... from "../../data/..."`)
    y se replican en Supabase con `seed.sql` para las RPCs SQL.
@@ -211,9 +211,12 @@ separa tres responsabilidades que nunca se tocan entre sí:
 
 - **Motor de física** (`src/lib/constellation-layout.ts`, puro y determinista): posiciones
   iniciales sembradas con hashes de node-id (mulberry32, **sin `Math.random` ni relojes**);
-  `stepSimulation` no muta su entrada (devuelve estado nuevo); fuerzas de resorte hacia una
-  distancia objetivo (`similarityToDistance`), repulsión por colisión según radio del sprite,
-  gravedad al centro, tope de velocidad, límites y amortiguación; equilibrio por energía
+  `stepSimulation` no muta su entrada (devuelve estado nuevo); radio orbital no lineal por
+  afinidad (`R_min 90 px`, `R_max 42 %` del lado menor, exponente 1.2), ranuras angulares
+  equidistantes por decil, repulsión tangencial entre nodos de radio similar, resortes hacia
+  una distancia objetivo (`similarityToDistance`), repulsión por colisión, gravedad al centro
+  (el nodo propio queda anclado), tope de velocidad, límites y amortiguación; pase final de
+  *circle packing* que garantiza 56 px entre centros; equilibrio por energía
   cinética (latch tras ticks de baja energía) y **deriva ambiental** aplicada como posición
   *después* del equilibrio (no como velocidad, para no re-energizar). Los umbrales se **leen**
   de `data/matching-config.json` vía `getTrackThreshold`, nunca se hardcodean. Aristas sólo

@@ -18,7 +18,7 @@ cada capa, consulta [`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md) y el
 - El repositorio está en la rama `refactor/canonical`, que elimina por completo el flujo v1
   y deja una sola arquitectura: matrícula → microtest de 60 ítems → persistencia Supabase →
   matching dual (romance/amistad) → resultado y constelación.
-- Verificación local: **typecheck ✓ · lint ✓ · 499 tests en 27 archivos ✓**. El build local
+- Verificación local: **typecheck ✓ · lint ✓ · 513 tests en 27 archivos ✓**. El build local
   se corre con `next build --webpack` cuando el shell no tiene `node` en PATH; CI y Vercel
   usan el build estándar con Node 24.
 - Hallazgos cerrados del [`AUDIT.md`](./AUDIT.md): submit tolerante a ráfagas
@@ -109,12 +109,15 @@ Una sola implementación, organizada por dominio:
 El cuestionario tiene **60 ítems · 30 dimensiones · Likert 1–5**, catálogo de **103 animales ×
 55 colores/texturas** repartidos en **13 familias morfológicas** y dos tracks independientes:
 
-- **Romance** (`> 0.65`): 26 dimensiones + filtros de atracción mutua y tipo de relación.
-- **Amistad** (`> 0.68`): 16 dimensiones, sin filtros duros.
+- **Romance** (`> 0.78`): 26 dimensiones, filtros duros bidireccionales y penalizaciones por
+  desalineación en intimidad y gestión de conflicto. Conserva hasta **3** matches: es el
+  track escaso y selectivo.
+- **Amistad** (`> 0.65`): 16 dimensiones, sin filtros duros. Conserva hasta **5** matches:
+  es el track generoso y comunitario.
 
-Ambos tracks conservan hasta cinco matches por persona. La similitud centra cada vector en
-`0.5`, calcula cosine por categoría con sus pesos y lo escala a `[0,1]`. Los umbrales y pesos
-viven en `data/matching-config.json`.
+La similitud centra cada vector en `0.5`, calcula cosine por categoría con sus pesos y lo
+escala a `[0,1]`. Los umbrales, pesos y coberturas objetivo viven en
+`data/matching-config.json`; la cobertura objetivo es 8 % en romance y 35 % en amistad.
 
 Las rutas públicas canónicas son `/cuestionario` y `/resultado`; las APIs son `/api/quiz` y
 `/api/result`. El dashboard usa `/api/admin/metrics` y `/api/admin/recompute`.
@@ -128,7 +131,8 @@ Las rutas públicas canónicas son `/cuestionario` y `/resultado`; las APIs son 
 - **Cuestionario de 60 ítems** como único flujo público, con borrador persistente en
   `localStorage`.
 - **Motor de matching dual** con cosine ponderado y centrado, atracción mutua y filtros
-  de relación sólo para **romance**, y hasta cinco matches por track y persona.
+  de relación sólo para **romance**, con hasta 3 matches románticos y 5 de amistad por
+  persona.
 - **Badges de afinidad**: top 5 dimensiones (romance) / top 3 (amistad) por afinidad
   `1 - |a - b|`, con label e icono en español.
 - **Explainability** (`src/lib/matching/explainability.ts`): traduce similitudes crudas a
@@ -280,7 +284,9 @@ cuestionario de 60 ítems y las siguientes retoman el resultado.
   relación. `amistad` no aplica esos filtros.
 - **Similitud ponderada** (`trackSimilarity`): centra los vectores en `0.5`, calcula
   cosine por categoría con sus pesos y transforma el resultado a `[0,1]`. Cada track
-  aplica su umbral exclusivo y conserva la unión top-5 por persona.
+  aplica su umbral exclusivo (0.78 romance / 0.65 amistad) y conserva la unión de los
+  top-3 románticos y top-5 de amistad por persona. En romance, la intimidad y la gestión
+  del conflicto desalineadas restan puntaje antes del umbral.
 - **Orquestación** `POST /api/quiz`: `submit_quiz_result_v2` → recomputación global
   determinista en TypeScript → reemplazo atómico mediante `replace_matches_v2` →
   notificaciones y bienvenida. Los nombres `*_v2` son identificadores físicos de la base
@@ -291,7 +297,7 @@ cuestionario de 60 ítems y las siguientes retoman el resultado.
 
 ### 5. Explainability
 `src/lib/matching/explainability.ts` traduce similitudes a lenguaje afectivo es-MX determinista:
-bandas de química **relativas al umbral del track** (0.65 romance / 0.68 amistad), desglose
+bandas de química **relativas al umbral del track** (0.78 romance / 0.65 amistad), desglose
 por categoría, resumen de personalidad (máx. 3 líneas) y titular poético de una línea.
 Frases < 200 caracteres, nunca clínico. El detalle de las bandas está en `SCORING.md`.
 
@@ -302,7 +308,10 @@ sembradas con hashes de node-id vía mulberry32, sin `Math.random` ni relojes;
 convierte ese estado en un cielo SVG con sprite sheets memoizados, aristas, *join sparks*,
 etiquetas ARIA y soporte de movimiento reducido. **Nunca toca Supabase ni el motor de
 matching:** se alimenta sólo de props/contratos puros. Los umbrales se **leen** de
-`data/matching-config.json` vía `getTrackThreshold`, nunca se hardcodean.
+`data/matching-config.json` vía `getTrackThreshold`, nunca se hardcodean. El acomodo usa
+bandas orbitales por decil de afinidad, ranuras angulares equidistantes, repulsión
+tangencial y un pase de *circle packing* que garantiza 56 px entre centros (28 px de
+sprite + 12 px de colchón por lado) desde 360 px hasta 4K.
 
 ### 7. Notificaciones
 Tabla `notifications` + RPCs `get_my_notifications` / `mark_notifications_read`.
@@ -397,12 +406,12 @@ pip install -r requirements.txt
 ## ✅ Tests
 
 Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Estado actual:
-**499 tests en 27 archivos** (2026-10-25). Cubren, entre otros:
+**513 tests en 27 archivos** (2026-10-25). Cubren, entre otros:
 
 - `matching/engine.test.ts` (~960 líneas: scoring, filtros duros, similitud ponderada,
   badges, constante de "sin match").
 - `validation/quiz.test.ts` · `profile-generator.test.ts` · `synthetic-profiles.test.ts`
-  (500 perfiles, 124 750 pares y calibración al 20%).
+  (500 perfiles, 124 750 pares y calibración al percentil de cobertura de cada track).
 - `explainability.test.ts` (bandas de química relativas al umbral) ·
   `matching/recompute.server.test.ts` (reintentos con backoff) ·
   `api/quiz/route.test.ts` (camino `recomputePending`).
