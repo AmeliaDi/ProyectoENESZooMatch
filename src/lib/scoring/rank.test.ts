@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { rankBestMatches } from "@/lib/scoring/rank";
+import { getBigFiveWeights } from "@/lib/scoring/calibration";
+import { rankBestMatches as rankBestMatchesWithWeights } from "@/lib/scoring/rank";
 import { makeProfile } from "@/lib/scoring/test-fixtures";
+
+const rankBestMatches = (
+  target: Parameters<typeof rankBestMatchesWithWeights>[0],
+  pool: Parameters<typeof rankBestMatchesWithWeights>[1],
+  limit?: number,
+) =>
+  rankBestMatchesWithWeights(
+    target,
+    pool,
+    limit,
+    getBigFiveWeights("baseline"),
+  );
 
 describe("rankBestMatches", () => {
   it("skips self, limits to three, and sorts ties by userId", () => {

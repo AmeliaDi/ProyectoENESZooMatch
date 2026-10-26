@@ -1,13 +1,11 @@
+import { getBigFiveWeights } from "@/lib/scoring/calibration";
+
 export const SCORING_CONFIG = {
   bigfive: {
     traits: ["O", "C", "E", "A", "N"] as const,
     maxValue: 100,
     closestTraitCount: 2,
-    weights: {
-      similarity: 0.5,
-      lowNeuroticism: 0.3,
-      conscientiousAgreeable: 0.2,
-    },
+    weights: getBigFiveWeights(),
     highNeuroticismThreshold: 60,
     lowNeuroticismThreshold: 40,
     stabilityPenaltyMultiplier: 0.6,
@@ -42,6 +40,9 @@ export const SCORING_CONFIG = {
   explanation: {
     highConscientiousAgreeableThreshold: 0.65,
     valuesAlignedThreshold: 0.8,
+    alignedAnswerMinimum: 0.7,
+    alignedAnswerDifference: 0.15,
+    alignedAnswerMeanMinimum: 0.6,
     maxSentences: 3,
   },
 } as const;

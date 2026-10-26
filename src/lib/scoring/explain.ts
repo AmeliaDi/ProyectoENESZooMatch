@@ -19,6 +19,16 @@ export function explainPair(reasons: ReasonCode[], context: ExplanationContext):
   const active = new Set(reasons);
   const sentences: string[] = [];
 
+  if (active.has("stability_bonus")) {
+    sentences.push(
+      "Ambas personas muestran niveles bajos de neuroticismo, un patrón favorable para la estabilidad.",
+    );
+  } else if (active.has("stability_penalty")) {
+    sentences.push(
+      "Los niveles elevados de neuroticismo podrían hacer que algunas tensiones se sientan con más intensidad, sin que esto defina a ninguna persona.",
+    );
+  }
+
   if (active.has("close_traits")) {
     const traits = context.closestTraits.map((trait) => TRAIT_LABELS[trait]);
     if (traits.length > 0) {
@@ -26,23 +36,21 @@ export function explainPair(reasons: ReasonCode[], context: ExplanationContext):
     }
   }
 
-  const observations: string[] = [];
-  if (active.has("stability_bonus")) {
-    observations.push("ambas personas muestran niveles bajos de neuroticismo, un patrón favorable para la estabilidad");
-  }
-  if (active.has("stability_penalty")) {
-    observations.push("los niveles elevados de neuroticismo podrían hacer que algunas tensiones se sientan con más intensidad, sin que esto defina a ninguna persona");
+  const conflictAligned = active.has("conflict_style_aligned");
+  const empathyAligned = active.has("empathy_aligned");
+  if (conflictAligned && empathyAligned) {
+    sentences.push("En sus respuestas sobre resolución de conflictos y empatía, sus preferencias muestran cercanía.");
+  } else if (conflictAligned) {
+    sentences.push("En sus respuestas sobre resolución de conflictos, sus preferencias son compatibles.");
+  } else if (empathyAligned) {
+    sentences.push("En sus respuestas sobre empatía, sus valores muestran cercanía.");
   }
   if (active.has("high_conscientious_agreeable")) {
-    observations.push("responsabilidad y amabilidad aparecen altas en ambas respuestas");
+    sentences.push("Responsabilidad y amabilidad aparecen altas en ambas respuestas.");
   }
   if (active.has("values_aligned")) {
-    observations.push("las dimensiones socioculturales comparables muestran una alineación alta");
+    sentences.push("Las dimensiones socioculturales comparables muestran una alineación alta.");
   }
-  if (active.has("partial_data")) {
-    observations.push("la estimación es parcial porque faltan algunos datos opcionales");
-  }
-  if (observations.length > 0) sentences.push(`${observations.join("; ")}.`);
 
   if (active.has("mbti_shared") || active.has("mbti_complementary")) {
     const clauses: string[] = [];
@@ -57,10 +65,18 @@ export function explainPair(reasons: ReasonCode[], context: ExplanationContext):
     }
   }
 
-  const limitedSentences = sentences.slice(0, SCORING_CONFIG.explanation.maxSentences);
+  if (active.has("partial_data")) {
+    sentences.push("La estimación es parcial porque faltan algunos datos opcionales.");
+  }
+
+  const partialSentence = active.has("partial_data") ? sentences.pop() : undefined;
+  const otherSentenceLimit =
+    SCORING_CONFIG.explanation.maxSentences - (partialSentence ? 1 : 0);
+  const limitedSentences = sentences.slice(0, otherSentenceLimit);
   if (limitedSentences.length === 1 && active.has("close_traits")) {
     limitedSentences.push("Esta cercanía describe respuestas del cuestionario y no garantiza compatibilidad.");
   }
+  if (partialSentence) limitedSentences.push(partialSentence);
 
   return limitedSentences
     .map((sentence) => sentence.charAt(0).toUpperCase() + sentence.slice(1))

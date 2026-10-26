@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { scoreBigFive } from "@/lib/scoring/bigfive";
+import { getBigFiveWeights } from "@/lib/scoring/calibration";
+import { scoreBigFive as scoreBigFiveWithWeights } from "@/lib/scoring/bigfive";
 import type { BigFive } from "@/lib/scoring/types";
 
 const sameProfile: BigFive = { O: 50, C: 50, E: 50, A: 50, N: 50 };
+const scoreBigFive = (a: BigFive, b: BigFive) =>
+  scoreBigFiveWithWeights(a, b, getBigFiveWeights("baseline"));
 
 describe("scoreBigFive", () => {
   it("scores identical profiles and breaks closest-trait ties by O,C,E,A,N", () => {

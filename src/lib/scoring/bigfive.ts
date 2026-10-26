@@ -1,4 +1,5 @@
 import { SCORING_CONFIG } from "@/lib/scoring/config";
+import type { BigFiveWeights } from "@/lib/scoring/calibration";
 import type { BigFive } from "@/lib/scoring/types";
 
 export interface BigFiveScore {
@@ -9,8 +10,12 @@ export interface BigFiveScore {
   closestTraits: Array<keyof BigFive>;
 }
 
-export function scoreBigFive(a: BigFive, b: BigFive): BigFiveScore {
-  const { traits, maxValue, weights } = SCORING_CONFIG.bigfive;
+export function scoreBigFive(
+  a: BigFive,
+  b: BigFive,
+  weights: BigFiveWeights = SCORING_CONFIG.bigfive.weights,
+): BigFiveScore {
+  const { traits, maxValue } = SCORING_CONFIG.bigfive;
   const euclid = Math.sqrt(
     traits.reduce((sum, trait) => sum + (a[trait] - b[trait]) ** 2, 0),
   );

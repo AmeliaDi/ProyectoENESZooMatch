@@ -33,6 +33,8 @@ export type ReasonCode =
   | "high_conscientious_agreeable"
   | "mbti_shared"
   | "mbti_complementary"
+  | "conflict_style_aligned"
+  | "empathy_aligned"
   | "values_aligned"
   | "partial_data";
 
