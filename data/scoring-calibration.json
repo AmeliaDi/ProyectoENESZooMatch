@@ -1,0 +1,15 @@
+{
+  "active": "literature-2026-10",
+  "profiles": {
+    "baseline": {
+      "similarity": 0.5,
+      "lowNeuroticism": 0.3,
+      "conscientiousAgreeable": 0.2
+    },
+    "literature-2026-10": {
+      "similarity": 0.4,
+      "lowNeuroticism": 0.35,
+      "conscientiousAgreeable": 0.25
+    }
+  }
+}

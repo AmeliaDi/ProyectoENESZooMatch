@@ -1,4 +1,5 @@
 import { scoreBigFive } from "@/lib/scoring/bigfive";
+import type { BigFiveWeights } from "@/lib/scoring/calibration";
 import { SCORING_CONFIG } from "@/lib/scoring/config";
 import { explainPair } from "@/lib/scoring/explain";
 import { scoreMbti } from "@/lib/scoring/mbti";
@@ -44,7 +45,29 @@ function roundScore(value: number): number {
   return Math.round(value * scale) / scale;
 }
 
-function evaluatePair(a: ScoringProfile, b: ScoringProfile): PairEvaluation {
+function alignedOrdinalAnswer(
+  a: ScoringProfile["sociocultural"],
+  b: ScoringProfile["sociocultural"],
+  key: string,
+): boolean {
+  const left = a?.ordinal?.[key];
+  const right = b?.ordinal?.[key];
+  if (typeof left !== "number" || !Number.isFinite(left)) return false;
+  if (typeof right !== "number" || !Number.isFinite(right)) return false;
+  const { alignedAnswerMinimum, alignedAnswerDifference, alignedAnswerMeanMinimum } =
+    SCORING_CONFIG.explanation;
+  return (
+    (left >= alignedAnswerMinimum && right >= alignedAnswerMinimum) ||
+    (Math.abs(left - right) <= alignedAnswerDifference &&
+      (left + right) / 2 >= alignedAnswerMeanMinimum)
+  );
+}
+
+function evaluatePair(
+  a: ScoringProfile,
+  b: ScoringProfile,
+  weights: BigFiveWeights = SCORING_CONFIG.bigfive.weights,
+): PairEvaluation {
   if (!isValidBigFive(a.bigFive) || !isValidBigFive(b.bigFive)) {
     return {
       result: { status: "insufficient_data", message: INSUFFICIENT_BIGFIVE_MESSAGE },
@@ -55,7 +78,7 @@ function evaluatePair(a: ScoringProfile, b: ScoringProfile): PairEvaluation {
     return { result: { status: "excluded", reason: "hard_filter" } };
   }
 
-  const bigFive = scoreBigFive(a.bigFive, b.bigFive);
+  const bigFive = scoreBigFive(a.bigFive, b.bigFive, weights);
   const mbti = scoreMbti(a.mbti, b.mbti);
   const sociocultural = scoreSociocultural(a.sociocultural, b.sociocultural);
   const missing: Array<"mbti" | "sociocultural"> = [];
@@ -108,6 +131,12 @@ function evaluatePair(a: ScoringProfile, b: ScoringProfile): PairEvaluation {
   }
   if (mbti.sharedAxes.length > 0) reasons.push("mbti_shared");
   if (mbti.complementaryAxes.length > 0) reasons.push("mbti_complementary");
+  if (alignedOrdinalAnswer(a.sociocultural, b.sociocultural, "valores_gestion_conflicto")) {
+    reasons.push("conflict_style_aligned");
+  }
+  if (alignedOrdinalAnswer(a.sociocultural, b.sociocultural, "valores_empatia")) {
+    reasons.push("empathy_aligned");
+  }
   const ordinalSimilarity = scoreOrdinalSimilarity(a.sociocultural, b.sociocultural);
   if (
     ordinalSimilarity !== null &&
@@ -152,13 +181,18 @@ function evaluatePair(a: ScoringProfile, b: ScoringProfile): PairEvaluation {
   };
 }
 
-export function scorePair(a: ScoringProfile, b: ScoringProfile): PairResult {
-  return evaluatePair(a, b).result;
+export function scorePair(
+  a: ScoringProfile,
+  b: ScoringProfile,
+  weights: BigFiveWeights = SCORING_CONFIG.bigfive.weights,
+): PairResult {
+  return evaluatePair(a, b, weights).result;
 }
 
 export function scorePairForRanking(
   a: ScoringProfile,
   b: ScoringProfile,
+  weights: BigFiveWeights = SCORING_CONFIG.bigfive.weights,
 ): PairEvaluation {
-  return evaluatePair(a, b);
+  return evaluatePair(a, b, weights);
 }

@@ -1,0 +1,566 @@
+{
+  "corpus_work_count": 99,
+  "counts": [
+    {
+      "direction": "mixed",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": false,
+      "sentence_count": 8,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": false,
+      "sentence_count": 3,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": false,
+      "sentence_count": 1,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "mixed",
+      "outcome_present": true,
+      "sentence_count": 1,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": true,
+      "sentence_count": 1,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 6,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": true,
+      "sentence_count": 3,
+      "trait": "agreeableness"
+    },
+    {
+      "direction": "mixed",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": false,
+      "sentence_count": 4,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": false,
+      "sentence_count": 12,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": false,
+      "sentence_count": 1,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": true,
+      "sentence_count": 4,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 11,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": true,
+      "sentence_count": 4,
+      "trait": "conscientiousness"
+    },
+    {
+      "direction": "mixed",
+      "outcome_present": false,
+      "sentence_count": 1,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "none",
+      "outcome_present": false,
+      "sentence_count": 9,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": false,
+      "sentence_count": 3,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": true,
+      "sentence_count": 2,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 8,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": true,
+      "sentence_count": 6,
+      "trait": "extraversion"
+    },
+    {
+      "direction": "none",
+      "outcome_present": false,
+      "sentence_count": 79,
+      "trait": "mbti"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "mbti"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": false,
+      "sentence_count": 3,
+      "trait": "mbti"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 2,
+      "trait": "mbti"
+    },
+    {
+      "direction": "mixed",
+      "outcome_present": false,
+      "sentence_count": 3,
+      "trait": "neuroticism_stability"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": false,
+      "sentence_count": 7,
+      "trait": "neuroticism_stability"
+    },
+    {
+      "direction": "none",
+      "outcome_present": false,
+      "sentence_count": 16,
+      "trait": "neuroticism_stability"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": false,
+      "sentence_count": 3,
+      "trait": "neuroticism_stability"
+    },
+    {
+      "direction": "mixed",
+      "outcome_present": true,
+      "sentence_count": 3,
+      "trait": "neuroticism_stability"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": true,
+      "sentence_count": 12,
+      "trait": "neuroticism_stability"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 32,
+      "trait": "neuroticism_stability"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": true,
+      "sentence_count": 2,
+      "trait": "neuroticism_stability"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": true,
+      "sentence_count": 1,
+      "trait": "neuroticism_stability"
+    },
+    {
+      "direction": "mixed",
+      "outcome_present": false,
+      "sentence_count": 1,
+      "trait": "openness"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": false,
+      "sentence_count": 3,
+      "trait": "openness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": false,
+      "sentence_count": 5,
+      "trait": "openness"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": false,
+      "sentence_count": 2,
+      "trait": "openness"
+    },
+    {
+      "direction": "neg",
+      "outcome_present": true,
+      "sentence_count": 2,
+      "trait": "openness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 9,
+      "trait": "openness"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": true,
+      "sentence_count": 3,
+      "trait": "openness"
+    },
+    {
+      "direction": "none",
+      "outcome_present": false,
+      "sentence_count": 11,
+      "trait": "similarity"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": false,
+      "sentence_count": 1,
+      "trait": "similarity"
+    },
+    {
+      "direction": "mixed",
+      "outcome_present": true,
+      "sentence_count": 1,
+      "trait": "similarity"
+    },
+    {
+      "direction": "none",
+      "outcome_present": true,
+      "sentence_count": 12,
+      "trait": "similarity"
+    },
+    {
+      "direction": "pos",
+      "outcome_present": true,
+      "sentence_count": 4,
+      "trait": "similarity"
+    },
+    {
+      "direction": "weak",
+      "outcome_present": true,
+      "sentence_count": 1,
+      "trait": "similarity"
+    }
+  ],
+  "fetch_date": "2026-10-26",
+  "queries": [
+    "Big Five personality relationship satisfaction meta-analysis",
+    "neuroticism marital satisfaction longitudinal",
+    "personality similarity couples satisfaction",
+    "Myers-Briggs type indicator reliability validity"
+  ],
+  "traits": {
+    "agreeableness": {
+      "distinct_works": 19,
+      "distinct_works_with_outcomes": 10,
+      "top_works": [
+        {
+          "cited_by_count": 946,
+          "doi": "10.3389/fpsyg.2011.00178",
+          "title": "Gender Differences in Personality across the Ten Aspects of the Big Five",
+          "year": 2011
+        },
+        {
+          "cited_by_count": 718,
+          "doi": "10.4102/sajip.v29i1.88",
+          "title": "The big five personality dimensions and job performance",
+          "year": 2003
+        },
+        {
+          "cited_by_count": 405,
+          "doi": "10.1007/s10648-018-9458-2",
+          "title": "A Meta-Analysis of the Effects of Teacher Personality on Teacher Effectiveness and Burnout",
+          "year": 2019
+        },
+        {
+          "cited_by_count": 368,
+          "doi": "10.1027/0044-3409.215.2.132",
+          "title": "Meta-Analysis of the Relationship Between the Big Five and Academic Success at University",
+          "year": 2007
+        },
+        {
+          "cited_by_count": 363,
+          "doi": "10.1002/per.588",
+          "title": "Personality and team performance: a meta‐analysis",
+          "year": 2006
+        }
+      ]
+    },
+    "conscientiousness": {
+      "distinct_works": 25,
+      "distinct_works_with_outcomes": 14,
+      "top_works": [
+        {
+          "cited_by_count": 946,
+          "doi": "10.3389/fpsyg.2011.00178",
+          "title": "Gender Differences in Personality across the Ten Aspects of the Big Five",
+          "year": 2011
+        },
+        {
+          "cited_by_count": 855,
+          "doi": "10.1037/bul0000226",
+          "title": "Predicting psychological and subjective well-being from personality: A meta-analysis.",
+          "year": 2020
+        },
+        {
+          "cited_by_count": 718,
+          "doi": "10.4102/sajip.v29i1.88",
+          "title": "The big five personality dimensions and job performance",
+          "year": 2003
+        },
+        {
+          "cited_by_count": 405,
+          "doi": "10.1007/s10648-018-9458-2",
+          "title": "A Meta-Analysis of the Effects of Teacher Personality on Teacher Effectiveness and Burnout",
+          "year": 2019
+        },
+        {
+          "cited_by_count": 368,
+          "doi": "10.1027/0044-3409.215.2.132",
+          "title": "Meta-Analysis of the Relationship Between the Big Five and Academic Success at University",
+          "year": 2007
+        }
+      ]
+    },
+    "extraversion": {
+      "distinct_works": 22,
+      "distinct_works_with_outcomes": 12,
+      "top_works": [
+        {
+          "cited_by_count": 946,
+          "doi": "10.3389/fpsyg.2011.00178",
+          "title": "Gender Differences in Personality across the Ten Aspects of the Big Five",
+          "year": 2011
+        },
+        {
+          "cited_by_count": 855,
+          "doi": "10.1037/bul0000226",
+          "title": "Predicting psychological and subjective well-being from personality: A meta-analysis.",
+          "year": 2020
+        },
+        {
+          "cited_by_count": 718,
+          "doi": "10.4102/sajip.v29i1.88",
+          "title": "The big five personality dimensions and job performance",
+          "year": 2003
+        },
+        {
+          "cited_by_count": 405,
+          "doi": "10.1007/s10648-018-9458-2",
+          "title": "A Meta-Analysis of the Effects of Teacher Personality on Teacher Effectiveness and Burnout",
+          "year": 2019
+        },
+        {
+          "cited_by_count": 368,
+          "doi": "10.1027/0044-3409.215.2.132",
+          "title": "Meta-Analysis of the Relationship Between the Big Five and Academic Success at University",
+          "year": 2007
+        }
+      ]
+    },
+    "mbti": {
+      "distinct_works": 23,
+      "distinct_works_with_outcomes": 2,
+      "top_works": [
+        {
+          "cited_by_count": 271,
+          "doi": "10.1207/s15327752jpa4105_2",
+          "title": "An Assessment of the Myers-Briggs Type Indicator",
+          "year": 1977
+        },
+        {
+          "cited_by_count": 191,
+          "doi": "10.1111/j.1742-9544.1995.tb01750.x",
+          "title": "Myers-Briggs Type Indicator (MBTI): Some Psychometric Limitations",
+          "year": 1995
+        },
+        {
+          "cited_by_count": 168,
+          "doi": "10.1207/s15327752jpa4904_3",
+          "title": "Recent Assessments of the Myers-Briggs Type Indicator",
+          "year": 1985
+        },
+        {
+          "cited_by_count": 135,
+          "doi": "10.3390/mti4010009",
+          "title": "Machine Learning Approach to Personality Type Prediction Based on the Myers–Briggs Type Indicator®",
+          "year": 2020
+        },
+        {
+          "cited_by_count": 122,
+          "doi": "10.2308/iace.2001.16.1.125",
+          "title": "The Myers-Briggs Type Indicator and Applications to Accounting Education and Research",
+          "year": 2001
+        }
+      ]
+    },
+    "neuroticism_stability": {
+      "distinct_works": 35,
+      "distinct_works_with_outcomes": 25,
+      "top_works": [
+        {
+          "cited_by_count": 946,
+          "doi": "10.3389/fpsyg.2011.00178",
+          "title": "Gender Differences in Personality across the Ten Aspects of the Big Five",
+          "year": 2011
+        },
+        {
+          "cited_by_count": 855,
+          "doi": "10.1037/bul0000226",
+          "title": "Predicting psychological and subjective well-being from personality: A meta-analysis.",
+          "year": 2020
+        },
+        {
+          "cited_by_count": 718,
+          "doi": "10.4102/sajip.v29i1.88",
+          "title": "The big five personality dimensions and job performance",
+          "year": 2003
+        },
+        {
+          "cited_by_count": 405,
+          "doi": "10.1007/s10648-018-9458-2",
+          "title": "A Meta-Analysis of the Effects of Teacher Personality on Teacher Effectiveness and Burnout",
+          "year": 2019
+        },
+        {
+          "cited_by_count": 368,
+          "doi": "10.1027/0044-3409.215.2.132",
+          "title": "Meta-Analysis of the Relationship Between the Big Five and Academic Success at University",
+          "year": 2007
+        }
+      ]
+    },
+    "openness": {
+      "distinct_works": 18,
+      "distinct_works_with_outcomes": 11,
+      "top_works": [
+        {
+          "cited_by_count": 946,
+          "doi": "10.3389/fpsyg.2011.00178",
+          "title": "Gender Differences in Personality across the Ten Aspects of the Big Five",
+          "year": 2011
+        },
+        {
+          "cited_by_count": 718,
+          "doi": "10.4102/sajip.v29i1.88",
+          "title": "The big five personality dimensions and job performance",
+          "year": 2003
+        },
+        {
+          "cited_by_count": 405,
+          "doi": "10.1007/s10648-018-9458-2",
+          "title": "A Meta-Analysis of the Effects of Teacher Personality on Teacher Effectiveness and Burnout",
+          "year": 2019
+        },
+        {
+          "cited_by_count": 368,
+          "doi": "10.1027/0044-3409.215.2.132",
+          "title": "Meta-Analysis of the Relationship Between the Big Five and Academic Success at University",
+          "year": 2007
+        },
+        {
+          "cited_by_count": 363,
+          "doi": "10.1002/per.588",
+          "title": "Personality and team performance: a meta‐analysis",
+          "year": 2006
+        }
+      ]
+    },
+    "similarity": {
+      "distinct_works": 10,
+      "distinct_works_with_outcomes": 9,
+      "top_works": [
+        {
+          "cited_by_count": 404,
+          "doi": "10.1037/0022-3514.93.1.34",
+          "title": "Similarity, convergence, and relationship satisfaction in dating and married couples.",
+          "year": 2007
+        },
+        {
+          "cited_by_count": 280,
+          "doi": "10.1111/j.1467-6494.2006.00414.x",
+          "title": "Couple Similarity and Marital Satisfaction: Are Similar Spouses Happier?",
+          "year": 2006
+        },
+        {
+          "cited_by_count": 149,
+          "doi": "10.1111/j.1475-6811.2010.01344.x",
+          "title": "Personality similarity, perceptual accuracy, and relationship satisfaction in dating and married couples",
+          "year": 2011
+        },
+        {
+          "cited_by_count": 72,
+          "doi": "10.1027/1016-9040/a000261",
+          "title": "The Interdependence of Personality and Satisfaction in Couples",
+          "year": 2016
+        },
+        {
+          "cited_by_count": 38,
+          "doi": "10.1037/per0000219",
+          "title": "Personality pathology and relationship satisfaction in dating and married couples.",
+          "year": 2016
+        }
+      ]
+    }
+  }
+}

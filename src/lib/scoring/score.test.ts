@@ -1,13 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { scoreBigFive } from "@/lib/scoring/bigfive";
+import { scoreBigFive as scoreBigFiveWithWeights } from "@/lib/scoring/bigfive";
+import { getBigFiveWeights } from "@/lib/scoring/calibration";
 import { SCORING_CONFIG } from "@/lib/scoring/config";
-import { scorePair } from "@/lib/scoring/score";
+import { scorePair as scorePairWithWeights } from "@/lib/scoring/score";
 import {
   BASE_BIG_FIVE,
   COMPLETE_SOCIOCULTURAL,
   makeProfile,
 } from "@/lib/scoring/test-fixtures";
+
+const scorePair = (a: Parameters<typeof scorePairWithWeights>[0], b: Parameters<typeof scorePairWithWeights>[1]) =>
+  scorePairWithWeights(a, b, getBigFiveWeights("baseline"));
+const scoreBigFive = (a: Parameters<typeof scoreBigFiveWithWeights>[0], b: Parameters<typeof scoreBigFiveWithWeights>[1]) =>
+  scoreBigFiveWithWeights(a, b, getBigFiveWeights("baseline"));
 
 describe("scorePair", () => {
   it("scores two complete profiles and reports the configured component weights", () => {
@@ -200,10 +206,14 @@ describe("scorePair", () => {
 
   it("keeps explanations deterministic and coherent with triggered stability reasons", () => {
     const low = makeProfile("a", {
-      bigFive: { O: 80, C: 80, E: 80, A: 80, N: 30 },
+      bigFive: { O: 80, C: 50, E: 80, A: 50, N: 30 },
+      mbti: "ENTP",
+      sociocultural: null,
     });
     const otherLow = makeProfile("b", {
-      bigFive: { O: 80, C: 80, E: 80, A: 80, N: 30 },
+      bigFive: { O: 80, C: 50, E: 80, A: 50, N: 30 },
+      mbti: "ENTP",
+      sociocultural: null,
     });
     const first = scorePair(low, otherLow);
     const second = scorePair(low, otherLow);
@@ -263,5 +273,47 @@ describe("scorePair", () => {
     const before = structuredClone(COMPLETE_SOCIOCULTURAL);
     scorePair(makeProfile("a"), makeProfile("b"));
     expect(COMPLETE_SOCIOCULTURAL).toEqual(before);
+  });
+
+  it("adds conflict and empathy alignment only when their answer rules are met", () => {
+    const aligned = scorePair(
+      makeProfile("a", {
+        sociocultural: {
+          ...COMPLETE_SOCIOCULTURAL,
+          ordinal: { valores_gestion_conflicto: 0.55, valores_empatia: 0.8 },
+        },
+      }),
+      makeProfile("b", {
+        sociocultural: {
+          ...COMPLETE_SOCIOCULTURAL,
+          ordinal: { valores_gestion_conflicto: 0.7, valores_empatia: 0.75 },
+        },
+      }),
+    );
+    expect(aligned.status).toBe("ok");
+    if (aligned.status !== "ok") return;
+    expect(aligned.reasons).toContain("conflict_style_aligned");
+    expect(aligned.reasons).toContain("empathy_aligned");
+    expect(aligned.explanation).toContain("resolución de conflictos y empatía");
+    expect(aligned.explanation.split(".").filter(Boolean).length).toBeLessThanOrEqual(3);
+
+    const notAligned = scorePair(
+      makeProfile("c", {
+        sociocultural: {
+          ...COMPLETE_SOCIOCULTURAL,
+          ordinal: { valores_gestion_conflicto: 0.3, valores_empatia: 0.3 },
+        },
+      }),
+      makeProfile("d", {
+        sociocultural: {
+          ...COMPLETE_SOCIOCULTURAL,
+          ordinal: { valores_gestion_conflicto: 0.9, valores_empatia: 0.5 },
+        },
+      }),
+    );
+    expect(notAligned.status).toBe("ok");
+    if (notAligned.status !== "ok") return;
+    expect(notAligned.reasons).not.toContain("conflict_style_aligned");
+    expect(notAligned.reasons).not.toContain("empathy_aligned");
   });
 });

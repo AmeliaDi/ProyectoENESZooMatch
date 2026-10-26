@@ -112,6 +112,22 @@ Los cortes `60/40`, la penalización de `−40%`, el bono de `+15` puntos y los
 pesos de cada eje MBTI son **decisiones de diseño para esta demostración**; no
 son valores tomados de esos artículos.
 
+## Calibraciones
+
+Los pesos Big Five se validan desde `data/scoring-calibration.json`. Incluye
+`baseline` (`0.50/0.30/0.20`: similitud/neuroticismo bajo/responsabilidad y
+amabilidad) y `literature-2026-10` (`0.40/0.35/0.25`). El perfil activo se
+estableció como `literature-2026-10`: en la prueba sintética NDCG@3 fue
+`0.563407`, frente a `0.550461` con baseline. Para revertir o cambiar la
+calibración, basta
+con cambiar ese valor a una clave existente de `profiles`. Las pruebas fijan
+explícitamente `baseline` para preservar las expectativas numéricas originales.
+
+La comparación sintética de NDCG@3 es circular porque su verdad de referencia
+codifica la misma dirección de literatura que motiva el perfil alternativo.
+Sólo evalúa ausencia de degradación en ese escenario, no validez con datos
+reales. Consulta `EXTERNAL_SIGNALS.md` para los conteos y la decisión de perfil.
+
 ## Filtros duros
 
 La compatibilidad romántica reutiliza las reglas de `checkHardFilters` del

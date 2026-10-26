@@ -1,4 +1,5 @@
 import { SCORING_CONFIG } from "@/lib/scoring/config";
+import type { BigFiveWeights } from "@/lib/scoring/calibration";
 import { INSUFFICIENT_BIGFIVE_MESSAGE, scorePairForRanking } from "@/lib/scoring/score";
 import type { BestMatchResult, ScoringProfile } from "@/lib/scoring/types";
 
@@ -7,7 +8,8 @@ const NO_CANDIDATES_MESSAGE = "Aún no hay perfiles compatibles…";
 export function rankBestMatches(
   target: ScoringProfile,
   pool: ScoringProfile[],
-  limit = SCORING_CONFIG.ranking.defaultLimit,
+  limit: number = SCORING_CONFIG.ranking.defaultLimit,
+  weights: BigFiveWeights = SCORING_CONFIG.bigfive.weights,
 ): BestMatchResult {
   if (!target.bigFive) {
     return { status: "insufficient_data", message: INSUFFICIENT_BIGFIVE_MESSAGE };
@@ -15,7 +17,7 @@ export function rankBestMatches(
 
   const ranked = pool.flatMap((candidate) => {
     if (candidate.userId === target.userId) return [];
-    const evaluation = scorePairForRanking(target, candidate);
+    const evaluation = scorePairForRanking(target, candidate, weights);
     if (evaluation.result.status !== "ok" || !evaluation.ranking) return [];
     return [{ match: evaluation.result, userId: candidate.userId, ranking: evaluation.ranking }];
   });
