@@ -4,7 +4,10 @@ import {
   DEFAULT_DISTANCE_CONFIG,
   DEFAULT_SIMULATION_PARAMS,
   MAX_REAL_MATCHES,
+  MIN_CENTER_DISTANCE,
+  assignOrbitSlots,
   buildGraph,
+  computeOrbitRadius,
   createSimulationState,
   detectClusters,
   dragNode,
@@ -13,6 +16,7 @@ import {
   hashSeed,
   precomputeLayout,
   releaseNode,
+  resolveOverlaps,
   seededRandom,
   similarityToDistance,
   stepSimulation,
@@ -34,8 +38,8 @@ const VIEWPORT_H = 600;
 
 const ME = { id: "me-001", animal: "ajolotito", color: "#ff77aa", alias: "Yo" };
 
-const ROMANCE_THRESHOLD = getTrackThreshold("romance"); // 0.65 from config
-const AMISTAD_THRESHOLD = getTrackThreshold("amistad"); // 0.68 from config
+const ROMANCE_THRESHOLD = getTrackThreshold("romance"); // 0.78 from config
+const AMISTAD_THRESHOLD = getTrackThreshold("amistad"); // 0.65 from config
 
 function makeMatch(
   id: string,
@@ -49,7 +53,7 @@ const MATCHES: MatchInput[] = [
   makeMatch("m-high", 0.95),
   makeMatch("m-mid", 0.85),
   makeMatch("m-low", 0.78),
-  makeMatch("m-below", 0.67), // below amistad threshold → no node or edge
+  makeMatch("m-below", 0.64), // below amistad threshold → no node or edge
   makeMatch("m-romance", 0.92, "romance"), // different track → excluded
 ];
 
@@ -98,11 +102,11 @@ function distanceBetween(state: SimulationState, a: string, b: string): number {
 
 describe("getTrackThreshold", () => {
   it("reads romance threshold from matching-config.json", () => {
-    expect(ROMANCE_THRESHOLD).toBe(0.65);
+    expect(ROMANCE_THRESHOLD).toBe(0.78);
   });
 
   it("reads amistad threshold from matching-config.json", () => {
-    expect(AMISTAD_THRESHOLD).toBe(0.68);
+    expect(AMISTAD_THRESHOLD).toBe(0.65);
   });
 });
 
@@ -141,6 +145,78 @@ describe("similarityToDistance", () => {
     const justAbove = similarityToDistance(0.51, 0.5, { minDist: 10, maxDist: 100 })!;
     expect(justAbove).toBeLessThanOrEqual(100);
     expect(justAbove).toBeGreaterThan(90);
+  });
+});
+
+// ─── Orbital assignment ───────────────────────────────────────────────────────
+
+describe("computeOrbitRadius", () => {
+  it("maps the threshold to the outer ring and perfect similarity to the inner ring", () => {
+    const outer = computeOrbitRadius(ROMANCE_THRESHOLD + 1e-9, ROMANCE_THRESHOLD, 800, 600);
+    const inner = computeOrbitRadius(1, ROMANCE_THRESHOLD, 800, 600);
+
+    expect(outer).not.toBeNull();
+    expect(inner).not.toBeNull();
+    expect(outer!).toBeGreaterThan(inner!);
+    expect(inner!).toBeCloseTo(90, 6);
+    expect(outer!).toBeLessThanOrEqual(Math.min(800, 600) * 0.42);
+  });
+
+  it("returns null at or below the exclusive threshold", () => {
+    expect(computeOrbitRadius(ROMANCE_THRESHOLD, ROMANCE_THRESHOLD, 800, 600)).toBeNull();
+    expect(computeOrbitRadius(ROMANCE_THRESHOLD - 0.01, ROMANCE_THRESHOLD, 800, 600)).toBeNull();
+  });
+
+  it("is monotonically decreasing and stays inside a 360 px viewport", () => {
+    const similarities = [0.79, 0.82, 0.86, 0.9, 0.95, 1];
+    const radii = similarities.map(
+      (similarity) => computeOrbitRadius(similarity, 0.78, 360, 360)!,
+    );
+
+    for (let index = 1; index < radii.length; index++) {
+      expect(radii[index]).toBeLessThan(radii[index - 1]!);
+    }
+    for (const radius of radii) {
+      expect(radius).toBeGreaterThanOrEqual(0);
+      expect(radius).toBeLessThanOrEqual(360 / 2 - DEFAULT_SIMULATION_PARAMS.boundsPadding);
+    }
+  });
+});
+
+describe("assignOrbitSlots", () => {
+  it("gives each node in a similarity band its own equidistant angle", () => {
+    const matches = ["a", "b", "c", "d", "e"].map((id) => ({
+      id,
+      similarity: 0.84,
+    }));
+    const slots = assignOrbitSlots(matches, "romance", 0.78, 800, 600);
+
+    expect(slots.size).toBe(5);
+    const angles = [...slots.values()].map((slot) => slot.angle);
+    expect(new Set(angles).size).toBe(5);
+    const sorted = angles.map((angle) => ((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)).sort((a, b) => a - b);
+    const gaps = sorted.map((angle, index) =>
+      index === sorted.length - 1 ? sorted[0]! + Math.PI * 2 - angle : sorted[index + 1]! - angle,
+    );
+    for (const gap of gaps) {
+      expect(gap).toBeGreaterThan(0.5);
+    }
+    expect(new Set([...slots.values()].map((slot) => slot.band))).toEqual(new Set([2]));
+  });
+
+  it("separates bands and ignores below-threshold matches", () => {
+    const matches = [
+      { id: "high", similarity: 0.98 },
+      { id: "mid", similarity: 0.86 },
+      { id: "low", similarity: 0.79 },
+      { id: "below", similarity: 0.7 },
+    ];
+    const slots = assignOrbitSlots(matches, "romance", 0.78, 800, 600);
+
+    expect(slots.has("below")).toBe(false);
+    expect(slots.size).toBe(3);
+    expect(slots.get("high")!.radius).toBeLessThan(slots.get("mid")!.radius);
+    expect(slots.get("mid")!.radius).toBeLessThan(slots.get("low")!.radius);
   });
 });
 
@@ -196,7 +272,7 @@ describe("buildGraph", () => {
 
   it("creates the correct node count: me + filtered matches + ghosts", () => {
     // me (1) + above-threshold amistad matches (3: m-high, m-mid, m-low) + ghosts (4).
-    // m-below (0.67) is under the 0.68 threshold so it is not a match → no node.
+    // m-below (0.64) is under the 0.65 threshold so it is not a match → no node.
     expect(graph.nodes.length).toBe(8);
     expect(graph.nodes.filter((n) => !n.isGhost && !n.isSelf).length).toBe(3);
   });
@@ -207,7 +283,7 @@ describe("buildGraph", () => {
     expect(selfNodes[0].id).toBe(ME.id);
     expect(selfNodes[0].x).toBe(VIEWPORT_W / 2);
     expect(selfNodes[0].y).toBe(VIEWPORT_H / 2);
-    expect(selfNodes[0].radius).toBe(24);
+    expect(selfNodes[0].radius).toBe(28);
   });
 
   it("only creates edges with similarity strictly above the threshold", () => {
@@ -219,7 +295,7 @@ describe("buildGraph", () => {
   });
 
   it("excludes below-threshold matches as nodes (they are not matches)", () => {
-    // m-below (0.67 <= 0.68) is not a match → neither a node nor an edge.
+    // m-below (0.64 <= 0.65) is not a match → neither a node nor an edge.
     expect(graph.nodes.some((n) => n.id === "m-below")).toBe(false);
     expect(graph.edges.some((e) => e.source === "m-below" || e.target === "m-below")).toBe(false);
   });
@@ -239,6 +315,25 @@ describe("buildGraph", () => {
         (e.source === "m-high" && e.target === ME.id),
     );
     expect(pairEdges.length).toBe(1);
+  });
+
+  it("pulls every self edge to its assigned orbital radius", () => {
+    for (const match of MATCHES) {
+      if (match.track !== "amistad" || match.similarity <= AMISTAD_THRESHOLD) continue;
+      const edge = graph.edges.find(
+        (candidate) =>
+          (candidate.source === ME.id && candidate.target === match.id) ||
+          (candidate.target === ME.id && candidate.source === match.id),
+      );
+      const expected = computeOrbitRadius(
+        match.similarity,
+        AMISTAD_THRESHOLD,
+        VIEWPORT_W,
+        VIEWPORT_H,
+      );
+      expect(edge, `${match.id} self edge`).toBeDefined();
+      expect(edge!.targetDistance, `${match.id} orbit radius`).toBeCloseTo(expected!, 10);
+    }
   });
 
   it("excludes matches from other tracks", () => {
@@ -285,6 +380,86 @@ describe("buildGraph", () => {
       MAX_REAL_MATCHES,
     );
     expect(g.nodes.some((node) => node.id === "cap-24")).toBe(true);
+  });
+});
+
+// ─── Hard clearance ───────────────────────────────────────────────────────────
+
+describe("hard clearance", () => {
+  const viewports = [
+    [360, 360],
+    [768, 1024],
+    [1440, 900],
+  ] as const;
+
+  it("leaves zero overlapping sprites on mobile, tablet and desktop", () => {
+    for (const [width, height] of viewports) {
+      const matches = [0.9, 0.84, 0.77, 0.73, 0.7].map((similarity, index) =>
+        makeMatch(`friend-${index}`, similarity),
+      );
+      const graph = buildGraph(ME, matches, "amistad", AMISTAD_THRESHOLD, width, height, 0);
+      const final = precomputeLayout(graph, width, height);
+      const real = final.nodes.filter((node) => !node.isGhost);
+
+      for (let i = 0; i < real.length; i++) {
+        for (let j = i + 1; j < real.length; j++) {
+          const distance = Math.hypot(real[i]!.x - real[j]!.x, real[i]!.y - real[j]!.y);
+          expect(
+            distance,
+            `${width}x${height}: ${real[i]!.id} vs ${real[j]!.id}`,
+          ).toBeGreaterThanOrEqual(MIN_CENTER_DISTANCE - 1e-6);
+        }
+      }
+
+      const self = final.nodes.find((node) => node.isSelf)!;
+      expect(self.x).toBe(width / 2);
+      expect(self.y).toBe(height / 2);
+    }
+  });
+
+  it("keeps the romance top three separated even when their affinities are close", () => {
+    const matches = [0.95, 0.94, 0.93].map((similarity, index) =>
+      makeMatch(`love-${index}`, similarity, "romance"),
+    );
+    const graph = buildGraph(ME, matches, "romance", ROMANCE_THRESHOLD, 360, 360, 0);
+    const final = precomputeLayout(graph, 360, 360);
+    const real = final.nodes.filter((node) => !node.isGhost);
+
+    for (let i = 0; i < real.length; i++) {
+      for (let j = i + 1; j < real.length; j++) {
+        expect(
+          Math.hypot(real[i]!.x - real[j]!.x, real[i]!.y - real[j]!.y),
+        ).toBeGreaterThanOrEqual(MIN_CENTER_DISTANCE - 1e-6);
+      }
+    }
+  });
+
+  it("resolves overlaps instantly and keeps the self node anchored", () => {
+    const state = createSimulationState(
+      makeGraph(
+        [
+          makeNode("self", 200, 200, { isSelf: true, radius: 28 }),
+          makeNode("a", 200, 200),
+          makeNode("b", 200, 200),
+        ],
+        [],
+      ),
+      400,
+      400,
+    );
+    const resolved = resolveOverlaps(state);
+    const self = resolved.nodes.find((node) => node.id === "self")!;
+    const a = resolved.nodes.find((node) => node.id === "a")!;
+    const b = resolved.nodes.find((node) => node.id === "b")!;
+
+    expect(self.x).toBe(200);
+    expect(self.y).toBe(200);
+    expect(Math.hypot(a.x - self.x, a.y - self.y)).toBeGreaterThanOrEqual(
+      MIN_CENTER_DISTANCE - 1e-6,
+    );
+    expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThanOrEqual(
+      MIN_CENTER_DISTANCE - 1e-6,
+    );
   });
 });
 
@@ -496,6 +671,42 @@ describe("stepSimulation", () => {
     expect(Math.abs(d1 - 80)).toBeLessThan(5);
   });
 
+  it("angular repulsion opens a fan when nodes share a similar orbit", () => {
+    const center = { x: VIEWPORT_W / 2, y: VIEWPORT_H / 2 };
+    const nodes = [0, 0.02, 0.04].map((angle, index) =>
+      makeNode(
+        `fan-${index}`,
+        center.x + Math.cos(angle) * 120,
+        center.y + Math.sin(angle) * 120,
+      ),
+    );
+    const graph = makeGraph(nodes, []);
+    const initial = createSimulationState(graph, VIEWPORT_W, VIEWPORT_H);
+    const final = runStepsStepwise(initial, 160, {
+      driftStrength: 0,
+      centerGravity: 0,
+    });
+
+    const spread = (state: SimulationState): number => {
+      const angles = state.nodes.map((node) =>
+        Math.atan2(node.y - center.y, node.x - center.x),
+      );
+      return Math.max(...angles) - Math.min(...angles);
+    };
+
+    expect(spread(final)).toBeGreaterThan(spread(initial) + 0.05);
+    for (let i = 0; i < final.nodes.length; i++) {
+      for (let j = i + 1; j < final.nodes.length; j++) {
+        expect(
+          Math.hypot(
+            final.nodes[i]!.x - final.nodes[j]!.x,
+            final.nodes[i]!.y - final.nodes[j]!.y,
+          ),
+        ).toBeGreaterThanOrEqual(MIN_CENTER_DISTANCE - 1e-6);
+      }
+    }
+  });
+
   it("repulsion behavior: two overlapping unconnected nodes move APART over time", () => {
     const graph = makeGraph(
       [makeNode("o1", 395, 300, { radius: 16 }), makeNode("o2", 405, 300, { radius: 16 })],
@@ -586,7 +797,7 @@ describe("switchTrack", () => {
     makeMatch("d1", 0.92, "romance"),
     makeMatch("d1", 0.77, "amistad"),
     makeMatch("d2", 0.86, "romance"),
-    makeMatch("d2", 0.67, "amistad"), // below amistad threshold → no edge after switch
+    makeMatch("d2", 0.64, "amistad"), // below amistad threshold → no edge after switch
   ];
 
   const romanceState = createSimulationState(
@@ -600,7 +811,7 @@ describe("switchTrack", () => {
     const switched = switchTrack(settled, dualMatches, "amistad", AMISTAD_THRESHOLD);
     expect(switched.edges.length).not.toBe(settled.edges.length);
     const selfEdges = switched.edges.filter((e) => e.source === ME.id || e.target === ME.id);
-    // d1 (0.77 > 0.68) connected; d2 (0.67 <= 0.68) not.
+    // d1 (0.77 > 0.65) connected; d2 (0.64 <= 0.65) not.
     expect(selfEdges.some((e) => e.source === "d1" || e.target === "d1")).toBe(true);
     expect(selfEdges.some((e) => e.source === "d2" || e.target === "d2")).toBe(false);
     for (const e of switched.edges) expect(e.similarity).toBeGreaterThan(AMISTAD_THRESHOLD);

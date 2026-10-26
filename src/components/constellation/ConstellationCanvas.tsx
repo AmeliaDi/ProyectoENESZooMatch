@@ -577,7 +577,7 @@ export function ConstellationCanvas({
       const point = toViewBox(event.clientX, event.clientY);
       if (!point) return;
       const node = state.nodes.find((candidate) => candidate.id === nodeId);
-      if (!node) return;
+      if (!node || node.isSelf) return;
 
       svgRef.current?.setPointerCapture(event.pointerId);
       dragRef.current = {

@@ -195,10 +195,10 @@ describe("structureFromState", () => {
     expect(structure.nodes.map((node) => node.id)).toEqual(state.nodes.map((node) => node.id));
   });
 
-  it("marks the self node and gives it full opacity and radius 24", () => {
+  it("marks the self node and gives it full opacity and radius 28", () => {
     const self = structure.nodes.find((node) => node.isSelf);
     expect(self).toBeDefined();
-    expect(self?.radius).toBe(24);
+    expect(self?.radius).toBe(28);
     expect(self?.opacity).toBe(1);
     expect(self?.ariaLabel).toBe("Mar, Ajolotito rosa pastel, tú, el centro de tu constelación");
   });

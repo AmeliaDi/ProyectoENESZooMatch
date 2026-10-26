@@ -68,6 +68,7 @@ export interface SimulationParams {
   repulsionStrength: number; // collision repulsion force (default 0.8)
   centerGravity: number; // pull toward center (default 0.0002)
   driftStrength: number; // floating noise amplitude (default 0.15)
+  angularRepulsionStrength: number; // tangential anti-stacking force (default 0.006)
   maxVelocity: number; // velocity cap (default 2.0)
   equilibriumThreshold: number; // total kinetic energy below which = settled (default 0.01)
   boundsPadding: number; // pixels from edge (default 40)
@@ -116,6 +117,7 @@ export const DEFAULT_SIMULATION_PARAMS: SimulationParams = {
   repulsionStrength: 0.8,
   centerGravity: 0.0002,
   driftStrength: 0.15,
+  angularRepulsionStrength: 0.006,
   maxVelocity: 2.0,
   equilibriumThreshold: 0.01,
   boundsPadding: 40,
@@ -135,10 +137,26 @@ const EQUILIBRIUM_TICKS = 10;
 const DEFAULT_PRECOMPUTE_TICKS = 2000;
 
 /** Radius constants: self is fixed, matches scale with similarity. */
-const SELF_RADIUS = 24;
+const SELF_RADIUS = 28;
 const BASE_RADIUS = 12;
 const RADIUS_SCALE = 8;
 const GHOST_RADIUS = 6;
+
+// ─── Orbital and clearance constants ──────────────────────────────────────────
+// The sprite occupies 16 px and reserves 12 px of breathing room, so two
+// centres must sit at least 28 + 28 = 56 px apart.
+const COLLISION_RADIUS = 28;
+export const MIN_CENTER_DISTANCE = COLLISION_RADIUS * 2;
+const ORBIT_MIN_RADIUS = 90;
+const ORBIT_RADIUS_RATIO = 0.42;
+const ORBIT_GAMMA = 1.2;
+const ORBIT_BAND_COUNT = 10;
+const ORBIT_ANGLE_JITTER = 0.35;
+const ANGULAR_RADIUS_BAND = 40;
+const ANGULAR_FORCE_CAP = 0.4;
+const CLEARANCE_ITERATIONS = 12;
+/** Sub-pixel cushion so float/clamp rounding never lands just below 56 px. */
+const CLEARANCE_BUFFER = 0.5;
 
 /** Decorative ghost nodes: default 8, never more than 12. */
 const DEFAULT_GHOST_COUNT = 8;
@@ -184,6 +202,84 @@ export function similarityToDistance(
   if (denom <= 0) return minDist; // degenerate threshold=1 → everything is null anyway
   const t = Math.min(1, (similarity - threshold) / denom);
   return maxDist - t * span;
+}
+
+export interface OrbitAssignment {
+  angle: number;
+  radius: number;
+  band: number;
+}
+
+/**
+ * Radial law for the anti-stacking sky.
+ *
+ * `t` is the normalized similarity above the exclusive threshold. The exponent
+ * spreads high-affinity matches toward the inner ring while keeping the outer
+ * band wide enough for low-affinity ones. The result is clamped to the
+ * padded viewport so even a 360 px screen keeps every sprite inside the sky.
+ */
+export function computeOrbitRadius(
+  similarity: number,
+  threshold: number,
+  width: number,
+  height: number,
+): number | null {
+  if (!(similarity > threshold)) return null;
+  const denominator = 1 - threshold;
+  const t = denominator <= 0 ? 1 : Math.min(1, (similarity - threshold) / denominator);
+  const minDim = Math.min(width, height);
+  const fit = Math.max(0, minDim / 2 - DEFAULT_SIMULATION_PARAMS.boundsPadding);
+  const outer = Math.min(minDim * ORBIT_RADIUS_RATIO, fit);
+  const inner = Math.min(ORBIT_MIN_RADIUS, outer);
+  return outer - Math.pow(t, ORBIT_GAMMA) * (outer - inner);
+}
+
+/**
+ * Equidistant angular slots within each similarity decile, with a deterministic
+ * hash phase per band and a small per-node jitter. Two nodes in the same band
+ * can never be born at the same angle, which is what prevents the spring
+ * collapse from starting in a pile.
+ */
+export function assignOrbitSlots(
+  matches: ReadonlyArray<{ id: string; similarity: number }>,
+  track: MatchTrack,
+  threshold: number,
+  width: number,
+  height: number,
+): Map<string, OrbitAssignment> {
+  const bands = new Map<number, Array<{ id: string; similarity: number }>>();
+  for (const match of matches) {
+    if (!(match.similarity > threshold)) continue;
+    const denominator = 1 - threshold;
+    const t =
+      denominator <= 0 ? 1 : Math.min(1, (match.similarity - threshold) / denominator);
+    const band = Math.min(ORBIT_BAND_COUNT - 1, Math.floor(t * ORBIT_BAND_COUNT));
+    const bucket = bands.get(band) ?? [];
+    bucket.push(match);
+    bands.set(band, bucket);
+  }
+
+  const assignments = new Map<string, OrbitAssignment>();
+  for (const [band, bucket] of bands) {
+    const ordered = [...bucket].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    const phase =
+      ((hashSeed(`orbit:${track}:${band}`) / 0xffffffff) * Math.PI * 2) % (Math.PI * 2);
+    const slot = (Math.PI * 2) / ordered.length;
+    ordered.forEach((match, index) => {
+      const jitterSeed = hashSeed(`orbit:${track}:${band}:${match.id}`) / 0xffffffff;
+      const jitter = (jitterSeed - 0.5) * slot * ORBIT_ANGLE_JITTER;
+      const angle = phase + slot * index + jitter;
+      const radius = computeOrbitRadius(
+        match.similarity,
+        threshold,
+        width,
+        height,
+      );
+      if (radius === null) return;
+      assignments.set(match.id, { angle, radius, band });
+    });
+  }
+  return assignments;
 }
 
 /**
@@ -384,10 +480,18 @@ export function buildGraph(
     isGhost: false,
   };
 
+  const orbitSlots = assignOrbitSlots(
+    activeMatches,
+    track,
+    threshold,
+    viewportWidth,
+    viewportHeight,
+  );
   const matchNodes: ConstellationNode[] = activeMatches.map((m) => {
-    const rand = seededRandom(hashSeed(m.id));
-    const angle = rand() * Math.PI * 2;
-    const orbit = minDim * (0.22 + rand() * 0.2);
+    const slot = orbitSlots.get(m.id);
+    const rand = seededRandom(hashSeed(`fallback:${m.id}`));
+    const angle = slot?.angle ?? rand() * Math.PI * 2;
+    const orbit = slot?.radius ?? minDim * (0.22 + rand() * 0.2);
     const x = clampToBounds(cx + Math.cos(angle) * orbit, viewportWidth, DEFAULT_SIMULATION_PARAMS.boundsPadding).value;
     const y = clampToBounds(cy + Math.sin(angle) * orbit, viewportHeight, DEFAULT_SIMULATION_PARAMS.boundsPadding).value;
     return {
@@ -409,6 +513,18 @@ export function buildGraph(
 
   const ghosts = generateGhostNodes(ghostCount, viewportWidth, viewportHeight, `${me.id}::${track}`);
   const edges = buildEdges(selfNode, matchNodes, threshold);
+  // Self edges pull along the radial law, not the generic distance curve, so
+  // each match settles on its assigned orbital band.
+  for (const edge of edges) {
+    const otherId =
+      edge.source === selfNode.id
+        ? edge.target
+        : edge.target === selfNode.id
+          ? edge.source
+          : null;
+    const slot = otherId ? orbitSlots.get(otherId) : undefined;
+    if (slot) edge.targetDistance = slot.radius;
+  }
 
   const nodes = [selfNode, ...matchNodes, ...ghosts];
   const graph: ConstellationGraph = { nodes, edges, clusters: [] };
@@ -531,6 +647,85 @@ export function createSimulationState(
   };
 }
 
+/** Hard separation radius: the sprite plus its collision padding. */
+function collisionRadiusOf(node: ConstellationNode): number {
+  if (node.isGhost) return 0;
+  return node.isSelf ? SELF_RADIUS : COLLISION_RADIUS;
+}
+
+/**
+ * Instantaneous circle-packing relaxation. Real nodes are separated along the
+ * segment that joins their centres until they respect `MIN_CENTER_DISTANCE`.
+ * The self node is anchored: when it overlaps a match, only the match moves.
+ * Positions are clamped to the padded viewport, so this never pushes a sprite
+ * off-screen. Ghost stars are decorative and intentionally ignored.
+ */
+function relaxNodeOverlaps(
+  nodes: ConstellationNode[],
+  width: number,
+  height: number,
+  padding: number,
+  iterations: number = CLEARANCE_ITERATIONS,
+): void {
+  for (let iteration = 0; iteration < iterations; iteration++) {
+    let moved = false;
+    for (let i = 0; i < nodes.length; i++) {
+      const a = nodes[i];
+      if (a.isGhost) continue;
+      for (let j = i + 1; j < nodes.length; j++) {
+        const b = nodes[j];
+        if (b.isGhost) continue;
+        const minDistance =
+          collisionRadiusOf(a) + collisionRadiusOf(b) + CLEARANCE_BUFFER;
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        let distance = Math.hypot(dx, dy);
+        if (distance >= minDistance - 1e-9) continue;
+
+        if (distance === 0) {
+          const angle =
+            ((hashSeed(`${a.id}::${b.id}`) ^ hashSeed(`${b.id}::${a.id}`)) %
+              360) *
+            (Math.PI / 180);
+          dx = Math.cos(angle);
+          dy = Math.sin(angle);
+          distance = 1;
+        }
+        const ux = dx / distance;
+        const uy = dy / distance;
+        const overlap = minDistance - distance;
+        const aMovable = !a.isSelf;
+        const bMovable = !b.isSelf;
+        if (!aMovable && !bMovable) continue;
+
+        const shareA = aMovable && bMovable ? overlap / 2 : aMovable ? overlap : 0;
+        const shareB = aMovable && bMovable ? overlap / 2 : bMovable ? overlap : 0;
+        if (aMovable) {
+          a.x = clampToBounds(a.x - ux * shareA, width, padding).value;
+          a.y = clampToBounds(a.y - uy * shareA, height, padding).value;
+        }
+        if (bMovable) {
+          b.x = clampToBounds(b.x + ux * shareB, width, padding).value;
+          b.y = clampToBounds(b.y + uy * shareB, height, padding).value;
+        }
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+}
+
+/** Public wrapper used by tests and callers that want a guaranteed clearance. */
+export function resolveOverlaps(
+  state: SimulationState,
+  params?: Partial<SimulationParams>,
+): SimulationState {
+  const p = { ...DEFAULT_SIMULATION_PARAMS, ...params };
+  const nodes = state.nodes.map((node) => ({ ...node }));
+  relaxNodeOverlaps(nodes, state.width, state.height, p.boundsPadding);
+  return { ...state, nodes };
+}
+
 /**
  * Advances the simulation by one step (dt in arbitrary units, typically 1).
  *
@@ -541,22 +736,26 @@ export function createSimulationState(
  * 2. COLLISION REPULSION: for any two real nodes closer than the sum of radii
  *      F = repulsionStrength * overlap * direction (push apart)
  *    (ghost nodes are excluded — they take part in drift + bounds only)
- * 3. CENTER GRAVITY: gentle pull toward viewport center (real nodes only)
+ * 3. ANGULAR REPULSION: nodes on similar orbits receive a tangential impulse
+ *      F = angularRepulsionStrength / max(Δθ², ε), capped for stability.
+ * 4. CENTER GRAVITY: gentle pull toward viewport center (self is anchored)
  *      F = centerGravity * distance_from_center * direction
- * 4. DAMPING: multiply velocities by springDamping
- * 5. VELOCITY CAP: clamp velocity magnitude to maxVelocity
- * 6. UPDATE POSITIONS: x += vx * dt, y += vy * dt
- * 7. BOUNDS: clamp positions to [padding, dimension - padding]; if clamped,
+ * 5. DAMPING: multiply velocities by springDamping
+ * 6. VELOCITY CAP: clamp velocity magnitude to maxVelocity
+ * 7. UPDATE POSITIONS: x += vx * dt, y += vy * dt (self stays at centre)
+ * 8. BOUNDS: clamp positions to [padding, dimension - padding]; if clamped,
  *    zero the velocity component in that direction
- * 8. EQUILIBRIUM: total kinetic energy = Σ(vx² + vy²); when below
+ * 9. EQUILIBRIUM: total kinetic energy = Σ(vx² + vy²); when below
  *    equilibriumThreshold for EQUILIBRIUM_TICKS (10) consecutive ticks →
  *    isEquilibrium = true (latched; drift is then layered on top as a
  *    positional-only offset so equilibrium is preserved)
- * 9. FLOATING DRIFT (only while isEquilibrium): deterministic sinusoidal noise
+ * 10. FLOATING DRIFT (only while isEquilibrium): deterministic sinusoidal noise
  *      dx = driftStrength * sin(tick * 0.01 + seed) * cos(tick * 0.007 + seed * 2)
  *      dy = driftStrength * cos(tick * 0.013 + seed) * sin(tick * 0.009 + seed * 3)
  *    with seed = (hashSeed(id) % 1000) / 1000 * 2π. Drift never touches
  *    velocity, so it cannot re-energize the system.
+ * 11. HARD CLEARANCE: circle-packing relaxation guarantees that no two real
+ *    sprites end the frame closer than 28 + 28 px.
  *
  * Returns a NEW state object (immutable — does not mutate input).
  */
@@ -590,10 +789,14 @@ export function stepSimulation(
     const ux = dx / dist;
     const uy = dy / dist;
     const force = p.springStiffness * (dist - edge.targetDistance) * dt;
-    a.vx += ux * force;
-    a.vy += uy * force;
-    b.vx -= ux * force;
-    b.vy -= uy * force;
+    if (!a.isSelf) {
+      a.vx += ux * force;
+      a.vy += uy * force;
+    }
+    if (!b.isSelf) {
+      b.vx -= ux * force;
+      b.vy -= uy * force;
+    }
   }
 
   // 2. Collision repulsion between all pairs of real nodes.
@@ -620,18 +823,53 @@ export function stepSimulation(
       const uy = dy / dist;
       const overlap = minDist - dist;
       const force = p.repulsionStrength * overlap * dt;
-      a.vx -= ux * force;
-      a.vy -= uy * force;
-      b.vx += ux * force;
-      b.vy += uy * force;
+      if (!a.isSelf) {
+        a.vx -= ux * force;
+        a.vy -= uy * force;
+      }
+      if (!b.isSelf) {
+        b.vx += ux * force;
+        b.vy += uy * force;
+      }
     }
   }
 
-  // 3. Center gravity.
+  // 3. Tangential (angular) repulsion for nodes sharing a similar orbit.
+  //    Springs pull on the radial axis; this force spreads same-band matches
+  //    around the user instead of letting them stack on the same angle.
   const cx = state.width / 2;
   const cy = state.height / 2;
+  for (let i = 0; i < nodes.length; i++) {
+    const a = nodes[i];
+    if (a.isGhost || a.isSelf) continue;
+    const radiusA = Math.hypot(a.x - cx, a.y - cy);
+    const angleA = Math.atan2(a.y - cy, a.x - cx);
+    for (let j = i + 1; j < nodes.length; j++) {
+      const b = nodes[j];
+      if (b.isGhost || b.isSelf) continue;
+      const radiusB = Math.hypot(b.x - cx, b.y - cy);
+      if (Math.abs(radiusA - radiusB) >= ANGULAR_RADIUS_BAND) continue;
+
+      const angleB = Math.atan2(b.y - cy, b.x - cx);
+      let delta = angleB - angleA;
+      while (delta > Math.PI) delta -= Math.PI * 2;
+      while (delta < -Math.PI) delta += Math.PI * 2;
+      const dTheta = Math.abs(delta);
+      const force = Math.min(
+        ANGULAR_FORCE_CAP,
+        p.angularRepulsionStrength / Math.max(dTheta * dTheta, 0.0025),
+      );
+      const sign = delta >= 0 ? 1 : -1;
+      a.vx += sign * Math.sin(angleA) * force;
+      a.vy -= sign * Math.cos(angleA) * force;
+      b.vx -= sign * Math.sin(angleB) * force;
+      b.vy += sign * Math.cos(angleB) * force;
+    }
+  }
+
+  // 4. Center gravity.
   for (const n of nodes) {
-    if (n.isGhost) continue; // ghosts float freely — no center gravity
+    if (n.isGhost || n.isSelf) continue; // ghosts float freely; self is anchored
     const dx = cx - n.x;
     const dy = cy - n.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -641,7 +879,7 @@ export function stepSimulation(
     n.vy += (dy / dist) * force;
   }
 
-  // 4. Damping + 5. velocity cap.
+  // 5. Damping + 6. velocity cap.
   for (const n of nodes) {
     n.vx *= p.springDamping;
     n.vy *= p.springDamping;
@@ -653,8 +891,15 @@ export function stepSimulation(
     }
   }
 
-  // 6. Integrate positions + 7. bounds.
+  // 7. Integrate positions + 8. bounds. Self stays pinned to the sky centre.
   for (const n of nodes) {
+    if (n.isSelf) {
+      n.x = cx;
+      n.y = cy;
+      n.vx = 0;
+      n.vy = 0;
+      continue;
+    }
     n.x += n.vx * dt;
     n.y += n.vy * dt;
     const bx = clampToBounds(n.x, state.width, p.boundsPadding);
@@ -665,7 +910,7 @@ export function stepSimulation(
     n.y = by.value;
   }
 
-  // 8. Kinetic energy + equilibrium (latched after EQUILIBRIUM_TICKS).
+  // 9. Kinetic energy + equilibrium (latched after EQUILIBRIUM_TICKS).
   let totalKineticEnergy = 0;
   for (const n of nodes) totalKineticEnergy += n.vx * n.vx + n.vy * n.vy;
 
@@ -673,10 +918,11 @@ export function stepSimulation(
     totalKineticEnergy < p.equilibriumThreshold ? state.settledTicks + 1 : 0;
   const isEquilibrium = state.isEquilibrium || settledTicks >= EQUILIBRIUM_TICKS;
 
-  // 9. Floating drift: positional-only ambient motion once settled.
+  // 10. Floating drift: positional-only ambient motion once settled.
   if (isEquilibrium && p.driftStrength > 0) {
     const tick = state.tick + 1;
     for (const n of nodes) {
+      if (n.isSelf) continue;
       const seed = ((hashSeed(n.id) % 1000) / 1000) * Math.PI * 2;
       const dx = p.driftStrength * Math.sin(tick * 0.01 + seed) * Math.cos(tick * 0.007 + seed * 2) * dt;
       const dy = p.driftStrength * Math.cos(tick * 0.013 + seed) * Math.sin(tick * 0.009 + seed * 3) * dt;
@@ -684,6 +930,9 @@ export function stepSimulation(
       n.y = clampToBounds(n.y + dy, state.height, p.boundsPadding).value;
     }
   }
+
+  // 11. Hard clearance: positional-only, so it cannot re-energise the system.
+  relaxNodeOverlaps(nodes, state.width, state.height, p.boundsPadding);
 
   return {
     nodes,
@@ -798,12 +1047,20 @@ export function switchTrack(
   const cx = state.width / 2;
   const cy = state.height / 2;
   const minDim = Math.min(state.width, state.height);
+  const orbitSlots = assignOrbitSlots(
+    active,
+    newTrack,
+    newThreshold,
+    state.width,
+    state.height,
+  );
   for (const m of active) {
     if (existingById.has(m.id)) continue;
     if (!(m.similarity > newThreshold)) continue;
-    const rand = seededRandom(hashSeed(m.id));
-    const angle = rand() * Math.PI * 2;
-    const orbit = minDim * (0.22 + rand() * 0.2);
+    const slot = orbitSlots.get(m.id);
+    const rand = seededRandom(hashSeed(`fallback:${m.id}`));
+    const angle = slot?.angle ?? rand() * Math.PI * 2;
+    const orbit = slot?.radius ?? minDim * (0.22 + rand() * 0.2);
     nextNodes.push({
       id: m.id,
       x: clampToBounds(cx + Math.cos(angle) * orbit, state.width, DEFAULT_SIMULATION_PARAMS.boundsPadding).value,
@@ -824,6 +1081,16 @@ export function switchTrack(
   const self = nextNodes.find((n) => n.isSelf);
   const matchNodes = nextNodes.filter((n) => !n.isSelf && !n.isGhost);
   const edges = self ? buildEdges(self, matchNodes, newThreshold) : [];
+  for (const edge of edges) {
+    const otherId =
+      edge.source === self?.id
+        ? edge.target
+        : edge.target === self?.id
+          ? edge.source
+          : null;
+    const slot = otherId ? orbitSlots.get(otherId) : undefined;
+    if (slot) edge.targetDistance = slot.radius;
+  }
 
   return {
     ...state,
