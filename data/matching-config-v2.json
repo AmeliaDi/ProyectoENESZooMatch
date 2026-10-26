@@ -2,7 +2,9 @@
   "version": "2.0",
   "tracks": {
     "romance": {
-      "minimum_similarity_exclusive": 0.80,
+      "minimum_similarity_exclusive": 0.65,
+      "centering": 0.5,
+      "max_matches": 5,
       "dimensions": [
         "personalidad_apertura",
         "personalidad_responsabilidad",
@@ -41,7 +43,9 @@
       }
     },
     "amistad": {
-      "minimum_similarity_exclusive": 0.75,
+      "minimum_similarity_exclusive": 0.68,
+      "centering": 0.5,
+      "max_matches": 5,
       "dimensions": [
         "personalidad_apertura",
         "personalidad_responsabilidad",

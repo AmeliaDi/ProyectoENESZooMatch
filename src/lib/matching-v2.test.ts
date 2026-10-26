@@ -4,15 +4,16 @@ import {
   MATCHING_CONFIG_V2,
   MICROTEST_V2_ITEMS,
   checkHardFilters,
+  computeAllMatchesV2,
   cosineSimilarity,
   findDualMatches,
   generateBadges,
-  isGenderCompatible,
-  isOrientationCompatible,
   isRelationshipCompatible,
   scoreQuizV2,
+  trackSimilarity,
   weightedTrackSimilarity,
 } from "@/lib/matching-v2";
+import { getMaxMatches } from "@/lib/matching-config-v2";
 import {
   ALL_DIMENSIONS_V2,
   BIG_FIVE_DIMENSIONS,
@@ -360,167 +361,91 @@ describe("cosineSimilarity", () => {
 
 // ─── Hard filters ─────────────────────────────────────────────────────────────
 
-const ORIENTATION_VALUES = [
-  "hombres",
-  "mujeres",
-  "personas no binarias",
-  "todxs",
-  "demisexual",
-  "asexual",
-  "prefiero no decir",
-] as const;
-
-const RELATIONSHIP_VALUES = [
-  "monogamia",
-  "no_monogamia_etica",
-  "poliamor",
-  "anarquia_relacional",
-  "sin_definir",
-  "solo_amistad",
-] as const;
-
-/** Expected orientation matrix, wildcards included. */
-const ORIENTATION_EXPECTATION: Record<string, string[]> = {
-  hombres: ["hombres", "mujeres", "personas no binarias", "todxs", "prefiero no decir"],
-  mujeres: ["mujeres", "hombres", "personas no binarias", "todxs", "prefiero no decir"],
-  "personas no binarias": [
-    "personas no binarias",
-    "hombres",
-    "mujeres",
-    "todxs",
-    "prefiero no decir",
-  ],
-  todxs: [...ORIENTATION_VALUES],
-  demisexual: ["demisexual", "asexual", "todxs", "prefiero no decir"],
-  asexual: ["asexual", "demisexual", "todxs", "prefiero no decir"],
-  "prefiero no decir": [...ORIENTATION_VALUES],
-};
-
-const RELATIONSHIP_EXPECTATION: Record<string, string[]> = {
-  monogamia: ["monogamia"],
-  no_monogamia_etica: ["no_monogamia_etica", "poliamor", "anarquia_relacional", "sin_definir"],
-  poliamor: ["poliamor", "no_monogamia_etica", "anarquia_relacional", "sin_definir"],
-  anarquia_relacional: [
-    "anarquia_relacional",
-    "no_monogamia_etica",
-    "poliamor",
-    "sin_definir",
-  ],
-  sin_definir: [
-    "sin_definir",
-    "no_monogamia_etica",
-    "poliamor",
-    "anarquia_relacional",
-    "solo_amistad",
-  ],
-  solo_amistad: ["solo_amistad", "sin_definir"],
-};
-
-describe("isOrientationCompatible", () => {
-  it("follows the documented compatibility matrix", () => {
-    for (const left of ORIENTATION_VALUES) {
-      for (const right of ORIENTATION_VALUES) {
-        const expected = ORIENTATION_EXPECTATION[left]?.includes(right) ?? false;
-        expect(isOrientationCompatible([left], [right])).toBe(expected);
-        // The relation is symmetric.
-        expect(isOrientationCompatible([right], [left])).toBe(expected);
-      }
-    }
-  });
-
-  it("accepts a pairing as soon as one selected value is compatible", () => {
-    expect(isOrientationCompatible(["asexual", "mujeres"], ["hombres"])).toBe(true);
-    expect(isOrientationCompatible(["asexual"], ["asexual", "hombres"])).toBe(true);
-    expect(isOrientationCompatible(["asexual"], ["hombres", "mujeres"])).toBe(false);
-  });
-
-  it("treats an empty selection as an unexpressed filter", () => {
-    expect(isOrientationCompatible([], ["asexual"])).toBe(true);
-    expect(isOrientationCompatible(["hombres"], [])).toBe(true);
-    expect(isOrientationCompatible([], [])).toBe(true);
-  });
-});
-
-describe("isRelationshipCompatible", () => {
-  it("follows the documented compatibility matrix", () => {
-    for (const left of RELATIONSHIP_VALUES) {
-      for (const right of RELATIONSHIP_VALUES) {
-        const expected = RELATIONSHIP_EXPECTATION[left]?.includes(right) ?? false;
-        expect(isRelationshipCompatible([left], [right])).toBe(expected);
-        expect(isRelationshipCompatible([right], [left])).toBe(expected);
-      }
-    }
-  });
-
-  it("keeps monogamia exclusive and opens the non-monogamy family", () => {
-    expect(isRelationshipCompatible(["monogamia"], ["monogamia"])).toBe(true);
-    expect(isRelationshipCompatible(["monogamia"], ["poliamor"])).toBe(false);
-    expect(isRelationshipCompatible(["monogamia"], ["sin_definir"])).toBe(false);
-    expect(isRelationshipCompatible(["anarquia_relacional"], ["no_monogamia_etica"])).toBe(true);
-    expect(isRelationshipCompatible(["anarquia_relacional"], ["poliamor"])).toBe(true);
-    expect(isRelationshipCompatible(["anarquia_relacional"], ["sin_definir"])).toBe(true);
-    expect(isRelationshipCompatible(["anarquia_relacional"], ["monogamia"])).toBe(false);
-  });
-
-  it("treats an empty selection as an unexpressed filter", () => {
-    expect(isRelationshipCompatible([], ["monogamia"])).toBe(true);
-    expect(isRelationshipCompatible(["poliamor"], [])).toBe(true);
-  });
-});
-
-describe("isGenderCompatible", () => {
-  it("never blocks a pairing on gender identity alone", () => {
-    expect(isGenderCompatible(["mujer"], ["hombre"])).toBe(true);
-    expect(isGenderCompatible(["no binario"], ["agenero"])).toBe(true);
-    expect(isGenderCompatible(["prefiero no decir"], ["mujer"])).toBe(true);
-    expect(isGenderCompatible([], ["género fluido"])).toBe(true);
-    expect(isGenderCompatible([], [])).toBe(true);
-  });
-});
-
 describe("checkHardFilters", () => {
-  it("accepts two profiles whose three filters all align", () => {
-    expect(
-      checkHardFilters(
-        hardFilters({ orientacion_sexual: ["mujeres"] }),
-        hardFilters({ orientacion_sexual: ["hombres"], identidad_genero: ["hombre"] }),
-      ),
-    ).toBe(true);
+  it("requires mutual attraction between heterosexual partners", () => {
+    const heterosexualMan = hardFilters({
+      orientacion_sexual: ["mujeres"],
+      identidad_genero: ["hombre"],
+    });
+    const heterosexualWoman = hardFilters({
+      orientacion_sexual: ["hombres"],
+      identidad_genero: ["mujer"],
+    });
+    const lesbianWoman = hardFilters({
+      orientacion_sexual: ["mujeres"],
+      identidad_genero: ["mujer"],
+    });
+
+    expect(checkHardFilters(heterosexualMan, heterosexualWoman)).toBe(true);
+    expect(checkHardFilters(heterosexualMan, lesbianWoman)).toBe(false);
   });
 
-  it("rejects a pairing as soon as one filter is incompatible", () => {
-    const base = hardFilters();
-
-    expect(checkHardFilters(base, hardFilters({ orientacion_sexual: ["asexual"] }))).toBe(false);
-    expect(checkHardFilters(base, hardFilters({ tipo_relacion_busca: ["poliamor"] }))).toBe(false);
-    expect(
-      checkHardFilters(
-        hardFilters({ tipo_relacion_busca: ["solo_amistad"] }),
-        hardFilters({ tipo_relacion_busca: ["monogamia"] }),
-      ),
-    ).toBe(false);
-  });
-
-  it("lets wildcard answers through every gate", () => {
+  it("allows gay men and wildcard preferences", () => {
+    const gayManA = hardFilters({
+      orientacion_sexual: ["hombres"],
+      identidad_genero: ["hombre"],
+    });
+    const gayManB = hardFilters({
+      orientacion_sexual: ["hombres"],
+      identidad_genero: ["hombre"],
+    });
     const wildcard = hardFilters({
       orientacion_sexual: ["todxs"],
       identidad_genero: ["prefiero no decir"],
-      tipo_relacion_busca: [],
     });
 
-    expect(checkHardFilters(wildcard, hardFilters({ orientacion_sexual: ["asexual"] }))).toBe(true);
-    expect(checkHardFilters(wildcard, hardFilters({ orientacion_sexual: ["hombres"] }))).toBe(true);
-    expect(
-      checkHardFilters(wildcard, hardFilters({ orientacion_sexual: ["prefiero no decir"] })),
-    ).toBe(true);
+    expect(checkHardFilters(gayManA, gayManB)).toBe(true);
+    expect(checkHardFilters(gayManA, wildcard)).toBe(true);
+  });
+
+  it("requires an asexual person’s match to be asexual or demisexual", () => {
+    const asexual = hardFilters({
+      orientacion_sexual: ["asexual"],
+      identidad_genero: ["mujer"],
+    });
+    const allosexual = hardFilters({
+      orientacion_sexual: ["mujeres"],
+      identidad_genero: ["mujer"],
+    });
+    const demisexual = hardFilters({
+      orientacion_sexual: ["demisexual"],
+      identidad_genero: ["mujer"],
+    });
+
+    expect(checkHardFilters(asexual, allosexual)).toBe(false);
+    expect(checkHardFilters(asexual, demisexual)).toBe(true);
+  });
+
+  it("treats solo_amistad-only as romance-incompatible but not a friendship filter", () => {
+    const friendshipOnly = makeProfile({
+      hardFilters: hardFilters({ tipo_relacion_busca: ["solo_amistad"] }),
+    });
+    const romanceInterested = makeProfile();
+    const matches = computeAllMatchesV2(
+      [
+        { userId: "friendship-only", profile: friendshipOnly },
+        { userId: "romance-interested", profile: romanceInterested },
+      ],
+      withThresholds(0.5, 0.5),
+    );
+
+    expect(isRelationshipCompatible(["solo_amistad"], ["monogamia"])).toBe(false);
+    expect(matches.map((match) => match.track)).toEqual(["amistad"]);
   });
 
   it("is symmetric", () => {
-    const left = hardFilters({ orientacion_sexual: ["demisexual"] });
-    const right = hardFilters({ orientacion_sexual: ["asexual"], tipo_relacion_busca: ["poliamor"] });
+    const left = hardFilters({
+      orientacion_sexual: ["mujeres"],
+      identidad_genero: ["hombre"],
+    });
+    const right = hardFilters({
+      orientacion_sexual: ["hombres"],
+      identidad_genero: ["mujer"],
+    });
 
     expect(checkHardFilters(left, right)).toBe(checkHardFilters(right, left));
-    expect(checkHardFilters(left, right)).toBe(false);
+    expect(checkHardFilters(left, right)).toBe(true);
+    expect(isRelationshipCompatible(["solo_amistad", "monogamia"], ["monogamia"])).toBe(true);
   });
 });
 
@@ -648,6 +573,29 @@ describe("weightedTrackSimilarity", () => {
         ROMANCE_TRACK.weights,
       ),
     ).toThrow(/same length/);
+  });
+});
+
+describe("trackSimilarity", () => {
+  it("maps centered identical and mirrored vectors to one and zero", () => {
+    expect(trackSimilarity(romanceVector(0.8), romanceVector(0.8), ROMANCE_TRACK)).toBeCloseTo(1);
+    expect(trackSimilarity(romanceVector(0.2), romanceVector(0.8), ROMANCE_TRACK)).toBeCloseTo(0);
+  });
+
+  it("respects category weights after centering", () => {
+    const config = {
+      ...ROMANCE_TRACK,
+      centering: 0.5,
+      dimensions: ["personalidad_apertura", "intimidad_tiempo_calidad"],
+      weights: {
+        personalidad: 0.9,
+        afinidad_cultural: 0,
+        intimidad_afecto: 0.1,
+        valores_relacionales: 0,
+        identidad: 0,
+      },
+    };
+    expect(trackSimilarity([0.9, 0.9], [0.9, 0.1], config)).toBeCloseTo(0.9, 12);
   });
 });
 
@@ -806,14 +754,8 @@ describe("findDualMatches", () => {
   });
 
   it("excludes profiles whose similarity collapses to zero", () => {
-    expect(
-      weightedTrackSimilarity(
-        userWithDisjointSupport.romanceVector,
-        distant.romanceVector,
-        ROMANCE_VECTOR_DIMENSIONS,
-        ROMANCE_TRACK.weights,
-      ),
-    ).toBe(0);
+    expect(trackSimilarity(userWithDisjointSupport.romanceVector, distant.romanceVector, ROMANCE_TRACK))
+      .toBe(0);
     expect(
       findDualMatches(
         userWithDisjointSupport,
@@ -824,17 +766,11 @@ describe("findDualMatches", () => {
   });
 
   it("applies both thresholds strictly (equal similarity never qualifies)", () => {
-    const romanceSimilarity = weightedTrackSimilarity(
-      user.romanceVector,
-      twin.romanceVector,
-      ROMANCE_VECTOR_DIMENSIONS,
-      ROMANCE_TRACK.weights,
-    );
-    const amistadSimilarity = weightedTrackSimilarity(
+    const romanceSimilarity = trackSimilarity(user.romanceVector, twin.romanceVector, ROMANCE_TRACK);
+    const amistadSimilarity = trackSimilarity(
       user.friendshipVector,
       twin.friendshipVector,
-      FRIENDSHIP_VECTOR_DIMENSIONS,
-      AMISTAD_TRACK.weights,
+      AMISTAD_TRACK,
     );
     const pool = [{ userId: "twin", profile: twin }];
 
@@ -887,13 +823,134 @@ describe("findDualMatches", () => {
   });
 });
 
+describe("computeAllMatchesV2", () => {
+  it("uses strict thresholds and honors per-track top-K selections", () => {
+    const pool = ["a", "b", "c"].map((userId) => ({ userId, profile: makeProfile() }));
+    const similarity = trackSimilarity(
+      pool[0]!.profile.romanceVector,
+      pool[1]!.profile.romanceVector,
+      ROMANCE_TRACK,
+    );
+    const config = {
+      ...withThresholds(similarity, 0.5),
+      tracks: {
+        romance: { ...ROMANCE_TRACK, minimum_similarity_exclusive: similarity, max_matches: 1 },
+        amistad: { ...AMISTAD_TRACK, minimum_similarity_exclusive: 0.5, max_matches: 1 },
+      },
+    };
+
+    const exactThreshold = computeAllMatchesV2(pool, config);
+    expect(exactThreshold.filter((match) => match.track === "romance")).toEqual([]);
+
+    const overThreshold = computeAllMatchesV2(pool, {
+      ...config,
+      tracks: {
+        ...config.tracks,
+        romance: { ...config.tracks.romance, minimum_similarity_exclusive: similarity - 1e-9 },
+      },
+    });
+    const romancePairs = overThreshold
+      .filter((match) => match.track === "romance")
+      .map((match) => `${match.userA}:${match.userB}`);
+    expect(romancePairs).toEqual(["a:b", "a:c"]);
+  });
+
+  it("keeps the union of either user's top-K list and emits canonical deterministic pairs", () => {
+    const vectorAt = (degrees: number) => {
+      const radians = (degrees * Math.PI) / 180;
+      return romanceVector(0.5, {
+        personalidad_apertura: 0.5 + 0.4 * Math.cos(radians),
+        personalidad_responsabilidad: 0.5 + 0.4 * Math.sin(radians),
+      });
+    };
+    const pool = [
+      { userId: "BBBB", profile: makeProfile({ romanceVector: vectorAt(30).slice(0, 2) }) },
+      { userId: "aaaa", profile: makeProfile({ romanceVector: vectorAt(0).slice(0, 2) }) },
+      { userId: "cccc", profile: makeProfile({ romanceVector: vectorAt(50).slice(0, 2) }) },
+      { userId: "DDDD", profile: makeProfile({ romanceVector: vectorAt(180).slice(0, 2) }) },
+    ];
+    const config: MatchingConfigV2 = {
+      ...withThresholds(0.5, 1),
+      tracks: {
+        romance: {
+          ...ROMANCE_TRACK,
+          minimum_similarity_exclusive: 0.5,
+          max_matches: 1,
+          dimensions: ["personalidad_apertura", "personalidad_responsabilidad"],
+          weights: {
+            personalidad: 1,
+            afinidad_cultural: 0,
+            intimidad_afecto: 0,
+            valores_relacionales: 0,
+            identidad: 0,
+          },
+        },
+        amistad: { ...AMISTAD_TRACK, minimum_similarity_exclusive: 1, max_matches: 1 },
+      },
+    };
+    const results = computeAllMatchesV2(pool, config);
+    const romancePairs = results.filter((match) => match.track === "romance");
+
+    expect(romancePairs.map(({ userA, userB }) => [userA, userB])).toEqual([
+      ["aaaa", "bbbb"],
+      ["bbbb", "cccc"],
+    ]);
+    expect(romancePairs.every(({ userA, userB }) => userA < userB)).toBe(true);
+    expect(romancePairs.every(({ userA, userB }) => userA !== userB)).toBe(true);
+    expect(computeAllMatchesV2(pool, config)).toEqual(results);
+    expect(getMaxMatches("romance")).toBe(5);
+    expect(getMaxMatches("amistad")).toBe(5);
+  });
+
+  it("applies romance hard filters only to the romance track", () => {
+    const man = makeProfile({
+      hardFilters: hardFilters({
+        orientacion_sexual: ["mujeres"],
+        identidad_genero: ["hombre"],
+      }),
+    });
+    const lesbian = makeProfile({
+      hardFilters: hardFilters({
+        orientacion_sexual: ["mujeres"],
+        identidad_genero: ["mujer"],
+      }),
+    });
+    const matches = computeAllMatchesV2(
+      [
+        { userId: "man", profile: man },
+        { userId: "woman", profile: lesbian },
+      ],
+      withThresholds(0.5, 0.5),
+    );
+
+    expect(matches.map((match) => match.track)).toEqual(["amistad"]);
+  });
+
+  it("does not emit self-pairs when the pool contains duplicate identifiers", () => {
+    const profile = makeProfile();
+    const matches = computeAllMatchesV2(
+      [
+        { userId: "same", profile },
+        { userId: "same", profile },
+      ],
+      withThresholds(0.5, 0.5),
+    );
+
+    expect(matches).toEqual([]);
+  });
+});
+
 // ─── Configuration contract ───────────────────────────────────────────────────
 
 describe("MATCHING_CONFIG_V2", () => {
   it("publishes the calibrated dual thresholds", () => {
     expect(MATCHING_CONFIG_V2.version).toBe("2.0");
-    expect(ROMANCE_TRACK.minimum_similarity_exclusive).toBe(0.8);
-    expect(AMISTAD_TRACK.minimum_similarity_exclusive).toBe(0.75);
+    expect(ROMANCE_TRACK.minimum_similarity_exclusive).toBe(0.65);
+    expect(AMISTAD_TRACK.minimum_similarity_exclusive).toBe(0.68);
+    expect(ROMANCE_TRACK.centering).toBe(0.5);
+    expect(AMISTAD_TRACK.centering).toBe(0.5);
+    expect(ROMANCE_TRACK.max_matches).toBe(5);
+    expect(AMISTAD_TRACK.max_matches).toBe(5);
   });
 
   it("lists exactly the vector dimensions of each track, in vector order", () => {

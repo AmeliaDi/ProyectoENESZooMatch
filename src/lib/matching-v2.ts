@@ -51,6 +51,8 @@ const MBTI_THRESHOLD = 0.5;
 
 interface RawTrackConfig {
   minimum_similarity_exclusive: number;
+  centering: number;
+  max_matches: number;
   dimensions: string[];
   hard_filters: string[];
   weights: Record<string, number>;
@@ -82,6 +84,8 @@ function normalizeWeights(weights: Record<string, number>): CategoryWeights {
 function normalizeTrack(track: RawTrackConfig): TrackConfig {
   return {
     minimum_similarity_exclusive: track.minimum_similarity_exclusive,
+    centering: track.centering,
+    max_matches: track.max_matches,
     dimensions: [...track.dimensions],
     hard_filters: [...track.hard_filters] as HardFilterField[],
     weights: normalizeWeights(track.weights),
@@ -158,21 +162,6 @@ const DEFAULT_FRIENDSHIP_BADGES = 3;
 const DEFAULT_BADGE_LIMIT = DEFAULT_ROMANCE_BADGES;
 
 // ─── Hard-filter compatibility tables ─────────────────────────────────────────
-
-/** Orientation values that opt out of filtering (compatible with everything). */
-const ORIENTATION_WILDCARDS: ReadonlySet<string> = new Set(["todxs", "prefiero no decir"]);
-
-/** Symmetric orientation compatibility map (wildcards handled separately). */
-const ORIENTATION_COMPATIBILITY: Record<string, readonly string[]> = {
-  hombres: ["mujeres", "todxs", "personas no binarias", "hombres"],
-  mujeres: ["hombres", "todxs", "personas no binarias", "mujeres"],
-  "personas no binarias": ["todxs", "hombres", "mujeres", "personas no binarias"],
-  asexual: ["asexual", "demisexual"],
-  demisexual: ["demisexual", "asexual", "todxs"],
-};
-
-/** Gender identity value that opts out of filtering. */
-const GENDER_WILDCARD = "prefiero no decir";
 
 /** Relationship-type compatibility map. */
 const RELATIONSHIP_COMPATIBILITY: Record<string, readonly string[]> = {
@@ -282,14 +271,6 @@ export function scoreQuizV2(answers: QuizSubmissionV2, items: QuizItemV2[]): Sco
 
 // ─── Hard Filters ─────────────────────────────────────────────────────────────
 
-function orientationPairCompatible(x: string, y: string): boolean {
-  if (ORIENTATION_WILDCARDS.has(x) || ORIENTATION_WILDCARDS.has(y)) return true;
-  if (x === y) return true;
-  const fromX = ORIENTATION_COMPATIBILITY[x];
-  const fromY = ORIENTATION_COMPATIBILITY[y];
-  return (fromX?.includes(y) ?? false) || (fromY?.includes(x) ?? false);
-}
-
 function relationshipPairCompatible(x: string, y: string): boolean {
   if (x === y) return true;
   const fromX = RELATIONSHIP_COMPATIBILITY[x];
@@ -297,37 +278,42 @@ function relationshipPairCompatible(x: string, y: string): boolean {
   return (fromX?.includes(y) ?? false) || (fromY?.includes(x) ?? false);
 }
 
-/**
- * Orientation compatibility.
- *
- * A selection is compatible when ANY value in `a` is compatible with ANY value
- * in `b`. `"todxs"` and `"prefiero no decir"` are wildcards (compatible with
- * everything). An empty selection is treated as "no filter expressed" and is
- * therefore compatible with everything.
- */
-export function isOrientationCompatible(a: string[], b: string[]): boolean {
-  if (a.length === 0 || b.length === 0) return true;
-  return a.some((x) => b.some((y) => orientationPairCompatible(x, y)));
+const ORIENTATION_WILDCARDS = new Set(["todxs", "prefiero no decir"]);
+const GENDER_WILDCARD = "prefiero no decir";
+
+const ORIENTATION_TARGETS: Record<string, readonly string[]> = {
+  hombres: ["hombre"],
+  mujeres: ["mujer"],
+  "personas no binarias": ["no binario", "género fluido", "agenero"],
+};
+
+export function attractedTo(orientations: string[], genders: string[]): boolean {
+  if (
+    orientations.length === 0 ||
+    orientations.some((value) => ORIENTATION_WILDCARDS.has(value)) ||
+    genders.length === 0 ||
+    genders.includes(GENDER_WILDCARD)
+  ) {
+    return true;
+  }
+
+  const targets = orientations.flatMap((orientation) => ORIENTATION_TARGETS[orientation] ?? []);
+  return targets.length === 0 || genders.some((gender) => targets.includes(gender));
 }
 
-/**
- * Gender identity compatibility (romance track).
- *
- * Gender identity on its own does not gate romantic compatibility — orientation
- * is the operative filter — so this is a deliberately permissive, simplified
- * check. `"prefiero no decir"` and empty selections are always compatible, and
- * any pairing of concrete identities (overlapping or not) is accepted. Mutual
- * attraction between two concrete identities is governed by
- * {@link isOrientationCompatible}.
- */
-export function isGenderCompatible(a: string[], b: string[]): boolean {
-  if (a.length === 0 || b.length === 0) return true;
-  if (a.includes(GENDER_WILDCARD) || b.includes(GENDER_WILDCARD)) return true;
-  // Beyond opt-outs, any pairing of concrete identities is accepted whether or
-  // not they overlap: gender identity alone does not gate a match. The overlap
-  // is intentionally non-blocking and mutual attraction is left to the
-  // orientation filter above.
-  return true;
+function aceCompatible(a: string[], b: string[]): boolean {
+  return (
+    (!a.includes("asexual") || b.includes("asexual") || b.includes("demisexual")) &&
+    (!b.includes("asexual") || a.includes("asexual") || a.includes("demisexual"))
+  );
+}
+
+function isAttractionCompatible(a: HardFilters, b: HardFilters): boolean {
+  return (
+    attractedTo(a.orientacion_sexual, b.identidad_genero) &&
+    attractedTo(b.orientacion_sexual, a.identidad_genero) &&
+    aceCompatible(a.orientacion_sexual, b.orientacion_sexual)
+  );
 }
 
 /**
@@ -337,12 +323,17 @@ export function isGenderCompatible(a: string[], b: string[]): boolean {
  *  - `monogamia` only matches `monogamia`.
  *  - `no_monogamia_etica` / `poliamor` / `anarquia_relacional` match each other.
  *  - `sin_definir` matches everything except strict `monogamia`.
- *  - `solo_amistad` matches `solo_amistad` or `sin_definir`.
+ *  - exactly `["solo_amistad"]` blocks romance; mixed selections ignore that value.
  * An empty selection is treated as "no filter expressed" (compatible).
  */
 export function isRelationshipCompatible(a: string[], b: string[]): boolean {
-  if (a.length === 0 || b.length === 0) return true;
-  return a.some((x) => b.some((y) => relationshipPairCompatible(x, y)));
+  const isSoloAmistadOnly = (values: string[]) =>
+    values.length === 1 && values[0] === "solo_amistad";
+  if (isSoloAmistadOnly(a) || isSoloAmistadOnly(b)) return false;
+  const filteredA = a.filter((value) => value !== "solo_amistad");
+  const filteredB = b.filter((value) => value !== "solo_amistad");
+  if (filteredA.length === 0 || filteredB.length === 0) return true;
+  return filteredA.some((x) => filteredB.some((y) => relationshipPairCompatible(x, y)));
 }
 
 /**
@@ -351,8 +342,7 @@ export function isRelationshipCompatible(a: string[], b: string[]): boolean {
  */
 export function checkHardFilters(a: HardFilters, b: HardFilters): boolean {
   return (
-    isOrientationCompatible(a.orientacion_sexual, b.orientacion_sexual) &&
-    isGenderCompatible(a.identidad_genero, b.identidad_genero) &&
+    isAttractionCompatible(a, b) &&
     isRelationshipCompatible(a.tipo_relacion_busca, b.tipo_relacion_busca)
   );
 }
@@ -447,6 +437,28 @@ export function weightedTrackSimilarity(
   return weightSum === 0 ? 0 : weightedSum / weightSum;
 }
 
+export function trackSimilarity(
+  a: readonly number[],
+  b: readonly number[],
+  trackConfig: TrackConfig,
+): number {
+  const centeredA = a.map((value) => value - trackConfig.centering);
+  const centeredB = b.map((value) => value - trackConfig.centering);
+  const similarity = clamp01(
+    (1 +
+      weightedTrackSimilarity(
+        centeredA,
+        centeredB,
+        trackConfig.dimensions,
+        trackConfig.weights,
+      )) /
+      2,
+  );
+  if (similarity < 1e-12) return 0;
+  if (similarity > 1 - 1e-12) return 1;
+  return similarity;
+}
+
 // ─── Badges ───────────────────────────────────────────────────────────────────
 
 /**
@@ -506,9 +518,9 @@ function buildNarrative(track: MatchTrack, badges: CompatibilityBadge[], similar
 /**
  * Finds all dual-track matches for a user against a pool of scored profiles.
  *
- *  - Romance: hard filter → weighted cosine over the 26-dim romance vector →
+ *  - Romance: hard filter → centered weighted cosine over the 26-dim romance vector →
  *    strictly-greater-than threshold → top 5 badges.
- *  - Friendship: weighted cosine over the 16-dim friendship vector →
+ *  - Friendship: centered weighted cosine over the 16-dim friendship vector →
  *    strictly-greater-than threshold → top 3 badges (no hard filters).
  *
  * A single `otherUserId` may appear twice in the result (once per track) when it
@@ -526,11 +538,10 @@ export function findDualMatches(
   for (const { userId, profile } of pool) {
     // Romance track — gated by hard filters.
     if (checkHardFilters(user.hardFilters, profile.hardFilters)) {
-      const similarity = weightedTrackSimilarity(
+      const similarity = trackSimilarity(
         user.romanceVector,
         profile.romanceVector,
-        romanceConfig.dimensions,
-        romanceConfig.weights,
+        romanceConfig,
       );
       if (similarity > romanceConfig.minimum_similarity_exclusive) {
         const badges = generateBadges(
@@ -551,11 +562,10 @@ export function findDualMatches(
     }
 
     // Friendship track — no hard filters.
-    const friendshipSimilarity = weightedTrackSimilarity(
+    const friendshipSimilarity = trackSimilarity(
       user.friendshipVector,
       profile.friendshipVector,
-      friendshipConfig.dimensions,
-      friendshipConfig.weights,
+      friendshipConfig,
     );
     if (friendshipSimilarity > friendshipConfig.minimum_similarity_exclusive) {
       const badges = generateBadges(
@@ -576,4 +586,94 @@ export function findDualMatches(
   }
 
   return results;
+}
+
+export interface GlobalMatchV2 {
+  track: MatchTrack;
+  userA: string;
+  userB: string;
+  similarity: number;
+  badges: Array<{ dimension: string; affinity: number }>;
+}
+
+export function computeAllMatchesV2(
+  pool: Array<{ userId: string; profile: ScoredProfileV2 }>,
+  config: MatchingConfigV2,
+): GlobalMatchV2[] {
+  const compareIds = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+  const users = [...pool].sort((a, b) =>
+    compareIds(a.userId.toLowerCase(), b.userId.toLowerCase()),
+  );
+  const tracks: MatchTrack[] = ["romance", "amistad"];
+  const selected = new Map<string, GlobalMatchV2>();
+
+  for (const track of tracks) {
+    const trackConfig = config.tracks[track];
+    const candidates = users.map(() => [] as Array<{ index: number; similarity: number }>);
+
+    for (let indexA = 0; indexA < users.length; indexA += 1) {
+      const userA = users[indexA]!;
+      for (let indexB = indexA + 1; indexB < users.length; indexB += 1) {
+        const userB = users[indexB]!;
+        if (userA.userId.toLowerCase() === userB.userId.toLowerCase()) continue;
+        if (track === "romance" && !checkHardFilters(userA.profile.hardFilters, userB.profile.hardFilters)) {
+          continue;
+        }
+
+        const vectorA = track === "romance" ? userA.profile.romanceVector : userA.profile.friendshipVector;
+        const vectorB = track === "romance" ? userB.profile.romanceVector : userB.profile.friendshipVector;
+        const similarity = trackSimilarity(vectorA, vectorB, trackConfig);
+        if (similarity <= trackConfig.minimum_similarity_exclusive) continue;
+        candidates[indexA]!.push({ index: indexB, similarity });
+        candidates[indexB]!.push({ index: indexA, similarity });
+      }
+    }
+
+    for (let userIndex = 0; userIndex < users.length; userIndex += 1) {
+      const ranked = candidates[userIndex]!
+        .sort(
+          (a, b) =>
+            b.similarity - a.similarity ||
+            compareIds(
+              users[a.index]!.userId.toLowerCase(),
+              users[b.index]!.userId.toLowerCase(),
+            ),
+        )
+        .slice(0, trackConfig.max_matches);
+      for (const candidate of ranked) {
+        const user = users[userIndex]!;
+        const other = users[candidate.index]!;
+        const userA = user.userId.toLowerCase();
+        const userB = other.userId.toLowerCase();
+        const orderedA = userA < userB ? userA : userB;
+        const orderedB = userA < userB ? userB : userA;
+        const key = `${track}:${orderedA}:${orderedB}`;
+        if (selected.has(key)) continue;
+
+        const vectorA = track === "romance" ? user.profile.romanceVector : user.profile.friendshipVector;
+        const vectorB = track === "romance" ? other.profile.romanceVector : other.profile.friendshipVector;
+        const badges = generateBadges(
+          vectorA,
+          vectorB,
+          trackConfig.dimensions,
+          track,
+          track === "romance" ? DEFAULT_ROMANCE_BADGES : DEFAULT_FRIENDSHIP_BADGES,
+        ).map(({ dimension, affinity }) => ({ dimension, affinity }));
+        selected.set(key, {
+          track,
+          userA: orderedA,
+          userB: orderedB,
+          similarity: candidate.similarity,
+          badges,
+        });
+      }
+    }
+  }
+
+  return [...selected.values()].sort(
+    (a, b) =>
+      compareIds(a.track, b.track) ||
+      compareIds(a.userA, b.userA) ||
+      compareIds(a.userB, b.userB),
+  );
 }
