@@ -10,7 +10,8 @@ Esta sección es la fotografía más reciente. Las secciones 1–8 conservan el 
 original de la migración y deben leerse como histórico; cualquier ruta o nombre `*-v2`
 que aparezca allí describe la estructura anterior al refactor canónico.
 
-- **Base:** `main` @ `283a8a7`; el trabajo vive en la rama local `refactor/canonical`.
+- **Base:** `main` sincronizado con `refactor/canonical`; el último cierre anterior a esta
+  ronda fue `851ea8b` y la capa psicométrica se añadió después.
 - **Refactor canónico aplicado:** se eliminó el flujo v1 (24 ítems, matching plano, páginas
   y APIs huérfanas) y se promovió la implementación multidimensional como única versión.
   Ya no existen sufijos `-v2` en rutas, endpoints, archivos, funciones, tipos, scripts ni
@@ -19,10 +20,17 @@ que aparezca allí describe la estructura anterior al refactor canónico.
 - **Dominios:** `src/lib/matching/`, `src/lib/scoring/`, `src/lib/admin/`, `src/lib/auth/`
   y `src/lib/validation/`. Datos canónicos: `data/microtest.json`, `data/arquetipos.json`
   y `data/matching-config.json`. Semilla única: `supabase/seed.sql`.
-- **Verificación local:** `typecheck` ✓, `lint` ✓ y **520/520 tests en 27 archivos** ✓. El
+- **Verificación local:** `typecheck` ✓, `lint` ✓ y **545/545 tests en 30 archivos** ✓. El
   build local se ejecutó con `next build --webpack` porque el shell no tiene `node` en
   PATH; Turbopack falla únicamente al intentar lanzar un proceso hijo `node` para PostCSS.
   En Vercel/CI, donde Node sí existe, el build estándar es válido.
+- **Capa psicométrica añadida (2026-10-25):** operador `Φ` (MBTI 40 % + Eneagrama 35 % +
+  apego 25 %, mezcla 15 %), Eneagrama con las 18 alas cubiertas en los 103 animales,
+  penalización de conflicto `exp(-4.0 · max(0, Δc - 0.35)²)` y compuerta cuantil que topa
+  el romance al 6 % de las personas (`n ≥ 30`). Suites nuevas:
+  `matrix-orthogonal.test.ts`, `circle-packing.test.ts` y
+  `psychometric-mbti-ennea.test.ts`. En la muestra sintética la cola de pares es 0.184 %
+  y la cobertura de usuarios queda exactamente en 6.000 %.
 - **Cerrados en la ejecución de auditoría:** H-02, H-03, M-01, M-02, M-06, L-01, L-02,
   L-04–L-08, M-05 parcial. **M-06 queda además eliminado**, no sólo mitigado: las rutas y
   los módulos v1 ya no existen.
@@ -219,7 +227,7 @@ La firma exacta puede variar; se obtiene con `\df public.submit_quiz_result_v2`.
 | `npm run lint` | ✓ |
 | `npm run typecheck` | ✓ |
 | `npm run build` | ✓ |
-| `npm run test` | ✓ 520/520 en 27 archivos |
+| `npm run test` | ✓ 545/545 en 30 archivos |
 | `npm audit --omit=dev` | 0 vulnerabilidades |
 
 ## 7. Plan de acción priorizado

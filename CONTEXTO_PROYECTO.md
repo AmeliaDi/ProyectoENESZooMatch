@@ -71,6 +71,8 @@ ProyectoENESZooMatch/
 │   ├── arquetipos.json                # 103 animales (13 familias) + 55 colores/texturas
 │   ├── microtest.json                 # 60 ítems, 30 dimensiones, fuentes/licencias
 │   ├── matching-config.json           # tracks romance/amistad, pesos, filtros, calibración
+│   ├── enneagram.json                 # 9 tipos, 18 alas, prototipos y líneas
+│   ├── enneagram-assignments.json     # asignaciones curadas para cubrir 18/18 alas
 │   └── external/                      # normas Big Five y señales de literatura
 ├── scripts/                 # pipeline de datos (Python + TS)
 │   ├── generar_catalogo.py            # genera data/arquetipos.json (validación + escritura atómica)
@@ -83,7 +85,8 @@ ProyectoENESZooMatch/
 │   ├── components/          # experiencias cliente (quiz, resultado, admin, notas) +
 │   │                        #   constellation/ (visualización interactiva, ver §4.9)
 │   ├── lib/                 # dominios: matching/, scoring/, admin/, auth/, validation/,
-│   │                        #   explainability, constellation-layout, pixel-sprites
+│   │                        #   psychometrics, explainability, constellation-layout,
+│   │                        #   pixel-sprites
 │   ├── types/               # contratos TypeScript del dominio
 │   └── proxy.ts             # middleware (proxy) que protege /admin/*
 ├── supabase/
@@ -139,6 +142,13 @@ ProyectoENESZooMatch/
   métrica diagonal `W = diag(w_i)`, donde el peso de cada categoría se reparte entre sus
   dimensiones y se normaliza a `Σ w_i = 1` (romance: personalidad .25, intimidad .25, valores
   .25, cultural .20, identidad .05). Los vectores se centran contra el centroide empírico μ.
+- **Operador psicométrico** (`src/lib/psychometrics.ts`): el puntaje base se mezcla al 15 %
+  con `Φ` = MBTI 40 % + Eneagrama 35 % + apego 25 %. El Eneagrama se clasifica por prototipo
+  más cercano y ala adyacente; las 18 alas están cubiertas por asignaciones curadas. La capa
+  es derivada y explicativa, no un diagnóstico.
+- **Selectividad de romance**: factor de intimidad (piso 0.60, peso 0.45) y penalización
+  exponencial de conflicto `exp(-4.0 · max(0, Δc - 0.35)²)`. Tras el umbral 0.78, una
+  compuerta cuantil limita la cobertura de personas al 6 % (`n ≥ 30`).
 - **Badges**: top 5 (romance) / top 3 (amistad) dimensiones por afinidad
   `1 - |a - b|`, con label e icono en español (`BADGE_METADATA`) y narrativa generada.
 - **Orquestación `POST /api/quiz`** (service role): `submit_quiz_result_v2` →
@@ -150,6 +160,23 @@ ProyectoENESZooMatch/
 - **`GET /api/result`**: `profiles_v2` + RPC `get_my_matches_v2` para el render del
   resultado con badges, porcentajes y narrativa. Los sufijos `_v2` son nombres físicos de
   la base de datos, congelados por las migraciones aplicadas.
+
+### 4.4 Capa psicométrica (`src/lib/psychometrics.ts`)
+
+Deriva un perfil determinista a partir de las mismas 30 dimensiones, sin pedir datos extra:
+
+- **MBTI → funciones cognitivas:** los 16 códigos se mapean a función dominante/auxiliar
+  (`INFJ → Ni/Fe`, `ESTP → Se/Ti`, …); la afinidad entre funciones es simétrica.
+- **Eneagrama con alas:** nueve prototipos de 13 dimensiones, clasificación por distancia
+  mínima y ala adyacente más cercana. `data/enneagram.json` guarda tipos, alas, prototipos y
+  líneas de integración/estrés; `data/enneagram-assignments.json` garantiza las 18
+  combinaciones en los 103 animales.
+- **Apego:** `seguro`, `ansioso` o `evitativo`, derivado de las dimensiones de intimidad.
+- **Compatibilidad:** matriz simétrica por componente y agregado
+  `Φ = 0.40·MBTI + 0.35·Eneagrama + 0.25·Apego`. Entra al ranking como
+  `S_Φ = S · ((1 − 0.15) + 0.15·Φ)` antes de la selectividad de romance.
+- **UI:** la ficha de la constelación muestra tipo+ala, funciones, apego y el desglose de
+  compatibilidad; la galería de desarrollo muestra el mismo perfil por animal.
 
 ### 4.5 Explainability (`src/lib/matching/explainability.ts`)
 
@@ -283,9 +310,11 @@ migraciones. RLS activo en todo; service role sólo en rutas API server-side.
 
 ## 7. Tests
 
-Vitest sobre: `matching/engine.test.ts` (~960 líneas: scoring, filtros duros, similitud
-ponderada, badges, constante de "sin match"), `validation/quiz.test.ts`,
-`profile-generator.test.ts`, `synthetic-profiles.test.ts` (500 perfiles y calibración),
+Vitest sobre: `matching/engine.test.ts` (scoring, filtros duros, similitud ponderada,
+mezcla psicométrica, tope cuantil y badges), `psychometric-mbti-ennea.test.ts` (16 MBTI,
+18 alas, apego), `matching/matrix-orthogonal.test.ts`, `constellation/circle-packing.test.ts`,
+`validation/quiz.test.ts`, `profile-generator.test.ts`, `synthetic-profiles.test.ts` (500
+perfiles, cola de pares ≤6 % y cobertura de usuarios topada al 6 %),
 `admin/dashboard.test.ts`, `env.test.ts`, `security-utils.test.ts`,
 `notification-copy.test.ts`, `public-experience-utils.test.ts`, y la capa de visualización:
 `constellation-layout.test.ts`, `constellation/{adapt-result,build-structure,render-helpers}.test.ts`

@@ -186,6 +186,47 @@ población), no un 0.5 fijo. Con menos de 30 perfiles el centroide muestral no e
 estimable —centrar ambos miembros de una pareja por su propia media forzaría `Sim_W = -1`—
 y se usa `0.5` como referencia neutra. El porcentaje de UI es `round(S · 100)`.
 
+## Capa psicométrica: MBTI, Eneagrama con alas y apego
+
+El motor conserva intacto el vector relacional de 26/16 dimensiones que vive en
+`profiles_v2`. Sobre él deriva, sin pedir datos adicionales, un segundo perfil
+determinista a partir de las mismas 30 dimensiones normalizadas:
+
+- **MBTI — funciones cognitivas.** Cada uno de los 16 códigos se mapea a su
+  función dominante y auxiliar (por ejemplo, `INFJ → Ni/Fe`, `ESTP → Se/Ti`).
+  La afinidad entre funciones es simétrica: `1.0` para pares complementarios
+  (`Ne↔Ni`, `Se↔Si`, `Fe↔Fi`, `Te↔Ti`, `Fe↔Ti`, `Fi↔Te`), `0.9` para
+  `Ne↔Si` y `Ni↔Se`, `0.7` para funciones del mismo eje perceptivo o de juicio,
+  `0.6` para la misma función y `0.5` en el resto.
+- **Eneagrama con alas.** Un clasificador de prototipo más cercano sobre 13
+  dimensiones (cada una centrada en 0.5) asigna uno de los 9 tipos; el ala es el
+  tipo adyacente cuyo prototipo queda más cerca. Las 18 combinaciones
+  (`1w2 … 9w1`) están garantizadas en el catálogo de 103 animales mediante
+  `data/enneagram-assignments.json`. La compatibilidad es `0.85` para el mismo
+  código, `0.78` para el mismo tipo, `1.0` en la línea de integración, `0.4` en
+  la de estrés, `0.82` entre alas adyacentes, `0.72` en la misma tríada y `0.62`
+  en el resto.
+- **Apego.** Los estilos `seguro`, `ansioso` y `evitativo` se derivan de las
+  dimensiones de intimidad y se comparan con una matriz simétrica:
+  seguro–seguro `1.0`, seguro–ansioso `0.92`, seguro–evitativo `0.9`,
+  ansioso–ansioso y evitativo–evitativo `0.72`, ansioso–evitativo `0.3`.
+
+La compatibilidad psicométrica agregada es
+
+```text
+Φ = (0.40 · Ψ_MBTI + 0.35 · Ω_Enea + 0.25 · A_apego) ∈ [0, 1]
+```
+
+y entra al puntaje como mezcla convexa con `m = psychometric_mix = 0.15`:
+
+```text
+S_Φ = S · ((1 − m) + m · Φ)
+```
+
+`Φ` es simétrico, determinista y acotado; no se almacena ni se expone como
+diagnóstico. La capa es explicativa y de ordenamiento, no una evaluación
+psicológica validada.
+
 ## Bandas de química de la UI
 
 La etiqueta cualitativa que ve el usuario (`Almas gemelas`, `Química excepcional`,
@@ -232,14 +273,26 @@ El track de romance aplica además dos **factores de selectividad** antes del um
 - **Intimidad:** si la afinidad media de las ocho dimensiones `intimidad_*` cae por debajo
   de `0.60`, el factor es `1 - 0.45 · (0.60 - afinidad) / 0.60`.
 - **Conflicto:** con `Δc = |a_conflicto - b_conflicto|`, el factor es la penalización suave
-  de Lipschitz `exp(-3.5 · max(0, Δc - 0.40)²)`.
+  de Lipschitz `exp(-4.0 · max(0, Δc - 0.35)²)`.
 
-El puntaje final es `S · f_intimidad · f_conflicto`; los vectores idénticos no se penalizan.
-En la población sintética de calibración, el umbral `0.78` deja **0.46 % de los pares**
-por encima del corte, dentro de la cota `P(Sim ≥ τ) ≤ 6 %`. Los umbrales, topes y
-penalizaciones activos viven en `data/matching-config.json` y son la única fuente de
-verdad; el dashboard y el motor leen el mismo archivo. `0.85` no es un umbral activo del
-motor canónico.
+El puntaje final es `S_Φ · f_intimidad · f_conflicto`; los vectores idénticos no se
+penalizan. En la población sintética de calibración, el umbral `0.78` deja **0.184 % de
+los pares** por encima del corte, dentro de la cota `P(Sim ≥ τ) ≤ 6 %`.
+
+Como el umbral por sí solo cubriría el **49.8 % de las personas** de esa muestra, el
+motor aplica además un **corte cuantil superior** (`maximum_user_coverage = 0.06`):
+ordena a las personas por su mejor similitud y sólo las `floor(n × 0.06)` mejores pueden
+conservar matches románticos. La garantía de muestra finita se activa con `n ≥ 30`
+(por debajo, un cuantil del 6 % no es estimable y sólo aplica `τ`). Como un par requiere
+dos personas elegibles, para `30 ≤ n ≤ 33` la cuota entera es 1 y no se emite ningún match
+romántico: es el piso estricto de la garantía, no un fallback. En los 500 perfiles
+sintéticos la cobertura final es exactamente **6.000 % (30 personas)**. El script de
+calibración persigue el mismo objetivo de 6 %; la compuerta operativa es la que aplica
+`computeAllMatches`.
+
+Los umbrales, topes y penalizaciones activos viven en `data/matching-config.json` y son
+la única fuente de verdad; el dashboard y el motor leen el mismo archivo. `0.85` no es un
+umbral activo del motor canónico.
 
 ## Referencias
 

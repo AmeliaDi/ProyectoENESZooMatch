@@ -18,7 +18,7 @@ cada capa, consulta [`CONTEXTO_PROYECTO.md`](./CONTEXTO_PROYECTO.md) y el
 - El repositorio está en la rama `refactor/canonical`, que elimina por completo el flujo v1
   y deja una sola arquitectura: matrícula → microtest de 60 ítems → persistencia Supabase →
   matching dual (romance/amistad) → resultado y constelación.
-- Verificación local: **typecheck ✓ · lint ✓ · 520 tests en 27 archivos ✓**. El build local
+- Verificación local: **typecheck ✓ · lint ✓ · 545 tests en 30 archivos ✓**. El build local
   se corre con `next build --webpack` cuando el shell no tiene `node` en PATH; CI y Vercel
   usan el build estándar con Node 24.
 - Hallazgos cerrados del [`AUDIT.md`](./AUDIT.md): submit tolerante a ráfagas
@@ -99,15 +99,19 @@ Una sola implementación, organizada por dominio:
 | Config | `src/lib/matching/config.ts` | Carga validada de `data/matching-config.json` |
 | Recompute | `src/lib/matching/recompute.server.ts` | Carga de perfiles y reemplazo atómico de matches |
 | Scoring | `src/lib/scoring/` | Big Five, MBTI, sociocultural, calibración literaria, ranking y explicación |
-| Explainability | `src/lib/matching/explainability.ts` | Química, desglose por categoría y narrativa psicológica por track |
+| Psychometrics | `src/lib/psychometrics.ts` | Funciones cognitivas MBTI, Eneagrama con alas (18), apego y operador `Φ` |
+| Explainability | `src/lib/matching/explainability.ts` | Química, desglose por categoría, capa psicométrica y narrativa por track |
 | Lenguaje | `src/lib/inclusive-text.ts` | Cuatro modos inclusivos persistentes por navegador |
 | Admin | `src/lib/admin/dashboard.ts` | Agregados duales, validación Zod y export CSV |
 | Auth | `src/lib/auth/` | Hash de matrícula, sesión anónima y contexto admin |
 | Validación | `src/lib/validation/` | Zod estricto para matrícula, 60 ítems y filtros duros |
-| Datos | `data/microtest.json`, `data/arquetipos.json`, `data/matching-config.json` | Fuente de verdad de ítems, catálogo y umbrales |
+| Datos | `data/microtest.json`, `data/arquetipos.json`, `data/matching-config.json`, `data/enneagram*.json` | Fuente de verdad de ítems, catálogo, umbrales y prototipos psicométricos |
 
 El cuestionario tiene **60 ítems · 30 dimensiones · Likert 1–5**, catálogo de **103 animales ×
-55 colores/texturas** repartidos en **13 familias morfológicas** y dos tracks independientes:
+55 colores/texturas** repartidos en **13 familias morfológicas**. Cada animal conserva su
+silueta única y recibe metadatos psicométricos derivados (Eneagrama + apego); el catálogo
+exhibe las **18 combinaciones de ala** sin introducir especies duplicadas. Hay dos tracks
+independientes:
 
 - **Romance** (`> 0.78`): 26 dimensiones, filtros duros bidireccionales y penalizaciones por
   desalineación en intimidad y gestión de conflicto. Conserva hasta **3** matches: es el
@@ -117,9 +121,12 @@ El cuestionario tiene **60 ítems · 30 dimensiones · Likert 1–5**, catálogo
 
 La similitud resta el centroide empírico de la población (o `0.5` si hay menos de 30
 perfiles), calcula un coseno ponderado con `W = diag(w_i)`, `Σ w_i = 1`, y lo escala a
-`[0,1]`. Los umbrales, pesos y coberturas objetivo viven en `data/matching-config.json`.
-La cobertura de calibración es 8 % en romance y 35 % en amistad; además, la cota matemática
-del romance es `P(Sim ≥ 0.78) ≤ 6 %` de los pares (0.46 % en la muestra sintética).
+`[0,1]`. Sobre esa base se aplica el operador psicométrico `Φ` (MBTI 40 % + Eneagrama
+35 % + apego 25 %) con una mezcla convexa del 15 %, y después la selectividad de romance.
+La cobertura operativa de romance está topada al **6 %** de las personas mediante un corte
+cuantil (`n ≥ 30`); la amistad persigue el percentil 35 %. Además, la cota de pares del
+romance es `P(Sim ≥ 0.78) ≤ 6 %` (0.184 % en la muestra sintética). Los umbrales, pesos y
+coberturas viven en `data/matching-config.json`.
 
 Las rutas públicas canónicas son `/cuestionario` y `/resultado`; las APIs son `/api/quiz` y
 `/api/result`. El dashboard usa `/api/admin/metrics` y `/api/admin/recompute`.
@@ -140,7 +147,9 @@ Las rutas públicas canónicas son `/cuestionario` y `/resultado`; las APIs son 
 - **Explainability** (`src/lib/matching/explainability.ts`): traduce similitudes crudas a
   lenguaje afectivo es-MX (bandas de química, desglose por categoría, titular poético) y
   añade una ficha psicológica con **por qué funciona**, **dinámica cotidiana** y **punto de
-  atención**, con énfasis distinto para amistad y romance.
+  atención**, con énfasis distinto para amistad y romance. La ficha incluye la **capa
+  psicométrica**: tipo de Eneagrama con ala, funciones cognitivas, apego y compatibilidad
+  agregada, siempre como arquetipo derivado y no como diagnóstico.
 - **Lenguaje inclusivo opcional** (`src/lib/inclusive-text.ts`): modos `femenino`,
   `masculino`, `neutro_e` y `neutro_universal`, seleccionables desde el resultado y
   persistidos en el navegador.
@@ -192,6 +201,8 @@ ProyectoENESZooMatch/
 │   ├── arquetipos.json                # 103 animales (13 familias) + 55 colores/texturas
 │   ├── microtest.json                 # 60 ítems, 30 dimensiones, fuentes/licencias
 │   ├── matching-config.json           # tracks romance/amistad, pesos, filtros, calibración
+│   ├── enneagram.json                 # 9 tipos, 18 alas, prototipos y líneas integración/estrés
+│   ├── enneagram-assignments.json     # asignaciones curadas que cubren las 18 alas
 │   └── external/                      # señales de literatura y normas Big Five
 ├── scripts/                       # 🔧 pipeline de datos (Python + TS), fuera de la app
 │   ├── generar_catalogo.py            # genera data/arquetipos.json (validación + escritura atómica)
@@ -215,7 +226,7 @@ ProyectoENESZooMatch/
 │   │   ├── admin/dashboard.ts                  # agregados + CSV
 │   │   ├── auth/                               # identity, matrícula-session, admin-auth
 │   │   ├── validation/                         # common + quiz (Zod estricto)
-│   │   ├── explainability.ts · constellation-layout.ts · pixel-sprites.ts
+│   │   ├── explainability.ts · psychometrics.ts · constellation-layout.ts · pixel-sprites.ts
 │   │   ├── profile-generator.ts · notification-copy.ts
 │   │   ├── security/                           # withApiSecurity, CORS, rate limiting
 │   │   └── supabase/                           # clientes browser / server / admin (service role)
@@ -411,12 +422,15 @@ pip install -r requirements.txt
 ## ✅ Tests
 
 Vitest (entorno `node`, alias `@` → `./src`, descubre `src/**/*.test.ts`). Estado actual:
-**520 tests en 27 archivos** (2026-10-25). Cubren, entre otros:
+**545 tests en 30 archivos** (2026-10-25). Cubren, entre otros:
 
-- `matching/engine.test.ts` (~960 líneas: scoring, filtros duros, similitud ponderada,
-  badges, constante de "sin match").
+- `matching/engine.test.ts` (scoring, filtros duros, similitud ponderada, badges, mezcla
+  psicométrica y tope cuantil de cobertura romántica).
+- `psychometric-mbti-ennea.test.ts` (16 tipos MBTI, 18 alas, líneas de integración/estrés,
+  apego y simetría del operador) · `matching/matrix-orthogonal.test.ts` (filtros duros
+  bidireccionales) · `constellation/circle-packing.test.ts` (30 nodos sin solapamiento).
 - `validation/quiz.test.ts` · `profile-generator.test.ts` · `synthetic-profiles.test.ts`
-  (500 perfiles, 124 750 pares y calibración al percentil de cobertura de cada track).
+  (500 perfiles, 124 750 pares, cola de pares ≤6 % y cobertura de usuarios topada al 6 %).
 - `explainability.test.ts` (bandas de química relativas al umbral) ·
   `matching/recompute.server.test.ts` (reintentos con backoff) ·
   `api/quiz/route.test.ts` (camino `recomputePending`).
