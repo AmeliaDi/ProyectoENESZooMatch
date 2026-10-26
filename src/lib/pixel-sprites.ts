@@ -11,19 +11,19 @@
  * ────────
  *   1. family template      → 12 rows × 6 cols of chars
  *   2. hash variations      → per-animal ears / crest / markings / accents
- *   3. distinctness pass    → guarantees no two animals share a silhouette,
- *                             in *any* of the four animation frames
- *   4. blush stamp          → mandatory pink pixel under each eye (`#FFAAA6`)
- *   5. texture strokes      → recolours ≤2 half-cells from the colour's textura
- *   6. frame overlay        → blink / highlight eyes / romance hearts
- *   7. mirror               → cols 0-5 are reflected into cols 11-6
- *   8. tail                 → the ONLY asymmetric element (≤2 cells, rows 9-11)
- *   9. palette mapping      → chars become hex colours
+ *   3. blush stamp          → mandatory pink pixel under each eye (`#FFAAA6`)
+ *   4. silhouette pass      → each species gets its own outline within its family
+ *   5. tone pass            → guarantees distinct grids in every animation frame
+ *   6. texture strokes      → recolours ≤2 half-cells from the colour's textura
+ *   7. frame overlay        → blink / highlight eyes / romance hearts
+ *   8. mirror               → cols 0-5 are reflected into cols 11-6
+ *   9. tail                 → the ONLY asymmetric element (≤2 cells, rows 9-11)
+ *  10. palette mapping      → chars become hex colours
  *
  * Because texture only touches rows 0-8, the heart only touches rows 0-2 and the
- * tail only touches rows 9-11, and because the distinctness pass enforces a
- * minimum half-grid distance of `MIN_HALF_DISTANCE` on the post-frame forms, no
- * two animals can ever collapse into the same grid for a given colour and frame.
+ * tail only touches rows 9-11, the silhouette pass keeps same-family outlines
+ * apart and the tone pass enforces `MIN_HALF_DISTANCE` on the post-frame forms,
+ * no two animals can collapse into the same grid for a given colour and frame.
  * See the proof sketch above `enforceDistinctness`.
  */
 
@@ -153,6 +153,13 @@ type CharGrid = string[][];
  * `2 × (8 − 4) − 4 = 4` pixels.
  */
 const MIN_HALF_DISTANCE = 8;
+
+/**
+ * Minimum number of half-grid cells that must differ in *silhouette* between
+ * two animals of the same family. Tone-only differences are invisible at
+ * constellation size, so the solver also gives each species its own outline.
+ */
+const MIN_MASK_HALF_DISTANCE = 4;
 
 // ─── Family templates (LEFT HALF: 12 rows × 6 columns) ────────────────────────
 // Column 0 is the outer left edge, column 5 touches the vertical mirror axis.
@@ -829,6 +836,36 @@ function hammingHalf(a: HalfGrid, b: HalfGrid): number {
   return distance;
 }
 
+/** Painted-vs-transparent distance; tone changes do not count. */
+function hammingMask(a: HalfGrid, b: HalfGrid): number {
+  let distance = 0;
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < HALF_WIDTH; c++) {
+      if (isFilled(a[r][c]) !== isFilled(b[r][c])) distance++;
+    }
+  }
+  return distance;
+}
+
+function filledNeighbourCount(half: HalfGrid, r: number, c: number): number {
+  let count = 0;
+  if (r > 0 && isFilled(half[r - 1][c])) count++;
+  if (r + 1 < GRID_SIZE && isFilled(half[r + 1][c])) count++;
+  if (c > 0 && isFilled(half[r][c - 1])) count++;
+  if (c + 1 < HALF_WIDTH && isFilled(half[r][c + 1])) count++;
+  return count;
+}
+
+/** True when adding/removing this cell would eat into an eye or blush pixel. */
+function touchesFacePixel(half: HalfGrid, r: number, c: number): boolean {
+  const protectedTones = new Set(["E", "P"]);
+  if (r > 0 && protectedTones.has(half[r - 1][c])) return true;
+  if (r + 1 < GRID_SIZE && protectedTones.has(half[r + 1][c])) return true;
+  if (c > 0 && protectedTones.has(half[r][c - 1])) return true;
+  if (c + 1 < HALF_WIDTH && protectedTones.has(half[r][c + 1])) return true;
+  return false;
+}
+
 // ─── Deterministic per-animal variation ops ───────────────────────────────────
 // Every op works on the LEFT HALF only, so mirroring keeps the sprite
 // symmetric by construction. None of them can create or destroy eye pixels.
@@ -1292,6 +1329,101 @@ function resolveConflict(
   return true;
 }
 
+type MaskMove = readonly [number, number, "add" | "drop"];
+
+/**
+ * Aesthetic-safe silhouette edits: one-cell tufts on the sides, filled notches
+ * around the ears/crown, and leaf-cell trims. Rows 0 and 11 stay untouched so
+ * the validator's top/bottom band and the paw row never move.
+ */
+function maskCandidateMoves(half: HalfGrid): MaskMove[] {
+  const moves: MaskMove[] = [];
+  for (let r = 1; r < GRID_SIZE - 1; r++) {
+    for (let c = 0; c < HALF_WIDTH; c++) {
+      if (touchesFacePixel(half, r, c)) continue;
+      const neighbours = filledNeighbourCount(half, r, c);
+      const outerEdge = c === 0 || r === GRID_SIZE - 2;
+      if (!isFilled(half[r][c])) {
+        if (neighbours === 1 || (neighbours === 2 && (r <= 3 || outerEdge))) {
+          moves.push([r, c, "add"]);
+        }
+      } else if (
+        half[r][c] !== "E" &&
+        half[r][c] !== "P" &&
+        (neighbours <= 1 || (neighbours === 2 && outerEdge))
+      ) {
+        moves.push([r, c, "drop"]);
+      }
+    }
+  }
+  return moves;
+}
+
+function applyMaskMove(half: HalfGrid, move: MaskMove, undo = false): void {
+  const [r, c, action] = move;
+  if (action === "add") {
+    if (undo) clearCell(half, r, c);
+    else setCell(half, r, c, "B", false);
+  } else {
+    if (undo) setCell(half, r, c, "B", false);
+    else clearCell(half, r, c);
+  }
+}
+
+function minMaskDistanceToPrevious(half: HalfGrid, previous: HalfGrid[]): number {
+  let min = Number.POSITIVE_INFINITY;
+  for (const other of previous) {
+    const distance = hammingMask(half, other);
+    if (distance < min) min = distance;
+    if (min === 0) break;
+  }
+  return Number.isFinite(min) ? min : MIN_MASK_HALF_DISTANCE;
+}
+
+/**
+ * Gives every species its own silhouette inside its family. The tone pass can
+ * only recolour existing pixels, so without this pass many animals share an
+ * outline and read as duplicate sprites at constellation size.
+ */
+function enforceMaskDistinctness(
+  ids: readonly string[],
+  patterns: Map<string, AnimalPattern>,
+): void {
+  const byFamily = new Map<ShapeFamily, HalfGrid[]>();
+
+  for (const id of ids) {
+    const current = patterns.get(id);
+    if (!current) continue;
+    const previous = byFamily.get(current.family) ?? [];
+
+    for (let attempt = 0; attempt < 32; attempt++) {
+      const currentMin = minMaskDistanceToPrevious(current.half, previous);
+      if (currentMin >= MIN_MASK_HALF_DISTANCE) break;
+
+      const candidates = maskCandidateMoves(current.half);
+      if (candidates.length === 0) break;
+      const offset = simpleHash(id) % candidates.length;
+      let best: { move: MaskMove; score: number } | null = null;
+
+      for (let k = 0; k < candidates.length; k++) {
+        const move = candidates[(offset + k) % candidates.length];
+        applyMaskMove(current.half, move);
+        const score = minMaskDistanceToPrevious(current.half, previous);
+        applyMaskMove(current.half, move, true);
+        if (score > currentMin && (!best || score > best.score)) {
+          best = { move, score };
+        }
+      }
+
+      if (!best) break;
+      applyMaskMove(current.half, best.move);
+    }
+
+    previous.push(cloneHalf(current.half));
+    byFamily.set(current.family, previous);
+  }
+}
+
 function minDistanceToPrevious(half: HalfGrid, previous: HalfGrid[][]): number {
   const forms = frameForms(half);
   let min = Number.POSITIVE_INFINITY;
@@ -1382,6 +1514,7 @@ function buildRegistry(): Registry {
     });
   }
 
+  enforceMaskDistinctness(ALL_ANIMAL_IDS, patterns);
   enforceDistinctness(ALL_ANIMAL_IDS, patterns);
   return { patterns };
 }

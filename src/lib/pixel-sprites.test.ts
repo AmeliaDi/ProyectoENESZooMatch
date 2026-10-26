@@ -334,6 +334,44 @@ describe("uniqueness", () => {
       expect(new Set(prints).size, `${family} uniqueness`).toBe(prints.length);
     }
   });
+
+  it("gives every animal its own silhouette, not just different shading", () => {
+    const mask = (sprite: SpriteData): string =>
+      sprite.grid
+        .map((row) => row.map((cell) => (cell === "" ? "." : "#")).join(""))
+        .join("|");
+
+    const byFamily = new Map<ShapeFamily, Array<{ id: string; mask: string }>>();
+    const allMasks = new Map<string, string>();
+
+    for (const animalId of ALL_IDS) {
+      const sprite = getSprite(animalId, PRIMARY_COLOR);
+      const shape = mask(sprite);
+      const previous = allMasks.get(shape);
+      expect(previous, `${animalId} reuses the silhouette of ${previous}`).toBeUndefined();
+      allMasks.set(shape, animalId);
+
+      const family = getAnimalFamily(animalId);
+      const bucket = byFamily.get(family) ?? [];
+      bucket.push({ id: animalId, mask: shape });
+      byFamily.set(family, bucket);
+    }
+
+    for (const [family, members] of byFamily) {
+      for (let i = 0; i < members.length; i++) {
+        for (let j = i + 1; j < members.length; j++) {
+          let distance = 0;
+          for (let k = 0; k < members[i].mask.length; k++) {
+            if (members[i].mask[k] !== members[j].mask[k]) distance++;
+          }
+          expect(
+            distance,
+            `${family}: ${members[i].id} vs ${members[j].id} silhouette distance`,
+          ).toBeGreaterThanOrEqual(6);
+        }
+      }
+    }
+  });
 });
 
 // ─── 8 & 9. Animation frames ──────────────────────────────────────────────────
