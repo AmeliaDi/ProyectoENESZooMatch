@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  generateAlias,
   generateProfileIdentity,
   generateProfileNarrative,
   getTopDimensions,
@@ -245,35 +244,6 @@ describe("generateProfileNarrative", () => {
   });
 });
 
-// ─── Alias generation ─────────────────────────────────────────────────────────
-
-describe("generateAlias", () => {
-  const alias = generateAlias(AXOLOTL, EMERALD, "user-1");
-
-  it("follows the '{animal} {color} · {4 chars}' shape", () => {
-    expect(alias.startsWith(`${AXOLOTL.diminutivo_es} ${EMERALD.nombre.toLowerCase()} · `)).toBe(
-      true,
-    );
-    expect(alias).toMatch(ALIAS_SUFFIX_PATTERN);
-  });
-
-  it("is deterministic for the same user id", () => {
-    expect(generateAlias(AXOLOTL, EMERALD, "user-1")).toBe(alias);
-  });
-
-  it("never exposes the raw user id", () => {
-    expect(alias).not.toContain("user-1");
-    expect(generateAlias(MANTIS, PASTEL_PINK, "4f9c2a1e-0000-4000-8000-000000000000")).not.toContain(
-      "4f9c2a1e",
-    );
-  });
-
-  it("changes with the animal and the color", () => {
-    expect(generateAlias(MANTIS, EMERALD, "user-1")).not.toBe(alias);
-    expect(generateAlias(AXOLOTL, PASTEL_PINK, "user-1")).not.toBe(alias);
-  });
-});
-
 // ─── Full identity pipeline ───────────────────────────────────────────────────
 
 describe("generateProfileIdentity", () => {
@@ -314,9 +284,11 @@ describe("generateProfileIdentity", () => {
         getTopDimensions(scores, 3),
       ),
     );
-    expect(identity.alias).toBe(
-      generateAlias(selectAnimal(scores), selectColor(scores, "user-7"), "user-7"),
-    );
+    expect(
+      identity.alias.startsWith(
+        `${selectAnimal(scores).diminutivo_es} ${selectColor(scores, "user-7").nombre.toLowerCase()} · `,
+      ),
+    ).toBe(true);
   });
 
   it("is deterministic and never leaks the user id", () => {

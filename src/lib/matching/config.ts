@@ -61,6 +61,4 @@ export function getAmistadThreshold(): number {
   return getMatchingConfig().tracks.amistad.minimum_similarity_exclusive;
 }
 
-export function getMaxMatches(track: "romance" | "amistad"): number {
-  return getMatchingConfig().tracks[track].max_matches;
-}
+

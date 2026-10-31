@@ -11,7 +11,7 @@ import {
   computeAllMatches,
   computeTrackCentroid,
   cosineSimilarity,
-  findDualMatches,
+
   generateBadges,
   isRelationshipCompatible,
   scoreQuiz,
@@ -19,7 +19,7 @@ import {
   trackSimilarity,
   weightedTrackSimilarity,
 } from "@/lib/matching";
-import { getMaxMatches } from "@/lib/matching";
+
 import { derivePsychometricProfile } from "@/lib/psychometrics";
 import {
   ALL_DIMENSIONS,
@@ -119,14 +119,6 @@ function friendshipVector(value: number): number[] {
   return FRIENDSHIP_VECTOR_DIMENSIONS.map(() => value);
 }
 
-/** `[1, …, 1, 0, …, 0]` — a vector with disjoint support once inverted. */
-function splitPattern(length: number, onesUntil: number): number[] {
-  return Array.from({ length }, (_, index) => (index < onesUntil ? 1 : 0));
-}
-
-function invertPattern(pattern: readonly number[]): number[] {
-  return pattern.map((value) => (value > 0 ? 0 : 1));
-}
 
 interface ProfileOptions {
   hardFilters?: HardFilters;
@@ -862,145 +854,6 @@ describe("generateBadges", () => {
   });
 });
 
-// ─── Dual match discovery ─────────────────────────────────────────────────────
-
-describe("findDualMatches", () => {
-  const user = makeProfile();
-  const twin = makeProfile();
-  const blockedByFilters = makeProfile({
-    hardFilters: hardFilters({ tipo_relacion_busca: ["poliamor"] }),
-  });
-  const distant = makeProfile({
-    hardFilters: hardFilters(),
-    romanceVector: invertPattern(splitPattern(ROMANCE_VECTOR_LENGTH, 13)),
-    friendshipVector: invertPattern(splitPattern(FRIENDSHIP_VECTOR_LENGTH, 8)),
-  });
-  const userWithDisjointSupport = makeProfile({
-    romanceVector: splitPattern(ROMANCE_VECTOR_LENGTH, 13),
-    friendshipVector: splitPattern(FRIENDSHIP_VECTOR_LENGTH, 8),
-  });
-
-  it("returns both tracks for a profile that clears every gate", () => {
-    const results = findDualMatches(
-      user,
-      [{ userId: "twin", profile: twin }],
-      withThresholds(0, 0),
-    );
-
-    expect(results).toHaveLength(2);
-    expect(results.map((result) => result.track).sort()).toEqual(["amistad", "romance"]);
-    for (const result of results) {
-      expect(result.otherUserId).toBe("twin");
-      expect(result.similarity).toBeCloseTo(1, 9);
-    }
-  });
-
-  it("applies the psychometric mix to an otherwise perfect pair", () => {
-    const results = findDualMatches(user, [{ userId: "twin", profile: twin }], MATCHING_CONFIG);
-    for (const result of results) {
-      expect(result.similarity).toBeGreaterThan(0.9);
-      expect(result.similarity).toBeLessThan(1);
-    }
-  });
-
-  it("gives romance badges five slots and friendship badges three", () => {
-    const results = findDualMatches(
-      user,
-      [{ userId: "twin", profile: twin }],
-      withThresholds(0, 0),
-    );
-    const romance = results.find((result) => result.track === "romance");
-    const amistad = results.find((result) => result.track === "amistad");
-
-    expect(romance?.badges).toHaveLength(5);
-    expect(amistad?.badges).toHaveLength(3);
-    expect(romance?.narrative).toContain("Conexión romántica");
-    expect(amistad?.narrative).toContain("Conexión de amistad");
-    expect(romance?.narrative).toContain("100%");
-  });
-
-  it("lets friendship ignore hard filters that block romance", () => {
-    const results = findDualMatches(
-      user,
-      [{ userId: "blocked", profile: blockedByFilters }],
-      MATCHING_CONFIG,
-    );
-
-    expect(results).toHaveLength(1);
-    expect(results[0]?.track).toBe("amistad");
-    expect(results[0]?.otherUserId).toBe("blocked");
-  });
-
-  it("excludes profiles whose similarity collapses to zero", () => {
-    expect(trackSimilarity(userWithDisjointSupport.romanceVector, distant.romanceVector, ROMANCE_TRACK))
-      .toBe(0);
-    expect(
-      findDualMatches(
-        userWithDisjointSupport,
-        [{ userId: "distant", profile: distant }],
-        MATCHING_CONFIG,
-      ),
-    ).toEqual([]);
-  });
-
-  it("applies both thresholds strictly (equal similarity never qualifies)", () => {
-    const romanceSimilarity = trackSimilarity(user.romanceVector, twin.romanceVector, ROMANCE_TRACK);
-    const amistadSimilarity = trackSimilarity(
-      user.friendshipVector,
-      twin.friendshipVector,
-      AMISTAD_TRACK,
-    );
-    const pool = [{ userId: "twin", profile: twin }];
-
-    expect(
-      findDualMatches(user, pool, withThresholds(romanceSimilarity, amistadSimilarity)),
-    ).toEqual([]);
-    expect(
-      findDualMatches(user, pool, withThresholds(romanceSimilarity - 1e-9, amistadSimilarity)),
-    ).toHaveLength(1);
-    expect(
-      findDualMatches(user, pool, withThresholds(romanceSimilarity, amistadSimilarity - 1e-9)),
-    ).toHaveLength(1);
-    expect(
-      findDualMatches(user, pool, withThresholds(romanceSimilarity - 1e-9, amistadSimilarity - 1e-9)),
-    ).toHaveLength(2);
-  });
-
-  it("scans the whole pool and returns an empty list when it is empty", () => {
-    const results = findDualMatches(
-      user,
-      [
-        { userId: "twin", profile: twin },
-        { userId: "blocked", profile: blockedByFilters },
-        { userId: "distant", profile: distant },
-      ],
-      MATCHING_CONFIG,
-    );
-
-    expect(results.map((result) => result.otherUserId).sort()).toEqual([
-      "blocked",
-      "twin",
-      "twin",
-    ]);
-    expect(findDualMatches(user, [], MATCHING_CONFIG)).toEqual([]);
-  });
-
-  it("never leaks identifiers, vectors or raw answers into the result", () => {
-    const results = findDualMatches(user, [{ userId: "twin", profile: twin }], MATCHING_CONFIG);
-
-    for (const result of results) {
-      expect(Object.keys(result).sort()).toEqual([
-        "badges",
-        "narrative",
-        "otherUserId",
-        "similarity",
-        "track",
-      ]);
-      expect(JSON.stringify(result)).not.toMatch(/matricula|hash|normalizedScores|romanceVector/i);
-    }
-  });
-});
-
 describe("computeAllMatches", () => {
   it("uses strict thresholds and honors per-track top-K selections", () => {
     const pool = ["a", "b", "c"].map((userId) => ({ userId, profile: makeProfile() }));
@@ -1076,8 +929,8 @@ describe("computeAllMatches", () => {
     expect(romancePairs.every(({ userA, userB }) => userA < userB)).toBe(true);
     expect(romancePairs.every(({ userA, userB }) => userA !== userB)).toBe(true);
     expect(computeAllMatches(pool, config)).toEqual(results);
-    expect(getMaxMatches("romance")).toBe(3);
-    expect(getMaxMatches("amistad")).toBe(5);
+    expect(MATCHING_CONFIG.tracks.romance.max_matches).toBe(3);
+    expect(MATCHING_CONFIG.tracks.amistad.max_matches).toBe(5);
   });
 
   it("applies the intimacy/conflict penalty before the romance threshold", () => {

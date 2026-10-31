@@ -11,7 +11,7 @@ export {
   computeTrackCentroid,
   cosineSimilarity,
   trackDimensionWeights,
-  findDualMatches,
+
   generateBadges,
   isRelationshipCompatible,
   scoreQuiz,
@@ -22,7 +22,7 @@ export type { GlobalMatch } from "./engine";
 export {
   getAmistadThreshold,
   getMatchingConfig,
-  getMaxMatches,
+
   getRomanceThreshold,
 } from "./config";
 export {

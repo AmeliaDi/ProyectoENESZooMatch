@@ -76,15 +76,6 @@ export const CATEGORY_LABELS: Record<string, string> = {
   valores_relacionales: "Tus valores",
 };
 
-// ─── Likert scale labels (1–5) ────────────────────────────────────────────────
-
-export const LIKERT_LABELS = [
-  "Totalmente en desacuerdo",
-  "En desacuerdo",
-  "Neutral",
-  "De acuerdo",
-  "Totalmente de acuerdo",
-];
 
 // ─── Dimension → badge icon + label map ───────────────────────────────────────
 
@@ -121,7 +112,7 @@ const DIMENSION_BADGE_MAP: Record<string, { icon: string; label: string }> = {
   valores_respeto_diversidad: { icon: "🌈", label: "Respeto a la diversidad" },
 };
 
-export function badgeForDimension(dimension: string, affinity: number): CompatibilityBadge {
+function badgeForDimension(dimension: string, affinity: number): CompatibilityBadge {
   const entry = DIMENSION_BADGE_MAP[dimension];
   return {
     dimension,
@@ -165,12 +156,6 @@ export function parseQuizDraft(raw: string | null): QuizDraft {
   }
 }
 
-// ─── Format helpers ───────────────────────────────────────────────────────────
-
-export function formatPercentage(value: number): string {
-  const clamped = Math.max(0, Math.min(1, value));
-  return `${Math.round(clamped * 100)}%`;
-}
 
 // ─── Result parser ────────────────────────────────────────────────────────────
 

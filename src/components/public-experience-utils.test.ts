@@ -4,10 +4,8 @@ import type { Category } from "@/types/microtest";
 
 import {
   CATEGORY_LABELS,
-  LIKERT_LABELS,
   NO_MATCH_MESSAGE,
   QUIZ_STORAGE_KEY,
-  formatPercentage,
   parsePublicResult,
   parseQuizDraft,
   type PublicResult,
@@ -101,34 +99,6 @@ describe("NO_MATCH_MESSAGE", () => {
   });
 });
 
-// ─── Percentage formatting ────────────────────────────────────────────────────
-
-describe("formatPercentage", () => {
-  it("renders a similarity as a rounded whole percent", () => {
-    expect(formatPercentage(0.87)).toBe("87%");
-    expect(formatPercentage(0.5)).toBe("50%");
-    expect(formatPercentage(0.123)).toBe("12%");
-  });
-
-  it("renders the boundaries exactly", () => {
-    expect(formatPercentage(0)).toBe("0%");
-    expect(formatPercentage(1)).toBe("100%");
-  });
-
-  it("clamps values outside the [0, 1] range", () => {
-    expect(formatPercentage(-0.5)).toBe("0%");
-    expect(formatPercentage(-100)).toBe("0%");
-    expect(formatPercentage(1.5)).toBe("100%");
-    expect(formatPercentage(100)).toBe("100%");
-  });
-
-  it("always returns a bare integer percentage", () => {
-    for (const value of [-1, 0, 0.001, 0.5, 0.999, 1, 2]) {
-      expect(formatPercentage(value)).toMatch(/^\d{1,3}%$/);
-    }
-  });
-});
-
 // ─── Display labels ───────────────────────────────────────────────────────────
 
 describe("CATEGORY_LABELS", () => {
@@ -148,27 +118,6 @@ describe("CATEGORY_LABELS", () => {
     expect(CATEGORY_LABELS.intimidad_afecto).toBe("Tu forma de amar");
     expect(CATEGORY_LABELS.valores_relacionales).toBe("Tus valores");
     expect(CATEGORY_LABELS.afinidad_cultural).toContain("gustos");
-  });
-});
-
-describe("LIKERT_LABELS", () => {
-  it("has one label per point of the five-point scale", () => {
-    expect(LIKERT_LABELS).toHaveLength(5);
-    expect(LIKERT_LABELS[0]).toBe("Totalmente en desacuerdo");
-    expect(LIKERT_LABELS[4]).toBe("Totalmente de acuerdo");
-  });
-
-  it("keeps the middle point neutral and the extremes symmetric", () => {
-    expect(LIKERT_LABELS[2]).toBe("Neutral");
-    expect(LIKERT_LABELS[1]).toBe("En desacuerdo");
-    expect(LIKERT_LABELS[3]).toBe("De acuerdo");
-    expect(LIKERT_LABELS[0]).toContain("desacuerdo");
-    expect(LIKERT_LABELS[4]).toContain("acuerdo");
-  });
-
-  it("has no empty or duplicated labels", () => {
-    expect(LIKERT_LABELS.every((label) => label.trim().length > 0)).toBe(true);
-    expect(new Set(LIKERT_LABELS).size).toBe(LIKERT_LABELS.length);
   });
 });
 

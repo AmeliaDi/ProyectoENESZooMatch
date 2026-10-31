@@ -674,13 +674,8 @@ function fillNarrativeTemplate(
     .replaceAll("{color}", color.nombre.toLowerCase());
 }
 
-// ─── Alias Generation ─────────────────────────────────────────────────────────
-
-/**
- * Generates a unique alias combining animal diminutive + color name + short hash.
- * Example: "ajolotito verde esmeralda · X7K2"
- */
-export function generateAlias(animal: CatalogAnimal, color: CatalogColor, userId: string): string {
+/** "ajolotito verde esmeralda · X7K2" */
+function generateAlias(animal: CatalogAnimal, color: CatalogColor, userId: string): string {
   const hash = simpleHash(userId + animal.id + color.id);
   const shortHash = hash.toString(36).toUpperCase().slice(0, 4).padEnd(4, "0");
   return `${animal.diminutivo_es} ${color.nombre.toLowerCase()} · ${shortHash}`;

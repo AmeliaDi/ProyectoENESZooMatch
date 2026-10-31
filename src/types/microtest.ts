@@ -151,13 +151,6 @@ export interface CompatibilityBadge {
   icon: string;
 }
 
-export interface DualMatchResult {
-  track: MatchTrack;
-  otherUserId: string;
-  similarity: number;
-  badges: CompatibilityBadge[];
-  narrative: string;
-}
 
 // ─── Dimension arrays (ordered, for vector construction) ──────────────────────
 export const BIG_FIVE_DIMENSIONS: BigFiveDimension[] = [

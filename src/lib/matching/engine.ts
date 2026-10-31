@@ -17,7 +17,7 @@ import type {
   CompatibilityBadge,
   DimensionScores,
   Dimension,
-  DualMatchResult,
+
   HardFilterField,
   HardFilters,
   LikertValue,
@@ -699,138 +699,6 @@ export function generateBadges(
     .sort((left, right) => right.badge.affinity - left.badge.affinity || left.order - right.order)
     .slice(0, Math.max(0, limit))
     .map((entry) => entry.badge);
-}
-
-// ─── Full Match Computation ───────────────────────────────────────────────────
-
-function lowercaseFirst(text: string): string {
-  return text.length === 0 ? text : text[0]!.toLowerCase() + text.slice(1);
-}
-
-function buildNarrative(track: MatchTrack, badges: CompatibilityBadge[], similarity: number): string {
-  const percent = Math.round(similarity * 100);
-  const heading = track === "romance" ? "Conexión romántica" : "Conexión de amistad";
-  const highlights = badges.slice(0, 2).map((badge) => lowercaseFirst(badge.label));
-
-  if (highlights.length === 0) return `${heading} del ${percent}%.`;
-  const joined = highlights.length === 1 ? highlights[0]! : `${highlights[0]} y ${highlights[1]}`;
-  return `${heading} del ${percent}%. Destacan: ${joined}.`;
-}
-
-/**
- * Finds all dual-track matches for a user against a pool of scored profiles.
- *
- *  - Romance: hard filter → centered weighted cosine over the 26-dim romance vector →
- *    intimacy/conflict selectivity → strictly-greater-than threshold → top 3.
- *  - Friendship: centered weighted cosine over the 16-dim friendship vector →
- *    strictly-greater-than threshold → top 5 (no hard filters).
- *
- * A single `otherUserId` may appear twice in the result (once per track) when it
- * clears both thresholds. Callers should exclude the querying user from `pool`.
- */
-export function findDualMatches(
-  user: ScoredProfile,
-  pool: Array<{ userId: string; profile: ScoredProfile }>,
-  config: MatchingConfig,
-): DualMatchResult[] {
-  const romanceConfig = config.tracks.romance;
-  const friendshipConfig = config.tracks.amistad;
-  const romanceResults: DualMatchResult[] = [];
-  const friendshipResults: DualMatchResult[] = [];
-  const userPsychometrics = derivePsychometricProfile(
-    user.normalizedScores,
-    user.mbtiCode,
-  );
-  const romanceCentroid = populationCentroid([
-    user.romanceVector,
-    ...pool.map(({ profile }) => profile.romanceVector),
-  ]);
-  const friendshipCentroid = populationCentroid([
-    user.friendshipVector,
-    ...pool.map(({ profile }) => profile.friendshipVector),
-  ]);
-
-  for (const { userId, profile } of pool) {
-    const profilePsychometrics = derivePsychometricProfile(
-      profile.normalizedScores,
-      profile.mbtiCode,
-    );
-    // Romance track — gated by bidirectional hard filters and the
-    // intimacy/conflict selectivity penalty.
-    if (checkHardFilters(user.hardFilters, profile.hardFilters)) {
-      const baseSimilarity = trackSimilarity(
-        user.romanceVector,
-        profile.romanceVector,
-        romanceConfig,
-        romanceCentroid,
-      );
-      const similarity = applyRomanceSelectivity(
-        user.romanceVector,
-        profile.romanceVector,
-        applyPsychometricMix(
-          baseSimilarity,
-          config.psychometric_mix,
-          userPsychometrics,
-          profilePsychometrics,
-        ),
-        romanceConfig,
-      ).score;
-      if (similarity > romanceConfig.minimum_similarity_exclusive) {
-        const badges = generateBadges(
-          user.romanceVector,
-          profile.romanceVector,
-          romanceConfig.dimensions,
-          "romance",
-          DEFAULT_ROMANCE_BADGES,
-        );
-        romanceResults.push({
-          track: "romance",
-          otherUserId: userId,
-          similarity,
-          badges,
-          narrative: buildNarrative("romance", badges, similarity),
-        });
-      }
-    }
-
-    // Friendship track — no hard filters.
-    const friendshipBase = trackSimilarity(
-      user.friendshipVector,
-      profile.friendshipVector,
-      friendshipConfig,
-      friendshipCentroid,
-    );
-    const friendshipSimilarity = applyPsychometricMix(
-      friendshipBase,
-      config.psychometric_mix,
-      userPsychometrics,
-      profilePsychometrics,
-    );
-    if (friendshipSimilarity > friendshipConfig.minimum_similarity_exclusive) {
-      const badges = generateBadges(
-        user.friendshipVector,
-        profile.friendshipVector,
-        friendshipConfig.dimensions,
-        "amistad",
-        DEFAULT_FRIENDSHIP_BADGES,
-      );
-      friendshipResults.push({
-        track: "amistad",
-        otherUserId: userId,
-        similarity: friendshipSimilarity,
-        badges,
-        narrative: buildNarrative("amistad", badges, friendshipSimilarity),
-      });
-    }
-  }
-
-  const rank = (a: DualMatchResult, b: DualMatchResult): number =>
-    b.similarity - a.similarity || (a.otherUserId < b.otherUserId ? -1 : 1);
-
-  return [
-    ...romanceResults.sort(rank).slice(0, romanceConfig.max_matches),
-    ...friendshipResults.sort(rank).slice(0, friendshipConfig.max_matches),
-  ];
 }
 
 export interface GlobalMatch {
