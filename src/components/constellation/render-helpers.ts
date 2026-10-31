@@ -20,9 +20,10 @@ import type { ConstellationMatchInput, ConstellationSelfInput } from "./types";
 // ─── Tunables (render-only; the physics constants live in the engine) ────────
 
 /**
- * Sprite edge length as a multiple of the physics radius. The 12×12 grid has
- * ~1 px of transparent margin, so a value slightly above 2 keeps the visible
- * body roughly the size of the collision circle without visual overlap.
+ * Sprite edge length as a multiple of the physics radius. The 16×16 grid keeps
+ * a transparent margin (corner cells, tail rows and crown rows are mostly
+ * empty), so a value slightly above 2 keeps the visible body roughly the size
+ * of the collision circle without visual overlap.
  */
 export const SPRITE_SIZE_FACTOR = 2.4;
 

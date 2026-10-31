@@ -129,8 +129,8 @@ function resolveMeta(meta: Map<string, NodeMeta>, id: string, isGhost: boolean):
 /**
  * Builds the full render structure from a simulation state.
  *
- * - Node sprite size is `radius * SPRITE_SIZE_FACTOR`; the 12×12 grid carries
- *   ~1 cell of transparent margin, so the visible body ends up about the size
+ * - Node sprite size is `radius * SPRITE_SIZE_FACTOR`; the 16×16 grid carries
+ *   a transparent margin, so the visible body ends up about the size
  *   of the collision circle.
  * - Real match brightness and size both scale with similarity (via the engine's
  *   own radius formula and `nodeOpacity`).

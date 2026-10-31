@@ -29,6 +29,7 @@ import { SharedHeart } from "@/components/constellation/RomanceHearts";
 import { deriveAnimalPsychometricProfile } from "@/lib/psychometrics";
 import {
   ALL_FAMILIES,
+  FAMILY_LABELS,
   GRID_SIZE,
   getAnimalFamily,
   getAllColorIds,
@@ -96,7 +97,7 @@ function buildNeedle(
   family: ShapeFamily,
   ...parts: (string | undefined)[]
 ): string {
-  return norm([family, ...parts].filter(Boolean).join(" "));
+  return norm([family, FAMILY_LABELS[family], ...parts].filter(Boolean).join(" "));
 }
 
 const ANIMALS_LIST: AnimalEntry[] = ANIMALS.map((animal) => {
@@ -249,7 +250,7 @@ function SpriteCard({
     hover && animate ? "happy" : animate && blink ? "idle_2" : "idle_1";
 
   const cardLabel = `${entry.diminutivo}, color ${colorName}`;
-  const spriteLabel = `${entry.diminutivo} (${entry.nombre}), sprite pixelado en ${colorName}, familia ${entry.family}`;
+  const spriteLabel = `${entry.diminutivo} (${entry.nombre}), sprite pixelado en ${colorName}, familia ${FAMILY_LABELS[entry.family]}`;
 
   return (
     <figure
@@ -279,7 +280,7 @@ function SpriteCard({
           {entry.diminutivo}
         </span>
         <span className="font-mono text-[0.58rem] uppercase tracking-[0.12em] text-leaf">
-          {entry.etiqueta} · {entry.family}
+          {entry.etiqueta} · {FAMILY_LABELS[entry.family]}
         </span>
         <span className="font-mono text-[0.56rem] uppercase tracking-[0.1em] text-clay/80">
           {entry.enneagram} · {entry.attachment}

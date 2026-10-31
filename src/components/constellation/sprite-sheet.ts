@@ -1,15 +1,15 @@
 /**
  * Constellation render layer — sprite sheet builder.
  *
- * The approved sprite engine (`@/lib/pixel-sprites`) returns a 12×12 grid of
- * hex strings. Rendering that as 144 `<rect>` elements per node would mean
- * ~7 200 SVG nodes for a 50-star constellation, which no mid-range phone can
+ * The approved sprite engine (`@/lib/pixel-sprites`) returns a 16×16 grid of
+ * hex strings. Rendering that as 256 `<rect>` elements per node would mean
+ * ~12 800 SVG nodes for a 50-star constellation, which no mid-range phone can
  * composite at 60 fps alongside a physics loop.
  *
  * Instead each (animal, colour) pair is rasterised ONCE into a tiny inline SVG
- * *sprite sheet* — four 12×12 frames side by side (`idle_1`, `idle_2`, `happy`,
+ * *sprite sheet* — four 16×16 frames side by side (`idle_1`, `idle_2`, `happy`,
  * `romance_pulse`) — and exposed as a memoised `data:` URL. A node then renders
- * as a single `<image>` inside a nested 12×12 viewBox, and the frame is chosen by
+ * as a single `<image>` inside a nested 16×16 viewBox, and the frame is chosen by
  * shifting the image's `x` attribute imperatively. Three DOM elements per node
  * instead of 144, zero React re-renders per animation tick.
  *
@@ -57,7 +57,7 @@ export function toAnimationFrame(frame: SpriteFrameName): AnimationFrame {
 }
 
 /**
- * Serialises one 12×12 grid into run-length-encoded `<rect>`s, offset by
+ * Serialises one 16×16 grid into run-length-encoded `<rect>`s, offset by
  * `offsetX` user units. Transparent cells (`""`) are skipped entirely.
  */
 function gridToRects(grid: readonly (readonly string[])[], offsetX: number): string {

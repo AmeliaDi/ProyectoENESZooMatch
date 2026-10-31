@@ -398,7 +398,8 @@ describe("sprite sheet", () => {
 
   it("stays small enough to inline as a data URL", () => {
     const svg = buildSpriteSheetSvg("ajolotito", "rosa-pastel");
-    expect(svg.length).toBeLessThan(12_000);
+    // The original 12×12 budget (12 000 chars) scaled by grid area.
+    expect(svg.length).toBeLessThan((12_000 * GRID_SIZE * GRID_SIZE) / (12 * 12));
   });
 
   it("returns a memoised data URL", () => {

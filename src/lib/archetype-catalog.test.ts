@@ -51,6 +51,11 @@ const SPRITE_FAMILIES: readonly ShapeFamily[] = [
   "ungulado",
   "oso",
   "marino",
+  "pinnipedo",
+  "tentaculado",
+  "invertebrado",
+  "crustaceo",
+  "murcielago",
   "exotico",
 ];
 

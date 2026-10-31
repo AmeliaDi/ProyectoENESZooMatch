@@ -78,7 +78,7 @@ que aparezca allí describe la estructura anterior al refactor canónico.
                            romance, top-3/top-5 por usuario) → RPC replace_matches_v2 (advisory lock, reintento ×3)
                        → notify_matches_v2 (usuario + contrapartes)
 [5] /resultado ── GET /api/result → alias/animal/color/narrativa + matches por track + explicabilidad
-                └─ Constelación (buildGraph + precomputeLayout determinista, sprites pixel 12×12)
+                └─ Constelación (buildGraph + precomputeLayout determinista, sprites pixel 16×16)
 ```
 
 **Dónde se corta:**

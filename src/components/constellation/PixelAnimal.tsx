@@ -4,12 +4,12 @@
  * PixelAnimal — one animated pixel sprite.
  *
  * Renders a single `<image>` that samples a four-frame sprite sheet built by
- * `./sprite-sheet` (see that module for why we do not render 144 `<rect>`s per
+ * `./sprite-sheet` (see that module for why we do not render 256 `<rect>`s per
  * node). The frame is swapped by writing the image's `x` attribute directly,
  * driven by the shared idle ticker in `./frame-ticker`, so a blinking
  * constellation of 50 stars costs zero React re-renders.
  *
- * The component is a standalone `<svg>` with its own 12×12 viewBox, which means
+ * The component is a standalone `<svg>` with its own 16×16 viewBox, which means
  * it works both nested inside the constellation's SVG (nested `<svg>` is valid
  * SVG) and inside plain HTML, e.g. the detail sheet's preview.
  */

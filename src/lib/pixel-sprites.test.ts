@@ -123,7 +123,7 @@ describe("getSprite — coverage", () => {
     for (const animalId of ALL_IDS) {
       const sprite = getSprite(animalId, PRIMARY_COLOR);
       const painted = sprite.grid.flat().filter((cell) => cell !== "").length;
-      expect(painted, `${animalId} must paint pixels`).toBeGreaterThan(20);
+      expect(painted, `${animalId} must paint pixels`).toBeGreaterThan(100);
     }
   });
 
@@ -184,7 +184,7 @@ describe("determinism", () => {
 // ─── 3. Grid size ─────────────────────────────────────────────────────────────
 
 describe("grid size", () => {
-  it("is exactly 12 rows by 12 columns for every animal, colour and frame", () => {
+  it("is exactly GRID_SIZE rows by GRID_SIZE columns for every animal, colour and frame", () => {
     const colors = [PRIMARY_COLOR, SECONDARY_COLOR, "azul-zafiro"];
 
     for (const animalId of ALL_IDS) {
@@ -206,7 +206,7 @@ describe("grid size", () => {
 // ─── 4. Horizontal symmetry ───────────────────────────────────────────────────
 
 describe("horizontal symmetry", () => {
-  it("mirrors columns 0-5 onto 11-6, with at most 2 tail pixels in rows 9-11", () => {
+  it("mirrors the left half onto the right, with at most 2 tail pixels in the last 3 rows", () => {
     for (const animalId of ALL_IDS) {
       for (const frame of FRAMES) {
         const sprite = getSpriteFrame(animalId, PRIMARY_COLOR, frame);
@@ -223,7 +223,7 @@ describe("horizontal symmetry", () => {
     }
   });
 
-  it("keeps rows 0-8 perfectly symmetric", () => {
+  it("keeps every row above the tail perfectly symmetric", () => {
     for (const animalId of ALL_IDS) {
       const { grid } = getSprite(animalId, PRIMARY_COLOR);
       for (let r = 0; r < GRID_SIZE - 3; r++) {
@@ -556,8 +556,8 @@ describe("animation frames", () => {
 // ─── 10. Family assignment ────────────────────────────────────────────────────
 
 describe("family assignment", () => {
-  it("returns one of the 12 shape families for every animal", () => {
-    expect(ALL_FAMILIES).toHaveLength(12);
+  it("returns one of the 17 shape families for every animal", () => {
+    expect(ALL_FAMILIES).toHaveLength(17);
 
     for (const animalId of ALL_IDS) {
       const family = getAnimalFamily(animalId);
@@ -587,22 +587,22 @@ describe("family assignment", () => {
       reptil: "reptil",
       insecto: "insecto",
       pez: "acuatico",
-      molusco: "marino",
-      cnidario: "marino",
-      equinodermo: "marino",
+      molusco: "tentaculado",
+      cnidario: "tentaculado",
+      equinodermo: "invertebrado",
+      crustaceo: "crustaceo",
     };
 
     /**
      * Places where the brief deliberately overrides the catalogue's coarse label:
-     * flamingos belong to `exotico` (long neck, distinctive silhouette) even
-     * though `categoria_fauna` says "ave", and the two crustaceans are split by
-     * body plan — a crab is segmented like an insect, a langostine is fish-like.
+     * flamingos and dragons belong to `exotico` (distinctive silhouettes) even
+     * though `categoria_fauna` says "ave"/"reptil", and the snail is a shelled
+     * gastropod that reads better next to the starfish than the octopus.
      */
     const specOverrides: Record<string, ShapeFamily> = {
       flamenco: "exotico",
       dragoncito: "exotico",
-      cangrejito: "insecto",
-      langostita: "acuatico",
+      caracolito: "invertebrado",
     };
 
     for (const animal of CATALOG_ANIMALS) {

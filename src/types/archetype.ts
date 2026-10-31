@@ -60,6 +60,11 @@ export type SpriteFamilyId =
   | "ungulado"
   | "oso"
   | "marino"
+  | "pinnipedo"
+  | "tentaculado"
+  | "invertebrado"
+  | "crustaceo"
+  | "murcielago"
   | "exotico";
 
 /** The thirteen morphological families used by the expanded catalogue. */

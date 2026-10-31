@@ -159,8 +159,9 @@ Las rutas públicas canónicas son `/cuestionario` y `/resultado`; las APIs son 
   ambiental), arrastrables y con *join sparks*, etiquetas ARIA y soporte de
   `prefers-reduced-motion`.
 - **Sprites de pixeles generados por código** (`src/lib/pixel-sprites.ts`):
-  cada uno de los 103 animales del catálogo se renderiza como un sprite 12×12 determinista
-  con rubor kawaii obligatorio, **4 frames** (`idle_1`, `idle_2`, `happy`,
+  cada uno de los 103 animales del catálogo se renderiza como un sprite 16×16 determinista
+  (17 familias de silueta; la tríada del Eneagrama se marca en la frente, E/I del
+  MBTI en las orejas y el estilo de apego en los ojos) con rubor kawaii obligatorio, **4 frames** (`idle_1`, `idle_2`, `happy`,
   `romance_pulse`) y la composición `romance_duo` en la ficha, sin assets externos ni
   aleatoriedad. El frame romántico se activa con
   afinidad ≥ 75% al pasar el cursor o abrir la ficha.
@@ -520,7 +521,7 @@ Este README es la puerta de entrada. Para profundizar:
 - **badge:** etiqueta humana de afinidad por dimensión (top 5 romance / top 3 amistad).
 - **constelación:** visualización interactiva de los matches como cielo de sprites con
   física determinista.
-- **sprite:** animalito en pixel-art 12×12 generado por código, con rubor kawaii, 4 frames
+- **sprite:** animalito en pixel-art 16×16 generado por código, con rubor kawaii, 4 frames
   (`idle_1`, `idle_2`, `happy`, `romance_pulse`) y la composición `romance_duo`.
 - **explainability:** motor que convierte similitudes numéricas en narrativa afectiva es-MX.
 - **modo inclusivo:** preferencia de lenguaje (`femenino`, `masculino`, `neutro_e`,

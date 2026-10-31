@@ -3,36 +3,60 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Pure TypeScript, zero runtime dependencies, zero randomness.
  *
- * Every animal in `arquetipos.json` (103) is rendered as a 12×12 pixel sprite
- * built from one of 12 shape families. The whole pipeline is a pure function of
- * `(animalId, colorId, frame)`.
+ * Every animal in `arquetipos.json` (103) is rendered as a 16×16 pixel sprite
+ * built from one of 17 species-level silhouette families. The whole pipeline is
+ * a pure function of `(animalId, colorId, frame)`.
  *
- * Pipeline (steps 1-6 operate on the LEFT HALF only)
+ * Pipeline (steps 1-8 operate on the LEFT HALF only)
  * ────────
- *   1. family template      → 12 rows × 6 cols of chars
- *   2. hash variations      → per-animal ears / crest / markings / accents
- *   3. blush stamp          → mandatory pink pixel under each eye (`#FFAAA6`)
- *   4. silhouette pass      → each species gets its own outline within its family
- *   5. tone pass            → guarantees distinct grids in every animation frame
- *   6. texture strokes      → recolours ≤2 half-cells from the colour's textura
- *   7. frame overlay        → blink / highlight eyes / romance hearts
- *   8. mirror               → cols 0-5 are reflected into cols 11-6
- *   9. tail                 → the ONLY asymmetric element (≤2 cells, rows 9-11)
- *  10. palette mapping      → chars become hex colours
+ *   1. family template      → 16 rows × 8 cols of chars (no eyes yet)
+ *   2. attachment eyes      → eye shape encodes the archetype's attachment style
+ *   3. triad mark           → forehead glyph encodes the Enneagram triad
+ *   4. energy ears          → ear/antenna spread encodes MBTI E vs I
+ *   5. kawaii detail        → `rasgos_kawaii.detalle_unico` painted in place
+ *   6. blush stamp          → mandatory pink pixel under each eye (`#FFAAA6`)
+ *   7. silhouette pass      → each species gets its own outline within its family
+ *   8. tone pass            → guarantees distinct grids in every animation frame
+ *   9. texture strokes      → recolours ≤2 half-cells from the colour's textura
+ *  10. frame overlay        → blink / highlight eyes / romance hearts
+ *  11. mirror               → cols 0-7 are reflected into cols 15-8
+ *  12. tail                 → the ONLY asymmetric element (≤2 cells, rows 13-14)
+ *  13. palette mapping      → chars become hex colours
  *
- * Because texture only touches rows 0-8, the heart only touches rows 0-2 and the
- * tail only touches rows 9-11, the silhouette pass keeps same-family outlines
+ * Psychometric encoding (steps 2-4)
+ * ─────────────────────
+ * The sprite is a *visual encoding of the archetype*, not a measurement of the
+ * person who receives it. The inputs come from `deriveAnimalPsychometricProfile`
+ * (Big Five vector + MBTI from the catalogue; the Enneagram wing and attachment
+ * style are derived or curated there). Each channel is a discrete glyph, so it
+ * reads at 16 px without a legend:
+ *
+ *   - Enneagram triad → forehead glyph: emocional = highlight diamond (heart
+ *     centre), mental = single highlight dot (head centre), instintiva = shadow
+ *     band (gut centre, grounded).
+ *   - MBTI E/I → ears or antennae open outwards (E) or tucked in (I).
+ *   - Attachment → eyes: seguro = steady 2×2, ansioso = tall 3×2 with a shine
+ *     (seeking contact), evitativo = narrow 1×2 set further apart.
+ *
+ * Because texture only touches rows 3-12, the hearts only touch rows 0-2 and the
+ * tail only touches rows 13-14, the silhouette pass keeps same-family outlines
  * apart and the tone pass enforces `MIN_HALF_DISTANCE` on the post-frame forms,
  * no two animals can collapse into the same grid for a given colour and frame.
  * See the proof sketch above `enforceDistinctness`.
  */
 
 import catalogoData from "../../data/arquetipos.json";
+import {
+  deriveAnimalPsychometricProfile,
+  type AnimalPsychometricSource,
+  type AttachmentStyle,
+  type EnneagramTriad,
+} from "./psychometrics";
 
 // ─── Public constants ─────────────────────────────────────────────────────────
 
 /** Sprite grid edge length in pixels. */
-export const GRID_SIZE = 12;
+export const GRID_SIZE = 16;
 
 /** Width of the authored (left) half of a template. */
 export const HALF_WIDTH = GRID_SIZE / 2;
@@ -67,13 +91,18 @@ export type ShapeFamily =
   | "ungulado"
   | "oso"
   | "marino"
+  | "pinnipedo"
+  | "tentaculado"
+  | "invertebrado"
+  | "crustaceo"
+  | "murcielago"
   | "exotico";
 
 /** The four renderable animation states. */
 export type AnimationFrame = "idle_1" | "idle_2" | "happy" | "romance_pulse";
 
 export interface SpriteData {
-  /** 12×12 matrix of `"#RRGGBB"` strings; `""` means transparent. */
+  /** 16×16 matrix of `"#RRGGBB"` strings; `""` means transparent. */
   grid: string[][];
   /** At most five tones: base, shadow, highlight, eyes and blush. */
   palette: string[];
@@ -96,8 +125,34 @@ export const ALL_FAMILIES: readonly ShapeFamily[] = [
   "ungulado",
   "oso",
   "marino",
+  "pinnipedo",
+  "tentaculado",
+  "invertebrado",
+  "crustaceo",
+  "murcielago",
   "exotico",
 ] as const;
+
+/** Human-readable es-MX label for each family (dev gallery, a11y labels). */
+export const FAMILY_LABELS: Readonly<Record<ShapeFamily, string>> = {
+  felino: "felinos",
+  canino: "cánidos",
+  ave: "aves",
+  roedor: "roedores y afines",
+  reptil: "reptiles",
+  anfibio: "anfibios",
+  acuatico: "peces y rayas",
+  insecto: "insectos y arañas",
+  ungulado: "ungulados",
+  oso: "osos y afines",
+  marino: "cetáceos",
+  pinnipedo: "focas, morsas y nutrias",
+  tentaculado: "pulpos y medusas",
+  invertebrado: "estrellas y caracoles",
+  crustaceo: "crustáceos",
+  murcielago: "murciélagos",
+  exotico: "criaturas fantásticas",
+};
 
 /** Every frame, in a stable order. */
 export const ALL_FRAMES: readonly AnimationFrame[] = [
@@ -114,6 +169,7 @@ interface CatalogAnimal {
   nombre_fuente: string;
   diminutivo_es: string;
   categoria_fauna: string;
+  rasgos_kawaii?: { detalle_unico?: string };
 }
 
 interface CatalogColor {
@@ -144,7 +200,7 @@ type HalfGrid = string[][];
 type CharGrid = string[][];
 
 /**
- * Minimum differing cells (on the 12×6 half) between any two animals.
+ * Minimum differing cells (on the 16×8 half) between any two animals.
  *
  * `8` accounts for every uniform post-form overwrite: texture removes ≤2
  * half-cells and the blush stamp removes ≤2 more (both use the same cells for
@@ -158,241 +214,363 @@ const MIN_HALF_DISTANCE = 8;
  * Minimum number of half-grid cells that must differ in *silhouette* between
  * two animals of the same family. Tone-only differences are invisible at
  * constellation size, so the solver also gives each species its own outline.
+ *
+ * Texture, blush and frames never change the mask; mirroring doubles the
+ * distance and the two tails can hide at most 4 pixels, so the rendered
+ * silhouettes differ by at least `2 × 5 − 4 = 6` pixels.
  */
-const MIN_MASK_HALF_DISTANCE = 4;
+const MIN_MASK_HALF_DISTANCE = 5;
 
-// ─── Family templates (LEFT HALF: 12 rows × 6 columns) ────────────────────────
-// Column 0 is the outer left edge, column 5 touches the vertical mirror axis.
-// Mirroring maps half-column `c` to full columns `c` and `11 - c`.
+// ─── Family templates (LEFT HALF: 16 rows × 8 columns) ────────────────────────
+// Column 0 is the outer left edge, column 7 touches the vertical mirror axis.
+// Mirroring maps half-column `c` to full columns `c` and `15 - c`.
+//
+// Layout contract shared by every template (the psychometric and detail ops
+// rely on it, and `validateSpriteIsPixelArt` checks the result):
+//   - eyes: standard 2×2 at rows 6-7, half-columns 4-5 (full cols 4-5, 10-11);
+//   - rows 8-9 are painted under the eyes (blush + the taller anxious eye);
+//   - rows 3-5 are painted at half-columns 5-7 (forehead triad glyph);
+//   - rows 0-2 are the crown, where the happy/romance hearts float;
+//   - rows 13-14 are painted, so the tail always has a flank to grow from.
 
-/**
- * felino — cats, lions, tigers, pumas, jaguars, cheetahs.
- * Pointed ear tips, round skull, wide muzzle, side-shaded haunches.
- */
+/** felino — cats, lions, tigers, pumas, jaguars. Pointed ears with pink-lit insides. */
 const TEMPLATE_FELINO: readonly string[] = [
-  "..B...", // ear tips
-  ".BBB..", // ears
-  ".BBBBB", // skull top
-  "BBBBBB", // skull
-  "BBBEEB", // eyes (upper)
-  "BBBEEB", // eyes (lower)
-  ".BBBHH", // muzzle
-  ".BBBBB", // neck
-  ".BBBBB", // chest
-  ".BBBBB", // body
-  ".SBBBS", // haunches
-  ".S..S.", // paws
+  "..B.....", // ear tip
+  ".BHB....", // ear + inner highlight
+  ".BHBB...", // ear base
+  ".BBBBBBB", // skull top
+  "BBBBBBBB", // skull
+  "BBBBBBBB", // brow
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBBS", // cheeks + nose
+  ".BBBBBHH", // muzzle
+  "..BBBBBB", // chin
+  "...BBBBB", // neck
+  "..BBBBBB", // chest
+  "..BBBBBB", // body
+  "..SBBBBB", // haunches
+  "..SS.SS.", // four paws
 ];
 
-/**
- * canino — dogs, wolves, foxes, meerkats.
- * Floppy ears rendered as a shadow column, longer snout with a centred nose.
- */
+/** canino — dogs, wolves, foxes, raccoons. Floppy shadow ears, long snout. */
 const TEMPLATE_CANINO: readonly string[] = [
-  "..BB..", // crown
-  ".BBBBB", // skull top
-  "SBBBBB", // ear fold
-  "SBBEEB", // eyes (upper)
-  "SBBEEB", // eyes (lower)
-  "SBBBBB", // ear fold
-  ".BBBBH", // snout + nose
-  ".BBBBB", // jaw
-  ".BBBBB", // chest
-  ".BBBBB", // body
-  ".SBBBS", // haunches
-  ".S..S.", // paws
+  "........",
+  "...BBBBB", // crown
+  "..BBBBBB", // skull top
+  ".SBBBBBB", // ear fold
+  "SSBBBBBB", // floppy ear
+  "SSBBBBBB", // floppy ear
+  "SSBBEEBB", // eyes (upper)
+  "SSBBEEBB", // eyes (lower)
+  ".SBBBBBB", // ear tip
+  "..BBBHHH", // snout
+  "..BBBHHS", // nose
+  "...BBBBB", // jaw
+  "..BBBBBB", // chest
+  "..BBBBBB", // body
+  "..SBBBBB", // haunches
+  "..SS.SS.", // four paws
 ];
 
-/**
- * ave — birds, owls, parrots, toucans, herons, ducks.
- * Crest feather, centred beak, wing shadow on the outer edge.
- */
+/** ave — birds and owls. Twin crest feathers, centred beak, folded wings. */
 const TEMPLATE_AVE: readonly string[] = [
-  "...B..", // crest feather
-  "..BB..", // crown
-  ".BBBBB", // head
-  "BBBBBB", // head
-  "BBBEEB", // eyes (upper)
-  "BBBEEB", // eyes (lower)
-  "..BBHH", // beak
-  "SBBBBB", // wing
-  "SBBBBB", // wing
-  ".BBBBB", // body
-  ".BBBBB", // body
-  "...S..", // feet
+  "....B...", // crest feathers
+  "...BB...", // crest base
+  "...BBBBB", // crown
+  "..BBBBBB", // head
+  ".BBBBBBB", // head
+  ".BBBBBBB", // brow
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBHH", // beak
+  ".SBBBBBH", // beak tip
+  ".SSBBBBB", // folded wing
+  ".SSBBBBB", // folded wing
+  "..SBBBBB", // wing tip
+  "...BBBBB", // belly
+  "....BBBB", // tail coverts
+  "....S.S.", // feet
 ];
 
-/**
- * roedor — rabbits, squirrels, mice, beavers, hedgehogs.
- * Tall rounded ears, narrow ear base, buck-tooth highlight, compact body.
- */
+/** roedor — rabbits, squirrels, mice, beavers. Tall lit ears, buck teeth. */
 const TEMPLATE_ROEDOR: readonly string[] = [
-  "..BB..", // ear tips
-  "..BB..", // ears
-  ".BBBB.", // ear base
-  "BBBBBB", // skull
-  "BBBEEB", // eyes (upper)
-  "BBBEEB", // eyes (lower)
-  ".BBBBH", // buck teeth
-  ".BBBB.", // chin
-  ".BBBBB", // body
-  ".BBBBB", // body
-  ".SBBBS", // haunches
-  ".S..S.", // feet
+  "..BB....", // ear tips
+  "..BHB...", // ears + inner highlight
+  "..BHB...", // ears
+  "..BBBBBB", // ear base
+  ".BBBBBBB", // skull
+  "BBBBBBBB", // skull
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBBB", // cheeks
+  ".BBBBBSS", // nose
+  "..BBBBHH", // buck teeth
+  "...BBBBB", // chin
+  "..BBBBBB", // body
+  "..BBBBBB", // body
+  "...BBBBB", // haunches
+  "...SS.S.", // feet
 ];
 
-/**
- * reptil — lizards, geckos, iguanas, chameleons, turtles.
- * Dorsal ridge spikes, broad low skull, banded back.
- */
+/** reptil — lizards, iguanas, turtles, snakes. Ridge spikes, low broad skull. */
 const TEMPLATE_REPTIL: readonly string[] = [
-  "..S.S.", // ridge spikes
-  ".BBBBB", // skull top
-  "BBBBBB", // skull
-  "BBBEEB", // eyes (upper)
-  "BBBEEB", // eyes (lower)
-  "BBBBBB", // skull
-  ".BBBBH", // jaw line
-  ".SBBBS", // dorsal band
-  ".BBBBB", // body
-  ".BBBBB", // body
-  ".BBBBB", // body
-  ".S..S.", // legs
+  "........",
+  "........",
+  "....S.S.", // ridge spikes
+  "..BBBBBB", // skull top
+  ".BBBBBBB", // skull
+  "BBBBBBBB", // skull
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBBB", // cheeks
+  ".BBBBBBB", // jaw
+  "..SSSSSS", // jaw line
+  "..BBBBBB", // neck
+  ".BBBBBBB", // body
+  ".BHBBBBB", // scale glint
+  "..BBBBBB", // body
+  "..S..S..", // legs
 ];
 
-/**
- * anfibio — frogs, toads, salamanders, axolotls.
- * External feathery gills (`H`) framing a wide round head, baby-low eyes and
- * splayed feet. Eyes sit on rows 4-5 like every other family, so the romance
- * hearts (rows 0-2) can never overwrite them.
- */
+/** anfibio — axolotls, frogs, newts. Feathery gill fronds, very wide smile. */
 const TEMPLATE_ANFIBIO: readonly string[] = [
-  ".HH...", // gill filaments (upper)
-  "HBBBB.", // external gill + skull
-  "HBBBBB", // external gill + wide skull
-  "HBBBBB", // external gill (lower)
-  "BBBEEB", // eyes, baby-low
-  "BBBEEB", // eyes (lower)
-  ".BBBHH", // broad mouth
-  ".BBBBB", // chin
-  ".BBBBB", // body
-  ".BBBBB", // body
-  ".SBBBS", // legs
-  ".S..S.", // splayed toes
+  "........",
+  "H.......", // gill frond
+  ".H.BBBBB", // gill frond + crown
+  "H.BBBBBB", // gill frond
+  ".HBBBBBB", // gill frond
+  "HBBBBBBB", // gill frond + skull
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBBB", // cheeks
+  ".BBBBSSS", // wide smile
+  ".BBBBBBB", // chin
+  "..BBBBBB", // body
+  "..BBBBBB", // body
+  "..BBBBBB", // body
+  ".SBBBBBB", // legs
+  ".SS..SS.", // splayed toes
 ];
 
-/**
- * acuatico — fish, sharks, seahorses, lobsters.
- * Dorsal fin, streamlined body, gill shadow, forked caudal fin.
- */
+/** acuatico — fish, sharks, rays, seahorses. Dorsal fin, pectoral fins, forked tail. */
 const TEMPLATE_ACUATICO: readonly string[] = [
-  "...B..", // dorsal fin tip
-  "..BB..", // dorsal fin
-  ".BBBBB", // back
-  "BBBBBB", // body
-  "BBBEEB", // eye (upper)
-  "BBBEEB", // eye (lower)
-  ".SBBBB", // gills
-  ".BBBBB", // body
-  "..BBBB", // taper
-  "...BB.", // caudal peduncle
-  "..SSSS", // tail fin
-  "..S.S.", // tail fork
+  "........",
+  ".......B", // dorsal fin tip
+  "......BB", // dorsal fin
+  "....BBBB", // back
+  "..BBBBBB", // body
+  ".BBBBBBB", // body
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "SBBBBBBB", // pectoral fin
+  "SSBBBBBB", // pectoral fin
+  ".SBBBBBB", // gills
+  "..BBBBHH", // belly
+  "...BBBBB", // taper
+  ".....BBB", // caudal peduncle
+  "....SSSB", // caudal fin
+  "...SS...", // fork
 ];
 
-/**
- * insecto — bees, butterflies, beetles, ants, dragonflies, mantises, crabs.
- * Antennae, wing highlight on the outer edge, segmented abdomen.
- */
+/** insecto — bees, butterflies, beetles, ants, spiders. Antennae, wings, stripes. */
 const TEMPLATE_INSECTO: readonly string[] = [
-  ".S....", // antenna tips
-  "..S...", // antennae
-  "..BB..", // crown
-  ".BBBB.", // head
-  ".BEEB.", // eyes (upper)
-  ".BEEB.", // eyes (lower)
-  "HBBBBB", // wings
-  "HHBBBB", // wings
-  ".BBBBB", // abdomen
-  ".BSBSB", // abdominal segments
-  "..BBB.", // abdomen taper
-  "..S.S.", // legs
+  "..S.....", // antenna tips
+  "...S....", // antennae
+  "....S...", // antenna base
+  "....BBBB", // crown
+  "..BBBBBB", // head
+  ".BBBBBBB", // head
+  ".BBBEEBB", // eyes (upper)
+  ".BBBEEBB", // eyes (lower)
+  ".BBBBBBB", // cheeks
+  "HHBBBBBS", // wings + mouth
+  "HHHBBBBB", // wings
+  ".HHSSSSS", // stripe
+  "..BBBBBB", // abdomen
+  "..SSSSSS", // stripe
+  "...BBBBB", // abdomen tip
+  "....S.S.", // legs
 ];
 
-/**
- * ungulado — deer, horses.
- * Antlers, long narrow face, shoulder mane, hooves.
- */
+/** ungulado — deer, horses, llamas, goats. Branching antlers, side ears, long face. */
 const TEMPLATE_UNGULADO: readonly string[] = [
-  ".S..S.", // antler tips
-  "..SS..", // antler base
-  "..BB..", // crown
-  ".BBBB.", // head
-  ".BEEB.", // eyes (upper)
-  ".BEEB.", // eyes (lower)
-  ".BBBB.", // long face
-  "..BBBH", // nose
-  "HBBBBB", // mane
-  ".BBBBB", // barrel
-  ".BBBBB", // barrel
-  ".S..S.", // hooves
+  ".S...S..", // antler tips
+  "..S.S...", // antler fork
+  "...S....", // antler base
+  "SS.BBBBB", // side ear + crown
+  ".SBBBBBB", // ear base
+  "..BBBBBB", // brow
+  "..BBEEBB", // eyes (upper)
+  "..BBEEBB", // eyes (lower)
+  "..BBBBBB", // cheeks
+  "...BBBHH", // long muzzle
+  "...BBBSS", // nostrils
+  "....BBBB", // throat
+  "..BBBBBB", // shoulders
+  "..BBBBBB", // barrel
+  "..BBBBBB", // barrel
+  "..S..S..", // hooves
 ];
 
-/**
- * oso — bears, pandas, koalas.
- * Small round ears, big cubic skull, bulky full-width torso.
- */
+/** oso — bears, pandas, koalas, sloths. Round ears, big skull, pale muzzle and belly. */
 const TEMPLATE_OSO: readonly string[] = [
-  ".BB...", // round ears
-  "BBBBBB", // skull top
-  "BBBBBB", // skull
-  "BBBBBB", // skull
-  "BBBEEB", // eyes (upper)
-  "BBBEEB", // eyes (lower)
-  ".BBBBB", // cheeks
-  ".BBBHH", // muzzle
-  "BBBBBB", // bulky torso
-  "BBBBBB", // bulky torso
-  ".BBBBB", // belly
-  ".S..S.", // feet
+  "........",
+  ".BB.....", // round ear
+  "BSSB....", // ear inner
+  "BSBBBBBB", // ear + skull top
+  ".BBBBBBB", // skull
+  "BBBBBBBB", // brow
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBBB", // cheeks
+  ".BBBBHHS", // muzzle + nose
+  ".BBBBHHH", // muzzle
+  "..BBBBBB", // chin
+  ".BBBBBBB", // shoulders
+  "BBBBBBBB", // bulky torso
+  ".BBBBHHH", // pale belly
+  "..SSS...", // feet
 ];
 
-/**
- * marino — dolphins, whales, seals, octopuses, jellyfish, starfish, snails.
- * Smooth domed head, no ears, highlight flippers, trailing tentacles.
- */
+/** marino — dolphins and whales. Blowhole spout, smooth dome, pale belly, flukes. */
 const TEMPLATE_MARINO: readonly string[] = [
-  "..BB..", // smooth crown
-  ".BBBBB", // head
-  "BBBBBB", // head
-  "BBBBBB", // head
-  "BBBEEB", // eyes (upper)
-  "BBBEEB", // eyes (lower)
-  ".BBBBB", // neck
-  ".BBBBB", // body
-  ".BBBBB", // body
-  ".BBBBB", // body
-  ".HBBH.", // flippers
-  ".S.S..", // tentacles / fluke
+  "........",
+  ".......H", // spout
+  "......H.", // spout spray
+  "...BBBBB", // dome
+  ".BBBBBBB", // head
+  "BBBBBBBB", // head
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBBB", // cheeks
+  "BBBBBBBB", // body
+  "SBBBBHHH", // flipper + belly
+  "SSBBHHHH", // flipper + belly
+  ".SBBHHHH", // flipper + belly
+  "..BBBBBB", // tail stock
+  "....BBBB", // tail stock
+  "..SSS...", // flukes
 ];
 
-/**
- * exotico — elephants, giraffes, flamingos, peacocks.
- * Oversized ears, high eyes, long central trunk/neck feature.
- */
+/** pinnipedo — seals, walruses, otters. Earless round head, whisker pad, flippers. */
+const TEMPLATE_PINNIPEDO: readonly string[] = [
+  "........",
+  "........",
+  "...BBBBB", // crown
+  "..BBBBBB", // head
+  ".BBBBBBB", // head
+  ".BBBBBBB", // brow
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBHS", // whisker pad + nose
+  "BHBBBHHH", // whiskers + muzzle
+  ".BBBBBHH", // chin
+  "..BBBBBB", // neck
+  "..BBBBBB", // body
+  "SSBBBBBB", // fore-flippers
+  ".SBBBBBB", // body
+  "..SSS...", // hind flippers
+];
+
+/** tentaculado — octopuses. Tall mantle dome, curling tentacles. */
+const TEMPLATE_TENTACULADO: readonly string[] = [
+  "........",
+  "....BBBB", // mantle top
+  "..BBBBBB", // mantle
+  ".BBBBBBB", // mantle
+  ".BHBBBBB", // mantle glint
+  "BBBBBBBB", // mantle
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBBB", // cheeks
+  ".BBBBBBB", // body
+  ".BBBBBBB", // body
+  ".BBBBBBB", // tentacle roots
+  ".B.B.B.B", // tentacles
+  "B..B.B.B", // tentacles
+  "S.S..S.S", // tentacle curls
+  "..S.S..S", // tentacle tips
+];
+
+/** invertebrado — starfish. Five arms: one up, two sideways, two splayed down. */
+const TEMPLATE_INVERTEBRADO: readonly string[] = [
+  ".......B", // top arm tip
+  "......BB", // top arm
+  "......BB", // top arm
+  ".....BBB", // top arm base
+  "BBBBBBBB", // side arms
+  ".BBBBBBB", // side arms
+  "..BBEEBB", // eyes (upper)
+  "..BBEEBB", // eyes (lower)
+  "..BBBBBB", // cheeks
+  "..BBBBBB", // body
+  "..BBBBBB", // body
+  ".BBBB...", // lower arms
+  ".BBB....", // lower arms
+  "BBB.....", // lower arms
+  "BB......", // lower arm tips
+  "........",
+];
+
+/** crustaceo — crabs, lobsters. Raised open pincers, wide shell, side legs. */
+const TEMPLATE_CRUSTACEO: readonly string[] = [
+  ".SS.....", // pincer tips
+  "S..S....", // open pincer
+  "SS.S....", // pincer
+  ".SS..BBB", // arm + shell top
+  "..S.BBBB", // arm + shell
+  "..BBBBBB", // shell
+  ".BBBEEBB", // eyes (upper)
+  ".BBBEEBB", // eyes (lower)
+  "BBBBBBBB", // shell
+  "BBBBBBSS", // mouth
+  ".BBBBBBB", // shell
+  "S.BBBBBB", // leg
+  ".SBBBBBB", // leg
+  "S.SBBBBB", // leg
+  ".S.S..S.", // leg tips
+  "........",
+];
+
+/** murcielago — bats. Tall radar ears, scalloped membrane wings, tiny fangs. */
+const TEMPLATE_MURCIELAGO: readonly string[] = [
+  ".B......", // ear tip
+  ".BB.....", // ear
+  ".BHB....", // ear + inner highlight
+  ".BHBBBBB", // ear + crown
+  "..BBBBBB", // head
+  "..BBBBBB", // brow
+  "S.BBEEBB", // wing tip + eyes (upper)
+  "SSBBEEBB", // wing + eyes (lower)
+  "SSSBBBBB", // wing + cheeks
+  "SSSSBBBH", // wing + fang
+  "S.SSBBBB", // scalloped wing
+  "S..SBBBB", // scalloped wing
+  "...SBBBB", // wing root
+  "....BBBB", // body
+  "....BBBB", // body
+  "....S.S.", // feet
+];
+
+/** exotico — dragons, alebrijes, flamingos, platypus. Horns, lit crest, little wings. */
 const TEMPLATE_EXOTICO: readonly string[] = [
-  "..BB..", // crown
-  "BBBBBB", // huge ears
-  "BBBBBB", // huge ears
-  "BBBEEB", // eyes (upper)
-  "BBBEEB", // eyes (lower)
-  ".BBBBB", // face
-  ".BBBBH", // trunk / long neck
-  ".BBBBH", // trunk / long neck
-  ".BBBBB", // body
-  ".BBBBB", // body
-  ".SBBBS", // legs
-  ".S..S.", // feet
+  "..S.....", // horn tip
+  "..SS...H", // horn + crest
+  "...SBBBH", // horn base + crest
+  "..BBBBBB", // skull
+  ".BBBBBBB", // skull
+  "BBBBBBBB", // brow
+  "BBBBEEBB", // eyes (upper)
+  "BBBBEEBB", // eyes (lower)
+  "BBBBBBBB", // cheeks
+  ".BBBBBSS", // nostrils
+  "..BBBBBB", // chin
+  "H.BBBBBB", // wing bud
+  "HHBBBHHH", // wing + belly
+  ".HBBBHHH", // wing + belly
+  "..BBBBBB", // body
+  "..SS.SS.", // feet
 ];
 
 const FAMILY_TEMPLATES: Record<ShapeFamily, readonly string[]> = {
@@ -407,7 +585,58 @@ const FAMILY_TEMPLATES: Record<ShapeFamily, readonly string[]> = {
   ungulado: TEMPLATE_UNGULADO,
   oso: TEMPLATE_OSO,
   marino: TEMPLATE_MARINO,
+  pinnipedo: TEMPLATE_PINNIPEDO,
+  tentaculado: TEMPLATE_TENTACULADO,
+  invertebrado: TEMPLATE_INVERTEBRADO,
+  crustaceo: TEMPLATE_CRUSTACEO,
+  murcielago: TEMPLATE_MURCIELAGO,
   exotico: TEMPLATE_EXOTICO,
+};
+
+/**
+ * Species whose body plan differs too much from their family template to be
+ * reached by small silhouette edits. They keep their family (and its tests)
+ * but start from their own outline.
+ */
+const SPECIES_TEMPLATES: Readonly<Record<string, readonly string[]>> = {
+  // Snail: eye stalks over a spiral shell, soft foot skirt.
+  caracolito: [
+    "..S.....", // eye stalk tip
+    "...S....", // eye stalk
+    "...SSSSS", // shell top
+    "..SHHHHH", // spiral
+    ".SHSSSSS", // spiral
+    ".SHSHHHB", // spiral core
+    ".SBBEEBB", // eyes (upper)
+    ".SBBEEBB", // eyes (lower)
+    "..BBBBBB", // cheeks
+    "..BBBBBS", // mouth
+    "..BBBBBB", // body
+    ".BBBBBBB", // foot
+    "BBBBBBBB", // foot
+    "BBBBBBBB", // foot
+    ".SSSSSSS", // foot rim
+    "........",
+  ],
+  // Jellyfish: frilled bell and long trailing threads.
+  medusita: [
+    "........",
+    "....HHHH", // bell glint
+    "..HBBBBB", // bell
+    ".HBBBBBB", // bell
+    ".BBBBBBB", // bell
+    "BBBBBBBB", // bell
+    "BBBBEEBB", // eyes (upper)
+    "BBBBEEBB", // eyes (lower)
+    "BBBBBBBB", // cheeks
+    "HSHSHSHS", // frilled rim
+    ".S..S..S", // threads
+    ".H..H..H", // threads
+    "..S..S.S", // threads
+    "..H..H.H", // threads
+    "...S..S.", // thread tips
+    "........",
+  ],
 };
 
 // ─── Animal → family mapping ──────────────────────────────────────────────────
@@ -423,7 +652,7 @@ const CATALOG_FAMILY: Record<string, ShapeFamily> = {
   salamandrita: "anfibio",
   ajolote_celestial: "anfibio",
   tritoncito: "anfibio",
-  // insecto (+ crustaceo with claws/segmentation)
+  // insecto (+ arácnidos)
   mantisita: "insecto",
   mariposita: "insecto",
   luciernita: "insecto",
@@ -435,7 +664,6 @@ const CATALOG_FAMILY: Record<string, ShapeFamily> = {
   polillita: "insecto",
   grillito: "insecto",
   saltamontes: "insecto",
-  cangrejito: "insecto",
   mariquita: "insecto",
   aranita: "insecto",
   // ave
@@ -501,20 +729,25 @@ const CATALOG_FAMILY: Record<string, ShapeFamily> = {
   ciervito: "ungulado",
   cabrita: "ungulado",
   alcito: "ungulado",
-  // marino (cetaceos, pinnipedos, moluscos, cnidarios, equinodermos)
+  // marino (cetáceos)
   delfincito: "marino",
-  pulpito: "marino",
-  nutria: "marino",
-  focita: "marino",
-  morsita: "marino",
   ballenita: "marino",
-  medusita: "marino",
-  estrellita: "marino",
-  caracolito: "marino",
-  // acuatico (peces + crustaceos alargados)
+  // pinnipedo (focas, morsas y nutrias: cabeza redonda sin orejas + aletas)
+  nutria: "pinnipedo",
+  focita: "pinnipedo",
+  morsita: "pinnipedo",
+  // tentaculado (moluscos cefalópodos y cnidarios)
+  pulpito: "tentaculado",
+  medusita: "tentaculado",
+  // invertebrado (equinodermos y gasterópodos)
+  estrellita: "invertebrado",
+  caracolito: "invertebrado",
+  // crustaceo
+  cangrejito: "crustaceo",
+  langostita: "crustaceo",
+  // acuatico (peces)
   caballito: "acuatico",
   tiburoncito: "acuatico",
-  langostita: "acuatico",
   mantarrayita: "acuatico",
   // reptil
   camaleoncito: "reptil",
@@ -529,8 +762,9 @@ const CATALOG_FAMILY: Record<string, ShapeFamily> = {
   flamenco: "exotico",
   alebrijito: "exotico",
   ornitorrincocito: "exotico",
-  murcielaguito: "exotico",
   dragoncito: "exotico",
+  // murcielago
+  murcielaguito: "murcielago",
 };
 
 /**
@@ -540,14 +774,16 @@ const CATALOG_FAMILY: Record<string, ShapeFamily> = {
 const EXTRA_DIMINUTIVE_FAMILY: Record<string, ShapeFamily> = {
   elefantito: "exotico",
   guepardito: "felino",
-  nutriita: "marino",
-  jirafita: "exotico",
+  nutriita: "pinnipedo",
+  jirafita: "ungulado",
   pavorrealito: "exotico",
   caballito_de_mar: "acuatico",
   osito_panda: "oso",
   ratoncito: "roedor",
   palomita: "ave",
-  tortuguita_de_mar: "marino",
+  tortuguita_de_mar: "reptil",
+  murcielaguito: "murcielago",
+  calamarcito: "tentaculado",
 };
 
 /**
@@ -565,7 +801,7 @@ const KEYWORD_FAMILY: ReadonlyArray<readonly [string, ShapeFamily]> = [
   ["tiburon", "acuatico"],
   ["elefant", "exotico"],
   ["flamenc", "exotico"],
-  ["jirafa", "exotico"],
+  ["jirafa", "ungulado"],
   ["pavorre", "exotico"],
   ["maripos", "insecto"],
   ["hormigu", "insecto"],
@@ -578,8 +814,10 @@ const KEYWORD_FAMILY: ReadonlyArray<readonly [string, ShapeFamily]> = [
   ["abejit", "insecto"],
   ["avisp", "insecto"],
   ["polill", "insecto"],
-  ["cangrej", "insecto"],
-  ["langost", "acuatico"],
+  ["murcielag", "murcielago"],
+  ["cangrej", "crustaceo"],
+  ["langost", "crustaceo"],
+  ["camaron", "crustaceo"],
   ["camaleon", "reptil"],
   ["iguan", "reptil"],
   ["lagartij", "reptil"],
@@ -589,14 +827,14 @@ const KEYWORD_FAMILY: ReadonlyArray<readonly [string, ShapeFamily]> = [
   ["salamandr", "anfibio"],
   ["ranita", "anfibio"],
   ["sapito", "anfibio"],
-  ["medus", "marino"],
-  ["estrell", "marino"],
-  ["caracol", "marino"],
-  ["pulpit", "marino"],
-  ["calamar", "marino"],
-  ["focita", "marino"],
-  ["morsa", "marino"],
-  ["nutri", "marino"],
+  ["medus", "tentaculado"],
+  ["estrell", "invertebrado"],
+  ["caracol", "invertebrado"],
+  ["pulpit", "tentaculado"],
+  ["calamar", "tentaculado"],
+  ["focita", "pinnipedo"],
+  ["morsa", "pinnipedo"],
+  ["nutri", "pinnipedo"],
   ["manati", "marino"],
   ["gat", "felino"],
   ["leon", "felino"],
@@ -646,10 +884,10 @@ const CATEGORY_FAMILY: Record<string, ShapeFamily> = {
   ave: "ave",
   reptil: "reptil",
   pez: "acuatico",
-  molusco: "marino",
-  cnidario: "marino",
-  equinodermo: "marino",
-  crustaceo: "insecto",
+  molusco: "tentaculado",
+  cnidario: "tentaculado",
+  equinodermo: "invertebrado",
+  crustaceo: "crustaceo",
   mamifero: "oso",
 };
 
@@ -814,17 +1052,6 @@ function clearCell(half: HalfGrid, r: number, c: number): boolean {
   return true;
 }
 
-/** All `"B"` cells below the eyes — the "body" region used by marking ops. */
-function bodyCells(half: HalfGrid): Array<[number, number]> {
-  const start = Math.max(eyeBottomRow(half) + 1, 0);
-  const cells: Array<[number, number]> = [];
-  for (let r = start; r < GRID_SIZE; r++) {
-    for (let c = 0; c < HALF_WIDTH; c++) {
-      if (half[r][c] === "B") cells.push([r, c]);
-    }
-  }
-  return cells;
-}
 
 function hammingHalf(a: HalfGrid, b: HalfGrid): number {
   let distance = 0;
@@ -866,144 +1093,293 @@ function touchesFacePixel(half: HalfGrid, r: number, c: number): boolean {
   return false;
 }
 
-// ─── Deterministic per-animal variation ops ───────────────────────────────────
+// ─── Psychometric encoding ops ────────────────────────────────────────────────
 // Every op works on the LEFT HALF only, so mirroring keeps the sprite
-// symmetric by construction. None of them can create or destroy eye pixels.
+// symmetric by construction. See the file header for the encoding table.
 
-/** Widens the top row outwards: taller / broader ear tips, crest, antennae. */
-function opWidenTop(half: HalfGrid): boolean {
-  const original = half[0].slice();
-  let changed = false;
-  for (let c = HALF_WIDTH - 1; c >= 1; c--) {
-    if (original[c] !== "." && original[c - 1] === ".") {
-      half[0][c - 1] = original[c] === "E" ? "B" : original[c];
-      changed = true;
+/** Template eye block: rows 6-7, half-columns 4-5. */
+const EYE_ROWS = [6, 7] as const;
+const EYE_INNER_COL = 5;
+const EYE_OUTER_COL = 4;
+
+/** Writes a tone even over shadow/highlight cells; refuses transparent cells. */
+function paint(half: HalfGrid, r: number, c: number, value: string): void {
+  if (r < 0 || r >= GRID_SIZE || c < 0 || c >= HALF_WIDTH) return;
+  if (!isFilled(half[r][c])) return;
+  half[r][c] = value;
+}
+
+/**
+ * Attachment style → eye shape.
+ * - seguro: the template's steady 2×2 eyes.
+ * - ansioso: 3 rows tall with a highlight shine in the top-inner corner —
+ *   wide-open, contact-seeking.
+ * - evitativo: a narrow 1×2 eye on the outer column, so the pair sits further
+ *   apart — keeping its distance.
+ */
+function applyAttachmentEyes(half: HalfGrid, style: AttachmentStyle): void {
+  if (style === "ansioso") {
+    const top = EYE_ROWS[0] - 1;
+    paint(half, top, EYE_OUTER_COL, "E");
+    paint(half, top, EYE_INNER_COL, "H");
+  } else if (style === "evitativo") {
+    for (const r of EYE_ROWS) {
+      if (half[r][EYE_INNER_COL] === "E") half[r][EYE_INNER_COL] = "B";
     }
   }
-  return changed;
 }
 
-/** Shortens the top row (never used when the eyes live on row 0, e.g. anfibio). */
-function opTrimTop(half: HalfGrid): boolean {
-  if (half[0].includes("E")) return false;
-  if (!half[0].some(isFilled)) return false;
-  half[0] = half[0].map(() => ".");
-  return true;
-}
-
-/** Bleaches the outermost crown pixel — an ear-tip glint. */
-function opCrestHighlight(half: HalfGrid): boolean {
-  for (let c = 0; c < HALF_WIDTH; c++) {
-    if (half[0][c] !== "." && half[0][c] !== "E") {
-      return setCell(half, 0, c, "H");
-    }
+/**
+ * Enneagram triad → forehead glyph on the mirror axis (rows 3-5).
+ * - emocional (heart centre, 2-3-4): a highlight diamond.
+ * - mental (head centre, 5-6-7): a single highlight dot — a focused point.
+ * - instintiva (gut centre, 8-9-1): a grounded shadow band.
+ * When the cell already carries the glyph tone the opposite tone is used, so
+ * the mark stays visible on templates whose forehead is lit or shaded.
+ */
+function applyTriadMark(half: HalfGrid, triad: EnneagramTriad): void {
+  const mark = (r: number, c: number, tone: "H" | "S") => {
+    const alternate = tone === "H" ? "S" : "H";
+    setCell(half, r, c, half[r][c] === tone ? alternate : tone);
+  };
+  if (triad === "emocional") {
+    mark(3, 7, "H");
+    mark(4, 6, "H");
+    mark(5, 7, "H");
+  } else if (triad === "mental") {
+    mark(4, 7, "H");
+  } else {
+    mark(4, 5, "S");
+    mark(4, 6, "S");
+    mark(4, 7, "S");
   }
-  return false;
 }
 
-/** Nips the outermost crown pixel — rounded instead of pointed ears. */
-function opEarNotch(half: HalfGrid): boolean {
-  for (let c = 0; c < HALF_WIDTH; c++) {
-    if (half[0][c] !== "." && half[0][c] !== "E") {
-      return clearCell(half, 0, c);
-    }
-  }
-  return false;
-}
-
-/** Grows a shadowed horn / spine on the outer silhouette edge. */
-function opOuterSpike(half: HalfGrid): boolean {
+/**
+ * MBTI E/I → ears, antennae, crest. Extraverted archetypes flare the topmost
+ * feature outwards by one pixel; introverted ones tuck its outermost pixel in.
+ */
+function applyEnergyEars(half: HalfGrid, extraverted: boolean): void {
   const t = topFilledRow(half);
-  for (let r = t; r < Math.min(t + 4, GRID_SIZE); r++) {
-    if (half[r][0] === "." && half[r][1] !== ".") {
-      half[r][0] = "S";
-      return true;
-    }
+  const c = outermostFilled(half, t);
+  if (c < 0) return;
+  if (extraverted) {
+    setCell(half, t, c - 1, half[t][c] === "E" ? "B" : half[t][c], false);
+  } else if (t + 1 < GRID_SIZE && half[t].filter(isFilled).length > 1) {
+    clearCell(half, t, c);
   }
-  return false;
 }
 
-/** Highlight just under the eye — a cheek glint. */
-function opCheekGlow(half: HalfGrid): boolean {
-  const r = eyeBottomRow(half) + 1;
-  if (r >= GRID_SIZE) return false;
+// ─── Kawaii detail ops (`rasgos_kawaii.detalle_unico`) ───────────────────────────
+// Positions are measured from the face anchors so the same detail lands in an
+// anatomically equivalent place on every template. All writes go through
+// `setCell` / `clearCell`, which never touch eye or blush pixels.
+
+interface FaceAnchors {
+  eyeTop: number;
+  eyeBottom: number;
+  top: number;
+  bottom: number;
+}
+
+function faceAnchors(half: HalfGrid): FaceAnchors {
+  return {
+    eyeTop: eyeTopRow(half),
+    eyeBottom: eyeBottomRow(half),
+    top: topFilledRow(half),
+    bottom: bottomFilledRow(half),
+  };
+}
+
+/** Outermost painted column of a half-grid row, or `-1`. */
+function outermostFilled(half: HalfGrid, r: number): number {
+  if (r < 0 || r >= GRID_SIZE) return -1;
   for (let c = 0; c < HALF_WIDTH; c++) {
-    if (half[r][c] === "B") return setCell(half, r, c, "H");
+    if (isFilled(half[r][c])) return c;
   }
-  return false;
+  return -1;
 }
 
-/** Two highlight pixels on the forehead, hugging the mirror axis. */
-function opForeheadMark(half: HalfGrid): boolean {
-  const r = eyeTopRow(half) - 1;
-  if (r < 0) return false;
-  const targets: number[] = [];
-  for (let c = HALF_WIDTH - 1; c >= 0; c--) {
-    if (half[r][c] === "B") targets.push(c);
-  }
-  if (targets.length === 0) return false;
-  let changed = false;
-  for (const c of targets.slice(0, 2)) {
-    if (setCell(half, r, c, "H")) changed = true;
-  }
-  return changed;
+/** Recolours the outermost painted cell of a row. */
+function edge(half: HalfGrid, r: number, tone: string): void {
+  const c = outermostFilled(half, r);
+  if (c >= 0) setCell(half, r, c, tone);
 }
 
-/** Whisker dots / barbels two rows below the eyes. */
-function opWhisker(half: HalfGrid): boolean {
-  const r = eyeBottomRow(half) + 2;
-  if (r >= GRID_SIZE) return false;
-  return (
-    setCell(half, r, 1, "H") ||
-    setCell(half, r, 2, "H") ||
-    setCell(half, r, 0, "H")
-  );
+/** Grows one pixel just outside the outermost painted cell of a row. */
+function sprout(half: HalfGrid, r: number, tone: string): void {
+  const c = outermostFilled(half, r);
+  if (c > 0) setCell(half, r, c - 1, tone, false);
 }
 
-/** Two scattered shadow spots — rosettes, freckles, shell mottling. */
-function opSpotPair(half: HalfGrid, seed: number): boolean {
-  const cells = bodyCells(half);
-  if (cells.length === 0) return false;
-  let changed = false;
-  for (let i = 0; i < 2; i++) {
-    const [r, c] = cells[(seed + i * 7) % cells.length];
-    if (setCell(half, r, c, "S")) changed = true;
-  }
-  return changed;
-}
+type DetailOp = (half: HalfGrid, a: FaceAnchors) => void;
 
-/** Converts one whole body row of base tone into shadow — a band or stripe. */
-function opStripeBand(half: HalfGrid, seed: number): boolean {
-  const start = Math.max(eyeBottomRow(half) + 1, 0);
-  const rows: number[] = [];
-  for (let r = start; r < GRID_SIZE; r++) {
-    if (half[r].includes("B")) rows.push(r);
-  }
-  if (rows.length === 0) return false;
-  const r = rows[seed % rows.length];
-  let changed = false;
-  for (let c = 0; c < HALF_WIDTH; c++) {
-    if (setCell(half, r, c, "S")) changed = true;
-  }
-  return changed;
-}
+const DETAIL_OPS: Readonly<Record<string, DetailOp>> = {
+  // cabeza y cara
+  branquias_rosadas: (h, a) => {
+    sprout(h, a.eyeTop - 2, "H");
+    sprout(h, a.eyeTop, "H");
+  },
+  pico_dorado: (h, a) => {
+    setCell(h, a.eyeBottom + 1, 6, "H");
+    setCell(h, a.eyeBottom + 1, 7, "H");
+    setCell(h, a.eyeBottom + 2, 7, "H");
+  },
+  mejilla_clara: (h, a) => {
+    setCell(h, a.eyeBottom + 1, 2, "H");
+    setCell(h, a.eyeBottom + 1, 3, "H");
+  },
+  antenas_curvas: (h, a) => {
+    sprout(h, a.top, "S");
+    sprout(h, a.top + 1, "S");
+  },
+  burbuja_junto_al_ojo: (h, a) => {
+    setCell(h, a.eyeTop - 1, 2, "H", false);
+    setCell(h, a.eyeTop - 2, 1, "H", false);
+  },
+  pluma_en_la_cabeza: (h, a) => {
+    sprout(h, a.top, "H");
+    edge(h, a.top + 1, "H");
+  },
+  lengua_asomada: (h, a) => {
+    setCell(h, a.eyeBottom + 3, 7, "H", false);
+    setCell(h, a.eyeBottom + 4, 7, "H", false);
+  },
+  nariz_triangular_rosa: (h, a) => {
+    setCell(h, a.eyeBottom + 1, 6, "S");
+    setCell(h, a.eyeBottom + 1, 7, "S");
+    setCell(h, a.eyeBottom + 2, 7, "S");
+  },
+  manchas_en_la_frente: (h, a) => {
+    setCell(h, a.eyeTop - 2, 3, "S");
+    setCell(h, a.eyeTop - 3, 5, "S");
+  },
+  nariz_redonda: (h, a) => {
+    setCell(h, a.eyeBottom + 2, 6, "S");
+    setCell(h, a.eyeBottom + 2, 7, "S");
+  },
+  ceja_expresiva: (h, a) => {
+    setCell(h, a.eyeTop - 1, 3, "S");
+    setCell(h, a.eyeTop - 1, 4, "S");
+  },
+  dientes_diminutos: (h, a) => {
+    setCell(h, a.eyeBottom + 3, 6, "H");
+    setCell(h, a.eyeBottom + 3, 7, "H");
+  },
+  bigotes_de_tres_pixeles: (h, a) => {
+    sprout(h, a.eyeBottom + 1, "S");
+    sprout(h, a.eyeBottom + 2, "S");
+    edge(h, a.eyeBottom + 1, "S");
+  },
+  cresta_serena: (h, a) => {
+    edge(h, a.top, "S");
+    edge(h, a.top + 1, "S");
+  },
+  lengua_bifurcada: (h, a) => {
+    setCell(h, a.eyeBottom + 3, 7, "S", false);
+    setCell(h, a.eyeBottom + 4, 6, "S", false);
+  },
+  orejas_de_mochi: (h, a) => {
+    edge(h, a.top, "H");
+    edge(h, a.top + 1, "H");
+  },
+  mejillas_redondas: (h, a) => {
+    sprout(h, a.eyeBottom + 1, "B");
+    sprout(h, a.eyeBottom + 2, "B");
+  },
+  brillo_en_la_cresta: (h, a) => {
+    edge(h, a.top, "H");
+  },
+  // cuerpo y patas
+  alas_translucidas: (h, a) => {
+    edge(h, a.eyeBottom + 3, "H");
+    edge(h, a.eyeBottom + 4, "H");
+    edge(h, a.eyeBottom + 5, "H");
+  },
+  vientre_claro: (h, a) => {
+    setCell(h, a.bottom - 3, 6, "H");
+    setCell(h, a.bottom - 3, 7, "H");
+    setCell(h, a.bottom - 2, 7, "H");
+  },
+  parche_claro_en_el_pecho: (h, a) => {
+    setCell(h, a.eyeBottom + 5, 6, "H");
+    setCell(h, a.eyeBottom + 5, 7, "H");
+    setCell(h, a.eyeBottom + 6, 7, "H");
+  },
+  pezuñas_claras: (h, a) => {
+    for (let c = 0; c < HALF_WIDTH; c++) setCell(h, a.bottom, c, "H");
+  },
+  puntos_en_el_lomo: (h, a) => {
+    setCell(h, a.eyeBottom + 4, 2, "S");
+    setCell(h, a.eyeBottom + 6, 4, "S");
+  },
+  mancha_en_el_lomo: (h, a) => {
+    setCell(h, a.eyeBottom + 5, 3, "S");
+    setCell(h, a.eyeBottom + 5, 4, "S");
+  },
+  escamas_brillantes: (h, a) => {
+    setCell(h, a.eyeBottom + 4, 3, "H");
+    setCell(h, a.eyeBottom + 5, 5, "H");
+    setCell(h, a.eyeBottom + 6, 3, "H");
+  },
+  manchas_de_agua: (h, a) => {
+    setCell(h, a.eyeBottom + 3, 3, "H");
+    setCell(h, a.eyeBottom + 5, 5, "H");
+  },
+  dedos_redondos: (h, a) => {
+    sprout(h, a.bottom, "S");
+    sprout(h, a.bottom - 1, "S");
+  },
+  melena_corta: (h, a) => {
+    edge(h, a.eyeBottom + 3, "S");
+    edge(h, a.eyeBottom + 4, "S");
+    sprout(h, a.eyeBottom + 4, "S");
+  },
+  // colas y aletas (the asymmetric tail itself is chosen in `tailVariantFor`)
+  cola_rizada: (h, a) => {
+    setCell(h, a.bottom - 1, 3, "S");
+  },
+  cola_curva: (h, a) => {
+    setCell(h, a.bottom - 2, 3, "S");
+  },
+  aleta_curva: (h, a) => {
+    sprout(h, a.eyeBottom + 3, "S");
+  },
+  aleta_translucida: (h, a) => {
+    edge(h, a.bottom - 2, "H");
+    edge(h, a.bottom - 1, "H");
+  },
+  cola_en_abanico: (h, a) => {
+    edge(h, a.bottom, "H");
+  },
+  "cola_mágica": (h, a) => {
+    setCell(h, a.eyeBottom + 4, 4, "H");
+    setCell(h, a.top, 7, "H", false);
+  },
+  // brillos y burbujas
+  detalle_luminoso: (h, a) => {
+    setCell(h, a.eyeTop - 2, 6, "H");
+    setCell(h, a.eyeBottom + 4, 7, "H");
+  },
+  burbujas_alrededor: (h, a) => {
+    setCell(h, a.eyeTop - 3, 0, "H", false);
+    setCell(h, a.eyeTop - 5, 1, "H", false);
+  },
+};
 
-/** Shades the lowest filled row — a grounded belly / feet. */
-function opBellyShade(half: HalfGrid): boolean {
-  const r = bottomFilledRow(half);
-  let changed = false;
-  for (let c = 0; c < HALF_WIDTH; c++) {
-    if (setCell(half, r, c, "S")) changed = true;
-  }
-  return changed;
-}
+/** Tail shape per detail; species without a tail detail fall back to the hash. */
+const TAIL_BY_DETAIL: Readonly<Record<string, number>> = {
+  cola_rizada: 2,
+  cola_curva: 2,
+  "cola_mágica": 2,
+  aleta_curva: 3,
+  cola_en_abanico: 3,
+  aleta_translucida: 3,
+};
 
-/** A single highlight somewhere on the body — a scale, a feather, a spark. */
-function opBodyAccent(half: HalfGrid, seed: number): boolean {
-  const cells = bodyCells(half);
-  if (cells.length === 0) return false;
-  const [r, c] = cells[seed % cells.length];
-  return setCell(half, r, c, "H");
+function tailVariantFor(detail: string | undefined, hash: number): number {
+  if (detail && detail in TAIL_BY_DETAIL) return TAIL_BY_DETAIL[detail];
+  return hashSlice(hash, 9, 4);
 }
 
 /**
@@ -1032,41 +1408,28 @@ function opSignature(half: HalfGrid, k: number): boolean {
 }
 
 /**
- * Applies the five variation axes derived from the animal hash. The axes are
- * read from disjoint bit-ranges of the hash so they behave independently.
+ * Archetype → half grid: attachment eyes, triad mark, energy ears and the
+ * catalogue's kawaii detail, in that order. Purely a function of the catalogue
+ * entry; no hash is involved.
  */
-function applyVariations(half: HalfGrid, hash: number): void {
-  const ears = hashSlice(hash, 0, 3);
-  const crown = hashSlice(hash, 2, 4);
-  const face = hashSlice(hash, 4, 4);
-  const coat = hashSlice(hash, 6, 4);
-  const accent = hashSlice(hash, 8, 3);
-  const spotSeed = hashSlice(hash, 10, 997);
-  const accentSeed = hashSlice(hash, 14, 997);
-
-  if (ears === 1) opWidenTop(half);
-  else if (ears === 2) opTrimTop(half);
-
-  if (crown === 1) opCrestHighlight(half);
-  else if (crown === 2) opOuterSpike(half);
-  else if (crown === 3) opEarNotch(half);
-
-  if (face === 1) opCheekGlow(half);
-  else if (face === 2) opForeheadMark(half);
-  else if (face === 3) opWhisker(half);
-
-  if (coat === 1) opSpotPair(half, spotSeed);
-  else if (coat === 2) opStripeBand(half, spotSeed);
-  else if (coat === 3) opBellyShade(half);
-
-  if (accent === 1) opBodyAccent(half, accentSeed);
-  else if (accent === 2) opForeheadMark(half);
+function applyArchetype(half: HalfGrid, animal: CatalogAnimal | undefined): void {
+  if (!animal) return;
+  const profile = deriveAnimalPsychometricProfile(
+    animal as unknown as AnimalPsychometricSource,
+  );
+  applyAttachmentEyes(half, profile.attachment.style);
+  applyTriadMark(half, profile.enneagram.triada);
+  applyEnergyEars(half, profile.mbtiCode.startsWith("E"));
+  const detail = animal.rasgos_kawaii?.detalle_unico;
+  const op = detail ? DETAIL_OPS[detail] : undefined;
+  if (op) op(half, faceAnchors(half));
 }
 
 // ─── Texture strokes ──────────────────────────────────────────────────────────
-// `[row, halfColumn, tone]`. Rows are deliberately kept inside 0-8 so texture
-// can never interfere with the tail region (rows 9-11), which is what makes the
-// uniqueness proof hold. At most two cells per sprite → four after mirroring.
+// `[row, halfColumn, tone]`. Rows are deliberately kept inside 3-12 so texture
+// can never interfere with the heart rows (0-2) or the tail region (rows
+// 13-15), which is what makes the uniqueness proof hold. At most two cells per
+// sprite → four after mirroring. Eye/blush cells are never written.
 
 type TextureStroke = readonly [number, number, string];
 
@@ -1074,12 +1437,12 @@ const TEXTURE_STROKES: Record<string, readonly (readonly TextureStroke[])[]> = {
   // Crystalline: a diagonal pair of facets, top-left and bottom-right.
   cristalina: [
     [
-      [6, 3, "H"],
-      [8, 2, "H"],
+      [9, 2, "H"],
+      [11, 4, "H"],
     ],
     [
-      [7, 2, "H"],
-      [5, 3, "H"],
+      [10, 3, "H"],
+      [12, 5, "H"],
     ],
   ],
   // Matte: no extra pattern.
@@ -1087,67 +1450,67 @@ const TEXTURE_STROKES: Record<string, readonly (readonly TextureStroke[])[]> = {
   // Silky: a short horizontal sheen across the middle of the body.
   sedosa: [
     [
-      [7, 2, "H"],
-      [7, 3, "H"],
+      [11, 4, "H"],
+      [11, 5, "H"],
     ],
     [
-      [8, 2, "H"],
-      [8, 3, "H"],
+      [12, 4, "H"],
+      [12, 5, "H"],
     ],
   ],
   // Metallic: alternating highlight / shadow hugging the outer edge.
   metalica: [
     [
-      [6, 1, "H"],
-      [8, 1, "S"],
+      [10, 2, "H"],
+      [12, 2, "S"],
     ],
     [
-      [7, 1, "S"],
-      [5, 1, "H"],
+      [11, 2, "S"],
+      [9, 2, "H"],
     ],
   ],
   // Earthy: scattered shadow speckles.
   terrosa: [
     [
-      [7, 1, "S"],
-      [8, 3, "S"],
+      [11, 3, "S"],
+      [12, 5, "S"],
     ],
     [
-      [6, 2, "S"],
-      [8, 4, "S"],
+      [10, 4, "S"],
+      [12, 6, "S"],
     ],
   ],
   // Watery: an offset wave of highlight.
   acuosa: [
     [
-      [7, 1, "H"],
-      [8, 3, "H"],
+      [11, 3, "H"],
+      [12, 5, "H"],
     ],
     [
-      [6, 2, "H"],
-      [8, 4, "H"],
+      [10, 4, "H"],
+      [12, 6, "H"],
     ],
   ],
   // Luminous: highlight ringing the top of the skull.
   luminosa: [
     [
-      [2, 2, "H"],
-      [3, 1, "H"],
+      [3, 4, "H"],
+      [5, 2, "H"],
     ],
     [
-      [1, 2, "H"],
-      [3, 3, "H"],
+      [4, 3, "H"],
+      [5, 1, "H"],
     ],
   ],
   // Velvety: a soft shadow gradient over the lower body.
   aterciopelada: [
     [
-      [7, 2, "S"],
-      [8, 4, "S"],
+      [11, 4, "S"],
+      [12, 6, "S"],
     ],
     [
-      [6, 1, "S"],
-      [8, 3, "S"],
+      [10, 3, "S"],
+      [12, 4, "S"],
     ],
   ],
 };
@@ -1164,51 +1527,61 @@ function applyTexture(half: HalfGrid, textura: string, colorId: string): void {
 // ─── Tail ─────────────────────────────────────────────────────────────────────
 
 interface TailSpec {
-  /** 0 = no tail, 1 = single pixel, 2-3 = two pixels. */
+  /**
+   * 0 = no tail, 1 = one-pixel flick, 2 = upward curl (two stacked pixels),
+   * 3 = horizontal sweep (two side-by-side pixels).
+   */
   variant: number;
-  /** Chooses where along the candidate ring the tail attaches. */
-  seed: number;
+}
+
+/** Rows the tail may touch; it is the only asymmetric region of a sprite. */
+const TAIL_ROWS = 3;
+
+/** Rightmost painted column of a full-grid row, or `-1` when the row is empty. */
+function rightEdge(grid: CharGrid, r: number): number {
+  for (let c = GRID_SIZE - 1; c >= 0; c--) {
+    if (isFilled(grid[r][c])) return c;
+  }
+  return -1;
 }
 
 /**
- * Tail cells, always on the lower-right quadrant. The four grid corners stay
- * empty (a validator invariant), so `(11, 11)` is deliberately not a candidate.
- */
-const TAIL_CANDIDATES: ReadonlyArray<readonly [number, number]> = [
-  [9, 11],
-  [10, 11],
-  [9, 10],
-  [10, 10],
-  [11, 10],
-];
-
-function hasFilledNeighbour(grid: CharGrid, r: number, c: number): boolean {
-  const left = c - 1 >= 0 ? grid[r][c - 1] : ".";
-  const up = r - 1 >= 0 ? grid[r - 1][c] : ".";
-  const down = r + 1 < GRID_SIZE ? grid[r + 1][c] : ".";
-  return isFilled(left) || isFilled(up) || isFilled(down);
-}
-
-/**
- * The single intentional symmetry break. Always re-mirrors rows 9-11 first, so
- * the number of asymmetric cells can never exceed `budget` (max 2).
+ * The single intentional symmetry break. Always re-mirrors the last
+ * `TAIL_ROWS` rows first, then grows at most two shadow pixels out of the
+ * right flank on rows `GRID_SIZE-3` / `GRID_SIZE-2`, so the bottom-right
+ * corner is never written and asymmetry never exceeds two cells.
  */
 function applyTail(grid: CharGrid, spec: TailSpec): void {
-  for (let r = GRID_SIZE - 3; r < GRID_SIZE; r++) {
+  for (let r = GRID_SIZE - TAIL_ROWS; r < GRID_SIZE; r++) {
     for (let c = HALF_WIDTH; c < GRID_SIZE; c++) {
       grid[r][c] = grid[r][GRID_SIZE - 1 - c];
     }
   }
   if (spec.variant === 0) return;
-  const budget = spec.variant === 1 ? 1 : 2;
-  const start = spec.seed % TAIL_CANDIDATES.length;
-  let placed = 0;
-  for (let i = 0; i < TAIL_CANDIDATES.length && placed < budget; i++) {
-    const [r, c] = TAIL_CANDIDATES[(start + i) % TAIL_CANDIDATES.length];
-    if (grid[r][c] !== ".") continue;
-    if (!hasFilledNeighbour(grid, r, c)) continue;
+
+  const low = GRID_SIZE - 2;
+  const high = GRID_SIZE - 3;
+  const lowEdge = rightEdge(grid, low);
+  const highEdge = rightEdge(grid, high);
+  const anchor = spec.variant === 3 ? highEdge : lowEdge;
+  if (anchor < HALF_WIDTH) return; // no right flank to grow from
+
+  let cells: Array<readonly [number, number]>;
+  if (spec.variant === 1) cells = [[low, lowEdge + 1]];
+  else if (spec.variant === 2) {
+    cells = [
+      [low, lowEdge + 1],
+      [high, lowEdge + 1],
+    ];
+  } else {
+    cells = [
+      [high, highEdge + 1],
+      [high, highEdge + 2],
+    ];
+  }
+  for (const [r, c] of cells) {
+    if (c >= GRID_SIZE || grid[r][c] !== ".") continue;
     grid[r][c] = "S";
-    placed++;
   }
 }
 
@@ -1333,8 +1706,8 @@ type MaskMove = readonly [number, number, "add" | "drop"];
 
 /**
  * Aesthetic-safe silhouette edits: one-cell tufts on the sides, filled notches
- * around the ears/crown, and leaf-cell trims. Rows 0 and 11 stay untouched so
- * the validator's top/bottom band and the paw row never move.
+ * around the ears/crown, and leaf-cell trims. The first and last rows stay
+ * untouched so the validator's top/bottom band and the paw row never move.
  */
 function maskCandidateMoves(half: HalfGrid): MaskMove[] {
   const moves: MaskMove[] = [];
@@ -1344,7 +1717,7 @@ function maskCandidateMoves(half: HalfGrid): MaskMove[] {
       const neighbours = filledNeighbourCount(half, r, c);
       const outerEdge = c === 0 || r === GRID_SIZE - 2;
       if (!isFilled(half[r][c])) {
-        if (neighbours === 1 || (neighbours === 2 && (r <= 3 || outerEdge))) {
+        if (neighbours === 1 || (neighbours === 2 && (r <= 5 || outerEdge))) {
           moves.push([r, c, "add"]);
         }
       } else if (
@@ -1396,7 +1769,7 @@ function enforceMaskDistinctness(
     if (!current) continue;
     const previous = byFamily.get(current.family) ?? [];
 
-    for (let attempt = 0; attempt < 32; attempt++) {
+    for (let attempt = 0; attempt < 48; attempt++) {
       const currentMin = minMaskDistanceToPrevious(current.half, previous);
       if (currentMin >= MIN_MASK_HALF_DISTANCE) break;
 
@@ -1442,17 +1815,20 @@ function minDistanceToPrevious(half: HalfGrid, previous: HalfGrid[][]): number {
  * animals, for every animation frame.
  *
  * Why this is enough to guarantee zero duplicate sprites:
- * - texture recolours at most 2 half-cells, and only inside rows 0-8;
- * - the mandatory blush stamp recolours at most 2 more half-cells, always the
- *   same cells for a given animal, and is baked into the measured form;
- * - the frame transform is already part of the measured form;
- * - the tail re-mirrors rows 9-11 and then writes at most 2 right-side cells;
+ * - texture recolours at most 2 half-cells (rows 3-12), the same two cells for
+ *   every animal under a given colour, and never eye/blush cells;
+ * - the blush stamp and the frame transform are baked into the measured form;
+ * - corner clearing is applied before measuring, too;
+ * - the tail re-mirrors rows 13-15 and then writes at most 2 right-side cells;
  * - mirroring doubles every half-cell difference into the full grid.
  *
- * So for two animals whose forms sit at half-distance `d >= MIN_HALF_DISTANCE`:
- *   post-texture/blush half-distance >= d - 4      =  4
- *   mirrored full-grid distance      >= 2 * 4      =  8
- *   after both tails                 >= 8 - 4      =  4  > 0
+ * Texture writes the *same* tone to the *same* cells in both animals, so a
+ * differing cell can only stop differing when it is one of those ≤2 cells:
+ *   post-texture half-distance  >= d − 2  >= 6
+ *   mirrored full-grid distance >= 2 × 6  = 12
+ *   after both tails            >= 12 − 4 =  8  > 0
+ * (the older bound `2 × (8 − 4) − 4 = 4` also counted the blush, which is
+ * already inside the measured form, so it was conservative).
  *
  * Only animal `i` is ever mutated and every earlier index is re-checked after
  * each move, so the invariant holds for all pairs when the loop finishes.
@@ -1494,22 +1870,29 @@ function clearOuterCorners(half: HalfGrid): void {
   half[GRID_SIZE - 1][0] = ".";
 }
 
+const ANIMAL_BY_ID = new Map<string, CatalogAnimal>(
+  CATALOG_ANIMALS.map((animal) => [animal.id, animal]),
+);
+
+function baseTemplate(animalId: string, family: ShapeFamily): HalfGrid {
+  return parseTemplate(SPECIES_TEMPLATES[animalId] ?? FAMILY_TEMPLATES[family]);
+}
+
 function buildRegistry(): Registry {
   const patterns = new Map<string, AnimalPattern>();
 
   for (const animalId of ALL_ANIMAL_IDS) {
     const family = resolveFamily(animalId);
-    const half = parseTemplate(FAMILY_TEMPLATES[family]);
-    const hash = simpleHash(animalId);
-    applyVariations(half, hash);
+    const half = baseTemplate(animalId, family);
+    const animal = ANIMAL_BY_ID.get(animalId);
+    applyArchetype(half, animal);
     applyBlushHalf(half);
     clearOuterCorners(half);
     patterns.set(animalId, {
       family,
       half,
       tail: {
-        variant: hashSlice(hash, 9, 4),
-        seed: hashSlice(hash, 13, 97),
+        variant: tailVariantFor(animal?.rasgos_kawaii?.detalle_unico, simpleHash(animalId)),
       },
     });
   }
@@ -1709,38 +2092,35 @@ function applyBlinkHalf(half: HalfGrid): void {
   }
 }
 
-/** Rows the heart glyph occupies. */
-const HEART_ROWS = 2;
 
 /**
  * Heart glyph in HALF coordinates: two lobes on the top row plus a centred point
  * underneath. Mirroring turns it into
  *
- *     ....R..R....
- *     .....RR.....
+ *     ......R..R......
+ *     .......RR.......
  *
  * The cells are stamped unconditionally rather than only onto empty ones, so
  * every animal ends up with exactly four `#FF6B6B` pixels regardless of how full
- * its crown already is. Neither `(0, 4)` nor `(1, 5)` is an eye cell in any of
- * the twelve templates, so the heart can never erase an eye, and because the
- * stamp is byte-identical for every animal it is already baked into the happy
- * form that the distinctness solver measures.
+ * its crown already is. Eyes live on rows 5-7, so the heart (always inside
+ * rows 0-1) can never erase an eye, and because the stamp is byte-identical
+ * for every animal it is already baked into the happy form the solver measures.
  */
 const HEART_CELLS: ReadonlyArray<readonly [number, number]> = [
-  [0, 4], // lobes
-  [1, 5], // point
+  [0, 6], // lobes
+  [1, 7], // point
 ];
 
 /**
  * Romance hearts in HALF coordinates. Mirroring turns this half pattern into
- * two complete 3×3 pixel hearts (left cols 1-3, right cols 8-10), always inside
- * rows 0-2:
+ * two complete 3×3 pixel hearts (left cols 1-3, right cols 12-14), always
+ * inside rows 0-2:
  *
  *     .R.      .R.
  *     RRR  →   RRR   (per heart, five `#FF6B6B` pixels)
  *     .R.      .R.
  *
- * Every family keeps its eyes on rows 3-5, so the stamp can never erase an eye.
+ * Every template keeps its eyes on rows 5-7, so the stamp can never erase an eye.
  */
 const ROMANCE_HEART_CELLS: ReadonlyArray<readonly [number, number]> = [
   [0, 2],
@@ -1769,9 +2149,9 @@ function applyHappyHalf(half: HalfGrid): void {
     }
   }
 
-  const crown = topFilledRow(half);
-  const offset = crown >= HEART_ROWS ? crown - HEART_ROWS : 0;
-  stampHeart(half, HEART_CELLS, offset);
+  // Always rows 0-1: every template leaves those to the crown, and a fixed
+  // offset keeps the heart clear of the eyes even after silhouette edits.
+  stampHeart(half, HEART_CELLS, 0);
 }
 
 /**
@@ -1859,7 +2239,7 @@ function buildCharGrid(
   const pattern = registry().patterns.get(animalId);
   if (!pattern) {
     // Unreachable for registered ids; kept so the function is total.
-    const half = parseTemplate(FAMILY_TEMPLATES[resolveFamily(animalId)]);
+    const half = baseTemplate(animalId, resolveFamily(animalId));
     applyBlushHalf(half);
     applyFrameHalf(half, frame);
     clearOuterCorners(half);
@@ -1899,7 +2279,7 @@ export function getAllColorIds(): string[] {
 }
 
 /**
- * Main entry point. Pure and deterministic: returns the 12×12 `idle_1` sprite
+ * Main entry point. Pure and deterministic: returns the 16×16 `idle_1` sprite
  * for the given animal + colour combination.
  */
 export function getSprite(animalId: string, colorId: string): SpriteData {
@@ -1937,7 +2317,7 @@ export interface SpriteValidationResult {
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
 /**
- * Structural validation for a rendered 12×12 (or 16×16) sprite grid.
+ * Structural validation for a rendered 16×16 (or legacy 12×12) sprite grid.
  *
  * Checks, in order:
  *   1. square, supported dimensions (12 or 16);
@@ -2030,7 +2410,8 @@ export function validateSpriteIsPixelArt(
 /**
  * ASCII preview of a sprite, handy for snapshots and the dev gallery.
  * Transparent cells render as a middle dot.
- */export function spriteToAscii(sprite: SpriteData): string {
+ */
+export function spriteToAscii(sprite: SpriteData): string {
   const legend = new Map<string, string>();
   const glyphs = ["#", "+", "=", "-", "%"];
   sprite.palette.forEach((hex, index) => {

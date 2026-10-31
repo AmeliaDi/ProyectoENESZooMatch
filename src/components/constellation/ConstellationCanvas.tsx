@@ -7,7 +7,7 @@
  * SVG (not canvas 2D) because:
  *   1. every real star must be a focusable `role="button"` with an es-MX
  *      `aria-label`, which canvas cannot do without a parallel shadow tree;
- *   2. pixel sprites stay razor-sharp at any DPR through a nested 12×12 viewBox
+ *   2. pixel sprites stay razor-sharp at any DPR through a nested 16×16 viewBox
  *      plus `image-rendering: pixelated`, with no manual scale math;
  *   3. the node count is bounded (≤ 50 real + ≤ 12 ghosts) and each star costs
  *      three DOM elements thanks to the sprite-sheet trick, so the whole sky is
