@@ -603,7 +603,11 @@ export interface RomanceSelectivityResult {
  * dimensions. Conflict follows the smooth Lipschitz penalty from the design
  * brief:
  *
- *   f(Δc) = exp(-λ · max(0, Δc - δc)²),  δc = 0.40, λ = 3.5
+ *   f(Δc) = exp(-λ · max(0, Δc - δc)²)
+ *
+ * with δc = `conflict_tolerance` (0.35) and λ = `conflict_penalty_lambda`
+ * (4.0) read from `data/matching-config.json`; the brief's 0.40 / 3.5 were
+ * tightened during calibration.
  *
  * Both factors are symmetric and identical vectors are untouched.
  */

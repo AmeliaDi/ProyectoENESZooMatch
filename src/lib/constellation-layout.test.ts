@@ -435,6 +435,44 @@ describe("hard clearance", () => {
     }
   });
 
+  it("stays overlap-free on crowded phone skies (12 and 24 matches, 8 ghosts)", () => {
+    const phones = [
+      [320, 568],
+      [360, 640],
+      [390, 700],
+    ] as const;
+    for (const [width, height] of phones) {
+      for (const count of [12, 24]) {
+        const matches = Array.from({ length: count }, (_, index) =>
+          makeMatch(`crowd-${index}`, 0.8 + (index % 10) * 0.019),
+        );
+        const graph = buildGraph(ME, matches, "amistad", AMISTAD_THRESHOLD, width, height, 8);
+        const final = precomputeLayout(graph, width, height);
+        // Every real match survives; only decorative ghosts may be dropped.
+        expect(final.nodes.filter((node) => !node.isGhost)).toHaveLength(count + 1);
+        for (let i = 0; i < final.nodes.length; i++) {
+          for (let j = i + 1; j < final.nodes.length; j++) {
+            const first = final.nodes[i]!;
+            const second = final.nodes[j]!;
+            const distance = Math.hypot(first.x - second.x, first.y - second.y);
+            expect(
+              distance,
+              `${width}x${height} n=${count}: ${first.id} vs ${second.id}`,
+            ).toBeGreaterThanOrEqual(minimumCenterDistance(first, second) - 1e-6);
+          }
+        }
+      }
+    }
+  });
+
+  it("reaches the Lyapunov equilibrium with 12 matches on a phone", () => {
+    const matches = Array.from({ length: 12 }, (_, index) =>
+      makeMatch(`eq-${index}`, 0.8 + (index % 10) * 0.019),
+    );
+    const graph = buildGraph(ME, matches, "amistad", AMISTAD_THRESHOLD, 360, 640, 8);
+    expect(precomputeLayout(graph, 360, 640).isEquilibrium).toBe(true);
+  });
+
   it("keeps the romance top three separated even when their affinities are close", () => {
     const matches = [0.95, 0.94, 0.93].map((similarity, index) =>
       makeMatch(`love-${index}`, similarity, "romance"),

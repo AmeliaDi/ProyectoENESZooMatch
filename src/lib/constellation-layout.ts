@@ -675,6 +675,14 @@ export function minimumCenterDistance(
  * Positions are clamped to the padded viewport. Ghost stars are included, so
  * every rendered sprite — not just interactive matches — ends the frame with
  * disjoint support.
+ *
+ * With `inelastic`, each corrected contact also becomes a perfectly inelastic
+ * collision: the approaching normal component of the relative velocity,
+ * v_n = (v_b − v_a)·n̂ < 0, is removed, split with the same shares as the
+ * positional correction. Without it, springs keep accelerating nodes into a
+ * contact that the projection silently undoes, so kinetic energy pins at the
+ * velocity cap and the Lyapunov criterion E_k < ε is never met. The impulse
+ * only ever removes energy, so the step stays dissipative.
  */
 function relaxNodeOverlaps(
   nodes: ConstellationNode[],
@@ -682,6 +690,7 @@ function relaxNodeOverlaps(
   height: number,
   padding: number,
   iterations: number = CLEARANCE_ITERATIONS,
+  inelastic: boolean = false,
 ): void {
   for (let iteration = 0; iteration < iterations; iteration++) {
     let moved = false;
@@ -722,6 +731,18 @@ function relaxNodeOverlaps(
           shareB = overlap / 2;
         }
         if (shareA === 0 && shareB === 0) continue;
+
+        if (inelastic) {
+          const approach = (b.vx - a.vx) * ux + (b.vy - a.vy) * uy;
+          if (approach < 0) {
+            const fractionA = shareA / overlap;
+            const fractionB = shareB / overlap;
+            a.vx += ux * approach * fractionA;
+            a.vy += uy * approach * fractionA;
+            b.vx -= ux * approach * fractionB;
+            b.vy -= uy * approach * fractionB;
+          }
+        }
 
         if (shareA > 0) {
           a.x = clampToBounds(a.x - ux * shareA, width, padding).value;
@@ -768,6 +789,10 @@ export function resolveOverlaps(
  * 7. UPDATE POSITIONS: x += vx * dt, y += vy * dt (self stays at centre)
  * 8. BOUNDS: clamp positions to [padding, dimension - padding]; if clamped,
  *    zero the velocity component in that direction
+ * 8b. INELASTIC CONTACT: hard clearance plus removal of the approaching
+ *    normal velocity of every corrected pair (see `relaxNodeOverlaps`). The
+ *    system is dissipative, not Hamiltonian: damping and these impulses only
+ *    ever remove kinetic energy.
  * 9. EQUILIBRIUM: total kinetic energy = Σ(vx² + vy²); when below
  *    equilibriumThreshold for EQUILIBRIUM_TICKS (10) consecutive ticks →
  *    isEquilibrium = true (latched; drift is then layered on top as a
@@ -777,7 +802,7 @@ export function resolveOverlaps(
  *      dy = driftStrength * cos(tick * 0.013 + seed) * sin(tick * 0.009 + seed * 3)
  *    with seed = (hashSeed(id) % 1000) / 1000 * 2π. Drift never touches
  *    velocity, so it cannot re-energize the system.
- * 11. HARD CLEARANCE: circle-packing relaxation guarantees that every pair of
+ * 11. HARD CLEARANCE (after drift): circle-packing relaxation guarantees that every pair of
  *    rendered sprites respects R_i + R_j + δ (match/match = 56.55 px).
  *
  * Returns a NEW state object (immutable — does not mutate input).
@@ -934,6 +959,11 @@ export function stepSimulation(
     n.y = by.value;
   }
 
+  // 8b. Inelastic contact pass: resolve overlaps and remove the approaching
+  //     normal velocity BEFORE measuring E_k, so the Lyapunov test sees the
+  //     energy that actually survives the step.
+  relaxNodeOverlaps(nodes, state.width, state.height, p.boundsPadding, CLEARANCE_ITERATIONS, true);
+
   // 9. Kinetic energy + equilibrium (latched after EQUILIBRIUM_TICKS).
   let totalKineticEnergy = 0;
   for (const n of nodes) totalKineticEnergy += n.vx * n.vx + n.vy * n.vy;
@@ -943,7 +973,8 @@ export function stepSimulation(
   const isEquilibrium = state.isEquilibrium || settledTicks >= EQUILIBRIUM_TICKS;
 
   // 10. Floating drift: positional-only ambient motion once settled.
-  if (isEquilibrium && p.driftStrength > 0) {
+  const drifting = isEquilibrium && p.driftStrength > 0;
+  if (drifting) {
     const tick = state.tick + 1;
     for (const n of nodes) {
       if (n.isSelf) continue;
@@ -955,8 +986,9 @@ export function stepSimulation(
     }
   }
 
-  // 11. Hard clearance: positional-only, so it cannot re-energise the system.
-  relaxNodeOverlaps(nodes, state.width, state.height, p.boundsPadding);
+  // 11. Hard clearance after drift: positional-only, so it cannot re-energise
+  //     the system. Skipped when nothing moved since pass 8b.
+  if (drifting) relaxNodeOverlaps(nodes, state.width, state.height, p.boundsPadding);
 
   return {
     nodes,
@@ -1126,6 +1158,34 @@ export function switchTrack(
 }
 
 /**
+ * Removes decorative ghosts that could not be packed. On small viewports with
+ * many matches the padded box is too small for every disc (e.g. 25 real discs
+ * of diameter ≈ 56.55 px in the 240×488 px usable area of a 320×568 screen),
+ * and the projection then oscillates between ghosts. Ghosts carry no data, so
+ * dropping them is the only way to keep the separation theorem exact without
+ * moving real matches off their orbits. Ghosts are removed greedily in id
+ * order, so the result is deterministic.
+ */
+function dropCrowdedGhosts(state: SimulationState): SimulationState {
+  const kept: ConstellationNode[] = [];
+  for (const node of state.nodes) {
+    if (
+      node.isGhost &&
+      kept.some(
+        (other) =>
+          Math.hypot(node.x - other.x, node.y - other.y) <
+          minimumCenterDistance(node, other) - 1e-9,
+      )
+    ) {
+      continue;
+    }
+    kept.push(node);
+  }
+  if (kept.length === state.nodes.length) return state;
+  return { ...state, nodes: kept };
+}
+
+/**
  * Pre-runs the simulation for N ticks (default 2000) to reach a stable layout.
  * Used for prefers-reduced-motion (no animation, just final positions).
  * Deterministic: identical to calling stepSimulation N times manually.
@@ -1141,5 +1201,5 @@ export function precomputeLayout(
   for (let i = 0; i < ticks; i++) {
     state = stepSimulation(state, 1, params);
   }
-  return state;
+  return dropCrowdedGhosts(state);
 }
