@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getPublicEnv, isSupabaseConfigured } from "@/lib/env";
+import { getPublicEnv, isSupabaseConfigured } from "@/infrastructure/env/env";
 
 describe("public environment", () => {
   it("stays build-safe when Supabase credentials are absent", () => {

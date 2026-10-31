@@ -1,47 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  recomputeAllMatches: vi.fn(),
-  createAdminClient: vi.fn(),
-  createClient: vi.fn(),
-  scoreQuiz: vi.fn(),
-  generateProfileIdentity: vi.fn(),
-  generateWelcomeMessage: vi.fn(),
+  quizContext: vi.fn(),
+  submitQuiz: vi.fn(),
   safeParse: vi.fn(),
 }));
 
-vi.mock("@/domain/matching", () => ({
-  MICROTEST_ITEMS: [],
-  scoreQuiz: mocks.scoreQuiz,
+vi.mock("@/infrastructure/composition.server", () => ({ quizContext: mocks.quizContext }));
+vi.mock("@/application/submit-quiz", () => ({ submitQuiz: mocks.submitQuiz }));
+vi.mock("@/application/validation/quiz", () => ({
+  quizSubmissionSchema: { safeParse: mocks.safeParse },
 }));
-
-vi.mock("@/lib/matching/recompute.server", () => ({
-  recomputeAllMatches: mocks.recomputeAllMatches,
-}));
-
-vi.mock("@/domain/messages/notification-copy", () => ({
-  generateWelcomeMessage: mocks.generateWelcomeMessage,
-}));
-
-vi.mock("@/domain/identity/profile-generator", () => ({
-  generateProfileIdentity: mocks.generateProfileIdentity,
-}));
-
-vi.mock("@/lib/security/api.server", () => ({
+vi.mock("@/infrastructure/security/api.server", () => ({
   withApiSecurity: (handler: (request: Request) => Promise<Response>) => handler,
   createPreflightHandler: () => async () => new Response(null, { status: 204 }),
-}));
-
-vi.mock("@/lib/supabase/admin.server", () => ({
-  createAdminClient: mocks.createAdminClient,
-}));
-
-vi.mock("@/lib/supabase/server", () => ({
-  createClient: mocks.createClient,
-}));
-
-vi.mock("@/lib/validation/quiz", () => ({
-  quizSubmissionSchema: { safeParse: mocks.safeParse },
 }));
 
 import { POST } from "./route";
@@ -56,63 +28,37 @@ function request(): Request {
 
 beforeEach(() => {
   vi.clearAllMocks();
-
   mocks.safeParse.mockReturnValue({ success: true, data: { likert: [], filters: [] } });
-  mocks.createClient.mockResolvedValue({
-    auth: {
-      getUser: async () => ({ data: { user: { id: "user-1" } }, error: null }),
-    },
-  });
-  mocks.createAdminClient.mockReturnValue({
-    from: vi.fn(() => ({
-      select: () => ({
-        eq: () => ({
-          maybeSingle: async () => ({ data: { user_id: "user-1" }, error: null }),
-        }),
-      }),
-    })),
-    rpc: vi.fn(async () => ({ error: null })),
-  });
-  mocks.scoreQuiz.mockReturnValue({
-    normalizedScores: {},
-    romanceVector: [],
-    friendshipVector: [],
-    mbtiCode: "INTJ",
-    hardFilters: { orientacion_sexual: [], identidad_genero: [], tipo_relacion_busca: [] },
-  });
-  mocks.generateProfileIdentity.mockReturnValue({
-    animalId: "pulpito",
-    colorId: "azul-abisal",
-    narrative: "Una narrativa",
-    alias: "pulpito-azul-abisal-0123456789",
-    animalDiminutivo: "pulpito",
-    colorNombre: "azul abisal",
-  });
-  mocks.generateWelcomeMessage.mockReturnValue({ title: "Bienvenida", body: "Hola" });
+  mocks.quizContext.mockResolvedValue({ ok: true, value: { userId: "user-1", deps: {} } });
 });
 
 describe("POST /api/quiz", () => {
-  it("keeps the result and returns 200 when the global recompute fails", async () => {
-    mocks.recomputeAllMatches.mockRejectedValueOnce(new Error("pool changed"));
-
+  it("returns 400 with a stable code for an invalid body", async () => {
+    mocks.safeParse.mockReturnValue({ success: false });
     const response = await POST(request());
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      ok: true,
-      recomputePending: true,
-    });
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ code: "request.invalid" });
+    expect(mocks.submitQuiz).not.toHaveBeenCalled();
   });
 
-  it("returns recomputePending false when the recompute succeeds", async () => {
-    mocks.recomputeAllMatches.mockResolvedValueOnce([]);
-
+  it("returns 401 without a session", async () => {
+    mocks.quizContext.mockResolvedValue({ ok: false, error: "auth.unauthorized" });
     const response = await POST(request());
+    expect(response.status).toBe(401);
+  });
 
+  it("passes the DTO through on success", async () => {
+    const dto = { ok: true, recomputePending: true, profile: { alias: "a" } };
+    mocks.submitQuiz.mockResolvedValue({ ok: true, value: dto });
+    const response = await POST(request());
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      ok: true,
-      recomputePending: false,
-    });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    await expect(response.json()).resolves.toEqual(dto);
+  });
+
+  it("maps use-case failures to 503", async () => {
+    mocks.submitQuiz.mockResolvedValue({ ok: false, error: "storage.failed" });
+    const response = await POST(request());
+    expect(response.status).toBe(503);
   });
 });

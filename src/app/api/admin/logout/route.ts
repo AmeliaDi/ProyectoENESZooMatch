@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
-import { createClient } from "@/lib/supabase/server";
+import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { createClient } from "@/infrastructure/supabase/server";
 
 export const runtime = "nodejs";
 

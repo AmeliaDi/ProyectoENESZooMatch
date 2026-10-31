@@ -1,29 +1,18 @@
-import { NextResponse } from "next/server";
-
-import { enterWithMatricula } from "@/lib/auth/matricula-session.server";
-import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
-import { availabilityRequestSchema, parseJsonBody } from "@/lib/validation/common";
+import { availabilityRequestSchema, parseJsonBody } from "@/application/validation/common";
+import { enterWithMatricula } from "@/infrastructure/auth/matricula-session.server";
+import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
+import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 
 async function handlePost(request: Request) {
   const parsed = availabilityRequestSchema.safeParse(await parseJsonBody(request));
-  if (!parsed.success) {
-    return NextResponse.json(
-      { ok: false, error: "invalid_request" },
-      { status: 400, headers: { "Cache-Control": "no-store" } },
-    );
-  }
+  if (!parsed.success) return errorResponse("request.invalid");
 
   const result = await enterWithMatricula(parsed.data.matricula);
-  if (!result) {
-    return NextResponse.json(
-      { ok: false, error: "unavailable" },
-      { status: 503, headers: { "Cache-Control": "no-store" } },
-    );
-  }
+  if (!result) return errorResponse("service.unavailable");
 
-  return NextResponse.json({ ok: true, ...result }, { headers: { "Cache-Control": "no-store" } });
+  return jsonResponse({ ok: true, redirect: result.redirect });
 }
 
 const methods = ["POST"] as const;

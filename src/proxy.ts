@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { getPublicEnv } from "@/lib/env";
+import { getPublicEnv } from "@/infrastructure/env/env";
 
 function redirectWithCookies(url: URL, source: NextResponse): NextResponse {
   const redirect = NextResponse.redirect(url);

@@ -1,12 +1,15 @@
 import { randomBytes } from "node:crypto";
 
-import { hashMatricula, privateLoginEmail } from "@/lib/auth/identity.server";
-import { getServerEnv } from "@/lib/env.server";
-import { createAdminClient } from "@/lib/supabase/admin.server";
-import { createClient } from "@/lib/supabase/server";
+import { hashMatricula, privateLoginEmail } from "@/infrastructure/auth/identity.server";
+import { getServerEnv } from "@/infrastructure/env/env.server";
+import { createAdminClient } from "@/infrastructure/supabase/admin.server";
+import { createClient } from "@/infrastructure/supabase/server";
 
+/**
+ * Deliberately carries no "new account" flag: exposing it would let anyone
+ * probe whether a matrícula has already registered.
+ */
 export interface MatriculaEntryResult {
-  isNew: boolean;
   redirect: "/resultado" | "/cuestionario";
 }
 
@@ -44,7 +47,6 @@ export async function enterWithMatricula(
   if (profileError) return null;
 
   let profile = initialProfile;
-  let isNew = false;
   if (!profile) {
     const { data: created, error: createError } = await admin.auth.admin.createUser({
       email,
@@ -69,7 +71,6 @@ export async function enterWithMatricula(
         profile = existing.data;
       } else {
         profile = { user_id: created.user.id, quiz_completed_at: null };
-        isNew = true;
       }
     }
   }
@@ -88,7 +89,6 @@ export async function enterWithMatricula(
   if (sessionError) return null;
 
   return {
-    isNew,
     redirect: profile.quiz_completed_at ? "/resultado" : "/cuestionario",
   };
 }

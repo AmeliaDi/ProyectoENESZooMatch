@@ -1,5 +1,5 @@
-import { isOriginAllowed, mergeVary, parseAllowedOrigins } from "@/lib/security/origin";
-import { checkRateLimit, type RateLimitDecision } from "@/lib/security/rate-limit.server";
+import { isOriginAllowed, mergeVary, parseAllowedOrigins } from "@/infrastructure/security/origin";
+import { checkRateLimit, type RateLimitDecision } from "@/infrastructure/security/rate-limit.server";
 
 export interface ApiSecurityPolicy {
   name: string;

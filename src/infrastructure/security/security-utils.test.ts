@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { isOriginAllowed, mergeVary, parseAllowedOrigins } from "@/lib/security/origin";
-import { evaluateRateLimit } from "@/lib/security/rate-limit.server";
+import { isOriginAllowed, mergeVary, parseAllowedOrigins } from "@/infrastructure/security/origin";
+import { evaluateRateLimit } from "@/infrastructure/security/rate-limit.server";
 
 describe("API origin policy", () => {
   it("normalizes an explicit HTTP(S) allowlist", () => {

@@ -7,7 +7,7 @@ import {
   likertAnswerSchema,
   notificationIdsSchema,
   quizSubmissionSchema,
-} from "@/lib/validation/quiz";
+} from "@/application/validation/quiz";
 import type { LikertAnswer, LikertValue, QuizSubmission } from "@/types/microtest";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────

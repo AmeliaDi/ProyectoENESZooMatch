@@ -1,84 +1,35 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-
-import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
-import { createClient } from "@/lib/supabase/server";
-import { parseJsonBody } from "@/lib/validation/common";
-import { notificationIdsSchema } from "@/lib/validation/quiz";
+import { listNotifications, markNotificationsRead } from "@/application/notifications";
+import { parseJsonBody } from "@/application/validation/common";
+import { notificationIdsSchema } from "@/application/validation/quiz";
+import { notificationContext } from "@/infrastructure/composition.server";
+import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
+import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const notificationSchema = z.object({
-  id: z.string(),
-  type: z.string(),
-  title: z.string(),
-  body: z.string(),
-  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
-  read: z.boolean(),
-  created_at: z.string(),
-});
-
 async function handleGet(request: Request) {
-  const client = await createClient();
-  if (!client) {
-    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-  }
-
-  const { data: userData, error: userError } = await client.auth.getUser();
-  if (userError || !userData.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const context = await notificationContext();
+  if (!context.ok) return errorResponse(context.error);
 
   const includeRead = new URL(request.url).searchParams.get("all") === "true";
-
-  const { data, error } = await client.rpc("get_my_notifications", {
-    p_unread_only: !includeRead,
-  });
-
-  if (error) {
-    return NextResponse.json({ error: "Notifications unavailable" }, { status: 503 });
-  }
-
-  const parsed = z.array(notificationSchema).safeParse(data ?? []);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Notifications unavailable" }, { status: 503 });
-  }
-
-  return NextResponse.json(
-    { notifications: parsed.data },
-    { headers: { "Cache-Control": "no-store" } },
-  );
+  const result = await listNotifications(includeRead, context.value);
+  return result.ok
+    ? jsonResponse({ notifications: result.value })
+    : errorResponse(result.error);
 }
 
 async function handlePatch(request: Request) {
-  const client = await createClient();
-  if (!client) {
-    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-  }
-
-  const { data: userData, error: userError } = await client.auth.getUser();
-  if (userError || !userData.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const context = await notificationContext();
+  if (!context.ok) return errorResponse(context.error);
 
   const parsed = notificationIdsSchema.safeParse(await parseJsonBody(request));
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  }
+  if (!parsed.success) return errorResponse("request.invalid");
 
-  const { data, error } = await client.rpc("mark_notifications_read", {
-    p_ids: parsed.data.ids,
-  });
-
-  if (error) {
-    return NextResponse.json({ error: "Unable to update notifications" }, { status: 503 });
-  }
-
-  return NextResponse.json(
-    { ok: true, marked: typeof data === "number" ? data : 0 },
-    { headers: { "Cache-Control": "no-store" } },
-  );
+  const result = await markNotificationsRead(parsed.data.ids, context.value);
+  return result.ok
+    ? jsonResponse({ ok: true, marked: result.value })
+    : errorResponse(result.error);
 }
 
 const methods = ["GET", "PATCH"] as const;

@@ -1,0 +1,124 @@
+/**
+ * Ports the use cases depend on. Infrastructure adapters implement them;
+ * tests use in-memory fakes. Adapters must not throw: every expected failure
+ * comes back as a `Result`.
+ */
+import type { GlobalMatch } from "@/domain/matching";
+import type { InclusiveMode } from "@/domain/messages/inclusive-text";
+import type { Result } from "@/domain/shared";
+import type { MatchTrack, ProfileIdentity, ScoredProfile } from "@/types/microtest";
+
+import type { AppError, StorageError } from "./errors";
+
+export type { Clock, Hmac } from "@/domain/shared";
+
+export interface SessionPort {
+  currentUserId(): Promise<Result<string, Extract<AppError, "auth.unauthorized">>>;
+}
+
+export interface StoredAnswer {
+  itemId: string;
+  value?: number;
+  selected?: string[];
+}
+
+export interface QuizResultRecord {
+  userId: string;
+  answers: readonly StoredAnswer[];
+  scored: ScoredProfile;
+  identity: ProfileIdentity;
+}
+
+export interface PoolProfile {
+  userId: string;
+  profile: ScoredProfile;
+}
+
+export interface OwnProfile {
+  alias: string;
+  narrative: string;
+  mbtiCode: string | null;
+  dimensionScores: Record<string, number> | null;
+  romanceVector: number[] | null;
+  amistadVector: number[] | null;
+  animal: { id: string; diminutivo_es: string; categoria_fauna: string } | null;
+  color: { id: string; nombre: string; hex: string } | null;
+}
+
+export interface CounterpartProfile {
+  userId: string;
+  dimensionScores: Record<string, number> | null;
+  mbtiCode: string | null;
+  romanceVector: number[] | null;
+  amistadVector: number[] | null;
+  animalId: string | null;
+  colorId: string | null;
+  colorHex: string | null;
+}
+
+export interface ProfileRepository {
+  isQuizCompleted(userId: string): Promise<Result<boolean, StorageError>>;
+  saveQuizResult(record: QuizResultRecord): Promise<Result<void, StorageError>>;
+  /** Cosmetic preference; best-effort. */
+  setInclusiveMode(userId: string, mode: InclusiveMode): Promise<void>;
+  loadCompletedPool(): Promise<Result<PoolProfile[], StorageError>>;
+  findOwn(userId: string): Promise<Result<OwnProfile | null, StorageError>>;
+  /** Best-effort: missing counterparts simply produce no explanation. */
+  findCounterparts(userIds: readonly string[]): Promise<CounterpartProfile[]>;
+}
+
+export interface StoredMatch {
+  track: MatchTrack;
+  otherUser: string | null;
+  otherAlias: string | null;
+  otherAnimal: string | null;
+  otherColor: string | null;
+  similarity: number;
+  badges: Array<{ dimension: string; affinity: number }>;
+}
+
+export type ReplaceOutcome = "replaced" | "pool_changed";
+
+export interface MatchRepository {
+  replaceAll(
+    pairs: readonly GlobalMatch[],
+    expectedProfiles: number,
+  ): Promise<Result<ReplaceOutcome, StorageError>>;
+  /** Matches of the authenticated viewer. */
+  listMine(): Promise<Result<StoredMatch[], StorageError>>;
+}
+
+export interface NotificationRecord {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  metadata?: Record<string, unknown> | null | undefined;
+  read: boolean;
+  created_at: string;
+}
+
+export interface NotificationRepository {
+  notifyMatches(userId: string): Promise<Result<void, StorageError>>;
+  insertWelcome(
+    userId: string,
+    message: { title: string; body: string },
+    metadata: Record<string, string>,
+  ): Promise<void>;
+  listMine(unreadOnly: boolean): Promise<Result<NotificationRecord[], StorageError>>;
+  markRead(ids: readonly string[]): Promise<Result<number, StorageError>>;
+}
+
+export interface AdminRepository {
+  isAdmin(userId: string): Promise<boolean>;
+  loadDashboard(thresholds: {
+    romance: number;
+    amistad: number;
+  }): Promise<Result<unknown, StorageError>>;
+}
+
+/** Deferred effects for retry loops, injectable for tests. */
+export interface Scheduler {
+  sleep(ms: number): Promise<void>;
+  random(): number;
+}

@@ -19,7 +19,7 @@ import {
   parseAdminMetrics,
   trackCoverageRate,
   type AdminMetrics,
-} from "@/lib/admin/dashboard";
+} from "@/application/admin/dashboard";
 import { getMatchingConfig } from "@/domain/matching/config";
 
 interface AdminDashboardProps {

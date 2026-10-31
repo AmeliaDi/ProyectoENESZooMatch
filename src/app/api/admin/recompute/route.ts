@@ -1,35 +1,23 @@
-import { NextResponse } from "next/server";
-
-import { getAdminContext } from "@/lib/auth/admin-auth.server";
-import { recomputeAllMatches } from "@/lib/matching/recompute.server";
-import { createAdminClient } from "@/lib/supabase/admin.server";
-import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
+import { recomputeMatches } from "@/application/recompute-matches";
+import { adminContext, recomputeDeps } from "@/infrastructure/composition.server";
+import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
+import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 async function handlePost() {
-  const context = await getAdminContext();
-  if (context.status === "unauthorized") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (context.status === "forbidden") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  if (context.status === "unavailable") {
-    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-  }
+  const context = await adminContext();
+  if (!context.ok) return errorResponse(context.error);
 
-  const admin = createAdminClient();
-  if (!admin) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+  const deps = recomputeDeps();
+  if (!deps.ok) return errorResponse(deps.error);
 
-  try {
-    const pairs = await recomputeAllMatches(admin);
-    return NextResponse.json({ ok: true, pairs: pairs.length });
-  } catch {
-    return NextResponse.json({ error: "Unable to recompute matches" }, { status: 503 });
-  }
+  const pairs = await recomputeMatches(deps.value);
+  return pairs.ok
+    ? jsonResponse({ ok: true, pairs: pairs.value.length })
+    : errorResponse(pairs.error);
 }
 
 const methods = ["POST"] as const;

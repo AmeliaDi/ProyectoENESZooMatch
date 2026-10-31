@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
-import { createClient } from "@/lib/supabase/server";
-import { parseJsonBody } from "@/lib/validation/common";
+import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { createClient } from "@/infrastructure/supabase/server";
+import { parseJsonBody } from "@/application/validation/common";
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),

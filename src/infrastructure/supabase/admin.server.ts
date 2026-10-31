@@ -1,6 +1,6 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
-import { getServerEnv } from "@/lib/env.server";
+import { getServerEnv } from "@/infrastructure/env/env.server";
 
 export function createAdminClient() {
   const env = getServerEnv();

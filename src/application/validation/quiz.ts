@@ -31,7 +31,7 @@ export const FILTER_ITEM_IDS: string[] = rawItems
 
 export const likertAnswerSchema = z.object({
   itemId: z.string().min(1).max(32),
-  value: z.number().int().min(1).max(5),
+  value: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
 });
 
 export const filterAnswerSchema = z.object({
