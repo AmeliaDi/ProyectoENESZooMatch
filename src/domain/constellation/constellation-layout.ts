@@ -334,8 +334,8 @@ function buildEdges(
   }
   for (let i = 0; i < matchNodes.length; i++) {
     for (let j = i + 1; j < matchNodes.length; j++) {
-      const a = matchNodes[i];
-      const b = matchNodes[j];
+      const a = matchNodes[i]!;
+      const b = matchNodes[j]!;
       const pairSim = estimatePairSimilarity(a.similarity, b.similarity);
       const edge = makeEdge(a, b, pairSim, threshold, distanceConfig);
       if (edge) edges.push(edge);
@@ -549,8 +549,9 @@ export function detectClusters(graph: ConstellationGraph): ConstellationCluster[
         }))
         .filter((c) => clique.every((m) => edgeWeight(c.id, m) > 0))
         .sort((a, b) => b.avgSim - a.avgSim || (a.id < b.id ? -1 : 1));
-      if (candidates.length > 0) {
-        clique = [...clique, candidates[0].id].sort();
+      const [best] = candidates;
+      if (best) {
+        clique = [...clique, best.id].sort();
         grew = true;
       }
     }
@@ -562,10 +563,13 @@ export function detectClusters(graph: ConstellationGraph): ConstellationCluster[
 
   for (let i = 0; i < ids.length; i++) {
     for (let j = i + 1; j < ids.length; j++) {
-      if (edgeWeight(ids[i], ids[j]) <= 0) continue;
+      const idI = ids[i]!;
+      const idJ = ids[j]!;
+      if (edgeWeight(idI, idJ) <= 0) continue;
       for (let k = j + 1; k < ids.length; k++) {
-        if (edgeWeight(ids[i], ids[k]) <= 0 || edgeWeight(ids[j], ids[k]) <= 0) continue;
-        const clique = expandToClique([ids[i], ids[j], ids[k]]);
+        const idK = ids[k]!;
+        if (edgeWeight(idI, idK) <= 0 || edgeWeight(idJ, idK) <= 0) continue;
+        const clique = expandToClique([idI, idJ, idK]);
         const signature = clique.join("|");
         if (seenSignatures.has(signature)) continue;
         seenSignatures.add(signature);
@@ -582,7 +586,7 @@ export function detectClusters(graph: ConstellationGraph): ConstellationCluster[
     let simCount = 0;
     for (let a = 0; a < nodeIds.length; a++) {
       for (let b = a + 1; b < nodeIds.length; b++) {
-        simSum += edgeWeight(nodeIds[a], nodeIds[b]);
+        simSum += edgeWeight(nodeIds[a]!, nodeIds[b]!);
         simCount++;
       }
     }
@@ -669,9 +673,9 @@ function relaxNodeOverlaps(
   for (let iteration = 0; iteration < iterations; iteration++) {
     let moved = false;
     for (let i = 0; i < nodes.length; i++) {
-      const a = nodes[i];
+      const a = nodes[i]!;
       for (let j = i + 1; j < nodes.length; j++) {
-        const b = nodes[j];
+        const b = nodes[j]!;
         const minDistance = minimumCenterDistance(a, b);
         let dx = b.x - a.x;
         let dy = b.y - a.y;
@@ -796,8 +800,8 @@ export function stepSimulation(
     const si = indexById.get(edge.source);
     const ti = indexById.get(edge.target);
     if (si === undefined || ti === undefined) continue;
-    const a = nodes[si];
-    const b = nodes[ti];
+    const a = nodes[si]!;
+    const b = nodes[ti]!;
     let dx = b.x - a.x;
     let dy = b.y - a.y;
     let dist = Math.sqrt(dx * dx + dy * dy);
@@ -826,10 +830,10 @@ export function stepSimulation(
   //    clearance pass (section 11) but carry no spring, gravity or collision
   //    velocity, so they cannot re-energise the real subsystem.
   for (let i = 0; i < nodes.length; i++) {
-    const a = nodes[i];
+    const a = nodes[i]!;
     if (a.isGhost) continue;
     for (let j = i + 1; j < nodes.length; j++) {
-      const b = nodes[j];
+      const b = nodes[j]!;
       if (b.isGhost) continue;
       let dx = b.x - a.x;
       let dy = b.y - a.y;
@@ -863,12 +867,12 @@ export function stepSimulation(
   const cx = state.width / 2;
   const cy = state.height / 2;
   for (let i = 0; i < nodes.length; i++) {
-    const a = nodes[i];
+    const a = nodes[i]!;
     if (a.isGhost || a.isSelf) continue;
     const radiusA = Math.hypot(a.x - cx, a.y - cy);
     const angleA = Math.atan2(a.y - cy, a.x - cx);
     for (let j = i + 1; j < nodes.length; j++) {
-      const b = nodes[j];
+      const b = nodes[j]!;
       if (b.isGhost || b.isSelf) continue;
       const radiusB = Math.hypot(b.x - cx, b.y - cy);
       if (Math.abs(radiusA - radiusB) >= ANGULAR_RADIUS_BAND) continue;

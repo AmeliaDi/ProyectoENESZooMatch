@@ -189,7 +189,7 @@ const SpriteView = memo(function SpriteView({
   const cells = [];
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < GRID_SIZE; c++) {
-      const hex = sprite.grid[r][c];
+      const hex = sprite.grid[r]?.[c];
       if (!hex) continue;
       cells.push(
         <rect
@@ -368,7 +368,7 @@ function Segmented({ legend, options, value, onChange }: SegmentedProps) {
 
 export function SpriteGallery() {
   const [query, setQuery] = useState("");
-  const [colorId, setColorId] = useState<string>(ALL_COLOR_IDS[0]);
+  const [colorId, setColorId] = useState<string>(ALL_COLOR_IDS[0] ?? "");
   const [bg, setBg] = useState<BgMode>("claro");
   const [scale, setScale] = useState<Scale>(2);
   const [animate, setAnimate] = useState(true);
@@ -436,7 +436,7 @@ export function SpriteGallery() {
 
   const pickRandomColor = useCallback(() => {
     const next = ALL_COLOR_IDS[Math.floor(Math.random() * ALL_COLOR_IDS.length)];
-    setColorId(next);
+    if (next !== undefined) setColorId(next);
   }, []);
 
   const exportSheet = useCallback(() => {
@@ -461,7 +461,7 @@ export function SpriteGallery() {
       const oy = pad + Math.floor(i / cols) * (spritePx + pad);
       for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
-          const hex = sprite.grid[r][c];
+          const hex = sprite.grid[r]?.[c];
           if (!hex) continue;
           ctx.fillStyle = hex;
           ctx.fillRect(ox + c * cell, oy + r * cell, cell, cell);

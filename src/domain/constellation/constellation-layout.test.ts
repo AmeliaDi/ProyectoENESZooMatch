@@ -119,7 +119,7 @@ describe("similarityToDistance", () => {
     const distances = sims.map((s) => similarityToDistance(s, 0.75)!);
     distances.forEach((d) => expect(typeof d).toBe("number"));
     for (let i = 1; i < distances.length; i++) {
-      expect(distances[i]).toBeLessThan(distances[i - 1]);
+      expect(distances[i]).toBeLessThan(distances[i - 1]!);
     }
   });
 
@@ -251,10 +251,11 @@ describe("buildGraph", () => {
   it("places exactly one self node at the viewport center", () => {
     const selfNodes = graph.nodes.filter((n) => n.isSelf);
     expect(selfNodes.length).toBe(1);
-    expect(selfNodes[0].id).toBe(ME.id);
-    expect(selfNodes[0].x).toBe(VIEWPORT_W / 2);
-    expect(selfNodes[0].y).toBe(VIEWPORT_H / 2);
-    expect(selfNodes[0].radius).toBe(28);
+    const selfNode = selfNodes[0]!;
+    expect(selfNode.id).toBe(ME.id);
+    expect(selfNode.x).toBe(VIEWPORT_W / 2);
+    expect(selfNode.y).toBe(VIEWPORT_H / 2);
+    expect(selfNode.radius).toBe(28);
   });
 
   it("only creates edges with similarity strictly above the threshold", () => {
@@ -483,7 +484,7 @@ describe("detectClusters", () => {
     );
     const clusters = detectClusters(graph);
     expect(clusters.length).toBe(1);
-    expect(clusters[0].nodeIds.sort()).toEqual(["a", "b", "c"]);
+    expect(clusters[0]!.nodeIds.sort()).toEqual(["a", "b", "c"]);
   });
 
   it("returns no cluster for a mere pair (needs 3+)", () => {
@@ -536,7 +537,7 @@ describe("detectClusters", () => {
     ];
     const clusters = detectClusters(makeGraph(nodes, edges));
     expect(clusters.length).toBe(1);
-    expect(clusters[0].nodeIds.length).toBe(4);
+    expect(clusters[0]!.nodeIds.length).toBe(4);
   });
 
   it("computes the centroid as the average of member positions", () => {
@@ -544,7 +545,7 @@ describe("detectClusters", () => {
       [makeNode("a", 90, 120), makeNode("b", 210, 120), makeNode("c", 150, 210)],
       [makeEdge("a", "b", 0.9), makeEdge("b", "c", 0.9), makeEdge("a", "c", 0.9)],
     );
-    const cluster = detectClusters(graph)[0];
+    const cluster = detectClusters(graph)[0]!;
     expect(cluster.centroidX).toBeCloseTo((90 + 210 + 150) / 3, 10);
     expect(cluster.centroidY).toBeCloseTo((120 + 120 + 210) / 3, 10);
   });
@@ -554,7 +555,7 @@ describe("detectClusters", () => {
       [makeNode("a", 0, 0), makeNode("b", 10, 0), makeNode("c", 0, 10)],
       [makeEdge("a", "b", 0.8), makeEdge("b", "c", 0.9), makeEdge("a", "c", 1.0)],
     );
-    expect(detectClusters(graph)[0].avgSimilarity).toBeCloseTo((0.8 + 0.9 + 1.0) / 3, 10);
+    expect(detectClusters(graph)[0]!.avgSimilarity).toBeCloseTo((0.8 + 0.9 + 1.0) / 3, 10);
   });
 
   it("returns an empty array for an empty graph", () => {

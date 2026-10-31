@@ -142,7 +142,7 @@ describe("selectAnimal", () => {
     );
 
     expect(extraverted.personality_affinity.personalidad_extraversion).toBeGreaterThanOrEqual(
-      introverted.personality_affinity.personalidad_extraversion,
+      introverted.personality_affinity.personalidad_extraversion!,
     );
     expect(bigFiveVector(extraverted)).not.toEqual(bigFiveVector(introverted));
   });

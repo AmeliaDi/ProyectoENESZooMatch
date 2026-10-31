@@ -92,7 +92,7 @@ export function ConstellationSection({
       matches={adapted.matches}
       initialTrack={initialTrack}
       emptyMessage={NO_MATCH_MESSAGE}
-      className={className}
+      {...(className !== undefined ? { className } : {})}
       // The canvas already reserves a definite height (min(72vh,44rem), floor
       // 22rem); this floor on the outer section avoids layout shift while it boots.
       style={{ minHeight: "22rem" }}

@@ -423,7 +423,7 @@ export function computeTrackCentroid(
       throw new Error("Vectors must all share the same length");
     }
     for (let index = 0; index < length; index += 1) {
-      centroid[index] += vector[index] ?? 0;
+      centroid[index] = (centroid[index] ?? 0) + (vector[index] ?? 0);
     }
   }
   return centroid.map((value) => value / vectors.length);

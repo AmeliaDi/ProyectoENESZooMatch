@@ -234,8 +234,11 @@ export function formatInclusive(
     if (Object.prototype.hasOwnProperty.call(values, key)) {
       return String(values[key]);
     }
-    if (Object.prototype.hasOwnProperty.call(DICTIONARY, key)) {
-      return DICTIONARY[key][mode];
+    const forms = Object.prototype.hasOwnProperty.call(DICTIONARY, key)
+      ? DICTIONARY[key]
+      : undefined;
+    if (forms) {
+      return forms[mode];
     }
     return pickInlineForm(key, mode) ?? match;
   });

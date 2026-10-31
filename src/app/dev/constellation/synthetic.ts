@@ -71,7 +71,9 @@ function shuffled<T>(list: readonly T[], rand: () => number): T[] {
   const copy = list.slice();
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+    const tmp = copy[i]!;
+    copy[i] = copy[j]!;
+    copy[j] = tmp;
   }
   return copy;
 }
@@ -105,8 +107,9 @@ export function generateSyntheticMatches({
   const matches: ConstellationMatchInput[] = [];
   for (let index = 0; index < total; index += 1) {
     const track: MatchTrack = index % 2 === 0 ? "romance" : "amistad";
-    const animalId = animals[index % animals.length];
-    const colorId = colors[index % colors.length];
+    // total <= animals.length * colors.length, so both lists are non-empty here.
+    const animalId = animals[index % animals.length]!;
+    const colorId = colors[index % colors.length]!;
     const goesAbove = rand() < 0.6;
     const similarity = goesAbove
       ? clamp01(threshold + rand() * (1 - threshold))

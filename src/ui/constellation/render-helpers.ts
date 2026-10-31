@@ -131,13 +131,13 @@ let heartRectCache: HeartRect[] | null = null;
 export function heartRects(): readonly HeartRect[] {
   if (heartRectCache) return heartRectCache;
   const rects: HeartRect[] = [];
-  const width = HEART_ROWS[0].length;
+  const width = HEART_ROWS[0]?.length ?? 0;
   const height = HEART_ROWS.length;
   const offsetX = -width / 2;
   const offsetY = -height / 2;
   const mid = offsetX + width / 2;
   for (let y = 0; y < height; y++) {
-    const row = HEART_ROWS[y];
+    const row = HEART_ROWS[y]!;
     let x = 0;
     while (x < row.length) {
       if (row[x] !== "x") {

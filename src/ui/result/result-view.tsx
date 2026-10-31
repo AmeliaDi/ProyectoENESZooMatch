@@ -428,7 +428,7 @@ export function PublicResultView() {
           aria-live="polite"
         >
           <motion.div
-            animate={reduceMotion ? undefined : { y: [0, -12, 0], rotate: [-2, 2, -2] }}
+            {...(reduceMotion ? {} : { animate: { y: [0, -12, 0], rotate: [-2, 2, -2] } })}
             transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
             className="mx-auto mb-10 w-fit"
           >
@@ -665,7 +665,7 @@ export function PublicResultView() {
                   key={activeTrack}
                   initial={reduceMotion ? false : { opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                  {...(reduceMotion ? {} : { exit: { opacity: 0, y: -8 } })}
                   transition={{ duration: 0.3, ease }}
                 >
                   {activeMatches.length === 0 ? (

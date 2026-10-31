@@ -59,6 +59,11 @@ const ALL_IDS = getAllAnimalIds();
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/** Cell `(r, c)` of a grid, or `undefined` when out of range. */
+function cellAt<T>(grid: readonly (readonly T[])[], r: number, c: number): T | undefined {
+  return grid[r]?.[c];
+}
+
 /** Serialises a grid so two sprites can be compared with a single `toBe`. */
 function fingerprint(sprite: SpriteData): string {
   return JSON.stringify(sprite.grid);
@@ -72,7 +77,7 @@ function asymmetricCells(grid: string[][]): Array<[number, number]> {
   const diffs: Array<[number, number]> = [];
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (grid[r][c] !== grid[r][GRID_SIZE - 1 - c]) diffs.push([r, c]);
+      if (cellAt(grid, r, c) !== cellAt(grid, r, GRID_SIZE - 1 - c)) diffs.push([r, c]);
     }
   }
   return diffs;
@@ -102,7 +107,7 @@ describe("getSprite — coverage", () => {
     expect(rendered).toHaveLength(ALL_IDS.length);
 
     rendered.forEach((sprite, index) => {
-      const animalId = ALL_IDS[index];
+      const animalId = ALL_IDS[index] ?? "";
       expectValidSprite(sprite, animalId);
       expect(sprite.family).toBe(getAnimalFamily(animalId));
       expect(sprite.colorId).toBe(PRIMARY_COLOR);
@@ -169,7 +174,9 @@ describe("determinism", () => {
     expect(second.grid[0]).not.toBe(first.grid[0]);
 
     // Mutating a returned grid must not corrupt later renders.
-    first.grid[0][0] = "#000000";
+    const firstRow = first.grid[0];
+    expect(firstRow).toBeDefined();
+    if (firstRow) firstRow[0] = "#000000";
     expect(getSprite("gatito", PRIMARY_COLOR).grid).toEqual(second.grid);
   });
 
@@ -228,8 +235,8 @@ describe("horizontal symmetry", () => {
       const { grid } = getSprite(animalId, PRIMARY_COLOR);
       for (let r = 0; r < GRID_SIZE - 3; r++) {
         for (let c = 0; c < HALF_WIDTH; c++) {
-          expect(grid[r][c], `${animalId} row ${r} col ${c}`).toBe(
-            grid[r][GRID_SIZE - 1 - c],
+          expect(cellAt(grid, r, c), `${animalId} row ${r} col ${c}`).toBe(
+            cellAt(grid, r, GRID_SIZE - 1 - c),
           );
         }
       }
@@ -262,7 +269,7 @@ describe("palette", () => {
   it("uses the catalogue hex as the base tone and derives the shades from it", () => {
     for (const color of CATALOG_COLORS) {
       const { palette } = getSprite("delfincito", color.id);
-      const [base, shadow, highlight, eyes, blush] = palette;
+      const [base, shadow = "", highlight = "", eyes, blush] = palette;
 
       expect(base, `${color.id} base`).toBe(color.hex);
       expect(eyes, `${color.id} eyes`).toBe(EYE_COLOR);
@@ -361,12 +368,15 @@ describe("uniqueness", () => {
       for (let i = 0; i < members.length; i++) {
         for (let j = i + 1; j < members.length; j++) {
           let distance = 0;
-          for (let k = 0; k < members[i].mask.length; k++) {
-            if (members[i].mask[k] !== members[j].mask[k]) distance++;
+          const a = members[i];
+          const b = members[j];
+          if (!a || !b) continue;
+          for (let k = 0; k < a.mask.length; k++) {
+            if (a.mask[k] !== b.mask[k]) distance++;
           }
           expect(
             distance,
-            `${family}: ${members[i].id} vs ${members[j].id} silhouette distance`,
+            `${family}: ${a.id} vs ${b.id} silhouette distance`,
           ).toBeGreaterThanOrEqual(6);
         }
       }
@@ -389,11 +399,13 @@ describe("animation frames", () => {
       let changed = 0;
       for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
-          if (open.grid[r][c] === blink.grid[r][c]) continue;
+          const before = cellAt(open.grid, r, c);
+          const after = cellAt(blink.grid, r, c);
+          if (before === after) continue;
           changed++;
           // Only an eye pixel may change, and it becomes the base tone.
-          expect(open.grid[r][c], `${animalId} changed cell ${r},${c}`).toBe(EYE_COLOR);
-          expect(blink.grid[r][c], `${animalId} blinked cell ${r},${c}`).toBe(
+          expect(before, `${animalId} changed cell ${r},${c}`).toBe(EYE_COLOR);
+          expect(after, `${animalId} blinked cell ${r},${c}`).toBe(
             open.palette[0],
           );
         }
@@ -435,7 +447,7 @@ describe("animation frames", () => {
       // The heart lives in the two topmost rows, above the crown.
       for (let r = 2; r < GRID_SIZE; r++) {
         expect(
-          happy.grid[r].includes(HEART_COLOR),
+          happy.grid[r]?.includes(HEART_COLOR),
           `${animalId} heart must stay above row 2`,
         ).toBe(false);
       }
@@ -492,7 +504,7 @@ describe("animation frames", () => {
       expect(floatedHearts, `${animalId} hearts live in rows 0-2`).toBe(heartPixels);
       for (let r = 3; r < GRID_SIZE; r++) {
         expect(
-          romance.grid[r].includes(HEART_COLOR),
+          romance.grid[r]?.includes(HEART_COLOR),
           `${animalId} hearts must stay above row 3`,
         ).toBe(false);
       }
@@ -704,7 +716,7 @@ describe("texture", () => {
         let differing = 0;
         for (let r = 0; r < GRID_SIZE; r++) {
           for (let c = 0; c < GRID_SIZE; c++) {
-            if (plain[r][c] !== textured[r][c]) differing++;
+            if (cellAt(plain, r, c) !== cellAt(textured, r, c)) differing++;
           }
         }
         expect(

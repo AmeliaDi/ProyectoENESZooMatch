@@ -264,7 +264,10 @@ export function AdminDashboard({ initialData }: AdminDashboardProps) {
                   <YAxis allowDecimals={false} tick={{ fill: "#718079", fontSize: 9 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: "#ffffff08" }} contentStyle={{ background: "#111915", border: "1px solid #ffffff1a", color: "#eef2e3", fontSize: 12 }} />
                   <Bar dataKey="count" name="Perfiles" radius={[2, 2, 0, 0]}>
-                    {mbtiDistribution.map((entry, index) => <Cell key={entry.code} fill={chartColors[Math.floor(index / 4)]} />)}
+                    {mbtiDistribution.map((entry, index) => {
+                                          const fill = chartColors[Math.floor(index / 4)];
+                                          return <Cell key={entry.code} {...(fill !== undefined ? { fill } : {})} />;
+                                        })}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

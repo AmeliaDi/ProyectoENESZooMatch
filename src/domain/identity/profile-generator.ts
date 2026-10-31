@@ -439,9 +439,11 @@ function cosineSimilarity(a: number[], b: number[]): number {
   let normA = 0;
   let normB = 0;
   for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
+    const ai = a[i]!;
+    const bi = b[i]!;
+    dot += ai * bi;
+    normA += ai * ai;
+    normB += bi * bi;
   }
   const denom = Math.sqrt(normA) * Math.sqrt(normB);
   return denom === 0 ? 0 : dot / denom;
@@ -479,7 +481,7 @@ export function selectAnimal(normalizedScores: DimensionScores): CatalogAnimal {
     }
   }
 
-  return bestAnimal ?? ANIMALES[0];
+  return bestAnimal ?? ANIMALES[0]!;
 }
 
 // ─── Color Selection ──────────────────────────────────────────────────────────
@@ -544,7 +546,7 @@ export function selectColor(normalizedScores: DimensionScores, userId: string): 
   const hash = stringHash(userId + scoreFingerprint);
   const index = hash % candidates.length;
 
-  return candidates[index];
+  return candidates[index]!;
 }
 
 // ─── Top Dimensions ───────────────────────────────────────────────────────────
@@ -604,22 +606,22 @@ export function generateProfileNarrative(
 
   // 3. Primary dimension phrase
   if (topDimensions.length > 0) {
-    const primaryDim = topDimensions[0].dimension;
+    const primaryDim = topDimensions[0]!.dimension;
     const phrases = PHRASE_BANK[primaryDim];
     if (phrases && phrases.length > 0) {
       const idx = stringHash(animal.id + color.id + primaryDim) % phrases.length;
-      const phrase = phrases[idx];
+      const phrase = phrases[idx]!;
       sentences.push(capitalize(phrase) + ".");
     }
   }
 
   // 4. Secondary dimension phrase
   if (topDimensions.length > 1) {
-    const secondaryDim = topDimensions[1].dimension;
+    const secondaryDim = topDimensions[1]!.dimension;
     const phrases = PHRASE_BANK[secondaryDim];
     if (phrases && phrases.length > 0) {
       const idx = stringHash(color.id + secondaryDim + animal.id) % phrases.length;
-      const phrase = phrases[idx];
+      const phrase = phrases[idx]!;
       sentences.push(capitalize(phrase) + ".");
     }
   }
@@ -628,17 +630,17 @@ export function generateProfileNarrative(
   const tempModifiers = COLOR_TEMPERATURE_MODIFIERS[color.temperatura];
   if (tempModifiers && tempModifiers.length > 0) {
     const idx = stringHash(color.id + animal.id) % tempModifiers.length;
-    sentences.push(tempModifiers[idx]);
+    sentences.push(tempModifiers[idx]!);
   }
 
   // 6. Community value
   const communityIdx = stringHash(animal.id + color.id + (topDimensions[0]?.dimension ?? "")) % COMMUNITY_PHRASES.length;
-  sentences.push(COMMUNITY_PHRASES[communityIdx]);
+  sentences.push(COMMUNITY_PHRASES[communityIdx]!);
 
   // 7. Closing affirmation (optional, included ~60% of the time based on hash)
   const closingIdx = stringHash(animal.id + color.hex) % CLOSING_AFFIRMATIONS.length;
   if (stringHash(color.id + animal.diminutivo_es) % 5 < 3) {
-    sentences.push(CLOSING_AFFIRMATIONS[closingIdx]);
+    sentences.push(CLOSING_AFFIRMATIONS[closingIdx]!);
   }
 
   return sentences.join(" ");

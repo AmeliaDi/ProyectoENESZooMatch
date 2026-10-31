@@ -964,12 +964,35 @@ function cloneHalf(half: HalfGrid): HalfGrid {
   return half.map((row) => row.slice());
 }
 
+/** Row `r` of a grid, or an empty row when `r` is out of range. */
+function rowAt(grid: readonly (readonly string[])[], r: number): readonly string[] {
+  return grid[r] ?? [];
+}
+
+/** Cell `(r, c)` of a grid, or `fallback` (transparent) when out of range. */
+function cellAt(
+  grid: readonly (readonly string[])[],
+  r: number,
+  c: number,
+  fallback = ".",
+): string {
+  return grid[r]?.[c] ?? fallback;
+}
+
+/** Writes `(r, c)` only when it lies inside the grid; out-of-range is a no-op. */
+function writeCell(grid: string[][], r: number, c: number, value: string): void {
+  const row = grid[r];
+  if (!row || c < 0 || c >= row.length) return;
+  row[c] = value;
+}
+
 function mirrorHalf(half: HalfGrid): CharGrid {
   return half.map((row) => {
     const full = new Array<string>(GRID_SIZE);
     for (let c = 0; c < HALF_WIDTH; c++) {
-      full[c] = row[c];
-      full[GRID_SIZE - 1 - c] = row[c];
+      const cell = row[c] ?? ".";
+      full[c] = cell;
+      full[GRID_SIZE - 1 - c] = cell;
     }
     return full;
   });
@@ -981,28 +1004,28 @@ function isFilled(cell: string): boolean {
 
 function topFilledRow(half: HalfGrid): number {
   for (let r = 0; r < GRID_SIZE; r++) {
-    if (half[r].some(isFilled)) return r;
+    if (rowAt(half, r).some(isFilled)) return r;
   }
   return GRID_SIZE - 1;
 }
 
 function bottomFilledRow(half: HalfGrid): number {
   for (let r = GRID_SIZE - 1; r >= 0; r--) {
-    if (half[r].some(isFilled)) return r;
+    if (rowAt(half, r).some(isFilled)) return r;
   }
   return 0;
 }
 
 function eyeTopRow(half: HalfGrid): number {
   for (let r = 0; r < GRID_SIZE; r++) {
-    if (half[r].includes("E")) return r;
+    if (rowAt(half, r).includes("E")) return r;
   }
   return -1;
 }
 
 function eyeBottomRow(half: HalfGrid): number {
   for (let r = GRID_SIZE - 1; r >= 0; r--) {
-    if (half[r].includes("E")) return r;
+    if (rowAt(half, r).includes("E")) return r;
   }
   return -1;
 }
@@ -1024,18 +1047,18 @@ function setCell(
   onlyFilled = true,
 ): boolean {
   if (r < 0 || r >= GRID_SIZE || c < 0 || c >= HALF_WIDTH) return false;
-  const current = half[r][c];
+  const current = cellAt(half, r, c);
   if (current === "E" || current === "P" || current === value) return false;
   if (onlyFilled && current === ".") return false;
-  half[r][c] = value;
+  writeCell(half, r, c, value);
   return true;
 }
 
 function clearCell(half: HalfGrid, r: number, c: number): boolean {
   if (r < 0 || r >= GRID_SIZE || c < 0 || c >= HALF_WIDTH) return false;
-  const current = half[r][c];
+  const current = cellAt(half, r, c);
   if (current === "E" || current === "P" || current === ".") return false;
-  half[r][c] = ".";
+  writeCell(half, r, c, ".");
   return true;
 }
 
@@ -1044,7 +1067,7 @@ function hammingHalf(a: HalfGrid, b: HalfGrid): number {
   let distance = 0;
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (a[r][c] !== b[r][c]) distance++;
+      if (cellAt(a, r, c) !== cellAt(b, r, c)) distance++;
     }
   }
   return distance;
@@ -1055,7 +1078,7 @@ function hammingMask(a: HalfGrid, b: HalfGrid): number {
   let distance = 0;
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (isFilled(a[r][c]) !== isFilled(b[r][c])) distance++;
+      if (isFilled(cellAt(a, r, c)) !== isFilled(cellAt(b, r, c))) distance++;
     }
   }
   return distance;
@@ -1063,20 +1086,20 @@ function hammingMask(a: HalfGrid, b: HalfGrid): number {
 
 function filledNeighbourCount(half: HalfGrid, r: number, c: number): number {
   let count = 0;
-  if (r > 0 && isFilled(half[r - 1][c])) count++;
-  if (r + 1 < GRID_SIZE && isFilled(half[r + 1][c])) count++;
-  if (c > 0 && isFilled(half[r][c - 1])) count++;
-  if (c + 1 < HALF_WIDTH && isFilled(half[r][c + 1])) count++;
+  if (r > 0 && isFilled(cellAt(half, r - 1, c))) count++;
+  if (r + 1 < GRID_SIZE && isFilled(cellAt(half, r + 1, c))) count++;
+  if (c > 0 && isFilled(cellAt(half, r, c - 1))) count++;
+  if (c + 1 < HALF_WIDTH && isFilled(cellAt(half, r, c + 1))) count++;
   return count;
 }
 
 /** True when adding/removing this cell would eat into an eye or blush pixel. */
 function touchesFacePixel(half: HalfGrid, r: number, c: number): boolean {
   const protectedTones = new Set(["E", "P"]);
-  if (r > 0 && protectedTones.has(half[r - 1][c])) return true;
-  if (r + 1 < GRID_SIZE && protectedTones.has(half[r + 1][c])) return true;
-  if (c > 0 && protectedTones.has(half[r][c - 1])) return true;
-  if (c + 1 < HALF_WIDTH && protectedTones.has(half[r][c + 1])) return true;
+  if (r > 0 && protectedTones.has(cellAt(half, r - 1, c))) return true;
+  if (r + 1 < GRID_SIZE && protectedTones.has(cellAt(half, r + 1, c))) return true;
+  if (c > 0 && protectedTones.has(cellAt(half, r, c - 1))) return true;
+  if (c + 1 < HALF_WIDTH && protectedTones.has(cellAt(half, r, c + 1))) return true;
   return false;
 }
 
@@ -1092,8 +1115,8 @@ const EYE_OUTER_COL = 4;
 /** Writes a tone even over shadow/highlight cells; refuses transparent cells. */
 function paint(half: HalfGrid, r: number, c: number, value: string): void {
   if (r < 0 || r >= GRID_SIZE || c < 0 || c >= HALF_WIDTH) return;
-  if (!isFilled(half[r][c])) return;
-  half[r][c] = value;
+  if (!isFilled(cellAt(half, r, c))) return;
+  writeCell(half, r, c, value);
 }
 
 /**
@@ -1111,7 +1134,7 @@ function applyAttachmentEyes(half: HalfGrid, style: AttachmentStyle): void {
     paint(half, top, EYE_INNER_COL, "H");
   } else if (style === "evitativo") {
     for (const r of EYE_ROWS) {
-      if (half[r][EYE_INNER_COL] === "E") half[r][EYE_INNER_COL] = "B";
+      if (cellAt(half, r, EYE_INNER_COL) === "E") writeCell(half, r, EYE_INNER_COL, "B");
     }
   }
 }
@@ -1127,7 +1150,7 @@ function applyAttachmentEyes(half: HalfGrid, style: AttachmentStyle): void {
 function applyTriadMark(half: HalfGrid, triad: EnneagramTriad): void {
   const mark = (r: number, c: number, tone: "H" | "S") => {
     const alternate = tone === "H" ? "S" : "H";
-    setCell(half, r, c, half[r][c] === tone ? alternate : tone);
+    setCell(half, r, c, cellAt(half, r, c) === tone ? alternate : tone);
   };
   if (triad === "emocional") {
     mark(3, 7, "H");
@@ -1151,8 +1174,9 @@ function applyEnergyEars(half: HalfGrid, extraverted: boolean): void {
   const c = outermostFilled(half, t);
   if (c < 0) return;
   if (extraverted) {
-    setCell(half, t, c - 1, half[t][c] === "E" ? "B" : half[t][c], false);
-  } else if (t + 1 < GRID_SIZE && half[t].filter(isFilled).length > 1) {
+    const current = cellAt(half, t, c);
+    setCell(half, t, c - 1, current === "E" ? "B" : current, false);
+  } else if (t + 1 < GRID_SIZE && rowAt(half, t).filter(isFilled).length > 1) {
     clearCell(half, t, c);
   }
 }
@@ -1182,7 +1206,7 @@ function faceAnchors(half: HalfGrid): FaceAnchors {
 function outermostFilled(half: HalfGrid, r: number): number {
   if (r < 0 || r >= GRID_SIZE) return -1;
   for (let c = 0; c < HALF_WIDTH; c++) {
-    if (isFilled(half[r][c])) return c;
+    if (isFilled(cellAt(half, r, c))) return c;
   }
   return -1;
 }
@@ -1365,8 +1389,9 @@ const TAIL_BY_DETAIL: Readonly<Record<string, number>> = {
 };
 
 function tailVariantFor(detail: string | undefined, hash: number): number {
-  if (detail && detail in TAIL_BY_DETAIL) return TAIL_BY_DETAIL[detail];
-  return hashSlice(hash, 9, 4);
+  const fromDetail =
+    detail && detail in TAIL_BY_DETAIL ? TAIL_BY_DETAIL[detail] : undefined;
+  return fromDetail ?? hashSlice(hash, 9, 4);
 }
 
 /**
@@ -1378,20 +1403,21 @@ function opSignature(half: HalfGrid, k: number): boolean {
   const cells: Array<[number, number]> = [];
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (half[r][c] === "B") cells.push([r, c]);
+      if (cellAt(half, r, c) === "B") cells.push([r, c]);
     }
   }
   if (cells.length === 0) {
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < HALF_WIDTH; c++) {
-        const cell = half[r][c];
+        const cell = cellAt(half, r, c);
         if (cell === "H" || cell === "S") cells.push([r, c]);
       }
     }
   }
-  if (cells.length === 0) return false;
-  const [r, c] = cells[k % cells.length];
-  return setCell(half, r, c, half[r][c] === "H" ? "S" : "H");
+  const picked = cells[k % cells.length];
+  if (!picked) return false;
+  const [r, c] = picked;
+  return setCell(half, r, c, cellAt(half, r, c) === "H" ? "S" : "H");
 }
 
 /**
@@ -1506,6 +1532,7 @@ function applyTexture(half: HalfGrid, textura: string, colorId: string): void {
   const variants = TEXTURE_STROKES[textura];
   if (!variants || variants.length === 0) return;
   const strokes = variants[stringHash(colorId) % variants.length];
+  if (!strokes) return;
   for (const [r, c, tone] of strokes) {
     setCell(half, r, c, tone, true);
   }
@@ -1527,7 +1554,7 @@ const TAIL_ROWS = 3;
 /** Rightmost painted column of a full-grid row, or `-1` when the row is empty. */
 function rightEdge(grid: CharGrid, r: number): number {
   for (let c = GRID_SIZE - 1; c >= 0; c--) {
-    if (isFilled(grid[r][c])) return c;
+    if (isFilled(cellAt(grid, r, c))) return c;
   }
   return -1;
 }
@@ -1541,7 +1568,7 @@ function rightEdge(grid: CharGrid, r: number): number {
 function applyTail(grid: CharGrid, spec: TailSpec): void {
   for (let r = GRID_SIZE - TAIL_ROWS; r < GRID_SIZE; r++) {
     for (let c = HALF_WIDTH; c < GRID_SIZE; c++) {
-      grid[r][c] = grid[r][GRID_SIZE - 1 - c];
+      writeCell(grid, r, c, cellAt(grid, r, GRID_SIZE - 1 - c));
     }
   }
   if (spec.variant === 0) return;
@@ -1567,8 +1594,8 @@ function applyTail(grid: CharGrid, spec: TailSpec): void {
     ];
   }
   for (const [r, c] of cells) {
-    if (c >= GRID_SIZE || grid[r][c] !== ".") continue;
-    grid[r][c] = "S";
+    if (c >= GRID_SIZE || cellAt(grid, r, c) !== ".") continue;
+    writeCell(grid, r, c, "S");
   }
 }
 
@@ -1604,7 +1631,10 @@ function frameForms(half: HalfGrid): HalfGrid[] {
 function worstFormDistance(forms: HalfGrid[], otherForms: HalfGrid[]): number {
   let worst = Number.POSITIVE_INFINITY;
   for (let f = 0; f < forms.length; f++) {
-    const distance = hammingHalf(forms[f], otherForms[f]);
+    const form = forms[f];
+    const other = otherForms[f];
+    if (!form || !other) continue;
+    const distance = hammingHalf(form, other);
     if (distance < worst) worst = distance;
     if (worst === 0) break;
   }
@@ -1622,7 +1652,7 @@ function candidateMoves(half: HalfGrid, allowBands: boolean): Move[] {
   const moves: Move[] = [];
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (half[r][c] !== "B") continue;
+      if (cellAt(half, r, c) !== "B") continue;
       moves.push([[r, c, "H"]]);
       moves.push([[r, c, "S"]]);
     }
@@ -1633,7 +1663,7 @@ function candidateMoves(half: HalfGrid, allowBands: boolean): Move[] {
   for (let r = start; r < GRID_SIZE; r++) {
     const band: Array<[number, number, string]> = [];
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (half[r][c] === "B") band.push([r, c, "S"]);
+      if (cellAt(half, r, c) === "B") band.push([r, c, "S"]);
     }
     if (band.length >= 3) moves.push(band);
   }
@@ -1643,14 +1673,14 @@ function candidateMoves(half: HalfGrid, allowBands: boolean): Move[] {
 function writeMove(half: HalfGrid, move: Move): Move {
   const undo: Array<[number, number, string]> = [];
   for (const [r, c, tone] of move) {
-    undo.push([r, c, half[r][c]]);
-    half[r][c] = tone;
+    undo.push([r, c, cellAt(half, r, c)]);
+    writeCell(half, r, c, tone);
   }
   return undo;
 }
 
 function revertMove(half: HalfGrid, undo: Move): void {
-  for (const [r, c, tone] of undo) half[r][c] = tone;
+  for (const [r, c, tone] of undo) writeCell(half, r, c, tone);
 }
 
 /**
@@ -1703,13 +1733,14 @@ function maskCandidateMoves(half: HalfGrid): MaskMove[] {
       if (touchesFacePixel(half, r, c)) continue;
       const neighbours = filledNeighbourCount(half, r, c);
       const outerEdge = c === 0 || r === GRID_SIZE - 2;
-      if (!isFilled(half[r][c])) {
+      const cell = cellAt(half, r, c);
+      if (!isFilled(cell)) {
         if (neighbours === 1 || (neighbours === 2 && (r <= 5 || outerEdge))) {
           moves.push([r, c, "add"]);
         }
       } else if (
-        half[r][c] !== "E" &&
-        half[r][c] !== "P" &&
+        cell !== "E" &&
+        cell !== "P" &&
         (neighbours <= 1 || (neighbours === 2 && outerEdge))
       ) {
         moves.push([r, c, "drop"]);
@@ -1767,6 +1798,7 @@ function enforceMaskDistinctness(
 
       for (let k = 0; k < candidates.length; k++) {
         const move = candidates[(offset + k) % candidates.length];
+        if (!move) continue;
         applyMaskMove(current.half, move);
         const score = minMaskDistanceToPrevious(current.half, previous);
         applyMaskMove(current.half, move, true);
@@ -1825,11 +1857,13 @@ function enforceDistinctness(
   patterns: Map<string, AnimalPattern>,
 ): void {
   const previous: HalfGrid[][] = [];
-  const first = patterns.get(ids[0]);
+  const firstId = ids[0];
+  const first = firstId !== undefined ? patterns.get(firstId) : undefined;
   if (first) previous.push(frameForms(first.half));
 
   for (let i = 1; i < ids.length; i++) {
-    const current = patterns.get(ids[i]);
+    const id = ids[i];
+    const current = id !== undefined ? patterns.get(id) : undefined;
     if (!current) continue;
 
     for (let attempt = 0; attempt < 48; attempt++) {
@@ -1853,8 +1887,8 @@ function enforceDistinctness(
  * invariant the validator checks is the one the solver optimised for.
  */
 function clearOuterCorners(half: HalfGrid): void {
-  half[0][0] = ".";
-  half[GRID_SIZE - 1][0] = ".";
+  writeCell(half, 0, 0, ".");
+  writeCell(half, GRID_SIZE - 1, 0, ".");
 }
 
 const ANIMAL_BY_ID = new Map<string, CatalogAnimal>(
@@ -1928,17 +1962,19 @@ function resolveFamily(animalId: string): ShapeFamily {
   if (exactDiminutive) return exactDiminutive;
 
   for (const diminutive of DIMINUTIVE_KEYS) {
-    if (slug.startsWith(diminutive)) return DIMINUTIVE_FAMILY[diminutive];
+    const family = DIMINUTIVE_FAMILY[diminutive];
+    if (family && slug.startsWith(diminutive)) return family;
   }
   for (const diminutive of DIMINUTIVE_KEYS) {
-    if (slug.includes(diminutive)) return DIMINUTIVE_FAMILY[diminutive];
+    const family = DIMINUTIVE_FAMILY[diminutive];
+    if (family && slug.includes(diminutive)) return family;
   }
   for (const [keyword, family] of KEYWORD_FAMILY) {
     if (slug.includes(slugify(keyword))) return family;
   }
 
   // Deterministic last resort — never a blank sprite.
-  return ALL_FAMILIES[stringHash(animalId) % ALL_FAMILIES.length];
+  return ALL_FAMILIES[stringHash(animalId) % ALL_FAMILIES.length] ?? "exotico";
 }
 
 // ─── Colour resolution ────────────────────────────────────────────────────────
@@ -1963,8 +1999,9 @@ interface ResolvedColor {
 
 function hexToRgb(hex: string): [number, number, number] | null {
   const match = /^#?([0-9a-fA-F]{6})$/.exec(hex.trim());
-  if (!match) return null;
-  const value = parseInt(match[1], 16);
+  const digits = match?.[1];
+  if (!digits) return null;
+  const value = parseInt(digits, 16);
   return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
 }
 
@@ -2029,8 +2066,8 @@ function resolveColorEntry(colorId: string, animalId: string): ResolvedColor {
 
   const hash = stringHash(`${colorId}|${animalId}`);
   return {
-    hex: FALLBACK_HEXES[hash % FALLBACK_HEXES.length],
-    textura: FALLBACK_TEXTURAS[hashSlice(hash, 3, FALLBACK_TEXTURAS.length)],
+    hex: FALLBACK_HEXES[hash % FALLBACK_HEXES.length] ?? "#50C878",
+    textura: FALLBACK_TEXTURAS[hashSlice(hash, 3, FALLBACK_TEXTURAS.length)] ?? "mate",
     key: colorId,
   };
 }
@@ -2053,15 +2090,15 @@ function applyBlushHalf(half: HalfGrid): void {
   const eyeColumns: number[] = [];
   for (let r = top; r <= bottom; r++) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (half[r][c] === "E" && !eyeColumns.includes(c)) eyeColumns.push(c);
+      if (cellAt(half, r, c) === "E" && !eyeColumns.includes(c)) eyeColumns.push(c);
     }
   }
 
   for (const c of eyeColumns) {
     for (let r = bottom + 1; r < GRID_SIZE; r++) {
-      const cell = half[r][c];
+      const cell = cellAt(half, r, c);
       if (cell !== "." && cell !== "E" && cell !== "P" && cell !== "R") {
-        half[r][c] = "P";
+        writeCell(half, r, c, "P");
         break;
       }
     }
@@ -2074,7 +2111,7 @@ function applyBlinkHalf(half: HalfGrid): void {
   if (lowest <= 0) return;
   for (let r = 0; r < lowest; r++) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (half[r][c] === "E") half[r][c] = "B";
+      if (cellAt(half, r, c) === "E") writeCell(half, r, c, "B");
     }
   }
 }
@@ -2124,7 +2161,7 @@ function stampHeart(
 ): void {
   for (const [dr, c] of cells) {
     const r = offset + dr;
-    if (r < GRID_SIZE) half[r][c] = "R";
+    if (r < GRID_SIZE) writeCell(half, r, c, "R");
   }
 }
 
@@ -2132,7 +2169,7 @@ function stampHeart(
 function applyHappyHalf(half: HalfGrid): void {
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (half[r][c] === "E") half[r][c] = "H";
+      if (cellAt(half, r, c) === "E") writeCell(half, r, c, "H");
     }
   }
 
@@ -2151,7 +2188,7 @@ function applyRomanceHalf(half: HalfGrid): void {
   let sparkleColumn = -1;
   if (top >= 0) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      if (half[top][c] === "E") {
+      if (cellAt(half, top, c) === "E") {
         sparkleColumn = c;
         break;
       }
@@ -2160,9 +2197,9 @@ function applyRomanceHalf(half: HalfGrid): void {
 
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < HALF_WIDTH; c++) {
-      const cell = half[r][c];
+      const cell = cellAt(half, r, c);
       if (cell === "P" || cell === "E") {
-        half[r][c] = r === top && c === sparkleColumn ? "W" : "I";
+        writeCell(half, r, c, r === top && c === sparkleColumn ? "W" : "I");
       }
     }
   }
@@ -2337,13 +2374,13 @@ export function validateSpriteIsPixelArt(
   const sparkleCells: Array<readonly [number, number]> = [];
 
   for (let r = 0; r < size; r++) {
-    const row = grid[r];
+    const row = rowAt(grid, r);
     if (row.length !== size) {
       errors.push(`row ${r} has ${row.length} cells; expected ${size}`);
       continue;
     }
     for (let c = 0; c < size; c++) {
-      const cell = row[c];
+      const cell = row[c] ?? "";
       if (cell === "") continue;
       if (!HEX_COLOR_PATTERN.test(cell)) {
         errors.push(`row ${r}, col ${c}: invalid colour "${cell}"`);
@@ -2386,7 +2423,7 @@ export function validateSpriteIsPixelArt(
     [size - 1, size - 1],
   ];
   for (const [r, c] of corners) {
-    if (grid[r][c] !== "") {
+    if (grid[r]?.[c] !== "") {
       errors.push(`corner (${r}, ${c}) must be transparent`);
     }
   }
@@ -2402,7 +2439,7 @@ export function spriteToAscii(sprite: SpriteData): string {
   const legend = new Map<string, string>();
   const glyphs = ["#", "+", "=", "-", "%"];
   sprite.palette.forEach((hex, index) => {
-    legend.set(hex, glyphs[index % glyphs.length]);
+    legend.set(hex, glyphs[index % glyphs.length] ?? "?");
   });
   return sprite.grid
     .map((row) =>

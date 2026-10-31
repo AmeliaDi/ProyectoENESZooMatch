@@ -115,7 +115,7 @@ export function ConstellationView({
           reducedMotion={motionReduced}
           selectedNodeId={selectedNodeId}
           onSelectNode={handleSelectNode}
-          emptyMessage={emptyMessage}
+          {...(emptyMessage !== undefined ? { emptyMessage } : {})}
         />
       </div>
 

@@ -24,8 +24,8 @@ interface PixelHeartProps {
   y?: number;
   size?: number;
   color?: string;
-  className?: string;
-  style?: React.CSSProperties;
+  className?: string | undefined;
+  style?: React.CSSProperties | undefined;
 }
 
 /** A single 3×3 pixel heart in user units (size = full edge length). */

@@ -30,7 +30,7 @@ describe("CATEGORY_LABELS", () => {
     for (const category of EXPECTED_CATEGORIES) {
       const label = CATEGORY_LABELS[category];
       expect(typeof label).toBe("string");
-      expect(label.length).toBeGreaterThan(0);
+      expect(label?.length ?? 0).toBeGreaterThan(0);
       expect(label).not.toBe(category);
       expect(label).not.toMatch(/[a-z]_[a-z]/);
     }

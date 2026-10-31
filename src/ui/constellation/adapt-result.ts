@@ -97,14 +97,14 @@ for (const color of CATALOG_COLORS) {
 /** Capitalises the first letter for the es-MX animal display name. */
 function displayCase(value: string): string {
   const trimmed = value.trim();
-  return trimmed.length === 0 ? trimmed : trimmed[0].toUpperCase() + trimmed.slice(1);
+  return trimmed.length === 0 ? trimmed : trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
 /** Parses `#rrggbb` (with or without the leading `#`) into 0-255 channels. */
 function hexToRgb(hex: string): [number, number, number] | null {
-  const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!match) return null;
-  const int = parseInt(match[1], 16);
+  const digits = /^#?([0-9a-f]{6})$/i.exec(hex.trim())?.[1];
+  if (!digits) return null;
+  const int = parseInt(digits, 16);
   return [(int >> 16) & 255, (int >> 8) & 255, int & 255];
 }
 

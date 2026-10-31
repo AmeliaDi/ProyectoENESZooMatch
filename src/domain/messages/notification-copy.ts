@@ -11,8 +11,8 @@ export interface NotificationContext {
   userAnimal: string;
   userColor: string;
   matchCount: number;
-  matches?: Array<{ animal: string; color: string; similarity: number }>;
-  track?: MatchTrack;
+  matches?: Array<{ animal: string; color: string; similarity: number }> | undefined;
+  track?: MatchTrack | undefined;
 }
 
 export interface NotificationCopy {
@@ -55,9 +55,9 @@ export function generateNotificationCopy(
 
 function generateRomanceMatchCopy(context: NotificationContext): NotificationCopy {
   const { userAnimal, userColor, matchCount, matches } = context;
+  const match = matches?.[0];
 
-  if (matchCount === 1 && matches && matches.length >= 1) {
-    const match = matches[0];
+  if (matchCount === 1 && match) {
     return {
       title: "El universo conspir\u00f3 a tu favor \ud83d\udcab",
       body: `Tienes a un ser extraordinario en el campus con quien podr\u00edas tener una qu\u00edmica incre\u00edble. Tu energ\u00eda de ${userAnimal} ${userColor} combin\u00f3 a la perfecci\u00f3n con ${match.animal} ${match.color}.`,
@@ -82,9 +82,9 @@ function generateRomanceMatchCopy(context: NotificationContext): NotificationCop
 
 function generateFriendshipMatchCopy(context: NotificationContext): NotificationCopy {
   const { userAnimal, userColor, matchCount, matches } = context;
+  const match = matches?.[0];
 
-  if (matchCount === 1 && matches && matches.length >= 1) {
-    const match = matches[0];
+  if (matchCount === 1 && match) {
     return {
       title: "Tu vibra reson\u00f3 con alguien \u2728",
       body: `Tu energ\u00eda de ${userAnimal} ${userColor} conect\u00f3 con ${match.animal} ${match.color}. Hay una qu\u00edmica de amistad que vale la pena explorar \u2014 sus personalidades se complementan de forma \u00fanica.`,

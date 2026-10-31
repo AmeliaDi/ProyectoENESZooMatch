@@ -59,6 +59,7 @@ export function TrackToggle({
       else if (key === "ArrowRight") nextIndex = (current + 1) % TRACKS.length;
       else nextIndex = (current - 1 + TRACKS.length) % TRACKS.length;
       const next = TRACKS[nextIndex];
+      if (next === undefined) return;
       if (next !== track) onChange(next);
       focusTrack(next);
     },

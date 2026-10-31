@@ -827,6 +827,8 @@ describe("generateBadges", () => {
   it("falls back to the raw dimension name for unknown dimensions", () => {
     const [badge] = generateBadges([0.5], [0.5], ["dimension_desconocida"], "romance", 1);
 
+    expect(badge).toBeDefined();
+    if (!badge) return;
     expect(badge.label).toBe("dimension_desconocida");
     expect(badge.icon).toBe("•");
     expect(badge.affinity).toBeCloseTo(1, 12);

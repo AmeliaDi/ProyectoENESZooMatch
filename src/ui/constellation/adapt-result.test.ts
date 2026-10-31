@@ -39,6 +39,15 @@ function makeMatch(overrides: Partial<ResultMatch> = {}): ResultMatch {
   };
 }
 
+type OptionalMatchKey = "id" | "animal_id" | "color_id" | "color_hex";
+
+/** Returns a copy of `match` with the given optional keys absent (as the API may omit them). */
+function omitKeys(match: ResultMatch, ...keys: OptionalMatchKey[]): ResultMatch {
+  const copy = { ...match };
+  for (const key of keys) delete copy[key];
+  return copy;
+}
+
 function makeResult(overrides: Partial<PublicResult> = {}): PublicResult {
   return {
     alias: "ajolotito verde esmeralda · 4K2P",
@@ -139,7 +148,7 @@ describe("adaptResult", () => {
       }),
     )!;
     expect(adapted.matches).toHaveLength(1);
-    const match = adapted.matches[0];
+    const match = adapted.matches[0]!;
     expect(match.id).toBe("11111111-1111-1111-1111-111111111111");
     expect(match.track).toBe("romance");
     expect(match.similarity).toBeCloseTo(0.87, 12);
@@ -172,15 +181,15 @@ describe("adaptResult", () => {
       makeResult({
         matches: {
           romance: [
-            makeMatch({ animal_id: undefined, color_id: undefined, color_hex: undefined }),
+            omitKeys(makeMatch(), "animal_id", "color_id", "color_hex"),
           ],
           amistad: [],
         },
       }),
     )!;
     expect(adapted.matches).toHaveLength(1);
-    expect(adapted.matches[0].animalId).toBe("mantisita");
-    expect(adapted.matches[0].colorId).toBe("verde-esmeralda");
+    expect(adapted.matches[0]?.animalId).toBe("mantisita");
+    expect(adapted.matches[0]?.colorId).toBe("verde-esmeralda");
   });
 
   it("resolves a colour by nearest hex when only a hex is supplied", () => {
@@ -188,13 +197,13 @@ describe("adaptResult", () => {
       makeResult({
         matches: {
           romance: [
-            makeMatch({ color_id: undefined, color: "", color_hex: "#50C879" }),
+            omitKeys(makeMatch({ color: "", color_hex: "#50C879" }), "color_id"),
           ],
           amistad: [],
         },
       }),
     )!;
-    expect(adapted.matches[0].colorId).toBe("verde-esmeralda");
+    expect(adapted.matches[0]?.colorId).toBe("verde-esmeralda");
   });
 
   it("skips a match whose animal cannot be resolved, keeping the rest", () => {
@@ -210,7 +219,7 @@ describe("adaptResult", () => {
       }),
     )!;
     expect(adapted.matches).toHaveLength(1);
-    expect(adapted.matches[0].id).toBe("good");
+    expect(adapted.matches[0]?.id).toBe("good");
   });
 
   it("supports explanation: null and an empty match list (self-only sky)", () => {
@@ -223,7 +232,8 @@ describe("adaptResult", () => {
     const nullExplanation = adaptResult(
       makeResult({ matches: { romance: [makeMatch({ explanation: null })], amistad: [] } }),
     )!;
-    expect(nullExplanation.matches[0].explanation).toBeNull();
+    expect(nullExplanation.matches).toHaveLength(1);
+    expect(nullExplanation.matches[0]?.explanation).toBeNull();
   });
 
   it("returns null when the self identity cannot be resolved", () => {
@@ -239,9 +249,9 @@ describe("adaptResult", () => {
   it("falls back to a synthetic id when the API omits other_user", () => {
     const adapted = adaptResult(
       makeResult({
-        matches: { romance: [makeMatch({ id: undefined })], amistad: [] },
+        matches: { romance: [omitKeys(makeMatch(), "id")], amistad: [] },
       }),
     )!;
-    expect(adapted.matches[0].id).toBe("romance-0");
+    expect(adapted.matches[0]?.id).toBe("romance-0");
   });
 });

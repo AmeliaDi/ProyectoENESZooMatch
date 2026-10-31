@@ -210,7 +210,7 @@ export function PublicQuiz() {
               key={item.id}
               initial={reduceMotion ? false : { opacity: 0, x: 24 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={reduceMotion ? undefined : { opacity: 0, x: -18 }}
+              {...(reduceMotion ? {} : { exit: { opacity: 0, x: -18 } })}
               transition={{ duration: 0.35, ease }}
               className="flex flex-1 flex-col justify-center"
             >

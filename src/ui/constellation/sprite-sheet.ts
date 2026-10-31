@@ -62,8 +62,7 @@ export function toAnimationFrame(frame: SpriteFrameName): AnimationFrame {
  */
 function gridToRects(grid: readonly (readonly string[])[], offsetX: number): string {
   let out = "";
-  for (let y = 0; y < grid.length; y++) {
-    const row = grid[y];
+  grid.forEach((row, y) => {
     let x = 0;
     while (x < row.length) {
       const fill = row[x];
@@ -76,7 +75,7 @@ function gridToRects(grid: readonly (readonly string[])[], offsetX: number): str
       out += `<rect x="${offsetX + x}" y="${y}" width="${run}" height="1" fill="${fill}"/>`;
       x += run;
     }
-  }
+  });
   return out;
 }
 
@@ -86,14 +85,10 @@ function gridToRects(grid: readonly (readonly string[])[], offsetX: number): str
  */
 export function buildSpriteSheetSvg(animalId: string, colorId: string): string {
   let body = "";
-  for (let column = 0; column < SHEET_FRAMES.length; column++) {
-    const sprite = getSpriteFrame(
-      animalId,
-      colorId,
-      toAnimationFrame(SHEET_FRAMES[column]),
-    );
+  SHEET_FRAMES.forEach((frame, column) => {
+    const sprite = getSpriteFrame(animalId, colorId, toAnimationFrame(frame));
     body += gridToRects(sprite.grid, column * GRID_SIZE);
-  }
+  });
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${SHEET_WIDTH}" height="${GRID_SIZE}"` +
     ` viewBox="0 0 ${SHEET_WIDTH} ${GRID_SIZE}" shape-rendering="crispEdges">${body}</svg>`
