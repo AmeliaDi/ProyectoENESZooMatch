@@ -12,7 +12,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import catalogoData from "../../data/arquetipos.json";
+import { CATALOG } from "@/config";
 import { getAnimalFamily, type ShapeFamily } from "./pixel-sprites";
 import type {
   ArchetypeAnimal,
@@ -21,7 +21,7 @@ import type {
   MorphologicalFamily,
 } from "@/types/archetype";
 
-const catalog = catalogoData as unknown as ArchetypeCatalog;
+const catalog: Readonly<ArchetypeCatalog> = CATALOG;
 const animals = catalog.animales;
 
 const FAMILY_MINIMUMS: Partial<Record<MorphologicalFamily, number>> = {

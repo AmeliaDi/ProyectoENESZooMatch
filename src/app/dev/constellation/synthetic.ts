@@ -7,7 +7,7 @@
  * duplicar el nodo central.
  */
 
-import catalogoData from "../../../../data/arquetipos.json";
+import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 import type {
   ConstellationMatchInput,
   ConstellationSelfInput,
@@ -28,11 +28,11 @@ interface CatalogColor {
   hex: string;
 }
 
-const ANIMALS = catalogoData.animales as unknown as ArchetypeAnimal[];
+const ANIMALS: readonly ArchetypeAnimal[] = CATALOG_ANIMALS;
 const ANIMAL_BY_ID = new Map<string, ArchetypeAnimal>(
   ANIMALS.map((animal) => [animal.id, animal]),
 );
-const COLORS = catalogoData.colores as unknown as CatalogColor[];
+const COLORS: readonly CatalogColor[] = CATALOG_COLORS;
 
 const ANIMAL_IDS = getAllAnimalIds();
 const COLOR_IDS = getAllColorIds();

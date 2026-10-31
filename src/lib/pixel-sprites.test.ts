@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import catalogoData from "../../data/arquetipos.json";
+import { CATALOG_ANIMALS as LOADED_ANIMALS, CATALOG_COLORS as LOADED_COLORS } from "@/config";
 import {
   ALL_FAMILIES,
   ALL_FRAMES,
@@ -52,8 +52,8 @@ interface CatalogColor {
   textura: string;
 }
 
-const CATALOG_ANIMALS = catalogoData.animales as unknown as CatalogAnimal[];
-const CATALOG_COLORS = catalogoData.colores as unknown as CatalogColor[];
+const CATALOG_ANIMALS: readonly CatalogAnimal[] = LOADED_ANIMALS;
+const CATALOG_COLORS: readonly CatalogColor[] = LOADED_COLORS;
 
 const ALL_IDS = getAllAnimalIds();
 

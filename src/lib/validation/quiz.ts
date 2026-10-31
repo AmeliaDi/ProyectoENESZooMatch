@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import microtest from "../../../data/microtest.json";
+import { QUIZ_ITEMS } from "@/config";
 import { inclusiveModeSchema } from "./common";
 
 /**
@@ -16,7 +16,7 @@ interface RawItem {
   opciones?: string[];
 }
 
-const rawItems = microtest.items as unknown as RawItem[];
+const rawItems: readonly RawItem[] = QUIZ_ITEMS;
 const itemById = new Map(rawItems.map((item) => [item.id, item]));
 
 /** Every Likert (`likert_5`) item ID in the questionnaire. */

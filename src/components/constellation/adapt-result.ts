@@ -33,7 +33,7 @@
  * detail sheet falls back to `explanation.breakdown`.
  */
 
-import catalogoData from "../../../data/arquetipos.json";
+import { CATALOG_ANIMALS as LOADED_ANIMALS, CATALOG_COLORS as LOADED_COLORS } from "@/config";
 
 import type { PublicResult, ResultMatch } from "@/components/public-experience-utils";
 import type { MatchTrack } from "@/types/microtest";
@@ -57,8 +57,8 @@ interface CatalogColor {
   temperatura: string;
 }
 
-const CATALOG_ANIMALS = catalogoData.animales as unknown as CatalogAnimal[];
-const CATALOG_COLORS = catalogoData.colores as unknown as CatalogColor[];
+const CATALOG_ANIMALS: readonly CatalogAnimal[] = LOADED_ANIMALS;
+const CATALOG_COLORS: readonly CatalogColor[] = LOADED_COLORS;
 
 const ANIMAL_BY_ID = new Map<string, CatalogAnimal>(
   CATALOG_ANIMALS.map((animal) => [animal.id, animal]),

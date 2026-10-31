@@ -13,12 +13,12 @@ import {
 import { ALL_DIMENSIONS, BIG_FIVE_DIMENSIONS } from "@/types/microtest";
 import type { DimensionScores } from "@/types/microtest";
 
-import catalogo from "../../data/arquetipos.json";
+import { CATALOG as catalogo } from "@/config";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-const CATALOG_ANIMALS = catalogo.animales as unknown as CatalogAnimal[];
-const CATALOG_COLORS = catalogo.colores as CatalogColor[];
+const CATALOG_ANIMALS: readonly CatalogAnimal[] = catalogo.animales;
+const CATALOG_COLORS: readonly CatalogColor[] = catalogo.colores;
 
 const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 const ALIAS_SUFFIX_PATTERN = / · [0-9A-Z]{4}$/;

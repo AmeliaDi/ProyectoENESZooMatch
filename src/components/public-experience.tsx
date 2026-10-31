@@ -13,7 +13,7 @@ import {
   useState,
 } from "react";
 
-import microtest from "../../data/microtest.json";
+
 import { ConstellationSection } from "@/components/constellation/ConstellationSection";
 import {
   InclusiveModeSelector,
@@ -29,6 +29,7 @@ import {
   type QuizDraft,
   type ResultMatch,
 } from "@/components/public-experience-utils";
+import { LIKERT_SCALE, QUIZ_ITEMS } from "@/config/quiz";
 import { formatInclusive } from "@/lib/inclusive-text";
 import type { MatchExplanation } from "@/lib/matching/explainability";
 import type { MatchTrack } from "@/types/microtest";
@@ -40,16 +41,8 @@ type ApiError = "generic" | "session" | null;
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
-interface RawItem {
-  id: string;
-  categoria: string;
-  texto: string;
-  tipo_respuesta: string;
-  opciones?: string[];
-}
-
-const ITEMS = microtest.items as RawItem[];
-const LIKERT_OPTIONS = microtest.escala_likert as Array<{ valor: number; etiqueta: string }>;
+const ITEMS = QUIZ_ITEMS;
+const LIKERT_OPTIONS = LIKERT_SCALE;
 const TOTAL = ITEMS.length;
 
 function BrandHeader({ step }: { step: string }) {

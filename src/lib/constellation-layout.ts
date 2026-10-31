@@ -18,7 +18,7 @@
  *   detect clusters without needing the raw vectors.
  */
 
-import rawConfig from "../../data/matching-config.json";
+import { MATCHING_CONFIG } from "@/config";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -177,7 +177,7 @@ export const MAX_REAL_MATCHES = 24;
  * `data/matching-config.json`. NEVER hardcode thresholds elsewhere.
  */
 export function getTrackThreshold(track: MatchTrack): number {
-  return rawConfig.tracks[track].minimum_similarity_exclusive;
+  return MATCHING_CONFIG.tracks[track].minimum_similarity_exclusive;
 }
 
 // ─── Core Functions ───────────────────────────────────────────────────────────

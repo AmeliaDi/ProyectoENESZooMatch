@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import catalogue from "../../data/arquetipos.json";
+import { CATALOG_ANIMALS } from "@/config";
 import {
   ENNEAGRAM_CURATED_ASSIGNMENTS,
   ENNEAGRAM_WING_CODES,
@@ -14,9 +14,9 @@ import {
   psychometricCompatibility,
 } from "@/lib/psychometrics";
 import type { EnneagramType, PsychometricProfile } from "@/lib/psychometrics";
-import type { ArchetypeCatalog } from "@/types/archetype";
 
-const animals = (catalogue as unknown as ArchetypeCatalog).animales;
+
+const animals = CATALOG_ANIMALS;
 const animalProfiles = animals.map((animal) => ({
   animal,
   profile: deriveAnimalPsychometricProfile(animal),

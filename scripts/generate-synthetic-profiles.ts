@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import catalogue from "../data/arquetipos.json";
+import { CATALOG_ANIMALS, CATALOG_COLORS } from "../src/config";
 import { MATCHING_CONFIG, applyRomanceSelectivity, applyPsychometricMix, computeTrackCentroid, trackSimilarity } from "../src/lib/matching/engine";
 import { derivePsychometricProfile } from "../src/lib/psychometrics";
 import {
@@ -12,7 +12,7 @@ import {
   type MatchTrack,
   type ScoredProfile,
 } from "../src/types/microtest";
-import type { ArchetypeCatalog, MbtiCode } from "../src/types/archetype";
+import type { MbtiCode } from "../src/types/archetype";
 
 export const SYNTHETIC_PROFILE_COUNT = 500;
 export const SYNTHETIC_SEED = 0x5a4f4f4d;
@@ -24,8 +24,8 @@ const MBTI_CODES: readonly MbtiCode[] = [
   "ISTP", "ISFP", "ESTP", "ESFP",
 ];
 
-const ANIMALS = (catalogue as unknown as ArchetypeCatalog).animales;
-const COLORS = (catalogue as unknown as ArchetypeCatalog).colores;
+const ANIMALS = CATALOG_ANIMALS;
+const COLORS = CATALOG_COLORS;
 
 type RandomSource = () => number;
 

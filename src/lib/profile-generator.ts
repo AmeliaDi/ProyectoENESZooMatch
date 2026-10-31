@@ -3,10 +3,10 @@
  * Selects animal + color based on quiz scores, generates unique empowering narrative.
  */
 
-import type { ArchetypeAnimal, ArchetypeCatalog, ArchetypeColor } from "@/types/archetype";
+import type { ArchetypeAnimal, ArchetypeColor } from "@/types/archetype";
 import type { DimensionScores, ProfileIdentity } from "@/types/microtest";
 import { BIG_FIVE_DIMENSIONS } from "@/types/microtest";
-import catalogoData from "../../data/arquetipos.json";
+import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 
 // ─── Helper Types ─────────────────────────────────────────────────────────────
 
@@ -21,9 +21,8 @@ export interface DimensionAffinity {
 
 // ─── Catalog Data ─────────────────────────────────────────────────────────────
 
-const catalog = catalogoData as unknown as ArchetypeCatalog;
-const ANIMALES: CatalogAnimal[] = catalog.animales;
-const COLORES: CatalogColor[] = catalog.colores;
+const ANIMALES: readonly CatalogAnimal[] = CATALOG_ANIMALS;
+const COLORES: readonly CatalogColor[] = CATALOG_COLORS;
 
 // ─── Dimension Labels (human-readable) ────────────────────────────────────────
 
@@ -534,7 +533,7 @@ export function selectColor(normalizedScores: DimensionScores, userId: string): 
   }
 
   // Filter candidates by temperature
-  let candidates = COLORES.filter((c) => c.temperatura === temperatura);
+  let candidates: readonly ArchetypeColor[] = COLORES.filter((c) => c.temperatura === temperatura);
 
   // Try to narrow by preferred texture
   const textureMatch = candidates.filter((c) => preferredTexturas.includes(c.textura));

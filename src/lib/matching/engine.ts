@@ -18,7 +18,7 @@ import type {
   DimensionScores,
   Dimension,
 
-  HardFilterField,
+
   HardFilters,
   LikertValue,
   MatchTrack,
@@ -40,8 +40,7 @@ import {
   type PsychometricProfile,
 } from "@/lib/psychometrics";
 
-import matchingConfigRaw from "../../../data/matching-config.json";
-import microtest from "../../../data/microtest.json";
+import { MATCHING_CONFIG as LOADED_MATCHING_CONFIG, QUIZ_ITEMS } from "@/config";
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -55,87 +54,10 @@ const NEUTRAL_SCORE = 0.5;
 /** MBTI letter threshold: `>= 0.5` yields the positive letter. */
 const MBTI_THRESHOLD = 0.5;
 
-interface RawTrackConfig {
-  minimum_similarity_exclusive: number;
-  centering: number;
-  max_matches: number;
-  target_coverage_percentile: number;
-  maximum_pair_tail?: number;
-  maximum_user_coverage?: number;
-  dimensions: string[];
-  hard_filters: string[];
-  weights: Record<string, number>;
-  selectivity?: RomanceSelectivityConfig;
-}
-
-interface RawMatchingConfig {
-  version: string;
-  psychometric_mix: number;
-  tracks: { romance: RawTrackConfig; amistad: RawTrackConfig };
-  calibration: { method: string; target_coverage: number; max_users: number };
-}
-
-const rawConfig = matchingConfigRaw as unknown as RawMatchingConfig;
-
-/**
- * Fills every {@link CategoryWeights} key so downstream lookups never see
- * `undefined`. Tracks that omit a category (e.g. friendship has no intimacy)
- * receive a weight of `0`, which drops that category from the weighted mean.
- */
-function normalizeWeights(weights: Record<string, number>): CategoryWeights {
-  return {
-    personalidad: weights.personalidad ?? 0,
-    afinidad_cultural: weights.afinidad_cultural ?? 0,
-    intimidad_afecto: weights.intimidad_afecto ?? 0,
-    valores_relacionales: weights.valores_relacionales ?? 0,
-    identidad: weights.identidad ?? 0,
-  };
-}
-
-function normalizeTrack(track: RawTrackConfig): TrackConfig {
-  return {
-    minimum_similarity_exclusive: track.minimum_similarity_exclusive,
-    centering: track.centering,
-    max_matches: track.max_matches,
-    target_coverage_percentile: track.target_coverage_percentile,
-    ...(track.maximum_pair_tail !== undefined
-      ? { maximum_pair_tail: track.maximum_pair_tail }
-      : {}),
-    ...(track.maximum_user_coverage !== undefined
-      ? { maximum_user_coverage: track.maximum_user_coverage }
-      : {}),
-    dimensions: [...track.dimensions],
-    hard_filters: [...track.hard_filters] as HardFilterField[],
-    weights: normalizeWeights(track.weights),
-    ...(track.selectivity ? { selectivity: { ...track.selectivity } } : {}),
-  };
-}
-
-/**
- * Strongly-typed matching configuration parsed from
- * `data/matching-config.json`. Weights are normalized so every category key
- * is present.
- */
-export const MATCHING_CONFIG: MatchingConfig = {
-  version: rawConfig.version,
-  psychometric_mix: rawConfig.psychometric_mix,
-  tracks: {
-    romance: normalizeTrack(rawConfig.tracks.romance),
-    amistad: normalizeTrack(rawConfig.tracks.amistad),
-  },
-  calibration: {
-    method: rawConfig.calibration.method,
-    target_coverage: rawConfig.calibration.target_coverage,
-    max_users: rawConfig.calibration.max_users,
-  },
-};
-
-/**
- * The full questionnaire item list parsed from `data/microtest.json`,
- * typed as {@link QuizItem}. Provided as a convenience default for callers of
- * {@link scoreQuiz} that do not supply their own items.
- */
-export const MICROTEST_ITEMS = microtest.items as unknown as QuizItem[];
+/** Validated matching configuration (see `src/config/matching.ts`). */
+export const MATCHING_CONFIG: MatchingConfig = LOADED_MATCHING_CONFIG;
+/** Validated questionnaire items (see `src/config/quiz.ts`). */
+export const MICROTEST_ITEMS: readonly QuizItem[] = QUIZ_ITEMS;
 
 // ─── Badge metadata ───────────────────────────────────────────────────────────
 
@@ -226,7 +148,7 @@ function deriveMbtiCode(normalized: DimensionScores): string {
  *
  * @throws If any Likert item required for scoring is missing from `answers`.
  */
-export function scoreQuiz(answers: QuizSubmission, items: QuizItem[]): ScoredProfile {
+export function scoreQuiz(answers: QuizSubmission, items: readonly QuizItem[]): ScoredProfile {
   const likertByItem = new Map<string, LikertValue>(
     answers.likert.map((answer) => [answer.itemId, answer.value]),
   );

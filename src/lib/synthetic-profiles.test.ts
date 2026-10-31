@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import catalogue from "../../data/arquetipos.json";
+import { CATALOG as catalogue } from "@/config";
 import {
   SYNTHETIC_PROFILE_COUNT,
   SYNTHETIC_SEED,

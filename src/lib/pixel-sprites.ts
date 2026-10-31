@@ -45,7 +45,7 @@
  * See the proof sketch above `enforceDistinctness`.
  */
 
-import catalogoData from "../../data/arquetipos.json";
+import { CATALOG_ANIMALS as LOADED_ANIMALS, CATALOG_COLORS as LOADED_COLORS } from "@/config";
 import {
   deriveAnimalPsychometricProfile,
   type AnimalPsychometricSource,
@@ -179,8 +179,8 @@ interface CatalogColor {
   textura: string;
 }
 
-const CATALOG_ANIMALS = catalogoData.animales as unknown as CatalogAnimal[];
-const CATALOG_COLORS = catalogoData.colores as unknown as CatalogColor[];
+const CATALOG_ANIMALS: readonly CatalogAnimal[] = LOADED_ANIMALS;
+const CATALOG_COLORS: readonly CatalogColor[] = LOADED_COLORS;
 
 // ─── Internal cell vocabulary ─────────────────────────────────────────────────
 

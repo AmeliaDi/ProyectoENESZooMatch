@@ -7,8 +7,7 @@
  * feed the questionnaire, so the demo never asks for extra sensitive data.
  */
 
-import rawAssignments from "../../data/enneagram-assignments.json";
-import rawEnneagram from "../../data/enneagram.json";
+import { ENNEAGRAM_ASSIGNMENTS, ENNEAGRAM_DATA } from "@/config";
 import type { ArchetypeAnimal } from "@/types/archetype";
 import type { Dimension } from "@/types/microtest";
 
@@ -71,22 +70,16 @@ export interface PsychometricCompatibility {
 }
 
 interface EnneagramData {
-  version: string;
-  types: Record<string, EnneagramTypeMeta>;
-  wings: Record<string, EnneagramWingMeta>;
-  prototypes: Record<string, Record<string, number>>;
-  integration: Record<string, number>;
-  stress: Record<string, number>;
-  operator_weights: {
-    mbti: number;
-    enneagram: number;
-    attachment: number;
-  };
+  readonly types: Readonly<Record<string, EnneagramTypeMeta>>;
+  readonly wings: Readonly<Record<string, EnneagramWingMeta>>;
+  readonly prototypes: Readonly<Record<string, Readonly<Record<string, number>>>>;
+  readonly integration: Readonly<Record<string, number>>;
+  readonly stress: Readonly<Record<string, number>>;
 }
 
-const DATA = rawEnneagram as EnneagramData;
-const OPERATOR_WEIGHTS = DATA.operator_weights;
-const CURATED_ASSIGNMENTS = (rawAssignments as { assignments: Record<string, string> }).assignments;
+const DATA: EnneagramData = ENNEAGRAM_DATA;
+const OPERATOR_WEIGHTS = ENNEAGRAM_DATA.operator_weights;
+const CURATED_ASSIGNMENTS = ENNEAGRAM_ASSIGNMENTS;
 
 const TYPE_NUMBERS: readonly EnneagramType[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 

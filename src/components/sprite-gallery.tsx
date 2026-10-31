@@ -22,7 +22,7 @@ import {
   type CSSProperties,
 } from "react";
 
-import catalogoData from "../../data/arquetipos.json";
+import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 import type { ArchetypeAnimal } from "@/types/archetype";
 import { PixelAnimal } from "@/components/constellation/PixelAnimal";
 import { SharedHeart } from "@/components/constellation/RomanceHearts";
@@ -49,8 +49,8 @@ interface CatalogColor {
   temperatura: string;
 }
 
-const ANIMALS = catalogoData.animales as unknown as ArchetypeAnimal[];
-const COLORS = catalogoData.colores as unknown as CatalogColor[];
+const ANIMALS: readonly ArchetypeAnimal[] = CATALOG_ANIMALS;
+const COLORS: readonly CatalogColor[] = CATALOG_COLORS;
 
 // ─── Utilidades puras ──────────────────────────────────────────────────────────
 
