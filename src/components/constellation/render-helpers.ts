@@ -7,11 +7,11 @@
  * and all the non-trivial logic lives here instead).
  *
  * These helpers are the glue between the approved physics engine
- * (`@/lib/constellation-layout`) and the SVG render tree. They never mutate the
+ * (`@/domain/constellation/constellation-layout`) and the SVG render tree. They never mutate the
  * engine's state objects.
  */
 
-import type { ConstellationEdge, SimulationState } from "@/lib/constellation-layout";
+import type { ConstellationEdge, SimulationState } from "@/domain/constellation/constellation-layout";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 
 import { CONSTELLATION_COPY } from "./types";

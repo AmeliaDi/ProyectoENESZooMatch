@@ -1,5 +1,5 @@
-import type { MatchExplanation } from "@/lib/matching/explainability";
-import { NO_MATCH_MESSAGE } from "@/lib/notification-copy";
+import type { MatchExplanation } from "@/domain/explainability/explainability";
+import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
 import type { CompatibilityBadge } from "@/types/microtest";
 
 // ─── Matrícula helpers ────────────────────────────────────────────────────────

@@ -22,7 +22,7 @@ import {
   similarityToDistance,
   stepSimulation,
   switchTrack,
-} from "@/lib/constellation-layout";
+} from "@/domain/constellation/constellation-layout";
 import type {
   ConstellationEdge,
   ConstellationGraph,
@@ -30,7 +30,7 @@ import type {
   MatchInput,
   MatchTrack,
   SimulationState,
-} from "@/lib/constellation-layout";
+} from "@/domain/constellation/constellation-layout";
 
 // ─── Fixtures (all deterministic — no Math.random, no Date.now) ──────────────
 

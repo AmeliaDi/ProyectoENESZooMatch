@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { MatchExplanation } from "@/lib/matching/explainability";
+import type { MatchExplanation } from "@/domain/explainability/explainability";
 import type { CompatibilityBadge } from "@/types/microtest";
 import type { PublicResult, ResultMatch } from "@/components/public-experience-utils";
 

@@ -3,9 +3,9 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { generateMatchExplanation } from "@/lib/matching/explainability";
-import type { MatchExplanation } from "@/lib/matching/explainability";
-import { NO_MATCH_MESSAGE } from "@/lib/notification-copy";
+import { generateMatchExplanation } from "@/domain/explainability/explainability";
+import type { MatchExplanation } from "@/domain/explainability/explainability";
+import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
 import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
 import { createAdminClient } from "@/lib/supabase/admin.server";
 import { createClient } from "@/lib/supabase/server";

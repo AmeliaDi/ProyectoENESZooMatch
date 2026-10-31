@@ -1,7 +1,7 @@
 /**
  * Constellation render layer — sprite sheet builder.
  *
- * The approved sprite engine (`@/lib/pixel-sprites`) returns a 16×16 grid of
+ * The approved sprite engine (`@/domain/avatars/pixel-sprites`) returns a 16×16 grid of
  * hex strings. Rendering that as 256 `<rect>` elements per node would mean
  * ~12 800 SVG nodes for a 50-star constellation, which no mid-range phone can
  * composite at 60 fps alongside a physics loop.
@@ -21,7 +21,7 @@
  * unit-testable in Vitest's `node` environment and safe to build during SSR.
  */
 
-import { GRID_SIZE, getSpriteFrame, type AnimationFrame } from "@/lib/pixel-sprites";
+import { GRID_SIZE, getSpriteFrame, type AnimationFrame } from "@/domain/avatars/pixel-sprites";
 
 import type { SpriteFrameName } from "./types";
 

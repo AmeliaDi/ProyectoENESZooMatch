@@ -14,7 +14,7 @@ import type {
   MatchInput,
   SelfIdentity,
   SimulationState,
-} from "@/lib/constellation-layout";
+} from "@/domain/constellation/constellation-layout";
 import type { MatchTrack } from "@/types/microtest";
 
 import {

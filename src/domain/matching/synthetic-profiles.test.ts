@@ -8,8 +8,8 @@ import {
   calibrateThreshold,
   generateSyntheticProfiles,
   measureCoverage,
-} from "../../scripts/generate-synthetic-profiles";
-import { MATCHING_CONFIG, computeAllMatches } from "@/lib/matching";
+} from "../../../scripts/generate-synthetic-profiles";
+import { MATCHING_CONFIG, computeAllMatches } from "@/domain/matching";
 import {
   ALL_DIMENSIONS,
   FRIENDSHIP_VECTOR_DIMENSIONS,

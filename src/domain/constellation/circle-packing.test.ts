@@ -4,8 +4,8 @@ import {
   MIN_CENTER_DISTANCE,
   minimumCenterDistance,
   precomputeLayout,
-} from "@/lib/constellation-layout";
-import type { ConstellationNode } from "@/lib/constellation-layout";
+} from "@/domain/constellation/constellation-layout";
+import type { ConstellationNode } from "@/domain/constellation/constellation-layout";
 
 function packedNodes(count: number): ConstellationNode[] {
   return Array.from({ length: count }, (_, index) => ({

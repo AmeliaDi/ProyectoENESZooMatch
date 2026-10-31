@@ -20,7 +20,7 @@ import {
   trackCoverageRate,
   type AdminMetrics,
 } from "@/lib/admin/dashboard";
-import { getMatchingConfig } from "@/lib/matching/config";
+import { getMatchingConfig } from "@/domain/matching/config";
 
 interface AdminDashboardProps {
   initialData: AdminMetrics | null;

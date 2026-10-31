@@ -66,7 +66,7 @@ import {
   stepSimulation,
   switchTrack,
   type SimulationState,
-} from "@/lib/constellation-layout";
+} from "@/domain/constellation/constellation-layout";
 import type { MatchTrack } from "@/types/microtest";
 
 import {

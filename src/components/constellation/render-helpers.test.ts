@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import type { ConstellationEdge, ConstellationNode, SimulationState } from "@/lib/constellation-layout";
+import type { ConstellationEdge, ConstellationNode, SimulationState } from "@/domain/constellation/constellation-layout";
 import type { CompatibilityBadge } from "@/types/microtest";
 
 import {

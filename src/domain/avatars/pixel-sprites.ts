@@ -52,7 +52,7 @@ import {
   type AnimalPsychometricSource,
   type AttachmentStyle,
   type EnneagramTriad,
-} from "./psychometrics";
+} from "@/domain/psychometrics/psychometrics";
 
 // ─── Public constants ─────────────────────────────────────────────────────────
 

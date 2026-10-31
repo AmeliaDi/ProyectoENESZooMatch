@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { MICROTEST_ITEMS, scoreQuiz } from "@/lib/matching";
+import { MICROTEST_ITEMS, scoreQuiz } from "@/domain/matching";
 import { recomputeAllMatches } from "@/lib/matching/recompute.server";
-import { generateWelcomeMessage } from "@/lib/notification-copy";
-import { generateProfileIdentity } from "@/lib/profile-generator";
+import { generateWelcomeMessage } from "@/domain/messages/notification-copy";
+import { generateProfileIdentity } from "@/domain/identity/profile-generator";
 import { createPreflightHandler, withApiSecurity } from "@/lib/security/api.server";
 import { createAdminClient } from "@/lib/supabase/admin.server";
 import { createClient } from "@/lib/supabase/server";

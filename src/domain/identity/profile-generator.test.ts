@@ -9,7 +9,7 @@ import {
   type CatalogAnimal,
   type CatalogColor,
   type DimensionAffinity,
-} from "@/lib/profile-generator";
+} from "@/domain/identity/profile-generator";
 import { ALL_DIMENSIONS, BIG_FIVE_DIMENSIONS } from "@/types/microtest";
 import type { DimensionScores } from "@/types/microtest";
 

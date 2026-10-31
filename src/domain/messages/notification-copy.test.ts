@@ -5,7 +5,7 @@ import {
   generateNotificationCopy,
   generateWelcomeMessage,
   type NotificationContext,
-} from "@/lib/notification-copy";
+} from "@/domain/messages/notification-copy";
 import type { NotificationType } from "@/types/microtest";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────

@@ -12,8 +12,8 @@ import {
   functionAffinity,
   mbtiCompatibility,
   psychometricCompatibility,
-} from "@/lib/psychometrics";
-import type { EnneagramType, PsychometricProfile } from "@/lib/psychometrics";
+} from "@/domain/psychometrics/psychometrics";
+import type { EnneagramType, PsychometricProfile } from "@/domain/psychometrics/psychometrics";
 
 
 const animals = CATALOG_ANIMALS;

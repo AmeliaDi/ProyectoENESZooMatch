@@ -38,7 +38,7 @@ import {
   derivePsychometricProfile,
   psychometricCompatibility,
   type PsychometricProfile,
-} from "@/lib/psychometrics";
+} from "@/domain/psychometrics/psychometrics";
 
 import { MATCHING_CONFIG as LOADED_MATCHING_CONFIG, QUIZ_ITEMS } from "@/config";
 

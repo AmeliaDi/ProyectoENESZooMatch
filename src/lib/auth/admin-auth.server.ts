@@ -2,7 +2,7 @@ import {
   parseAdminMetrics,
   type AdminMetrics,
 } from "@/lib/admin/dashboard";
-import { getAmistadThreshold, getRomanceThreshold } from "@/lib/matching";
+import { getAmistadThreshold, getRomanceThreshold } from "@/domain/matching";
 import { createClient } from "@/lib/supabase/server";
 
 export async function getAdminContext() {

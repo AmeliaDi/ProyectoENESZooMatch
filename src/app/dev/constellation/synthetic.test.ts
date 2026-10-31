@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getAllAnimalIds, getAllColorIds } from "@/lib/pixel-sprites";
+import { getAllAnimalIds, getAllColorIds } from "@/domain/avatars/pixel-sprites";
 
 import { DEV_SELF, generateSyntheticMatches } from "./synthetic";
 

@@ -13,9 +13,9 @@ import type {
   ConstellationMatchInput,
   ConstellationSelfInput,
 } from "@/components/constellation";
-import { generateMatchExplanation } from "@/lib/matching";
-import { getAllAnimalIds, getAllColorIds } from "@/lib/pixel-sprites";
-import { projectAnimalDimensions } from "@/lib/psychometrics";
+import { generateMatchExplanation } from "@/domain/matching";
+import { getAllAnimalIds, getAllColorIds } from "@/domain/avatars/pixel-sprites";
+import { projectAnimalDimensions } from "@/domain/psychometrics/psychometrics";
 import type { ArchetypeAnimal } from "@/types/archetype";
 import {
   FRIENDSHIP_VECTOR_DIMENSIONS,

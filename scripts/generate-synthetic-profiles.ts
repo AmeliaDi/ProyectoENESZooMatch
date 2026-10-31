@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
 import { CATALOG_ANIMALS, CATALOG_COLORS } from "../src/config";
-import { MATCHING_CONFIG, applyRomanceSelectivity, applyPsychometricMix, computeTrackCentroid, trackSimilarity } from "../src/lib/matching/engine";
-import { derivePsychometricProfile } from "../src/lib/psychometrics";
+import { MATCHING_CONFIG, applyRomanceSelectivity, applyPsychometricMix, computeTrackCentroid, trackSimilarity } from "../src/domain/matching/engine";
+import { derivePsychometricProfile } from "../src/domain/psychometrics/psychometrics";
 import {
   FRIENDSHIP_VECTOR_DIMENSIONS,
   ROMANCE_VECTOR_DIMENSIONS,

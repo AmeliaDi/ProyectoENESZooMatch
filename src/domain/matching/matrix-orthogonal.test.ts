@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { checkHardFilters } from "@/lib/matching";
+import { checkHardFilters } from "@/domain/matching";
 import type { HardFilters } from "@/types/microtest";
 
 const filters = (overrides: Partial<HardFilters> = {}): HardFilters => ({

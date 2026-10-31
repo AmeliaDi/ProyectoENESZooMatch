@@ -29,8 +29,8 @@ import {
   psychometricCompatibility as computePsychometricCompatibility,
   type PsychometricCompatibility,
   type PsychometricProfile,
-} from "@/lib/psychometrics";
-import { getMatchingConfig } from "./config";
+} from "@/domain/psychometrics/psychometrics";
+import { getMatchingConfig } from "@/domain/matching/config";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 

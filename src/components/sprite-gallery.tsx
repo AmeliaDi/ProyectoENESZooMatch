@@ -4,7 +4,7 @@
  * ZooMatch — Galería de sprites (sólo desarrollo)
  * ─────────────────────────────────────────────────────────────────────────────
  * Visor del catálogo completo de animalitos pixeleados que produce el motor
- * determinista `src/lib/pixel-sprites.ts`. Esta pieza NO toca el motor: sólo lo
+ * determinista `src/domain/avatars/pixel-sprites.ts`. Esta pieza NO toca el motor: sólo lo
  * consume (`getSpriteFrame`, `getAnimalFamily`, `getAllColorIds`, `GRID_SIZE`)
  * y lo dibuja como SVG (`<rect>` por celda, `shape-rendering: crispEdges`).
  *
@@ -26,7 +26,7 @@ import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 import type { ArchetypeAnimal } from "@/types/archetype";
 import { PixelAnimal } from "@/components/constellation/PixelAnimal";
 import { SharedHeart } from "@/components/constellation/RomanceHearts";
-import { deriveAnimalPsychometricProfile } from "@/lib/psychometrics";
+import { deriveAnimalPsychometricProfile } from "@/domain/psychometrics/psychometrics";
 import {
   ALL_FAMILIES,
   FAMILY_LABELS,
@@ -37,7 +37,7 @@ import {
   type AnimationFrame,
   type ShapeFamily,
   type SpriteData,
-} from "@/lib/pixel-sprites";
+} from "@/domain/avatars/pixel-sprites";
 
 // ─── Formas de los catálogos (sólo lectura) ────────────────────────────────────
 

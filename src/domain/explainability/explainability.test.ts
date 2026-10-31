@@ -6,7 +6,7 @@ import {
   computeChemistrySummary,
   generateMatchExplanation,
 } from "./explainability";
-import { getMatchingConfig } from "./config";
+import { getMatchingConfig } from "@/domain/matching/config";
 import type { MatchTrack } from "@/types/microtest";
 
 const config = getMatchingConfig();

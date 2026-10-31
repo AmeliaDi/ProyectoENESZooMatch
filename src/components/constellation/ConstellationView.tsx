@@ -21,7 +21,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import { getTrackThreshold } from "@/lib/constellation-layout";
+import { getTrackThreshold } from "@/domain/constellation/constellation-layout";
 import type { MatchTrack } from "@/types/microtest";
 
 import { ConstellationCanvas } from "./ConstellationCanvas";

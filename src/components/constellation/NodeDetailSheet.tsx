@@ -29,7 +29,7 @@ import {
   generateAffinityBreakdown,
   generateConnectionHeadline,
   type AffinityBreakdown,
-} from "@/lib/matching/explainability";
+} from "@/domain/explainability/explainability";
 import type { MatchTrack } from "@/types/microtest";
 
 import { PixelAnimal } from "./PixelAnimal";

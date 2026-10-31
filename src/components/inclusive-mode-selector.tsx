@@ -18,7 +18,7 @@ import {
   subscribeInclusiveMode,
   writeInclusiveMode,
   type InclusiveMode,
-} from "@/lib/inclusive-text";
+} from "@/domain/messages/inclusive-text";
 
 export function useInclusiveMode(): InclusiveMode {
   return useSyncExternalStore(

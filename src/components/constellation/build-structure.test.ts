@@ -1,8 +1,8 @@
 /**
  * Integration tests for the constellation render structure and the sprite sheet.
  *
- * These drive the REAL, unmodified engines (`@/lib/constellation-layout` and
- * `@/lib/pixel-sprites`) and assert on what the render layer makes of their
+ * These drive the REAL, unmodified engines (`@/domain/constellation/constellation-layout` and
+ * `@/domain/avatars/pixel-sprites`) and assert on what the render layer makes of their
  * output. They run in Vitest's `node` environment: nothing here touches the DOM,
  * which is precisely why `build-structure.ts` and `sprite-sheet.ts` are separate
  * modules from the components.
@@ -15,8 +15,8 @@ import {
   getTrackThreshold,
   precomputeLayout,
   type SimulationState,
-} from "@/lib/constellation-layout";
-import { GRID_SIZE, getAllAnimalIds, getAllColorIds } from "@/lib/pixel-sprites";
+} from "@/domain/constellation/constellation-layout";
+import { GRID_SIZE, getAllAnimalIds, getAllColorIds } from "@/domain/avatars/pixel-sprites";
 
 import {
   GHOST_META,

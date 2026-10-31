@@ -30,8 +30,8 @@ import {
   type ResultMatch,
 } from "@/components/public-experience-utils";
 import { LIKERT_SCALE, QUIZ_ITEMS } from "@/config/quiz";
-import { formatInclusive } from "@/lib/inclusive-text";
-import type { MatchExplanation } from "@/lib/matching/explainability";
+import { formatInclusive } from "@/domain/messages/inclusive-text";
+import type { MatchExplanation } from "@/domain/explainability/explainability";
 import type { MatchTrack } from "@/types/microtest";
 
 const ease = [0.22, 1, 0.36, 1] as const;

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { MATCHING_CONFIG, computeAllMatches } from "@/lib/matching";
+import { MATCHING_CONFIG, computeAllMatches } from "@/domain/matching";
 import { ALL_DIMENSIONS } from "@/types/microtest";
 import type { DimensionScores, HardFilters, ScoredProfile } from "@/types/microtest";
 

@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   safeParse: vi.fn(),
 }));
 
-vi.mock("@/lib/matching", () => ({
+vi.mock("@/domain/matching", () => ({
   MICROTEST_ITEMS: [],
   scoreQuiz: mocks.scoreQuiz,
 }));
@@ -19,11 +19,11 @@ vi.mock("@/lib/matching/recompute.server", () => ({
   recomputeAllMatches: mocks.recomputeAllMatches,
 }));
 
-vi.mock("@/lib/notification-copy", () => ({
+vi.mock("@/domain/messages/notification-copy", () => ({
   generateWelcomeMessage: mocks.generateWelcomeMessage,
 }));
 
-vi.mock("@/lib/profile-generator", () => ({
+vi.mock("@/domain/identity/profile-generator", () => ({
   generateProfileIdentity: mocks.generateProfileIdentity,
 }));
 

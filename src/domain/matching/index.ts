@@ -33,7 +33,7 @@ export {
   generateConnectionHeadline,
   generateMatchExplanation,
   generatePersonalitySummary,
-} from "./explainability";
+} from "@/domain/explainability/explainability";
 export type {
   AffinityBreakdown,
   AfinidadBigFive,
@@ -44,4 +44,4 @@ export type {
   MatchNarrative,
   MatchNarrativeInput,
   PersonalitySummary,
-} from "./explainability";
+} from "@/domain/explainability/explainability";

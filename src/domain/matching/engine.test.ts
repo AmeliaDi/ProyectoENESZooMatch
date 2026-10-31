@@ -18,9 +18,9 @@ import {
   trackDimensionWeights,
   trackSimilarity,
   weightedTrackSimilarity,
-} from "@/lib/matching";
+} from "@/domain/matching";
 
-import { derivePsychometricProfile } from "@/lib/psychometrics";
+import { derivePsychometricProfile } from "@/domain/psychometrics/psychometrics";
 import {
   ALL_DIMENSIONS,
   BIG_FIVE_DIMENSIONS,

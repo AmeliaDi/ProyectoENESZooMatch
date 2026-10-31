@@ -7,7 +7,7 @@
  * suppressed by the global reduced-motion rule.
  */
 
-import { HEART_COLOR } from "@/lib/pixel-sprites";
+import { HEART_COLOR } from "@/domain/avatars/pixel-sprites";
 
 import { PixelAnimal } from "./PixelAnimal";
 

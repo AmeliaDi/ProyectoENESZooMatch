@@ -17,7 +17,7 @@
  *   `getTrackThreshold(track)` (which reads `data/matching-config.json`).
  */
 
-import type { MatchExplanation } from "@/lib/matching/explainability";
+import type { MatchExplanation } from "@/domain/explainability/explainability";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 import type { CSSProperties } from "react";
 

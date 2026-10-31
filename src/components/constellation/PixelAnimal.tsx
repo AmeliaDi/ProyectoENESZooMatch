@@ -16,7 +16,7 @@
 
 import { memo, useEffect, useRef } from "react";
 
-import { GRID_SIZE } from "@/lib/pixel-sprites";
+import { GRID_SIZE } from "@/domain/avatars/pixel-sprites";
 
 import { getIdleFrameIndex, subscribeIdleFrames } from "./frame-ticker";
 import { SHEET_WIDTH, frameIndex, spriteSheetUrl } from "./sprite-sheet";
