@@ -1,29 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import type { Category } from "@/types/microtest";
-
 import {
-  CATEGORY_LABELS,
   NO_MATCH_MESSAGE,
-  QUIZ_STORAGE_KEY,
   parsePublicResult,
-  parseQuizDraft,
   type PublicResult,
   type ResultMatch,
-} from "./public-experience-utils";
+} from "./parse-result";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const MAX_BODY_LENGTH = 280;
-
-const EXPECTED_CATEGORIES: Category[] = [
-  "personalidad_bigfive",
-  "personalidad_mbti",
-  "identidad_filtros",
-  "afinidad_cultural",
-  "intimidad_afecto",
-  "valores_relacionales",
-];
 
 function makeMatch(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -55,19 +41,6 @@ function without(payload: Record<string, unknown>, key: string): Record<string, 
   return Object.fromEntries(Object.entries(payload).filter(([entry]) => entry !== key));
 }
 
-// ─── Storage key ──────────────────────────────────────────────────────────────
-
-describe("QUIZ_STORAGE_KEY", () => {
-  it("is the versioned local-storage key", () => {
-    expect(QUIZ_STORAGE_KEY).toBe("zoomatch:quiz-draft");
-  });
-
-  it("is namespaced and cannot collide with the v1 draft key", () => {
-    expect(QUIZ_STORAGE_KEY.startsWith("zoomatch:")).toBe(true);
-    expect(QUIZ_STORAGE_KEY).toBe("zoomatch:quiz-draft");
-  });
-});
-
 // ─── No-match message ─────────────────────────────────────────────────────────
 
 describe("NO_MATCH_MESSAGE", () => {
@@ -96,28 +69,6 @@ describe("NO_MATCH_MESSAGE", () => {
 
   it("avoids clinical vocabulary", () => {
     expect(NO_MATCH_MESSAGE).not.toMatch(/score|similarity|vector|cosine|percentil|umbral/i);
-  });
-});
-
-// ─── Display labels ───────────────────────────────────────────────────────────
-
-describe("CATEGORY_LABELS", () => {
-  it("covers every questionnaire category", () => {
-    expect(Object.keys(CATEGORY_LABELS).sort()).toEqual([...EXPECTED_CATEGORIES].sort());
-  });
-
-  it("maps each category to a warm Spanish label", () => {
-    for (const category of EXPECTED_CATEGORIES) {
-      const label = CATEGORY_LABELS[category];
-      expect(typeof label).toBe("string");
-      expect(label.length).toBeGreaterThan(0);
-      expect(label).not.toBe(category);
-      expect(label).not.toMatch(/[a-z]_[a-z]/);
-    }
-
-    expect(CATEGORY_LABELS.intimidad_afecto).toBe("Tu forma de amar");
-    expect(CATEGORY_LABELS.valores_relacionales).toBe("Tus valores");
-    expect(CATEGORY_LABELS.afinidad_cultural).toContain("gustos");
   });
 });
 
@@ -310,36 +261,49 @@ describe("parsePublicResult", () => {
   });
 });
 
-// ─── Draft parsing ────────────────────────────────────────────────────────────
 
-describe("parseQuizDraft", () => {
-  it("returns an empty draft when nothing is stored", () => {
-    expect(parseQuizDraft(null)).toEqual({ likert: {}, filters: {} });
-    expect(parseQuizDraft("")).toEqual({ likert: {}, filters: {} });
+describe("parsePublicResult · server-computed chemistry", () => {
+  const CHEMISTRY = {
+    percentage: 87,
+    displayText: "87% de Compatibilidad",
+    level: "quimica_fuerte",
+    levelLabel: "Química fuerte",
+    threshold: 0.78,
+    relativePosition: 0.4,
+  };
+
+  function firstRomance(overrides: Record<string, unknown>): ResultMatch {
+    const parsed = parsePublicResult(
+      makePayload({ matches: { romance: [makeMatch(overrides)], amistad: [] } }),
+    ) as PublicResult;
+    return parsed.matches.romance[0] as ResultMatch;
+  }
+
+  it("keeps a well-formed chemistry summary", () => {
+    expect(firstRomance({ chemistry: CHEMISTRY }).chemistry).toEqual(CHEMISTRY);
   });
 
-  it("returns an empty draft for malformed JSON", () => {
-    expect(parseQuizDraft("{oops")).toEqual({ likert: {}, filters: {} });
-    expect(parseQuizDraft("[]")).toEqual({ likert: {}, filters: {} });
-    expect(parseQuizDraft("null")).toEqual({ likert: {}, filters: {} });
-    expect(parseQuizDraft('"texto"')).toEqual({ likert: {}, filters: {} });
+  it("drops a malformed chemistry summary instead of trusting it", () => {
+    expect(firstRomance({ chemistry: { percentage: "87" } }).chemistry).toBeNull();
+    expect(firstRomance({}).chemistry).toBeNull();
   });
 
-  it("keeps only Likert values in the 1–5 range", () => {
-    const draft = parseQuizDraft(
-      JSON.stringify({
-        likert: { PB01: 3, PB02: 5, PB03: 0, PB04: 6, PB05: "4", PB06: null },
-        filters: { IF01: ["mujeres"], IF02: [], IF03: "monogamia" },
-      }),
-    );
-
-    expect(draft.likert).toEqual({ PB01: 3, PB02: 5 });
-    expect(draft.filters).toEqual({ IF01: ["mujeres"], IF02: [] });
+  it("falls back to the explanation's chemistry when the top-level one is missing", () => {
+    const explanation = { chemistry: CHEMISTRY, breakdown: [], headline: "Hola" };
+    expect(firstRomance({ explanation }).chemistry).toEqual(CHEMISTRY);
   });
 
-  it("is deterministic for the same stored string", () => {
-    const raw = JSON.stringify({ likert: { PB01: 4 }, filters: { IF01: ["todxs"] } });
+  it("rejects explanations missing the fields the UI renders", () => {
+    expect(firstRomance({ explanation: { headline: "x" } }).explanation).toBeNull();
+    expect(
+      firstRomance({ explanation: { chemistry: CHEMISTRY, breakdown: "no", headline: "x" } })
+        .explanation,
+    ).toBeNull();
+  });
 
-    expect(parseQuizDraft(raw)).toEqual(parseQuizDraft(raw));
+  it("never forwards unknown fields such as vectors", () => {
+    const entry = firstRomance({ romance_vector: [0.1, 0.2], user_id: "secret" });
+    expect(entry).not.toHaveProperty("romance_vector");
+    expect(entry).not.toHaveProperty("user_id");
   });
 });

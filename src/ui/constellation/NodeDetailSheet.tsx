@@ -8,12 +8,9 @@
  * from `md` up (full height, slides in from the right). One component, one
  * markup tree, no JS media-query duplication.
  *
- * All copy comes from the approved explainability engine — nothing here invents
- * wording. `computeChemistrySummary` and `generateConnectionHeadline` are called
- * live; the affinity bars prefer a live `generateAffinityBreakdown` when Phase C
- * supplies the raw vectors, and fall back to the server-computed
- * `explanation.breakdown` otherwise (that array IS the output of the same
- * function, so the two paths agree).
+ * All copy comes from the explainability engine on the server (`chemistry` and
+ * `explanation` in the result DTO). The sheet computes nothing: no vectors ever
+ * reach the browser.
  *
  * Accessibility: `role="dialog"` + `aria-modal`, the panel itself is focused on
  * open, focus is restored to whatever had it before (the star that was
@@ -24,12 +21,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, type CSSProperties } from "react";
 
-import {
-  computeChemistrySummary,
-  generateAffinityBreakdown,
-  generateConnectionHeadline,
-  type AffinityBreakdown,
-} from "@/domain/explainability/explainability";
+import type { AffinityBreakdown } from "@/contracts/result";
 import type { MatchTrack } from "@/types/microtest";
 
 import { PixelAnimal } from "./PixelAnimal";
@@ -195,34 +187,11 @@ export function NodeDetailSheet({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
-  // ── Explainability (memoised: the sheet re-renders on every drag frame's
-  //    parent update, and these functions are not free) ────────────────────────
-  const chemistry = useMemo(
-    () => (node ? computeChemistrySummary(node.similarity, track) : null),
-    [node, track],
-  );
-
-  const breakdown = useMemo<AffinityBreakdown[]>(() => {
-    if (!node) return [];
-    const selfVector = node.selfVector;
-    const matchVector = node.matchVector;
-    if (selfVector && matchVector && selfVector.length === matchVector.length) {
-      try {
-        return generateAffinityBreakdown(selfVector, matchVector, track);
-      } catch {
-        // Vector length does not match this track's dimension count — fall back.
-      }
-    }
-    return node.explanation?.breakdown ?? [];
-  }, [node, track]);
-
-  const headline = useMemo(() => {
-    if (!node) return "";
-    if (breakdown.length > 0) {
-      return generateConnectionHeadline(breakdown, track, self.animalName, node.animalName);
-    }
-    return node.explanation?.headline ?? "";
-  }, [node, breakdown, track, self.animalName]);
+  // Every number and sentence below was computed on the server by the
+  // explainability engine; the sheet only renders it.
+  const chemistry = node?.chemistry ?? null;
+  const breakdown: AffinityBreakdown[] = node?.explanation?.breakdown ?? [];
+  const headline = node?.explanation?.headline ?? "";
 
   const badges = useMemo(
     () => (node ? sliceBadges(node.badges, track) : []),

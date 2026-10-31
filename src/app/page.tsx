@@ -1,4 +1,4 @@
-import { MatriculaEntry } from "@/components/matricula-entry";
+import { MatriculaEntry } from "@/ui/entry/matricula-entry";
 
 export default function HomePage() {
   return <MatriculaEntry />;

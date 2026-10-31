@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PublicQuiz } from "@/components/public-experience";
+import { PublicQuiz } from "@/ui/quiz/public-quiz";
 
 export const metadata: Metadata = { title: "Microtest | ZooMatch" };
 

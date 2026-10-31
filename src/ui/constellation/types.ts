@@ -17,7 +17,7 @@
  *   `getTrackThreshold(track)` (which reads `data/matching-config.json`).
  */
 
-import type { MatchExplanation } from "@/domain/explainability/explainability";
+import type { ChemistrySummary, MatchExplanation } from "@/contracts/result";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 import type { CSSProperties } from "react";
 
@@ -49,6 +49,8 @@ export interface ConstellationNodeInput {
   track: MatchTrack;
   /** Affinity badges (top 5 romance / top 3 amistad, already computed). */
   badges: CompatibilityBadge[];
+  /** Server-computed chemistry band; `null` hides the detail sheet header. */
+  chemistry: ChemistrySummary | null;
   /** Full poetic explanation, or `null` when the API omitted it. */
   explanation: MatchExplanation | null;
   /** True only for the current user's centred node. */
@@ -57,20 +59,12 @@ export interface ConstellationNodeInput {
   isGhost: boolean;
   /** Matched person's MBTI code, when known (surfaced in the detail sheet). */
   mbtiCode?: string | null;
-  /**
-   * Optional raw track vectors. When BOTH are present and their length matches
-   * the active track's dimension array, the detail sheet recomputes the
-   * affinity bars live via `generateAffinityBreakdown`. Otherwise it falls back
-   * to `explanation.breakdown`. Phase C can safely omit these.
-   */
-  selfVector?: readonly number[];
-  matchVector?: readonly number[];
 }
 
 /** The current user: no similarity, track, badges or explanation of its own. */
 export type ConstellationSelfInput = Omit<
   ConstellationNodeInput,
-  "similarity" | "track" | "badges" | "explanation" | "isSelf" | "isGhost"
+  "similarity" | "track" | "badges" | "chemistry" | "explanation" | "isSelf" | "isGhost"
 >;
 
 /** A real match. `track` decides under which tab it appears. */

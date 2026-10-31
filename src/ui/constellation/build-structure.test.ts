@@ -81,6 +81,7 @@ function makeMatch(
     similarity,
     track,
     badges: [],
+    chemistry: null,
     explanation: null,
   };
 }

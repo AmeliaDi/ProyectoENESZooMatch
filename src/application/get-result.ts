@@ -1,4 +1,5 @@
 import {
+  computeChemistrySummary,
   generateMatchExplanation,
   type MatchExplanation,
 } from "@/domain/explainability/explainability";
@@ -90,6 +91,7 @@ function toEntry(
     color_hex: other?.colorHex ?? null,
     mbti_code: other?.mbtiCode ?? null,
     similarity: match.similarity,
+    chemistry: computeChemistrySummary(match.similarity, match.track),
     badges: match.badges,
     narrative: narrativeFor(match.track, alias, match.similarity),
     explanation: explain(match, own, other),

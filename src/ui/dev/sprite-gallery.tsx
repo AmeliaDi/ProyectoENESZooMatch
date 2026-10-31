@@ -24,8 +24,8 @@ import {
 
 import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 import type { ArchetypeAnimal } from "@/types/archetype";
-import { PixelAnimal } from "@/components/constellation/PixelAnimal";
-import { SharedHeart } from "@/components/constellation/RomanceHearts";
+import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
+import { SharedHeart } from "@/ui/constellation/RomanceHearts";
 import { deriveAnimalPsychometricProfile } from "@/domain/psychometrics/psychometrics";
 import {
   ALL_FAMILIES,

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SpriteGallery } from "@/components/sprite-gallery";
+import { SpriteGallery } from "@/ui/dev/sprite-gallery";
 
 export const metadata: Metadata = {
   title: "Galería de sprites · dev | ZooMatch",

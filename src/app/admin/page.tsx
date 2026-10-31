@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { loadAdminMetrics } from "@/application/admin-metrics";
-import { AdminDashboard } from "@/components/admin-dashboard";
+import { AdminDashboard } from "@/ui/admin/admin-dashboard";
 import { adminContext } from "@/infrastructure/composition.server";
 
 export const metadata: Metadata = {

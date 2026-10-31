@@ -5,7 +5,7 @@
  *
  * ```tsx
  * import { ConstellationView, type ConstellationMatchInput, type ConstellationSelfInput }
- *   from "@/components/constellation";
+ *   from "@/ui/constellation";
  * ```
  *
  * Everything exported from `./types` is the data contract; everything else is a

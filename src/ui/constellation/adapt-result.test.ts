@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { MatchExplanation } from "@/domain/explainability/explainability";
+import type { MatchExplanation } from "@/contracts/result";
 import type { CompatibilityBadge } from "@/types/microtest";
-import type { PublicResult, ResultMatch } from "@/components/public-experience-utils";
+import type { PublicResult, ResultMatch } from "@/ui/result/parse-result";
 
 import {
   SELF_NODE_ID,
@@ -31,6 +31,7 @@ function makeMatch(overrides: Partial<ResultMatch> = {}): ResultMatch {
     color_hex: "#50C878",
     mbti_code: "ENFP",
     similarity: 0.87,
+    chemistry: null,
     badges: [BADGE],
     narrative: "Dos criaturas que se reconocen.",
     explanation: null,

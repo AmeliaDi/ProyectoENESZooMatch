@@ -2,12 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   adminMetricsSchema,
-  adminMetricsToCsv,
   parseAdminMetrics,
-  protectCsvCell,
-  trackCoverageRate,
   type AdminMetrics,
-} from "./dashboard";
+} from "@/contracts/admin-metrics";
+
+import { adminMetricsToCsv, protectCsvCell, trackCoverageRate } from "./metrics-export";
 
 const METRICS: AdminMetrics = {
   generatedAt: "2026-10-25T12:00:00.000Z",

@@ -22,7 +22,7 @@ import { useMemo } from "react";
 import {
   NO_MATCH_MESSAGE,
   type PublicResult,
-} from "@/components/public-experience-utils";
+} from "@/ui/result/parse-result";
 import type { MatchTrack } from "@/types/microtest";
 
 import { adaptResult } from "./adapt-result";

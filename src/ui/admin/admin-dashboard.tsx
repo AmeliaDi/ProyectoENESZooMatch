@@ -13,21 +13,17 @@ import {
   YAxis,
 } from "recharts";
 
-import {
-  MBTI_CODES,
-  adminMetricsToCsv,
-  parseAdminMetrics,
-  trackCoverageRate,
-  type AdminMetrics,
-} from "@/application/admin/dashboard";
-import { getMatchingConfig } from "@/domain/matching/config";
+import { MATCHING_CONFIG } from "@/config";
+import { parseAdminMetrics, type AdminMetrics } from "@/contracts/admin-metrics";
+
+import { MBTI_CODES, adminMetricsToCsv, trackCoverageRate } from "./metrics-export";
 
 interface AdminDashboardProps {
   initialData: AdminMetrics | null;
 }
 
 const chartColors = ["#c7e879", "#8fae66", "#ef936d", "#6aa6a0"];
-const MATCHING_CONFIG = getMatchingConfig();
+
 
 function emptyMetrics(): AdminMetrics {
   return {

@@ -29,13 +29,13 @@
  * The visible identity of a node is animal + colour + alias only. The match `id`
  * is an opaque, non-reversible per-viewer handle derived by the API — used
  * purely as a stable React key, never displayed, and carrying no matrícula,
- * hash, answer or vector data. Vectors are deliberately NOT forwarded: the
- * detail sheet falls back to `explanation.breakdown`.
+ * hash, answer or vector data. Vectors never reach the browser: the detail
+ * sheet renders the server-computed `chemistry` and `explanation`.
  */
 
 import { CATALOG_ANIMALS as LOADED_ANIMALS, CATALOG_COLORS as LOADED_COLORS } from "@/config";
 
-import type { PublicResult, ResultMatch } from "@/components/public-experience-utils";
+import type { PublicResult, ResultMatch } from "@/ui/result/parse-result";
 import type { MatchTrack } from "@/types/microtest";
 
 import type { ConstellationMatchInput, ConstellationSelfInput } from "./types";
@@ -250,6 +250,7 @@ function adaptTrack(
       similarity: entry.similarity,
       track,
       badges: entry.badges,
+      chemistry: entry.chemistry,
       explanation: entry.explanation ?? null,
       mbtiCode: entry.mbti_code ?? null,
     });

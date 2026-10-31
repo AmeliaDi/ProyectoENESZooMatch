@@ -9,13 +9,10 @@ import { type FormEvent, useRef, useState } from "react";
 import {
   InclusiveModeSelector,
   useInclusiveMode,
-} from "@/components/inclusive-mode-selector";
-import {
-  isPublicMatriculaValid,
-  normalizePublicMatricula,
-} from "@/components/public-experience-utils";
+} from "@/ui/shared/inclusive-mode-selector";
+import { ease } from "@/ui/shared/chrome";
 
-const ease = [0.22, 1, 0.36, 1] as const;
+import { isPublicMatriculaValid, normalizePublicMatricula } from "./matricula";
 
 export function MatriculaEntry() {
   const router = useRouter();

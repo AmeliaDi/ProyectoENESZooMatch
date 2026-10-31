@@ -12,7 +12,7 @@ import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 import type {
   ConstellationMatchInput,
   ConstellationSelfInput,
-} from "@/components/constellation";
+} from "@/ui/constellation";
 import { generateMatchExplanation } from "@/domain/matching";
 import { getAllAnimalIds, getAllColorIds } from "@/domain/avatars/pixel-sprites";
 import { projectAnimalDimensions } from "@/domain/psychometrics/psychometrics";
@@ -141,6 +141,7 @@ export function generateSyntheticMatches({
       similarity: roundedSimilarity,
       track,
       badges: [],
+      chemistry: explanation.chemistry,
       explanation,
     });
   }

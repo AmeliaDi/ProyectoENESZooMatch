@@ -29,7 +29,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ConstellationView } from "@/components/constellation";
+import { ConstellationView } from "@/ui/constellation";
 import { getTrackThreshold } from "@/domain/constellation/constellation-layout";
 import type { MatchTrack } from "@/types/microtest";
 

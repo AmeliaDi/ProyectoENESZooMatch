@@ -1,0 +1,53 @@
+/** Local-storage key for the in-progress questionnaire. */
+export const QUIZ_STORAGE_KEY = "zoomatch:quiz-draft";
+
+export type QuizDraft = {
+  likert: Partial<Record<string, 1 | 2 | 3 | 4 | 5>>;
+  filters: Partial<Record<string, string[]>>;
+};
+
+export const CATEGORY_LABELS: Record<string, string> = {
+  personalidad_bigfive: "Tu personalidad",
+  personalidad_mbti: "Tu forma de pensar",
+  identidad_filtros: "Tu identidad y lo que buscas",
+  afinidad_cultural: "Tus gustos y pasiones",
+  intimidad_afecto: "Tu forma de amar",
+  valores_relacionales: "Tus valores",
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+/** Parses a stored draft, dropping anything malformed instead of throwing. */
+export function parseQuizDraft(raw: string | null): QuizDraft {
+  const empty: QuizDraft = { likert: {}, filters: {} };
+  if (!raw) return empty;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return empty;
+  }
+  if (!isRecord(parsed)) return empty;
+
+  const likert: QuizDraft["likert"] = {};
+  if (isRecord(parsed.likert)) {
+    for (const [key, value] of Object.entries(parsed.likert)) {
+      if (value === 1 || value === 2 || value === 3 || value === 4 || value === 5) {
+        likert[key] = value;
+      }
+    }
+  }
+
+  const filters: QuizDraft["filters"] = {};
+  if (isRecord(parsed.filters)) {
+    for (const [key, value] of Object.entries(parsed.filters)) {
+      if (Array.isArray(value) && value.every((v) => typeof v === "string")) {
+        filters[key] = value as string[];
+      }
+    }
+  }
+
+  return { likert, filters };
+}

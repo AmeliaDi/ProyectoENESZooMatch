@@ -1,7 +1,7 @@
 import { getAmistadThreshold, getRomanceThreshold } from "@/domain/matching";
 import { err, ok, type Result } from "@/domain/shared";
 
-import { parseAdminMetrics, type AdminMetrics } from "./admin/dashboard";
+import { parseAdminMetrics, type AdminMetrics } from "@/contracts/admin-metrics";
 import type { AppError } from "./errors";
 import type { AdminRepository } from "./ports";
 

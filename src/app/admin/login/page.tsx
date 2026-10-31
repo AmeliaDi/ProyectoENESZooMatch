@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { AdminLogin } from "@/components/admin-login";
+import { AdminLogin } from "@/ui/admin/admin-login";
 
 export const metadata: Metadata = {
   title: "Acceso administrativo · ZooMatch",

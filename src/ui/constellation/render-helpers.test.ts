@@ -119,6 +119,7 @@ function makeMatch(id: string, similarity: number, track: "romance" | "amistad")
     similarity,
     track,
     badges: [],
+    chemistry: null,
     explanation: null,
   };
 }
