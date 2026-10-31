@@ -21,13 +21,19 @@ import { err, ok, type Result } from "@/domain/shared";
 import { ALL_DIMENSIONS } from "@/types/microtest";
 import type { DimensionScores, ScoredProfile } from "@/types/microtest";
 
-const TABLE = { profiles: "profiles_v2", notifications: "notifications", roles: "user_roles" } as const;
-const RPC = {
-  submit: "submit_quiz_result_v2",
-  replace: "replace_matches_v2",
-  myMatches: "get_my_matches_v2",
-  notify: "notify_matches_v2",
-  dashboard: "get_admin_dashboard_v2",
+/** Every table and RPC name the app uses; mirrored by the base migration. */
+export const TABLE = {
+  profiles: "profiles",
+  notifications: "notifications",
+  roles: "user_roles",
+} as const;
+export const RPC = {
+  submit: "submit_quiz_result",
+  poolVersion: "get_pool_version",
+  replace: "replace_matches",
+  userMatches: "get_user_matches",
+  notify: "notify_matches",
+  dashboard: "get_admin_dashboard",
   myNotifications: "get_my_notifications",
   markRead: "mark_notifications_read",
 } as const;
@@ -117,13 +123,10 @@ function toCounterpart(row: Record<string, unknown>): CounterpartProfile {
 }
 
 /**
- * `session` reads the viewer's own row under RLS; `admin` (service role)
- * handles writes and cross-user reads that RLS hides by design.
+ * Participant tables are invisible to API roles, so every read and write uses
+ * the service-role client. Callers must have verified the session first.
  */
-export function supabaseProfileRepository(
-  admin: SupabaseClient,
-  session?: SupabaseClient,
-): ProfileRepository {
+export function supabaseProfileRepository(admin: SupabaseClient): ProfileRepository {
   return {
     async isQuizCompleted(userId) {
       const res = await attempt(() =>
@@ -180,9 +183,8 @@ export function supabaseProfileRepository(
     },
 
     async findOwn(userId) {
-      const client = session ?? admin;
       const res = await attempt(() =>
-        client
+        admin
           .from(TABLE.profiles)
           .select(
             "alias, narrative, mbti_code, dimension_scores, romance_vector, amistad_vector, animals(id, diminutivo_es, categoria_fauna), colors(id, nombre, hex)",
@@ -221,12 +223,14 @@ const matchRowSchema = z.object({
   badges: z.array(z.object({ dimension: z.string(), affinity: z.number() })).nullable().optional(),
 });
 
-export function supabaseMatchRepository(
-  admin: SupabaseClient,
-  session?: SupabaseClient,
-): MatchRepository {
+export function supabaseMatchRepository(admin: SupabaseClient): MatchRepository {
   return {
-    async replaceAll(pairs, expectedProfiles) {
+    async poolVersion() {
+      const res = await attempt(() => admin.rpc(RPC.poolVersion));
+      return res && !res.error && typeof res.data === "string" ? ok(res.data) : failed;
+    },
+
+    async replaceAll(pairs, poolVersion) {
       const res = await attempt(() =>
         admin.rpc(RPC.replace, {
           p_matches: pairs.map((pair) => ({
@@ -236,16 +240,15 @@ export function supabaseMatchRepository(
             similarity: pair.similarity,
             badges: pair.badges,
           })),
-          p_expected_profiles: expectedProfiles,
+          p_pool_version: poolVersion,
         }),
       );
       if (!res || res.error) return failed;
       return ok(res.data === POOL_CHANGED_SENTINEL ? "pool_changed" : "replaced");
     },
 
-    async listMine(): Promise<Result<StoredMatch[], StorageError>> {
-      const client = session ?? admin;
-      const res = await attempt(() => client.rpc(RPC.myMatches));
+    async listFor(userId): Promise<Result<StoredMatch[], StorageError>> {
+      const res = await attempt(() => admin.rpc(RPC.userMatches, { p_user_id: userId }));
       if (!res || res.error) return failed;
       const rows = z.array(matchRowSchema).safeParse(res.data ?? []);
       if (!rows.success) return failed;
@@ -276,20 +279,26 @@ const notificationSchema = z.object({
   created_at: z.string(),
 });
 
+/**
+ * `admin` (service role) writes notifications; `session` reads and marks the
+ * viewer's own through RPCs that check auth.uid(). Pass `null` for `admin`
+ * when the caller only reads.
+ */
 export function supabaseNotificationRepository(
   admin: SupabaseClient | null,
   session: SupabaseClient,
 ): NotificationRepository {
-  const writer = admin ?? session;
   return {
     async notifyMatches(userId) {
-      const res = await attempt(() => writer.rpc(RPC.notify, { p_user_id: userId }));
+      if (!admin) return failed;
+      const res = await attempt(() => admin.rpc(RPC.notify, { p_user_id: userId }));
       return res && !res.error ? ok(undefined) : failed;
     },
 
     async insertWelcome(userId, message, metadata) {
+      if (!admin) return;
       await attempt(() =>
-        writer.from(TABLE.notifications).insert({
+        admin.from(TABLE.notifications).insert({
           user_id: userId,
           type: "welcome",
           title: message.title,

@@ -19,24 +19,26 @@ export function recomputeBackoffMs(attempt: number, random: () => number): numbe
 
 export interface RecomputeDeps {
   profiles: Pick<ProfileRepository, "loadCompletedPool">;
-  matches: Pick<MatchRepository, "replaceAll">;
+  matches: Pick<MatchRepository, "poolVersion" | "replaceAll">;
   scheduler: Scheduler;
 }
 
 /**
  * Recomputes every pair from the completed pool and publishes it atomically.
- * The repository rejects the write when the pool size changed in between, in
- * which case the run is retried with backoff.
+ * The pool version is read before the pool, so any submission, retake or
+ * deletion in between makes the write fail and the run is retried.
  */
 export async function recomputeMatches(
   deps: RecomputeDeps,
 ): Promise<Result<GlobalMatch[], Extract<AppError, "storage.failed" | "match.pool_unstable">>> {
   for (let attempt = 0; attempt < RECOMPUTE_MAX_ATTEMPTS; attempt += 1) {
+    const version = await deps.matches.poolVersion();
+    if (!version.ok) return version;
     const pool = await deps.profiles.loadCompletedPool();
     if (!pool.ok) return pool;
 
     const pairs = computeAllMatches(pool.value, MATCHING_CONFIG);
-    const replaced = await deps.matches.replaceAll(pairs, pool.value.length);
+    const replaced = await deps.matches.replaceAll(pairs, version.value);
     if (!replaced.ok) return replaced;
     if (replaced.value === "replaced") return ok(pairs);
 

@@ -2,8 +2,8 @@
 -- ZooMatch — purge all participant data at the end of the event
 -- ============================================================
 --
--- This removes every non-admin auth user; the ON DELETE CASCADE chain removes
--- profiles, vectors, responses, matches and notifications.
+-- This removes every non-admin auth user. The cascade auth.users -> profiles
+-- -> (quiz_responses, matches, notifications) removes all participant data.
 --
 -- SAFETY:
 --   1. Export the aggregated admin CSV first (the dashboard has a CSV button).

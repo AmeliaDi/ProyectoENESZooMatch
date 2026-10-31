@@ -15,7 +15,7 @@ function deps(outcomes: ReplaceOutcome[]) {
   const sleep = vi.fn(async () => {});
   const value: RecomputeDeps = {
     profiles: { loadCompletedPool: async () => ok([]) },
-    matches: { replaceAll },
+    matches: { poolVersion: async () => ok("v1"), replaceAll },
     scheduler: { sleep, random: () => 0 },
   };
   return { value, replaceAll, sleep };
@@ -46,6 +46,12 @@ describe("recomputeMatches", () => {
     await expect(recomputeMatches(value)).resolves.toEqual(err("match.pool_unstable"));
     expect(replaceAll).toHaveBeenCalledTimes(RECOMPUTE_MAX_ATTEMPTS);
     expect(sleep).toHaveBeenCalledTimes(RECOMPUTE_MAX_ATTEMPTS - 1);
+  });
+
+  it("publishes against the version read before the pool", async () => {
+    const { value, replaceAll } = deps(["replaced"]);
+    await recomputeMatches(value);
+    expect(replaceAll).toHaveBeenCalledWith([], "v1");
   });
 
   it("propagates storage failures without retrying", async () => {

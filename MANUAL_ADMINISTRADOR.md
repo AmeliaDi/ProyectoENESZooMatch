@@ -109,8 +109,8 @@ Para que la plataforma funcione y se pueda entrar, se necesita:
 - **Supabase configurado.** La aplicación depende de un proyecto Supabase (base de datos +
   autenticación). Si las credenciales de Supabase no están configuradas, el panel **redirige a
   `/admin/login`** y las operaciones del estudiante responden como "no disponible".
-- **Base de datos preparada.** Aplicar, en orden, las migraciones y las semillas de datos
-  (`supabase/migrations/*.sql` → `seed.sql`). Esto crea las tablas, los
+- **Base de datos preparada.** Aplicar la migración base y la semilla de datos
+  (`supabase/migrations/00000000000000_base.sql` → `seed.sql`). Esto crea las tablas, los
   catálogos de animales/colores y los cuestionarios.
 - **Promoción del primer administrador.** No hay una pantalla para "dar de alta administradores".
   El alta se hace manualmente con el archivo `supabase/promote_admin.sql`:

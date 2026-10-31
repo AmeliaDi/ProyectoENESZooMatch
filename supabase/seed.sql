@@ -2,7 +2,7 @@
 -- ZooMatch: Seed Data
 -- File: supabase/seed.sql
 -- ============================================================
--- Run AFTER migration 202610230001_multidimensional_v2.sql
+-- Run AFTER migrations/00000000000000_base.sql (npm run db:reset does both).
 -- This seed is IDEMPOTENT: uses INSERT ... ON CONFLICT DO UPDATE
 -- so it can be run multiple times safely.
 --
@@ -12,7 +12,7 @@
 
 BEGIN;
 
--- ─── 1. Seed Animals (92 entries) ─────────────────────────────
+-- ─── 1. Seed Animals (103 entries) ─────────────────────────────
 
 INSERT INTO public.animals (id, nombre_fuente, diminutivo_es, categoria_fauna, personality_affinity) VALUES
   ('ajolotito', 'Axolotl', 'ajolotito', 'anfibio', '{"personalidad_apertura":0.9,"personalidad_responsabilidad":0.3,"personalidad_extraversion":0.2,"personalidad_amabilidad":0.6,"personalidad_estabilidad_emocional":0.8}'),
@@ -117,7 +117,12 @@ INSERT INTO public.animals (id, nombre_fuente, diminutivo_es, categoria_fauna, p
   ('chihuahuita', 'Chihuahua', 'chihuahuita', 'mamifero', '{"personalidad_apertura":0.5,"personalidad_responsabilidad":0.9,"personalidad_extraversion":0.8,"personalidad_amabilidad":0.45,"personalidad_estabilidad_emocional":0.8}'),
   ('murcielaguito', 'Bat', 'murcielaguito', 'mamifero', '{"personalidad_apertura":0.9,"personalidad_responsabilidad":0.45,"personalidad_extraversion":0.25,"personalidad_amabilidad":0.45,"personalidad_estabilidad_emocional":0.65}'),
   ('dragoncito', 'Jade Dragon', 'dragoncito', 'reptil', '{"personalidad_apertura":0.8,"personalidad_responsabilidad":0.8,"personalidad_extraversion":0.7,"personalidad_amabilidad":0.5,"personalidad_estabilidad_emocional":0.85}'),
-  ('kitsune', 'Kitsune', 'kitsune', 'mamifero', '{"personalidad_apertura":0.9,"personalidad_responsabilidad":0.4,"personalidad_extraversion":0.3,"personalidad_amabilidad":0.8,"personalidad_estabilidad_emocional":0.45}');
+  ('kitsune', 'Kitsune', 'kitsune', 'mamifero', '{"personalidad_apertura":0.9,"personalidad_responsabilidad":0.4,"personalidad_extraversion":0.3,"personalidad_amabilidad":0.8,"personalidad_estabilidad_emocional":0.45}')
+ON CONFLICT (id) DO UPDATE SET
+  nombre_fuente = EXCLUDED.nombre_fuente,
+  diminutivo_es = EXCLUDED.diminutivo_es,
+  categoria_fauna = EXCLUDED.categoria_fauna,
+  personality_affinity = EXCLUDED.personality_affinity;
 
 -- ─── 2. Seed Colors (55 entries) ──────────────────────────────
 
@@ -185,7 +190,7 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- ─── 3. Seed Quiz Items (60 entries) ───────────────────────
 
-INSERT INTO public.quiz_items_v2 (id, categoria, subcategoria, prompt, tipo_respuesta, opciones, polarity, weights, track_romance, track_amistad, filtro_duro, campo_perfil, source_id) VALUES
+INSERT INTO public.quiz_items (id, categoria, subcategoria, prompt, tipo_respuesta, opciones, polarity, weights, track_romance, track_amistad, filtro_duro, campo_perfil, source_id) VALUES
   -- personalidad_bigfive (10 items)
   ('PB01', 'personalidad_bigfive', 'apertura', 'Disfruto explorar ideas abstractas y conceptos nuevos aunque no tengan aplicación inmediata.', 'likert_5', NULL, 'positiva', '{"personalidad_apertura":1}', true, true, false, NULL, 'big-five-inventory'),
   ('PB02', 'personalidad_bigfive', 'apertura', 'Prefiero mantener mis rutinas conocidas antes que experimentar actividades o perspectivas nuevas.', 'likert_5', NULL, 'negativa', '{"personalidad_apertura":-1}', true, true, false, NULL, 'big-five-inventory'),

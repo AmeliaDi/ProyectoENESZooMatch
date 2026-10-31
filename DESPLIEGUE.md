@@ -22,28 +22,13 @@
    supabase db push
    ```
 
-   `db push` aplica las migraciones en orden lexicográfico:
+   El esquema completo vive en una sola migración,
+   `supabase/migrations/00000000000000_base.sql`. Está pensada para un proyecto
+   **vacío**: si el proyecto remoto ya tiene el esquema anterior (tablas `*_v2`),
+   reinicia la base desde el panel o con `supabase db reset --linked` antes del
+   `db push`. Esto borra todos los datos; no hay datos que conservar.
 
-   1. `202610220001_secure_matching.sql`
-   2. `202610220002_admin_analytics.sql`
-   3. `202610230001_multidimensional_v2.sql`
-   4. `202610240001_matches_v2_explainability.sql`
-   5. `202610250001_global_matching_hardening.sql` (reemplazo global de matches y
-      permisos de RPC endurecidos).
-   6. `202610260001_table_grants_hygiene.sql` (tablas sólo `SELECT` para los
-      roles de API; escrituras únicamente por RPC/service role).
-   7. `202610270001_canonical_profile_identity.sql` (el submit lee el hash de
-      matrícula desde `profiles_v2`; **obligatoria** para el flujo canónico).
-
-   Las últimas tres migraciones son seguras de aplicar sobre una implementación
-   existente. Después de `db push`, confirma que local y remoto coinciden:
-
-   ```bash
-   supabase migration list
-   ```
-
-   Las siete filas deben aparecer en la columna remota. Si falta la última, el submit
-   del cuestionario falla con «Profile not initialized».
+   En local, `npm run db:reset` aplica la migración y la semilla en un paso.
 4. Los seeds no se aplican con `db push`. Ejecútalo después de las migraciones:
 
    ```bash
@@ -63,7 +48,7 @@
    ```sql
    select has_function_privilege(
      'anon',
-     'public.submit_quiz_result_v2(uuid,jsonb,jsonb,double precision[],double precision[],text,jsonb,text,text,text,text)',
+     'public.submit_quiz_result(uuid,jsonb,jsonb,double precision[],double precision[],text,jsonb,text,text,text,text)',
      'execute'
    );
    ```
@@ -138,7 +123,7 @@ npm install
 npm run dev
 ```
 
-`supabase db reset` aplica migraciones y ambos seeds porque así está configurado
+`npm run db:reset` (`supabase db reset`) aplica la migración base y la semilla porque así está configurado
 `supabase/config.toml`. No reutilices las claves locales en producción.
 
 ## Integración continua

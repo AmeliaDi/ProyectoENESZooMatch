@@ -80,12 +80,14 @@ export interface StoredMatch {
 export type ReplaceOutcome = "replaced" | "pool_changed";
 
 export interface MatchRepository {
+  /** Opaque token for the current completed pool; read it BEFORE the pool. */
+  poolVersion(): Promise<Result<string, StorageError>>;
+  /** Writes nothing and reports `pool_changed` when `poolVersion` is stale. */
   replaceAll(
     pairs: readonly GlobalMatch[],
-    expectedProfiles: number,
+    poolVersion: string,
   ): Promise<Result<ReplaceOutcome, StorageError>>;
-  /** Matches of the authenticated viewer. */
-  listMine(): Promise<Result<StoredMatch[], StorageError>>;
+  listFor(userId: string): Promise<Result<StoredMatch[], StorageError>>;
 }
 
 export interface NotificationRecord {

@@ -61,14 +61,13 @@ export async function resultContext(): Promise<
 > {
   const auth = await authenticated();
   if (!auth.ok) return auth;
-  // Counterpart rows are RLS-hidden; without the service role they are simply
-  // omitted and explanations degrade to null.
-  const admin = createAdminClient() ?? auth.value.session;
+  const admin = createAdminClient();
+  if (!admin) return err("service.unavailable");
   return ok({
     userId: auth.value.userId,
     deps: {
-      profiles: supabaseProfileRepository(admin, auth.value.session),
-      matches: supabaseMatchRepository(admin, auth.value.session),
+      profiles: supabaseProfileRepository(admin),
+      matches: supabaseMatchRepository(admin),
       digest: sha256Hex,
     },
   });

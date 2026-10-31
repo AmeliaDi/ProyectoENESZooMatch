@@ -31,7 +31,9 @@ export class MemoryStore {
   matches: GlobalMatch[] = [];
   readonly notifications: Array<NotificationRecord & { userId: string }> = [];
   readonly notified: string[] = [];
-  /** Extra completed profiles added "concurrently" on the next N pool reads. */
+  /** Bumped by every save; models max(quiz_completed_at) + count. */
+  version = 0;
+  /** Number of upcoming replace attempts that see a concurrent submission. */
   concurrentArrivals = 0;
   faults: Faults = {};
   viewer = "";
@@ -52,6 +54,7 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
     async saveQuizResult(record) {
       if (store.faults.save) return failed;
       store.results.set(record.userId, record);
+      store.version += 1;
       return ok(undefined);
     },
     async setInclusiveMode(userId, mode) {
@@ -67,14 +70,17 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
 
 export function memoryMatches(store: MemoryStore): MatchRepository {
   return {
-    async replaceAll(pairs, expectedProfiles) {
-      const actual = store.results.size + (store.concurrentArrivals > 0 ? 1 : 0);
-      if (store.concurrentArrivals > 0) store.concurrentArrivals -= 1;
-      if (actual !== expectedProfiles) return ok("pool_changed");
+    poolVersion: async () => ok(String(store.version)),
+    async replaceAll(pairs, poolVersion) {
+      if (store.concurrentArrivals > 0) {
+        store.concurrentArrivals -= 1;
+        store.version += 1;
+      }
+      if (String(store.version) !== poolVersion) return ok("pool_changed");
       store.matches = [...pairs];
       return ok("replaced");
     },
-    listMine: async () => ok(store.stored),
+    listFor: async () => ok(store.stored),
   };
 }
 

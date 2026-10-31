@@ -30,7 +30,7 @@ export async function enterWithMatricula(
   const email = privateLoginEmail(matriculaHash);
   const findProfile = () =>
     admin
-      .from("profiles_v2")
+      .from("profiles")
       .select("user_id, quiz_completed_at")
       .eq("matricula_hash", matriculaHash)
       .maybeSingle<ProfileRow>();
@@ -59,7 +59,7 @@ export async function enterWithMatricula(
       if (existing.error || !existing.data) return null;
       profile = existing.data;
     } else {
-      const { error: insertError } = await admin.from("profiles_v2").insert({
+      const { error: insertError } = await admin.from("profiles").insert({
         user_id: created.user.id,
         matricula_hash: matriculaHash,
       });

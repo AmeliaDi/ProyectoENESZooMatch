@@ -24,7 +24,7 @@ const OPAQUE_ID_LENGTH = 16;
 
 export interface GetResultDeps {
   profiles: Pick<ProfileRepository, "findOwn" | "findCounterparts">;
-  matches: Pick<MatchRepository, "listMine">;
+  matches: Pick<MatchRepository, "listFor">;
   /** One-way digest (hex) used to derive per-viewer opaque match handles. */
   digest(input: string): string;
 }
@@ -102,7 +102,10 @@ export async function getResult(
   viewerId: string,
   deps: GetResultDeps,
 ): Promise<Result<ResultDto, AppError>> {
-  const [own, matches] = await Promise.all([deps.profiles.findOwn(viewerId), deps.matches.listMine()]);
+  const [own, matches] = await Promise.all([
+    deps.profiles.findOwn(viewerId),
+    deps.matches.listFor(viewerId),
+  ]);
   if (!own.ok) return own;
   if (!matches.ok) return matches;
   if (!own.value) return err("quiz.not_completed");
