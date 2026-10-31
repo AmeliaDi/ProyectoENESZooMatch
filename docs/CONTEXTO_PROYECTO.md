@@ -1,5 +1,7 @@
 # ZooMatch — Documento de Contexto del Proyecto
 
+> **Documento histórico (anterior a la unificación de 2026-10-31).** Las rutas `src/lib/*`, las tablas `*_v2` y las migraciones que menciona ya no existen. La estructura vigente está en [`ARQUITECTURA.md`](./ARQUITECTURA.md) y [`../README.md`](../README.md).
+
 > Documento de referencia para cualquier persona (o agente de IA) que necesite entender
 > **qué es el proyecto, cómo está estructurado y cómo funciona** antes de tocar código.
 

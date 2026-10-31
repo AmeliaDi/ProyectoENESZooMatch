@@ -1,5 +1,12 @@
 # Motor psicométrico de mejor match romántico
 
+> **Estado (2026-10-31).** Las secciones *Propósito* a *Limitaciones* describen
+> `src/lib/scoring/` y `data/scoring-calibration.json`, que se eliminaron como código
+> muerto porque nada los usaba. Siguen vigentes desde *Relación con el matching de la
+> constelación* en adelante (motor en `src/domain/matching/engine.ts`, capa psicométrica en
+> `src/domain/psychometrics/`, explicabilidad en `src/domain/explainability/`). Este
+> documento se reemplazará por `FUNDAMENTOS.md` y `COMPARATIVA_MODELOS.md`.
+
 ## Propósito y alcance
 
 Este motor es una demostración educativa para ordenar perfiles con respuestas
@@ -9,8 +16,8 @@ dos perfiles, no una probabilidad.
 
 ## Datos de entrada y mapeo
 
-`toScoringProfile` transforma las dimensiones almacenadas en `profiles_v2` a un perfil de
-puntuación (el sufijo es el nombre físico de la tabla, congelado por las migraciones):
+`toScoringProfile` transforma las dimensiones almacenadas en `profiles` a un perfil de
+puntuación:
 
 - Las cinco dimensiones Big Five (`personalidad_apertura`,
   `personalidad_responsabilidad`, `personalidad_extraversion`,
@@ -129,7 +136,7 @@ al baseline, por lo que se mantiene activo ese perfil.
 La comparación sintética de NDCG@3 es circular porque su verdad de referencia
 codifica la misma dirección de literatura que motiva el perfil alternativo.
 Sólo evalúa ausencia de degradación en ese escenario, no validez con datos
-reales. Consulta `EXTERNAL_SIGNALS.md` para los conteos y la decisión de perfil.
+reales. Consulta [`EXTERNAL_SIGNALS.md`](./EXTERNAL_SIGNALS.md) para los conteos y la decisión de perfil.
 
 ## Filtros duros
 
@@ -189,7 +196,7 @@ y se usa `0.5` como referencia neutra. El porcentaje de UI es `round(S · 100)`.
 ## Capa psicométrica: MBTI, Eneagrama con alas y apego
 
 El motor conserva intacto el vector relacional de 26/16 dimensiones que vive en
-`profiles_v2`. Sobre él deriva, sin pedir datos adicionales, un segundo perfil
+`profiles`. Sobre él deriva, sin pedir datos adicionales, un segundo perfil
 determinista a partir de las mismas 30 dimensiones normalizadas:
 
 - **MBTI — funciones cognitivas.** Cada uno de los 16 códigos se mapea a su
@@ -251,7 +258,7 @@ relative = (similarity - threshold) / (1 - threshold)
 El porcentaje mostrado sigue siendo `round(similarity * 100)`. La etiqueta es una
 presentación relativa al track, **no** un percentil poblacional ni una probabilidad. Un
 match siempre supera el umbral, pero puede seguir siendo "moderado" si está apenas por
-encima. `src/lib/matching/explainability.test.ts` fija este contrato.
+encima. `src/domain/explainability/explainability.test.ts` fija este contrato.
 
 ## Narrativa psicológica por track
 

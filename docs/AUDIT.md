@@ -1,5 +1,7 @@
 # AUDIT — ENES ZooMatch
 
+> **Documento histórico (anterior a la unificación de 2026-10-31).** Las rutas `src/lib/*`, las tablas `*_v2` y las migraciones que menciona ya no existen. La estructura vigente está en [`ARQUITECTURA.md`](./ARQUITECTURA.md) y [`../README.md`](../README.md).
+
 Fecha: 2026-10-25 · Auditado: rama `devin/1792976834-unify-v2-flow` @ `3434817` ([PR #1](https://github.com/AmeliaDi/ProyectoENESZooMatch/pull/1), **sin mergear**) contra `origin/main` @ `5294fa6`.
 Cuando la documentación contradice al código, manda el código (ver §3, Área "Docs").
 Evidencia local: Supabase CLI 2.54 + Docker (`supabase db reset` con las 5 migraciones y los seeds), app en `next dev`, Node 24.19.

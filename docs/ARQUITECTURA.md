@@ -1,8 +1,8 @@
 # ARQUITECTURA — ZooMatch (auditoría y plan de unificación)
 
-> Estado: **Fase 1 del Prompt 1 (propuesta, sin cambios de código)**. Base auditada:
-> commit `95717f9` (`main` = `refactor/canonical` = `origin`). Todo lo que sigue se
-> obtuvo leyendo el repositorio con `grep`/`tsc`, no de documentación previa.
+> Estado: **plan ejecutado (2026-10-31)**. Las secciones 1–6 son la auditoría y el plan
+> originales, hechos sobre el commit `95717f9`. La sección 7 describe el resultado y en qué
+> se desvió del plan. Las decisiones con su porqué están en [`DECISIONES.md`](./DECISIONES.md).
 
 ---
 
@@ -275,3 +275,38 @@ módulos: reescribirlos dos veces sería trabajo perdido.
 | `noUncheckedIndexedAccess` introduce `!` por todos lados | Preferir helpers tipados (`at()` con `Result`, grids como `Uint8Array`) |
 | Tests que fijan literales (`NO_MATCH_MESSAGE`) | Se conservan textualmente; el Prompt 2 decide si cambian |
 | Sin CLI de Supabase aquí | SQL revisado estáticamente; validación real en tu entorno |
+
+---
+
+## 7. Resultado
+
+El árbol final, con una línea por responsabilidad:
+
+```
+src/
+├── config/            load.ts (Zod + deepFreeze) · quiz · matching · catalog · enneagram
+├── domain/
+│   ├── shared/        brand.ts · result.ts · hash.ts · random.ts · ports.ts (Clock, Hmac)
+│   ├── psychometrics/ · matching/ · explainability/ · identity/
+│   └── avatars/ · constellation/ · messages/
+├── contracts/         result.ts (DTOs de la API) · admin-metrics.ts (Zod)
+├── application/       submit-quiz · get-result · recompute-matches · notifications ·
+│                      admin-metrics · ports · errors · validation/ · testing/in-memory
+├── infrastructure/    composition.server · supabase/repositories · http/responses ·
+│                      auth/ · security/ · env/
+├── ui/                quiz/ · result/ · constellation/ · admin/ · entry/ · shared/ · dev/
+└── app/               páginas + rutas API de 25–50 líneas
+```
+
+Desviaciones respecto al plan:
+
+| Plan | Qué se hizo | Por qué |
+|---|---|---|
+| `dto.ts` en `application/` | DTOs en `src/contracts/`, que `application/dto.ts` reexporta | El cliente necesita los mismos tipos y no debe importar `application` |
+| Partir archivos > 300 líneas en el paso 4 | Se movieron sin reescribir | El Prompt 2 reescribe matching y explicabilidad, y el Prompt 3 reescribe avatares y constelación; partirlos ahora sería trabajo perdido |
+| `get_my_matches` con la sesión del usuario | `get_user_matches(p_user_id)` solo para el *service role* | Las tablas de participantes quedan invisibles para los clientes; no se exponen ids de otras personas |
+| Verificar el grupo de perfiles por conteo | Contador `pool_state.revision` mantenido por trigger | El conteo no detectaba reenvíos (ADR-006) |
+| `data:validate` cargando `config/` desde Node | Corre con Vitest los tests de `config`, del catálogo y del contrato SQL | Node no resuelve el alias `@/` ni los imports de JSON sin el *bundler* |
+| `ui/` con `public-experience` | Se partió en `quiz/public-quiz`, `result/result-view` y `shared/chrome` | Era un archivo de 1 100 líneas con tres responsabilidades |
+
+Verificación en cada commit: `npm run check` (lint + typecheck + tests) y `next build`.
