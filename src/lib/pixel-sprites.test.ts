@@ -8,6 +8,7 @@
 
 import { describe, expect, it } from "vitest";
 
+import { stringHash } from "@/domain/shared";
 import { CATALOG_ANIMALS as LOADED_ANIMALS, CATALOG_COLORS as LOADED_COLORS } from "@/config";
 import {
   ALL_FAMILIES,
@@ -24,7 +25,6 @@ import {
   getAllColorIds,
   getSprite,
   getSpriteFrame,
-  simpleHash,
   validateSpriteIsPixelArt,
   type AnimationFrame,
   type ShapeFamily,
@@ -174,10 +174,10 @@ describe("determinism", () => {
   });
 
   it("derives variations from simpleHash, which is itself stable", () => {
-    expect(simpleHash("ajolotito")).toBe(simpleHash("ajolotito"));
-    expect(simpleHash("ajolotito")).not.toBe(simpleHash("ranita"));
-    expect(Number.isInteger(simpleHash("ajolotito"))).toBe(true);
-    expect(simpleHash("ajolotito")).toBeGreaterThanOrEqual(0);
+    expect(stringHash("ajolotito")).toBe(stringHash("ajolotito"));
+    expect(stringHash("ajolotito")).not.toBe(stringHash("ranita"));
+    expect(Number.isInteger(stringHash("ajolotito"))).toBe(true);
+    expect(stringHash("ajolotito")).toBeGreaterThanOrEqual(0);
   });
 });
 

@@ -18,6 +18,7 @@
  *   detect clusters without needing the raw vectors.
  */
 
+import { fnv1a32, mulberry32 } from "@/domain/shared";
 import { MATCHING_CONFIG } from "@/config";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -263,10 +264,10 @@ export function assignOrbitSlots(
   for (const [band, bucket] of bands) {
     const ordered = [...bucket].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     const phase =
-      ((hashSeed(`orbit:${track}:${band}`) / 0xffffffff) * Math.PI * 2) % (Math.PI * 2);
+      ((fnv1a32(`orbit:${track}:${band}`) / 0xffffffff) * Math.PI * 2) % (Math.PI * 2);
     const slot = (Math.PI * 2) / ordered.length;
     ordered.forEach((match, index) => {
-      const jitterSeed = hashSeed(`orbit:${track}:${band}:${match.id}`) / 0xffffffff;
+      const jitterSeed = fnv1a32(`orbit:${track}:${band}:${match.id}`) / 0xffffffff;
       const jitter = (jitterSeed - 0.5) * slot * ORBIT_ANGLE_JITTER;
       const angle = phase + slot * index + jitter;
       const radius = computeOrbitRadius(
@@ -282,33 +283,6 @@ export function assignOrbitSlots(
   return assignments;
 }
 
-/**
- * Deterministic FNV-1a hash from string → unsigned 32-bit int.
- * Used for seeded initial positions and drift phases.
- */
-export function hashSeed(str: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
-}
-
-/**
- * Seeded pseudo-random number generator (mulberry32).
- * Returns a function that produces deterministic floats in [0, 1).
- */
-export function seededRandom(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
@@ -386,7 +360,7 @@ export function generateGhostNodes(
   seed: string,
 ): ConstellationNode[] {
   const safeCount = Math.max(0, Math.min(MAX_GHOST_COUNT, Math.floor(count)));
-  const rand = seededRandom(hashSeed(`ghost::${seed}`));
+  const rand = mulberry32(fnv1a32(`ghost::${seed}`));
   const ghosts: ConstellationNode[] = [];
   const cx = width / 2;
   const cy = height / 2;
@@ -489,7 +463,7 @@ export function buildGraph(
   );
   const matchNodes: ConstellationNode[] = activeMatches.map((m) => {
     const slot = orbitSlots.get(m.id);
-    const rand = seededRandom(hashSeed(`fallback:${m.id}`));
+    const rand = mulberry32(fnv1a32(`fallback:${m.id}`));
     const angle = slot?.angle ?? rand() * Math.PI * 2;
     const orbit = slot?.radius ?? minDim * (0.22 + rand() * 0.2);
     const x = clampToBounds(cx + Math.cos(angle) * orbit, viewportWidth, DEFAULT_SIMULATION_PARAMS.boundsPadding).value;
@@ -706,7 +680,7 @@ function relaxNodeOverlaps(
 
         if (distance === 0) {
           const angle =
-            ((hashSeed(`${a.id}::${b.id}`) ^ hashSeed(`${b.id}::${a.id}`)) %
+            ((fnv1a32(`${a.id}::${b.id}`) ^ fnv1a32(`${b.id}::${a.id}`)) %
               360) *
             (Math.PI / 180);
           dx = Math.cos(angle);
@@ -800,7 +774,7 @@ export function resolveOverlaps(
  * 10. FLOATING DRIFT (only while isEquilibrium): deterministic sinusoidal noise
  *      dx = driftStrength * sin(tick * 0.01 + seed) * cos(tick * 0.007 + seed * 2)
  *      dy = driftStrength * cos(tick * 0.013 + seed) * sin(tick * 0.009 + seed * 3)
- *    with seed = (hashSeed(id) % 1000) / 1000 * 2π. Drift never touches
+ *    with seed = (fnv1a32(id) % 1000) / 1000 * 2π. Drift never touches
  *    velocity, so it cannot re-energize the system.
  * 11. HARD CLEARANCE (after drift): circle-packing relaxation guarantees that every pair of
  *    rendered sprites respects R_i + R_j + δ (match/match = 56.55 px).
@@ -829,7 +803,7 @@ export function stepSimulation(
     let dist = Math.sqrt(dx * dx + dy * dy);
     if (dist === 0) {
       // Degenerate: nudge along a deterministic direction derived from ids.
-      const angle = ((hashSeed(a.id) ^ hashSeed(b.id)) % 360) * (Math.PI / 180);
+      const angle = ((fnv1a32(a.id) ^ fnv1a32(b.id)) % 360) * (Math.PI / 180);
       dx = Math.cos(angle);
       dy = Math.sin(angle);
       dist = 1e-6;
@@ -863,7 +837,7 @@ export function stepSimulation(
       const minDist = a.radius + b.radius;
       if (dist >= minDist) continue;
       if (dist === 0) {
-        const angle = ((hashSeed(a.id) ^ hashSeed(b.id)) % 360) * (Math.PI / 180);
+        const angle = ((fnv1a32(a.id) ^ fnv1a32(b.id)) % 360) * (Math.PI / 180);
         dx = Math.cos(angle);
         dy = Math.sin(angle);
         dist = 1e-6;
@@ -978,7 +952,7 @@ export function stepSimulation(
     const tick = state.tick + 1;
     for (const n of nodes) {
       if (n.isSelf) continue;
-      const seed = ((hashSeed(n.id) % 1000) / 1000) * Math.PI * 2;
+      const seed = ((fnv1a32(n.id) % 1000) / 1000) * Math.PI * 2;
       const dx = p.driftStrength * Math.sin(tick * 0.01 + seed) * Math.cos(tick * 0.007 + seed * 2) * dt;
       const dy = p.driftStrength * Math.cos(tick * 0.013 + seed) * Math.sin(tick * 0.009 + seed * 3) * dt;
       n.x = clampToBounds(n.x + dx, state.width, p.boundsPadding).value;
@@ -1040,7 +1014,7 @@ export function releaseNode(state: SimulationState, nodeId: string): SimulationS
     ...state,
     nodes: state.nodes.map((n) => {
       if (n.id !== nodeId) return { ...n };
-      const rand = seededRandom(hashSeed(`${n.id}::release::${state.tick}`));
+      const rand = mulberry32(fnv1a32(`${n.id}::release::${state.tick}`));
       const angle = rand() * Math.PI * 2;
       const magnitude = 0.5 + rand() * 0.5; // small impulse, well under maxVelocity
       return { ...n, vx: Math.cos(angle) * magnitude, vy: Math.sin(angle) * magnitude };
@@ -1114,7 +1088,7 @@ export function switchTrack(
     if (existingById.has(m.id)) continue;
     if (!(m.similarity > newThreshold)) continue;
     const slot = orbitSlots.get(m.id);
-    const rand = seededRandom(hashSeed(`fallback:${m.id}`));
+    const rand = mulberry32(fnv1a32(`fallback:${m.id}`));
     const angle = slot?.angle ?? rand() * Math.PI * 2;
     const orbit = slot?.radius ?? minDim * (0.22 + rand() * 0.2);
     nextNodes.push({

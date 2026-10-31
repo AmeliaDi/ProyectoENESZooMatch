@@ -45,6 +45,7 @@
  * See the proof sketch above `enforceDistinctness`.
  */
 
+import { stringHash } from "@/domain/shared";
 import { CATALOG_ANIMALS as LOADED_ANIMALS, CATALOG_COLORS as LOADED_COLORS } from "@/config";
 import {
   deriveAnimalPsychometricProfile,
@@ -929,22 +930,8 @@ const FALLBACK_TEXTURAS: readonly string[] = [
   "terrosa",
 ];
 
-// ─── Hashing ──────────────────────────────────────────────────────────────────
-
 /**
- * Simple, stable, 32-bit string hash. Never uses `Math.random` or `Date`.
- * Returned value is always a non-negative safe integer.
- */
-export function simpleHash(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
-}
-
-/**
- * Bit-shift-free hash slicing. `>>` is avoided because `simpleHash` can return
+ * Bit-shift-free hash slicing. `>>` is avoided because `stringHash` can return
  * `2 ** 31`, which `ToInt32` flips negative and would produce negative indices.
  */
 function hashSlice(hash: number, shift: number, mod: number): number {
@@ -1518,7 +1505,7 @@ const TEXTURE_STROKES: Record<string, readonly (readonly TextureStroke[])[]> = {
 function applyTexture(half: HalfGrid, textura: string, colorId: string): void {
   const variants = TEXTURE_STROKES[textura];
   if (!variants || variants.length === 0) return;
-  const strokes = variants[simpleHash(colorId) % variants.length];
+  const strokes = variants[stringHash(colorId) % variants.length];
   for (const [r, c, tone] of strokes) {
     setCell(half, r, c, tone, true);
   }
@@ -1775,7 +1762,7 @@ function enforceMaskDistinctness(
 
       const candidates = maskCandidateMoves(current.half);
       if (candidates.length === 0) break;
-      const offset = simpleHash(id) % candidates.length;
+      const offset = stringHash(id) % candidates.length;
       let best: { move: MaskMove; score: number } | null = null;
 
       for (let k = 0; k < candidates.length; k++) {
@@ -1892,7 +1879,7 @@ function buildRegistry(): Registry {
       family,
       half,
       tail: {
-        variant: tailVariantFor(animal?.rasgos_kawaii?.detalle_unico, simpleHash(animalId)),
+        variant: tailVariantFor(animal?.rasgos_kawaii?.detalle_unico, stringHash(animalId)),
       },
     });
   }
@@ -1951,7 +1938,7 @@ function resolveFamily(animalId: string): ShapeFamily {
   }
 
   // Deterministic last resort — never a blank sprite.
-  return ALL_FAMILIES[simpleHash(animalId) % ALL_FAMILIES.length];
+  return ALL_FAMILIES[stringHash(animalId) % ALL_FAMILIES.length];
 }
 
 // ─── Colour resolution ────────────────────────────────────────────────────────
@@ -2040,7 +2027,7 @@ function resolveColorEntry(colorId: string, animalId: string): ResolvedColor {
   const bySlug = COLOR_BY_SLUG.get(slugify(colorId));
   if (bySlug) return { hex: bySlug.hex, textura: bySlug.textura, key: colorId };
 
-  const hash = simpleHash(`${colorId}|${animalId}`);
+  const hash = stringHash(`${colorId}|${animalId}`);
   return {
     hex: FALLBACK_HEXES[hash % FALLBACK_HEXES.length],
     textura: FALLBACK_TEXTURAS[hashSlice(hash, 3, FALLBACK_TEXTURAS.length)],

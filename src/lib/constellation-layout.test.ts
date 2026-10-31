@@ -15,12 +15,10 @@ import {
   dragNode,
   generateGhostNodes,
   getTrackThreshold,
-  hashSeed,
   minimumCenterDistance,
   precomputeLayout,
   releaseNode,
   resolveOverlaps,
-  seededRandom,
   similarityToDistance,
   stepSimulation,
   switchTrack,
@@ -237,50 +235,6 @@ describe("assignOrbitSlots", () => {
   });
 });
 
-// ─── hashSeed + seededRandom ──────────────────────────────────────────────────
-
-describe("hashSeed", () => {
-  it("is deterministic: same input → same output", () => {
-    expect(hashSeed("zoomatch")).toBe(hashSeed("zoomatch"));
-  });
-
-  it("produces different hashes for different strings", () => {
-    expect(hashSeed("ajolote")).not.toBe(hashSeed("ajolota"));
-    expect(hashSeed("a")).not.toBe(hashSeed("b"));
-  });
-
-  it("returns unsigned 32-bit integers", () => {
-    for (const s of ["", "x", "user-123", "🦎 lagartija"]) {
-      const h = hashSeed(s);
-      expect(Number.isInteger(h)).toBe(true);
-      expect(h).toBeGreaterThanOrEqual(0);
-      expect(h).toBeLessThanOrEqual(0xffffffff);
-    }
-  });
-});
-
-describe("seededRandom", () => {
-  it("is deterministic: same seed → same sequence", () => {
-    const a = seededRandom(42);
-    const b = seededRandom(42);
-    for (let i = 0; i < 20; i++) expect(a()).toBe(b());
-  });
-
-  it("produces values in [0, 1)", () => {
-    const rand = seededRandom(hashSeed("distribution-check"));
-    for (let i = 0; i < 1000; i++) {
-      const v = rand();
-      expect(v).toBeGreaterThanOrEqual(0);
-      expect(v).toBeLessThan(1);
-    }
-  });
-
-  it("produces different sequences for different seeds", () => {
-    const a = seededRandom(1);
-    const b = seededRandom(2);
-    expect(a()).not.toBe(b());
-  });
-});
 
 // ─── buildGraph ───────────────────────────────────────────────────────────────
 

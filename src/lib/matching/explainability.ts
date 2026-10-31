@@ -17,6 +17,7 @@
  * characters per phrase, and is never clinical.
  */
 
+import { stringHash } from "@/domain/shared";
 import type { MatchTrack } from "@/types/microtest";
 import {
   BIG_FIVE_DIMENSIONS,
@@ -204,16 +205,6 @@ function clamp01(value: number): number {
   return value < 0 ? 0 : value > 1 ? 1 : value;
 }
 
-/** Deterministic 32-bit string hash (mirrors the profile generator's hash). */
-function simpleHash(input: string): number {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    const char = input.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // coerce to 32-bit integer
-  }
-  return Math.abs(hash);
-}
 
 /** Maps a scoring dimension name to its affinity category (or null). */
 function categoryOfDimension(dimension: string): AffinityCategory | null {
@@ -1511,7 +1502,7 @@ export function generateConnectionHeadline(
   const pool = [...CATEGORY_HEADLINES[topCategory], ...animalVariants];
 
   const seed = `${user}|${match}|${track}|${topCategory}`;
-  const index = simpleHash(seed) % pool.length;
+  const index = stringHash(seed) % pool.length;
   return pool[index]!;
 }
 

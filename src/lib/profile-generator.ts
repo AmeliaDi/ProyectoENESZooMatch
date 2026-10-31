@@ -6,6 +6,7 @@
 import type { ArchetypeAnimal, ArchetypeColor } from "@/types/archetype";
 import type { DimensionScores, ProfileIdentity } from "@/types/microtest";
 import { BIG_FIVE_DIMENSIONS } from "@/types/microtest";
+import { stringHash } from "@/domain/shared";
 import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 
 // ─── Helper Types ─────────────────────────────────────────────────────────────
@@ -430,17 +431,6 @@ function getArticle(diminutivo: string): string {
   return FEMININE_ANIMALS.has(diminutivo) ? "una" : "un";
 }
 
-// ─── Deterministic Hash ───────────────────────────────────────────────────────
-
-function simpleHash(input: string): number {
-  let hash = 0;
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return Math.abs(hash);
-}
 
 // ─── Cosine Similarity ────────────────────────────────────────────────────────
 
@@ -551,7 +541,7 @@ export function selectColor(normalizedScores: DimensionScores, userId: string): 
     .slice(0, 10)
     .map((v) => Math.round((v ?? 0) * 100))
     .join("");
-  const hash = simpleHash(userId + scoreFingerprint);
+  const hash = stringHash(userId + scoreFingerprint);
   const index = hash % candidates.length;
 
   return candidates[index];
@@ -617,7 +607,7 @@ export function generateProfileNarrative(
     const primaryDim = topDimensions[0].dimension;
     const phrases = PHRASE_BANK[primaryDim];
     if (phrases && phrases.length > 0) {
-      const idx = simpleHash(animal.id + color.id + primaryDim) % phrases.length;
+      const idx = stringHash(animal.id + color.id + primaryDim) % phrases.length;
       const phrase = phrases[idx];
       sentences.push(capitalize(phrase) + ".");
     }
@@ -628,7 +618,7 @@ export function generateProfileNarrative(
     const secondaryDim = topDimensions[1].dimension;
     const phrases = PHRASE_BANK[secondaryDim];
     if (phrases && phrases.length > 0) {
-      const idx = simpleHash(color.id + secondaryDim + animal.id) % phrases.length;
+      const idx = stringHash(color.id + secondaryDim + animal.id) % phrases.length;
       const phrase = phrases[idx];
       sentences.push(capitalize(phrase) + ".");
     }
@@ -637,17 +627,17 @@ export function generateProfileNarrative(
   // 5. Color temperature modifier
   const tempModifiers = COLOR_TEMPERATURE_MODIFIERS[color.temperatura];
   if (tempModifiers && tempModifiers.length > 0) {
-    const idx = simpleHash(color.id + animal.id) % tempModifiers.length;
+    const idx = stringHash(color.id + animal.id) % tempModifiers.length;
     sentences.push(tempModifiers[idx]);
   }
 
   // 6. Community value
-  const communityIdx = simpleHash(animal.id + color.id + (topDimensions[0]?.dimension ?? "")) % COMMUNITY_PHRASES.length;
+  const communityIdx = stringHash(animal.id + color.id + (topDimensions[0]?.dimension ?? "")) % COMMUNITY_PHRASES.length;
   sentences.push(COMMUNITY_PHRASES[communityIdx]);
 
   // 7. Closing affirmation (optional, included ~60% of the time based on hash)
-  const closingIdx = simpleHash(animal.id + color.hex) % CLOSING_AFFIRMATIONS.length;
-  if (simpleHash(color.id + animal.diminutivo_es) % 5 < 3) {
+  const closingIdx = stringHash(animal.id + color.hex) % CLOSING_AFFIRMATIONS.length;
+  if (stringHash(color.id + animal.diminutivo_es) % 5 < 3) {
     sentences.push(CLOSING_AFFIRMATIONS[closingIdx]);
   }
 
@@ -675,7 +665,7 @@ function fillNarrativeTemplate(
 
 /** "ajolotito verde esmeralda · X7K2" */
 function generateAlias(animal: CatalogAnimal, color: CatalogColor, userId: string): string {
-  const hash = simpleHash(userId + animal.id + color.id);
+  const hash = stringHash(userId + animal.id + color.id);
   const shortHash = hash.toString(36).toUpperCase().slice(0, 4).padEnd(4, "0");
   return `${animal.diminutivo_es} ${color.nombre.toLowerCase()} · ${shortHash}`;
 }
