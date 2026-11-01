@@ -28,6 +28,7 @@ export interface Faults {
 export class MemoryStore {
   readonly results = new Map<string, QuizResultRecord>();
   readonly inclusiveModes = new Map<string, string>();
+  readonly paused = new Set<string>();
   matches: GlobalMatch[] = [];
   readonly notifications: Array<NotificationRecord & { userId: string }> = [];
   readonly notified: string[] = [];
@@ -42,7 +43,9 @@ export class MemoryStore {
   stored: StoredMatch[] = [];
 
   pool(): PoolProfile[] {
-    return [...this.results.values()].map((r) => ({ userId: r.userId, profile: r.scored }));
+    return [...this.results.values()]
+      .filter((r) => !this.paused.has(r.userId))
+      .map((r) => ({ userId: r.userId, profile: r.scored }));
   }
 }
 
@@ -51,6 +54,21 @@ const failed = err<StorageError>("storage.failed");
 export function memoryProfiles(store: MemoryStore): ProfileRepository {
   return {
     isQuizCompleted: async (userId) => ok(store.results.has(userId)),
+    privacyState: async (userId) => ok({ paused: store.paused.has(userId) }),
+    async setPaused(userId, paused) {
+      if (store.faults.save) return failed;
+      if (paused) store.paused.add(userId);
+      else store.paused.delete(userId);
+      store.version += 1;
+      return ok(undefined);
+    },
+    async deleteAccount(userId) {
+      if (store.faults.save) return failed;
+      store.results.delete(userId);
+      store.paused.delete(userId);
+      store.version += 1;
+      return ok(undefined);
+    },
     async saveQuizResult(record) {
       if (store.faults.save) return failed;
       store.results.set(record.userId, record);

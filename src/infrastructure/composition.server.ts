@@ -6,6 +6,7 @@ import { createHash } from "node:crypto";
 
 import type { AppError } from "@/application/errors";
 import type { GetResultDeps } from "@/application/get-result";
+import type { PrivacyDeps } from "@/application/privacy";
 import type { AdminRepository, NotificationRepository, Scheduler } from "@/application/ports";
 import type { RecomputeDeps } from "@/application/recompute-matches";
 import type { SubmitQuizDeps } from "@/application/submit-quiz";
@@ -69,6 +70,27 @@ export async function resultContext(): Promise<
       profiles: supabaseProfileRepository(admin),
       matches: supabaseMatchRepository(admin),
       digest: sha256Hex,
+    },
+  });
+}
+
+export async function privacyContext(): Promise<
+  Result<{ userId: string; deps: PrivacyDeps; signOut: () => Promise<void> }, Failure>
+> {
+  const auth = await authenticated();
+  if (!auth.ok) return auth;
+  const admin = createAdminClient();
+  if (!admin) return err("service.unavailable");
+  const { session } = auth.value;
+  return ok({
+    userId: auth.value.userId,
+    deps: {
+      profiles: supabaseProfileRepository(admin),
+      matches: supabaseMatchRepository(admin),
+      scheduler: systemScheduler,
+    },
+    signOut: async () => {
+      await session.auth.signOut().catch(() => undefined);
     },
   });
 }

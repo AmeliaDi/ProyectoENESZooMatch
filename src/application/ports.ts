@@ -56,11 +56,20 @@ export interface CounterpartProfile {
   colorHex: string | null;
 }
 
+export interface PrivacyState {
+  paused: boolean;
+}
+
 export interface ProfileRepository {
   isQuizCompleted(userId: string): Promise<Result<boolean, StorageError>>;
+  privacyState(userId: string): Promise<Result<PrivacyState, StorageError>>;
+  setPaused(userId: string, paused: boolean): Promise<Result<void, StorageError>>;
+  /** Deletes the auth user; every participant row cascades from it. */
+  deleteAccount(userId: string): Promise<Result<void, StorageError>>;
   saveQuizResult(record: QuizResultRecord): Promise<Result<void, StorageError>>;
   /** Cosmetic preference; best-effort. */
   setInclusiveMode(userId: string, mode: InclusiveMode): Promise<void>;
+  /** Completed and not paused: the only profiles that take part in matching. */
   loadCompletedPool(): Promise<Result<PoolProfile[], StorageError>>;
   findOwn(userId: string): Promise<Result<OwnProfile | null, StorageError>>;
   /** Best-effort: missing counterparts simply produce no explanation. */

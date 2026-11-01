@@ -136,6 +136,29 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
       return ok(Boolean(res.data?.quiz_completed_at));
     },
 
+    async privacyState(userId) {
+      const res = await attempt(() =>
+        admin.from(TABLE.profiles).select("paused_at").eq("user_id", userId).maybeSingle(),
+      );
+      if (!res || res.error) return failed;
+      return ok({ paused: Boolean(res.data?.paused_at) });
+    },
+
+    async setPaused(userId, paused) {
+      const res = await attempt(() =>
+        admin
+          .from(TABLE.profiles)
+          .update({ paused_at: paused ? new Date().toISOString() : null })
+          .eq("user_id", userId),
+      );
+      return res && !res.error ? ok(undefined) : failed;
+    },
+
+    async deleteAccount(userId) {
+      const res = await attempt(() => admin.auth.admin.deleteUser(userId));
+      return res && !res.error ? ok(undefined) : failed;
+    },
+
     async saveQuizResult({ userId, answers, scored, identity }) {
       const res = await attempt(() =>
         admin.rpc(RPC.submit, {
@@ -171,6 +194,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
               "user_id, romance_vector, amistad_vector, dimension_scores, orientacion_sexual, identidad_genero, tipo_relacion_busca, mbti_code",
             )
             .not("quiz_completed_at", "is", null)
+            .is("paused_at", null)
             .order("user_id")
             .range(from, from + PROFILE_PAGE_SIZE - 1),
         );

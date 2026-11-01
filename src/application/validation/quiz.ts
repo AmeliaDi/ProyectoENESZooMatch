@@ -83,6 +83,8 @@ export const quizSubmissionSchema = z
     }
   });
 
+export const privacyUpdateSchema = z.strictObject({ paused: z.boolean() });
+
 export const notificationIdsSchema = z.object({
   ids: z.array(z.uuid()).min(1).max(50),
 });
