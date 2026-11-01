@@ -1,5 +1,31 @@
 # Despliegue y operación
 
+## Ruta rápida para la primera prueba
+
+Todo vive en la rama `main`; Vercel debe desplegar desde ella.
+
+1. **Supabase** (proyecto nuevo o reiniciado, sin tablas previas):
+   - SQL Editor → pega y ejecuta `supabase/migrations/00000000000000_base.sql`.
+   - SQL Editor → pega y ejecuta `supabase/seed.sql` (103 animales, 55 colores,
+     60 ítems; se puede re-ejecutar sin duplicar).
+   - Authentication → Providers → **Email** habilitado.
+   - Opcional: crea tu usuaria admin en Authentication → Users y ejecuta
+     `supabase/promote_admin.sql` con tu correo.
+   - Alternativa por CLI: `supabase link --project-ref <REF>` + `supabase db push`
+     y luego el seed con `psql` (ver abajo).
+2. **Vercel**: importa el repo, rama de producción `main`, Node 22 o superior, y
+   define `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+   `SUPABASE_SERVICE_ROLE_KEY` y `MATRICULA_HMAC_SECRET` (≥ 32 caracteres).
+   Upstash es opcional para pruebas y obligatorio para el evento.
+3. Despliega y recorre: `/` (matrícula) → `/cuestionario` → `/resultado`;
+   `/admin/login` con la cuenta admin.
+
+La migración y el seed se verificaron sobre PostgreSQL (PGlite) con un
+`auth` simulado: alta de perfiles, `submit_quiz_result`, `replace_matches`
+(incluido el rechazo de snapshots viejos), notificaciones, dashboard admin,
+permisos de `anon`/`authenticated` y borrado en cascada. Falta la prueba sobre
+un proyecto Supabase real.
+
 ## Requisitos
 
 - Node.js `>=22.12.0` (coincide con `engines` en `package.json`).

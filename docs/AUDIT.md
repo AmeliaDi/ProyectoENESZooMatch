@@ -12,7 +12,7 @@ Esta sección es la fotografía más reciente. Las secciones 1–8 conservan el 
 original de la migración y deben leerse como histórico; cualquier ruta o nombre `*-v2`
 que aparezca allí describe la estructura anterior al refactor canónico.
 
-- **Base:** `main` sincronizado con `refactor/canonical`; el último cierre anterior a esta
+- **Base:** `main` (entonces sincronizado con una rama de trabajo ya eliminada); el último cierre anterior a esta
   ronda fue `851ea8b` y la capa psicométrica se añadió después.
 - **Refactor canónico aplicado:** se eliminó el flujo v1 (24 ítems, matching plano, páginas
   y APIs huérfanas) y se promovió la implementación multidimensional como única versión.
