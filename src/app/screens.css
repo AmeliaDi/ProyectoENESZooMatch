@@ -292,10 +292,20 @@
   outline-offset: calc(var(--zm-px) * -1);
 }
 .zm-canvas__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-/* Bayer mask where supported on SVG shapes; otherwise a faint flat disc. Never blur. */
-.zm-canvas__glow { opacity: 0.2; mask-image: var(--zm-dither-50); mask-size: 4px 4px; }
+/* 50 % Bayer pattern shared through <defs> (no per-star mask, never blur). */
+.zm-canvas__glow { opacity: 0.2; }
+.zm-canvas__glow--flat { opacity: 0.1; }
 .zm-canvas__halo { animation: zm-blink 2.4s steps(1) infinite; }
 .zm-canvas__ring { stroke: var(--zm-focus); }
+.zm-canvas__figure { stroke: var(--zm-fg-muted); }
+.zm-canvas__flash { fill: var(--zm-fg); }
+.zm-canvas__controls {
+  position: absolute;
+  top: calc(var(--zm-px) * 4);
+  right: calc(var(--zm-px) * 4);
+  display: flex;
+  gap: calc(var(--zm-px) * 2);
+}
 .zm-canvas__tag { pointer-events: none; fill: var(--zm-fg); font-family: var(--font-pixel); }
 .zm-canvas__overlay { position: absolute; inset: 0; display: grid; place-items: center; }
 .zm-canvas__status { color: var(--zm-fg-muted); font-family: var(--font-pixel); font-size: 0.875rem; }

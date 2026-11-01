@@ -27,6 +27,8 @@ export { OrbitingHearts, PixelHeart, RomanceDuo, SharedHeart } from "./RomanceHe
 
 export { CONSTELLATION_COPY } from "./types";
 export type {
+  CanvasControl,
+  CanvasMetrics,
   ConstellationCanvasProps,
   ConstellationMatchInput,
   ConstellationNodeInput,
@@ -48,7 +50,6 @@ export {
   BADGE_LIMITS,
   GHOST_COLOR_ID,
   GHOST_ANIMAL_ID,
-  MAX_RENDERED_EDGES,
   ROMANCE_SPRITE_THRESHOLD,
   buildDataKey,
   connectionsLabel,
@@ -61,12 +62,7 @@ export {
   trackNoun,
 } from "./render-helpers";
 
-export {
-  buildNodeMeta,
-  structureFromState,
-  toMatchInputs,
-  toSelfIdentity,
-} from "./build-structure";
+export { buildNodeMeta, structureFromWorld, toSceneMatches } from "./build-structure";
 
 export { buildSpriteSheetSvg, spriteSheetUrl, warmSpriteSheets } from "./sprite-sheet";
 

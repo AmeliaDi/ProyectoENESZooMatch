@@ -3,189 +3,167 @@
 /**
  * ConstellationCanvas — the interactive sky.
  *
- * ─── Rendering technology: SVG ───────────────────────────────────────────────
- * SVG (not canvas 2D) because:
- *   1. every real star must be a focusable `role="button"` with an es-MX
- *      `aria-label`, which canvas cannot do without a parallel shadow tree;
- *   2. pixel sprites stay razor-sharp at any DPR through a nested 16×16 viewBox
- *      plus `image-rendering: pixelated`, with no manual scale math;
- *   3. the node count is bounded (≤ 50 real + ≤ 12 ghosts) and each star costs
- *      three DOM elements thanks to the sprite-sheet trick, so the whole sky is
- *      under ~250 elements — comfortably inside SVG's budget.
- * Lines are capped by `selectRenderEdges` (see render-helpers) because stroking
- * hundreds of semi-transparent segments per frame is the real mobile cost.
+ * Rendering: SVG, because every real star must be a focusable button with an
+ * es-MX `aria-label`, and pixel sprites stay sharp through a nested 16×16
+ * viewBox with `image-rendering: pixelated`.
  *
- * ─── Per-frame work: refs, never state ───────────────────────────────────────
- * React renders the *static* structure once per data / size / track change. The
- * `requestAnimationFrame` loop then writes `transform` on each `<g>` and
- * `x1/y1/x2/y2` on each `<line>` directly. There is no `setState` anywhere in
- * the loop, so 60 fps costs zero reconciliation. React is safe with this: it
- * diffs against its own previous props, and `transform` never changes between
- * renders, so it never overwrites an imperative write.
+ * Per-frame work never touches React state. React renders the static structure
+ * once per data / size / track change; the `requestAnimationFrame` loop then
+ * writes transforms, line endpoints, opacities and the camera viewBox
+ * directly. The physics (`@/domain/constellation`) runs at a fixed rate with
+ * an accumulator, and the loop paints positions interpolated between the last
+ * two steps, so 30/60/90/120 Hz screens show the same motion.
  *
- * ─── Loop lifecycle ──────────────────────────────────────────────────────────
- *   • full rate   — while dragging or while `isEquilibrium` is false: up to
- *                   `MAX_STEPS_PER_FRAME` physics steps per frame, sized from the
- *                   real frame delta so a slow device simulates the same physics.
- *   • ambient     — once the engine latches equilibrium, the loop keeps running
- *                   but only steps every `AMBIENT_FRAME_DIVIDER`-th frame. The
- *                   engine's post-equilibrium drift is positional-only and keyed
- *                   on `tick`, so slowing the tick rate is exactly "gentle
- *                   ambient drift" instead of "full physics at 60 Hz".
- *   • stopped     — `document.hidden` cancels the rAF outright (and restarts it
- *                   on `visibilitychange`); reduced motion never starts it.
- *   • resumed     — drag start and track switch both clear `isEquilibrium`,
- *                   which drops the loop straight back to full rate.
- *
- * ─── Boot ────────────────────────────────────────────────────────────────────
- * Convergence is slow (~1750 ticks), so positions are seeded with
- * `precomputeLayout` (2000 ticks). That work plus the first `getSpriteFrame`
- * (which lazily builds the whole sprite catalogue, ~180 ms) is deferred behind a
- * double `requestAnimationFrame` so the "Acomodando las estrellas…" placeholder
- * paints first and the main thread is never blocked before first contentful
- * paint. Measured on this machine: 142 ms for 51 nodes / 702 edges.
+ * Loop lifecycle: awake → full physics; asleep → only the ambient drift is
+ * painted (every `idleFrameDivider`-th frame); hidden tab or reduced motion →
+ * no loop at all. Dragging, zooming, a track switch or new data wake it.
  */
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type DragEvent as ReactDragEvent,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
+import { PHYSICS } from "@/config";
 import {
-  buildGraph,
-  dragNode,
+  advance,
+  buildFrame,
+  buildScene,
+  createCamera,
+  createTrail,
+  createWorld,
+  easeCamera,
+  estimateVelocity,
   getTrackThreshold,
-  precomputeLayout,
-  releaseNode,
-  stepSimulation,
-  switchTrack,
-  type SimulationState,
-} from "@/domain/constellation/constellation-layout";
-import type { MatchTrack } from "@/types/microtest";
+  grab,
+  isCentred,
+  kick,
+  moveAnchor,
+  panBy,
+  placeAt,
+  pushSample,
+  recenter,
+  release,
+  screenToWorld,
+  settle,
+  transitionWorld,
+  viewBox,
+  wake,
+  zoomAt,
+  type Camera,
+  type Frame,
+  type PointerTrail,
+  type World,
+} from "@/domain/constellation";
+import { mulberry32 } from "@/domain/shared";
+import { Button, IconButton } from "@/ui/kit/button";
 
-import {
-  buildNodeMeta,
-  structureFromState,
-  toMatchInputs,
-  toSelfIdentity,
-} from "./build-structure";
+import { buildNodeMeta, structureFromWorld, toSceneMatches } from "./build-structure";
+import { GLOW_PATTERN_ID } from "./glow";
 import { useElementSize } from "./hooks";
-import { PixelAnimal } from "./PixelAnimal";
-import { OrbitingHearts } from "./RomanceHearts";
 import {
-  AMBIENT_FRAME_DIVIDER,
-  DRAG_CLICK_SLOP,
   GHOST_ANIMAL_ID,
   GHOST_COLOR_ID,
-  HIT_RADIUS_PADDING,
-  JOIN_DISTANCE_FACTOR,
-  MAX_RENDERED_EDGES,
-  MAX_SPARKS,
-  MAX_STEPS_PER_FRAME,
+  LINE_DASH,
   ROMANCE_SPRITE_THRESHOLD,
   SIZE_DEBOUNCE_MS,
-  SPARK_LIFETIME_MS,
-  applyCachedPositions,
   buildDataKey,
-  capturePositions,
-  clamp,
-  clientToViewBox,
-  distance,
-  heartRects,
   matchAriaLabel,
   matchesForTrack,
-  pruneInactiveNodes,
   round2,
   selfAriaLabel,
-  type CachedPosition,
 } from "./render-helpers";
 import { warmSpriteSheets } from "./sprite-sheet";
+import { StarNode, type StarHandlers } from "./StarNode";
 import { CONSTELLATION_COPY } from "./types";
-import type {
-  ConstellationCanvasProps,
-  ConstellationStructure,
-  NodeMeta,
-} from "./types";
+import type { CanvasMetrics, ConstellationCanvasProps, ConstellationStructure } from "./types";
 
-const SVG_NS = "http://www.w3.org/2000/svg";
-
-/** Nominal frame length used to convert a real delta into a step count. */
-const FRAME_MS = 1000 / 60;
+const ZOOM_STEP = 1.25;
+const METRICS_WINDOW_MS = 500;
 
 interface DragState {
+  kind: "node";
   id: string;
   pointerId: number;
-  /** Node-to-pointer offset in user units, so the star never jumps on grab. */
+  /** Star-to-pointer offset in world units, so the star never jumps on grab. */
   dx: number;
   dy: number;
   originX: number;
   originY: number;
-  x: number;
-  y: number;
   moved: boolean;
+  trail: PointerTrail;
 }
 
-interface Spark {
-  element: SVGGElement;
-  sourceId: string;
-  targetId: string;
-  born: number;
-  /** Visual multiplier; romance sparks at >= 85 % are deliberately larger. */
-  boost: number;
+interface Gesture {
+  pointers: Map<number, { x: number; y: number }>;
+  distance: number;
+  midX: number;
+  midY: number;
 }
 
-/** Builds one pixel-heart spark group, half in each node's colour. */
-function createSpark(
-  colorA: string,
-  colorB: string,
-  sourceId: string,
-  targetId: string,
-  born: number,
-  boost = 1,
-): Spark {
-  const group = document.createElementNS(SVG_NS, "g") as SVGGElement;
-  group.setAttribute("aria-hidden", "true");
-  group.setAttribute("opacity", "0");
-  for (const rect of heartRects()) {
-    const element = document.createElementNS(SVG_NS, "rect");
-    element.setAttribute("x", String(rect.x));
-    element.setAttribute("y", String(rect.y));
-    element.setAttribute("width", String(rect.w));
-    element.setAttribute("height", "1");
-    element.setAttribute("fill", rect.colorIndex === 0 ? colorA : colorB);
-    element.setAttribute("shape-rendering", "crispEdges");
-    group.appendChild(element);
+interface PaintTargets {
+  nodes: Map<string, SVGGElement>;
+  bodies: Map<string, SVGGElement>;
+  lines: Map<string, SVGLineElement>;
+  flashes: Map<string, SVGRectElement>;
+  groups: SVGPolygonElement[];
+  happy: Set<string>;
+  /** Last value written per element+attribute: unchanged writes are skipped. */
+  written: WeakMap<Element, Map<string, string>>;
+}
+
+function emptyTargets(): PaintTargets {
+  return {
+    nodes: new Map(),
+    bodies: new Map(),
+    lines: new Map(),
+    flashes: new Map(),
+    groups: [],
+    happy: new Set(),
+    written: new WeakMap(),
+  };
+}
+
+/** setAttribute that skips identical values (each write invalidates style). */
+function write(t: PaintTargets, el: Element, name: string, value: string): void {
+  let cache = t.written.get(el);
+  if (!cache) {
+    cache = new Map();
+    t.written.set(el, cache);
   }
-  return { element: group, sourceId, targetId, born, boost };
+  if (cache.get(name) === value) return;
+  cache.set(name, value);
+  el.setAttribute(name, value);
 }
 
-export function ConstellationCanvas({
+function polylineLength(points: { x: number; y: number }[]): number {
+  let total = 0;
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i]!;
+    const b = points[(i + 1) % points.length]!;
+    total += Math.hypot(b.x - a.x, b.y - a.y);
+  }
+  return total;
+}
+
+function ConstellationCanvasImpl({
   me,
   matches,
   track,
-  ghostCount = 8,
+  ghostCount = PHYSICS.scene.defaultGhosts,
   reducedMotion,
   selectedNodeId,
   onSelectNode,
   className,
   style,
   emptyMessage,
-  maxRenderedEdges = MAX_RENDERED_EDGES,
+  pairSimilarity,
+  onMetrics,
+  physics = PHYSICS,
+  maxMatches,
+  controlRef,
+  thresholdOverride,
 }: ConstellationCanvasProps) {
-  const { ref: surfaceRef, width: measuredWidth, height: measuredHeight } =
-    useElementSize<HTMLDivElement>();
+  const cfg = physics;
+  const { ref: surfaceRef, width: measuredWidth, height: measuredHeight } = useElementSize<HTMLDivElement>();
 
-  /**
-   * Debounced size. The first measurement is applied immediately (so boot is not
-   * delayed); later ones wait, because every change re-runs the whole
-   * `precomputeLayout` and a window drag fires `ResizeObserver` continuously.
-   */
   const [size, setSize] = useState({ width: 0, height: 0 });
   const hasSizeRef = useRef(false);
   useEffect(() => {
@@ -195,345 +173,250 @@ export function ConstellationCanvas({
       setSize({ width: measuredWidth, height: measuredHeight });
       return;
     }
-    const id = window.setTimeout(
-      () => setSize({ width: measuredWidth, height: measuredHeight }),
-      SIZE_DEBOUNCE_MS,
-    );
+    const id = window.setTimeout(() => setSize({ width: measuredWidth, height: measuredHeight }), SIZE_DEBOUNCE_MS);
     return () => window.clearTimeout(id);
   }, [measuredWidth, measuredHeight]);
   const { width, height } = size;
 
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const nodesLayerRef = useRef<SVGGElement | null>(null);
-  const edgesLayerRef = useRef<SVGGElement | null>(null);
-  const sparksLayerRef = useRef<SVGGElement | null>(null);
-
-  /** Imperative DOM handles, rebuilt whenever the structure changes. */
-  const nodeEls = useRef<Map<string, SVGGElement>>(new Map());
-  const edgeEls = useRef<Map<string, SVGLineElement>>(new Map());
-  const colorById = useRef<Map<string, string>>(new Map());
-  /** Last painted position per node id; mutated in place to avoid allocation. */
-  const positions = useRef<Map<string, { x: number; y: number }>>(new Map());
-  const sparks = useRef<Spark[]>([]);
-  /** Edge keys whose "join" moment has already been consumed. */
-  const joined = useRef<Set<string>>(new Set());
-  /** Active node that deserves extra, larger heart sparks (romance >= 85 %). */
-  const romanceSparkRef = useRef<{ id: string; color: string } | null>(null);
-  const lastRomanceSpark = useRef(0);
-
-  const simRef = useRef<SimulationState | null>(null);
-  const structureRef = useRef<ConstellationStructure | null>(null);
-  const metaRef = useRef<Map<string, NodeMeta>>(new Map());
-  const trackRef = useRef<MatchTrack>(track);
-  const builtKeyRef = useRef<string | null>(null);
-  /** Remembers positions across track switches so switching back restores them. */
-  const memoryRef = useRef<Map<string, CachedPosition>>(new Map());
+  const skyRef = useRef<SVGGElement | null>(null);
+  const targets = useRef<PaintTargets>(emptyTargets());
+  const worldRef = useRef<World | null>(null);
+  const cameraRef = useRef<Camera | null>(null);
+  const frameRef = useRef<Frame | null>(null);
   const dragRef = useRef<DragState | null>(null);
+  const gestureRef = useRef<Gesture>({ pointers: new Map(), distance: 0, midX: 0, midY: 0 });
+  const builtKeyRef = useRef<string | null>(null);
+  const wakeLoopRef = useRef<() => void>(() => undefined);
+  const onMetricsRef = useRef(onMetrics);
 
   const [structure, setStructure] = useState<ConstellationStructure | null>(null);
-  const [booting, setBooting] = useState(true);
+  const [happyIds, setHappyIds] = useState<ReadonlySet<string>>(new Set());
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
+  const [centred, setCentred] = useState(true);
 
-  // ─── Derived (cheap) ──────────────────────────────────────────────────────
   const dataKey = useMemo(() => buildDataKey(me, matches), [me, matches]);
   const meta = useMemo(() => buildNodeMeta(me, matches), [me, matches]);
+  const threshold = useMemo(() => thresholdOverride ?? getTrackThreshold(track), [track, thresholdOverride]);
+  const activeMatches = useMemo(() => matchesForTrack(matches, track, threshold), [matches, track, threshold]);
 
-  const threshold = useMemo(() => getTrackThreshold(track), [track]);
-  const activeMatches = useMemo(
-    () => matchesForTrack(matches, track, threshold),
-    [matches, track, threshold],
-  );
-
-  const bootKey = width > 0 && height > 0 ? `${dataKey}|${width}x${height}` : null;
-
-  /**
-   * Mirrors the latest render values into the refs the imperative effects read.
-   *
-   * The write happens in an effect rather than during render (React's ref rule),
-   * and this effect is declared *before* the boot and track-switch effects that
-   * consume `trackRef` / `metaRef`, so both are always current by the time those
-   * run. `trackRef` exists precisely so the expensive boot rebuild does not have
-   * to list `track` as a dependency.
-   */
   useEffect(() => {
-    trackRef.current = track;
-    metaRef.current = meta;
-  }, [track, meta]);
+    onMetricsRef.current = onMetrics;
+  }, [onMetrics]);
 
-  // ─── Imperative painting ──────────────────────────────────────────────────
-  const clearSparks = useCallback((): void => {
-    for (const spark of sparks.current) spark.element.remove();
-    sparks.current = [];
+  // ─── Scene (re)build: boot, new data, resize, track switch ────────────────
+  const sceneKey = width > 0 && height > 0 ? `${dataKey}|${width}x${height}|${ghostCount}|${maxMatches ?? ""}` : null;
+  useEffect(() => {
+    if (sceneKey === null) return;
+    const scene = buildScene(
+      {
+        selfId: me.id,
+        matches: toSceneMatches(matches),
+        track,
+        threshold,
+        width,
+        height,
+        ghostCount,
+        ...(pairSimilarity ? { pairSimilarity } : {}),
+        ...(maxMatches !== undefined ? { maxMatches } : {}),
+      },
+      cfg,
+      worldRef.current ? new Map(worldRef.current.bodies.map((b) => [b.id, { x: b.x, y: b.y }])) : undefined,
+    );
+    const previous = worldRef.current;
+    let world: World;
+    if (reducedMotion) {
+      // Offline settle: the same simulation, run to rest before painting.
+      world = settle(createWorld(scene, cfg, "settled"), cfg);
+    } else if (previous && previous.width === width && previous.height === height) {
+      world = transitionWorld(previous, scene, cfg);
+    } else {
+      // First paint flies in from the rim; a resize just re-seats the sky.
+      world = createWorld(scene, cfg, previous ? "settled" : "from-edge");
+    }
+    builtKeyRef.current = sceneKey;
+    worldRef.current = world;
+    if (!cameraRef.current || cameraRef.current.tx > width || cameraRef.current.ty > height) {
+      cameraRef.current = createCamera(width, height, cfg.camera);
+    }
+    warmSpriteSheets([
+      { animalId: me.animalId, colorId: me.colorId },
+      { animalId: GHOST_ANIMAL_ID, colorId: GHOST_COLOR_ID },
+      ...matches.map((m) => ({ animalId: m.animalId, colorId: m.colorId })),
+    ]);
+    setStructure(structureFromWorld(world, meta, track));
+    wakeLoopRef.current();
+      // `meta`, `matches`, `me` and the sizes are all covered by `sceneKey`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sceneKey, track, threshold, reducedMotion, cfg]);
+
+  // ─── Painting ─────────────────────────────────────────────────────────────
+  const collectTargets = useCallback((): void => {
+    const root = svgRef.current;
+    const next = emptyTargets();
+    if (root) {
+      for (const el of root.querySelectorAll<SVGGElement>("[data-node-id]")) next.nodes.set(el.dataset.nodeId ?? "", el);
+      for (const el of root.querySelectorAll<SVGGElement>("[data-body-id]")) next.bodies.set(el.dataset.bodyId ?? "", el);
+      for (const el of root.querySelectorAll<SVGLineElement>("[data-line-key]")) next.lines.set(el.dataset.lineKey ?? "", el);
+      for (const el of root.querySelectorAll<SVGRectElement>("[data-flash-key]")) next.flashes.set(el.dataset.flashKey ?? "", el);
+      next.groups = [...root.querySelectorAll<SVGPolygonElement>("[data-group]")];
+    }
+    targets.current = next;
   }, []);
 
-  const paint = useCallback((state: SimulationState | null): void => {
-    if (!state) return;
-    const pos = positions.current;
-    const nodeMap = nodeEls.current;
-    for (const node of state.nodes) {
-      const x = round2(node.x);
-      const y = round2(node.y);
-      const entry = pos.get(node.id);
-      if (entry) {
-        entry.x = x;
-        entry.y = y;
-      } else {
-        pos.set(node.id, { x, y });
-      }
-      const element = nodeMap.get(node.id);
-      if (element) element.setAttribute("transform", `translate(${x} ${y})`);
-    }
-
-    const current = structureRef.current;
-    if (!current) return;
-    const edgeMap = edgeEls.current;
-    for (const edge of current.edges) {
-      const element = edgeMap.get(edge.key);
-      if (!element) continue;
-      const a = pos.get(edge.source);
-      const b = pos.get(edge.target);
-      if (!a || !b) continue;
-      element.setAttribute("x1", String(a.x));
-      element.setAttribute("y1", String(a.y));
-      element.setAttribute("x2", String(b.x));
-      element.setAttribute("y2", String(b.y));
-    }
-  }, []);
-
-  const updateSparks = useCallback(
-    (structureNow: ConstellationStructure, now: number): void => {
-      const layer = sparksLayerRef.current;
-      if (!layer) return;
-      const pos = positions.current;
-      const joinedSet = joined.current;
-      const colors = colorById.current;
-
-      if (sparks.current.length < MAX_SPARKS) {
-        for (const edge of structureNow.edges) {
-          if (joinedSet.has(edge.key)) continue;
-          const a = pos.get(edge.source);
-          const b = pos.get(edge.target);
-          if (!a || !b) {
-            joinedSet.add(edge.key);
-            continue;
-          }
-          if (distance(a.x, a.y, b.x, b.y) > edge.targetDistance * JOIN_DISTANCE_FACTOR) continue;
-          joinedSet.add(edge.key);
-          const spark = createSpark(
-            colors.get(edge.source) ?? "#e8a0bf",
-            colors.get(edge.target) ?? "#7ec8a9",
-            edge.source,
-            edge.target,
-            now,
-          );
-          layer.appendChild(spark.element);
-          sparks.current.push(spark);
-          if (sparks.current.length >= MAX_SPARKS) break;
-        }
-      }
-
-      // High-romance nodes (>= 85 %) emit their own bigger heart sparks more
-      // often, even once every edge has already "joined".
-      const romance = romanceSparkRef.current;
-      if (
-        romance &&
-        sparks.current.length < MAX_SPARKS &&
-        now - lastRomanceSpark.current > 850 &&
-        pos.has(romance.id)
-      ) {
-        lastRomanceSpark.current = now;
-        const spark = createSpark(romance.color, "#FF6B6B", romance.id, romance.id, now, 1.7);
-        layer.appendChild(spark.element);
-        sparks.current.push(spark);
-      }
-
-      const alive: Spark[] = [];
-      for (const spark of sparks.current) {
-        const t = (now - spark.born) / SPARK_LIFETIME_MS;
-        const a = pos.get(spark.sourceId);
-        const b = pos.get(spark.targetId);
-        if (t >= 1 || !a || !b) {
-          spark.element.remove();
-          continue;
-        }
-        const swell = Math.sin(Math.PI * t);
-        const scale = (0.6 + 0.8 * swell) * spark.boost;
-        spark.element.setAttribute(
+  const paint = useCallback(
+    (frame: Frame): void => {
+      const t = targets.current;
+      const camera = cameraRef.current;
+      const svg = svgRef.current;
+      const world = worldRef.current;
+      if (!svg || !camera || !world) return;
+      const vb = viewBox(camera, world.width, world.height);
+      write(t, svg, "viewBox", `${round2(vb.x)} ${round2(vb.y)} ${round2(vb.w)} ${round2(vb.h)}`);
+      if (skyRef.current) {
+        write(
+          t,
+          skyRef.current,
           "transform",
-          `translate(${round2((a.x + b.x) / 2)} ${round2((a.y + b.y) / 2)}) scale(${scale.toFixed(3)})`,
+          `translate(${round2(world.cx)} ${round2(world.cy)}) scale(${frame.breathe.toFixed(4)}) translate(${round2(-world.cx)} ${round2(-world.cy)})`,
         );
-        spark.element.setAttribute("opacity", swell.toFixed(3));
-        alive.push(spark);
       }
-      sparks.current = alive;
+      for (const star of frame.stars) {
+        const el = t.nodes.get(star.id);
+        if (!el) continue;
+        write(t, el, "transform", `translate(${round2(star.x)} ${round2(star.y)})`);
+        const body = t.bodies.get(star.id);
+        if (body) write(t, body, "opacity", star.alpha.toFixed(2));
+      }
+      for (const line of frame.lines) {
+        const el = t.lines.get(line.key);
+        if (!el) continue;
+        const ex = line.ax + (line.bx - line.ax) * line.progress;
+        const ey = line.ay + (line.by - line.ay) * line.progress;
+        write(t, el, "x1", String(round2(line.ax)));
+        write(t, el, "y1", String(round2(line.ay)));
+        write(t, el, "x2", String(round2(ex)));
+        write(t, el, "y2", String(round2(ey)));
+        write(t, el, "opacity", line.visibility.toFixed(2));
+      }
+      const live = new Set(frame.flashes.map((f) => f.key));
+      for (const [key, el] of t.flashes) {
+        if (!live.has(key)) write(t, el, "opacity", "0");
+      }
+      for (const flash of frame.flashes) {
+        const el = t.flashes.get(flash.key);
+        if (!el) continue;
+        write(t, el, "x", String(Math.round(flash.x) - 1));
+        write(t, el, "y", String(Math.round(flash.y) - 1));
+        write(t, el, "opacity", flash.intensity.toFixed(2));
+      }
+      frame.groups.forEach((group, index) => {
+        const el = t.groups[index];
+        if (!el) return;
+        write(t, el, "points", group.points.map((p) => `${round2(p.x)},${round2(p.y)}`).join(" "));
+        const length = polylineLength(group.points);
+        write(
+          t,
+          el,
+          "stroke-dasharray",
+          group.progress >= 1 ? `${LINE_DASH[0]} ${LINE_DASH[1]}` : `${round2(length * group.progress)} ${round2(length)}`,
+        );
+        write(t, el, "opacity", group.progress > 0 ? "1" : "0");
+      });
     },
     [],
   );
 
-  // ─── Boot: warm sprites, then precompute the settled layout ───────────────
-  useEffect(() => {
-    if (bootKey === null || builtKeyRef.current === bootKey) return;
-    let cancelled = false;
-    let second = 0;
-    setBooting(true);
+  const syncHappy = useCallback((frame: Frame): void => {
+    const next = new Set(frame.stars.filter((s) => s.happy).map((s) => s.id));
+    const current = targets.current.happy;
+    if (next.size === current.size && [...next].every((id) => current.has(id))) return;
+    targets.current.happy = next;
+    setHappyIds(next);
+  }, []);
 
-    const first = window.requestAnimationFrame(() => {
-      second = window.requestAnimationFrame(() => {
-        if (cancelled) return;
-        const activeTrack = trackRef.current;
-        const activeThreshold = getTrackThreshold(activeTrack);
-        const nextMeta = metaRef.current;
-
-        // Building the sprite catalogue is the single most expensive lazy init
-        // in the app; do it here, while the placeholder is on screen.
-        const pairs: { animalId: string; colorId: string }[] = [
-          { animalId: me.animalId, colorId: me.colorId },
-        ];
-        if (ghostCount > 0) pairs.push({ animalId: GHOST_ANIMAL_ID, colorId: GHOST_COLOR_ID });
-        for (const match of matchesForTrack(matches, activeTrack, activeThreshold)) {
-          pairs.push({ animalId: match.animalId, colorId: match.colorId });
-        }
-        warmSpriteSheets(pairs);
-
-        const graph = buildGraph(
-          toSelfIdentity(me),
-          toMatchInputs(matches),
-          activeTrack,
-          activeThreshold,
-          width,
-          height,
-          ghostCount,
-        );
-        const settled = pruneInactiveNodes(precomputeLayout(graph, width, height));
-
-        simRef.current = settled;
-        memoryRef.current = capturePositions(settled);
-        builtKeyRef.current = bootKey;
-        setStructure(
-          structureFromState(settled, nextMeta, activeThreshold, activeTrack, maxRenderedEdges),
-        );
-        setBooting(false);
-      });
-    });
-
-    return () => {
-      cancelled = true;
-      window.cancelAnimationFrame(first);
-      if (second) window.cancelAnimationFrame(second);
-    };
-  }, [bootKey, me, matches, ghostCount, width, height, maxRenderedEdges]);
-
-  // ─── Track switch: cheap re-target, positions preserved ───────────────────
-  const previousTrack = useRef<MatchTrack>(track);
-  useEffect(() => {
-    if (previousTrack.current === track) return;
-    previousTrack.current = track;
-    const state = simRef.current;
-    // Not built yet (or being rebuilt): the boot effect reads `trackRef`, so it
-    // will produce the right track on its own.
-    if (!state || builtKeyRef.current === null) return;
-
-    const nextThreshold = getTrackThreshold(track);
-    for (const [id, position] of capturePositions(state)) memoryRef.current.set(id, position);
-    let next = switchTrack(state, toMatchInputs(matches), track, nextThreshold);
-    next = applyCachedPositions(next, memoryRef.current);
-    next = pruneInactiveNodes(next);
-    simRef.current = next;
-    setStructure(
-      structureFromState(next, metaRef.current, nextThreshold, track, maxRenderedEdges),
-    );
-  }, [track, matches, maxRenderedEdges]);
-
-  // ─── Collect DOM handles whenever the structure changes ───────────────────
   useEffect(() => {
     if (!structure) return;
-    structureRef.current = structure;
+    collectTargets();
+    const world = worldRef.current;
+    if (!world) return;
+    const frame = buildFrame(world, cfg, { alpha: 1, still: reducedMotion });
+    frameRef.current = frame;
+    paint(frame);
+    syncHappy(frame);
+  }, [structure, reducedMotion, cfg, collectTargets, paint, syncHappy]);
 
-    const nextNodes = new Map<string, SVGGElement>();
-    const nextEdges = new Map<string, SVGLineElement>();
-    const nextColors = new Map<string, string>();
-    const nodesRoot = nodesLayerRef.current;
-    const edgesRoot = edgesLayerRef.current;
-    if (nodesRoot) {
-      for (const element of nodesRoot.querySelectorAll<SVGGElement>("[data-node-id]")) {
-        const id = element.getAttribute("data-node-id");
-        if (id) nextNodes.set(id, element);
-      }
-    }
-    if (edgesRoot) {
-      for (const element of edgesRoot.querySelectorAll<SVGLineElement>("[data-edge-key]")) {
-        const key = element.getAttribute("data-edge-key");
-        if (key) nextEdges.set(key, element);
-      }
-    }
-    for (const node of structure.nodes) nextColors.set(node.id, node.colorHex);
-    nodeEls.current = nextNodes;
-    edgeEls.current = nextEdges;
-    colorById.current = nextColors;
-
-    // Seed the position cache and pre-consume every edge that is ALREADY within
-    // spring distance, so a rebuild or a track switch never fires a storm of
-    // join sparks for connections that were together all along. Only links that
-    // form live — the ones the physics is still walking together — sparkle.
-    const state = simRef.current;
-    clearSparks();
-    if (state) {
-      const pos = new Map<string, { x: number; y: number }>();
-      for (const node of state.nodes) pos.set(node.id, { x: node.x, y: node.y });
-      positions.current = pos;
-      const nextJoined = new Set<string>();
-      for (const edge of structure.edges) {
-        const a = pos.get(edge.source);
-        const b = pos.get(edge.target);
-        if (!a || !b) continue;
-        if (distance(a.x, a.y, b.x, b.y) <= edge.targetDistance * JOIN_DISTANCE_FACTOR) {
-          nextJoined.add(edge.key);
-        }
-      }
-      joined.current = nextJoined;
-      paint(state);
-    }
-  }, [structure, clearSparks, paint]);
-
-  // ─── The animation loop ───────────────────────────────────────────────────
+  // ─── The loop ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!structure || reducedMotion) return;
+    if (!structure || reducedMotion) {
+      wakeLoopRef.current = () => {
+        const world = worldRef.current;
+        if (!world) return;
+        const frame = buildFrame(world, cfg, { alpha: 1, still: true });
+        paint(frame);
+      };
+      return;
+    }
     let raf = 0;
     let last = 0;
-    let frame = 0;
-    let active = true;
+    let frameCount = 0;
+    let fpsFrames = 0;
+    let fpsSince = 0;
+    let fps = 0;
+    let lastMetrics = 0;
 
     const tick = (now: number): void => {
-      if (!active) return;
       raf = window.requestAnimationFrame(tick);
-      const state = simRef.current;
-      const current = structureRef.current;
-      if (!state || !current) return;
-
-      const elapsed = last === 0 ? FRAME_MS : now - last;
+      const world = worldRef.current;
+      const camera = cameraRef.current;
+      if (!world || !camera) return;
+      const seconds = last === 0 ? 1 / 60 : (now - last) / 1000;
       last = now;
-      frame += 1;
+      frameCount++;
+      fpsFrames++;
+      if (fpsSince === 0) fpsSince = now;
+      if (now - fpsSince >= METRICS_WINDOW_MS) {
+        fps = Math.round((fpsFrames * 1000) / (now - fpsSince));
+        fpsFrames = 0;
+        fpsSince = now;
+      }
 
-      const dragging = dragRef.current !== null;
-      const ambient = state.isEquilibrium && !dragging;
-      if (ambient && frame % AMBIENT_FRAME_DIVIDER !== 0) return;
+      const cameraMoving = easeCamera(camera, seconds);
+      const wasAsleep = world.asleep;
+      const started = performance.now();
+      const result = advance(world, seconds, cfg);
+      const spent = performance.now() - started;
+      if (wasAsleep && !cameraMoving && frameCount % cfg.ambient.idleFrameDivider !== 0) return;
 
-      const steps = ambient
-        ? 1
-        : clamp(Math.round(elapsed / FRAME_MS), 1, MAX_STEPS_PER_FRAME);
-      let next = state;
-      for (let i = 0; i < steps; i++) next = stepSimulation(next, 1);
-      const drag = dragRef.current;
-      if (drag) next = dragNode(next, drag.id, drag.x, drag.y);
-      simRef.current = next;
+      const frame = buildFrame(world, cfg, { alpha: result.alpha, still: false });
+      frameRef.current = frame;
+      paint(frame);
+      syncHappy(frame);
+      if (cameraMoving) setCentred(isCentred(camera, world.width, world.height));
 
-      paint(next);
-      updateSparks(current, now);
+      const report = onMetricsRef.current;
+      if (report && now - lastMetrics >= METRICS_WINDOW_MS / 2) {
+        lastMetrics = now;
+        const metrics: CanvasMetrics = {
+          fps,
+          msPerStep: result.steps > 0 ? spent / result.steps : 0,
+          stepsPerFrame: result.steps,
+          kinetic: world.kinetic,
+          contacts: result.contacts,
+          jitter: world.jitter,
+          asleep: world.asleep,
+          settleSeconds: world.sleptAt === null ? null : world.sleptAt - world.wokeAt,
+          bodies: world.bodies.length,
+          links: world.links.length,
+          groups: world.groups.length,
+        };
+        report(metrics);
+      }
     };
 
     const start = (): void => {
-      if (!active || raf !== 0) return;
+      if (raf !== 0 || document.hidden) return;
       last = 0;
       raf = window.requestAnimationFrame(tick);
     };
@@ -542,179 +425,299 @@ export function ConstellationCanvas({
       window.cancelAnimationFrame(raf);
       raf = 0;
     };
-    const onVisibilityChange = (): void => {
-      if (document.hidden) stop();
-      else start();
+    const onVisibility = (): void => (document.hidden ? stop() : start());
+    wakeLoopRef.current = () => {
+      const world = worldRef.current;
+      if (world) wake(world);
+      start();
     };
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVisibility);
+    start();
     return () => {
-      active = false;
       stop();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      clearSparks();
+      document.removeEventListener("visibilitychange", onVisibility);
+      wakeLoopRef.current = () => undefined;
     };
-  }, [structure, reducedMotion, paint, updateSparks, clearSparks]);
+  }, [structure, reducedMotion, cfg, paint, syncHappy]);
 
-  // ─── Drag (pointer events → touch + mouse + pen) ──────────────────────────
-  const toViewBox = useCallback(
+  // ─── Coordinates ──────────────────────────────────────────────────────────
+  const toWorld = useCallback(
     (clientX: number, clientY: number): { x: number; y: number } | null => {
       const element = surfaceRef.current;
-      const current = structureRef.current;
-      if (!element || !current) return null;
+      const camera = cameraRef.current;
+      const world = worldRef.current;
+      if (!element || !camera || !world) return null;
       const rect = element.getBoundingClientRect();
-      return clientToViewBox(rect, current.width, current.height, clientX, clientY);
+      const sx = ((clientX - rect.left) / Math.max(1, rect.width)) * world.width;
+      const sy = ((clientY - rect.top) / Math.max(1, rect.height)) * world.height;
+      return screenToWorld(camera, world.width, world.height, sx, sy);
     },
     [surfaceRef],
   );
 
-  const handlePointerDown = useCallback(
+  const toScreen = useCallback(
+    (clientX: number, clientY: number): { x: number; y: number } | null => {
+      const element = surfaceRef.current;
+      const world = worldRef.current;
+      if (!element || !world) return null;
+      const rect = element.getBoundingClientRect();
+      return {
+        x: ((clientX - rect.left) / Math.max(1, rect.width)) * world.width,
+        y: ((clientY - rect.top) / Math.max(1, rect.height)) * world.height,
+      };
+    },
+    [surfaceRef],
+  );
+
+  const repaintStill = useCallback((): void => {
+    const world = worldRef.current;
+    if (!world) return;
+    const frame = buildFrame(world, cfg, { alpha: 1, still: true });
+    paint(frame);
+  }, [cfg, paint]);
+
+  const cameraChanged = useCallback((): void => {
+    const camera = cameraRef.current;
+    const world = worldRef.current;
+    if (!camera || !world) return;
+    if (reducedMotion) {
+      camera.x = camera.tx;
+      camera.y = camera.ty;
+      camera.zoom = camera.tzoom;
+      repaintStill();
+    }
+    setCentred(isCentred(camera, world.width, world.height));
+    wakeLoopRef.current();
+  }, [reducedMotion, repaintStill]);
+
+  // ─── Pointer: drag a star, pinch / pan the sky ────────────────────────────
+  const updateGesture = useCallback((): void => {
+    const g = gestureRef.current;
+    const points = [...g.pointers.values()];
+    if (points.length < 2) return;
+    const [a, b] = points as [{ x: number; y: number }, { x: number; y: number }];
+    g.distance = Math.hypot(b.x - a.x, b.y - a.y);
+    g.midX = (a.x + b.x) / 2;
+    g.midY = (a.y + b.y) / 2;
+  }, []);
+
+  const endNodeDrag = useCallback(
+    (pointerId: number, cancelled: boolean): void => {
+      const drag = dragRef.current;
+      const world = worldRef.current;
+      if (!drag || drag.pointerId !== pointerId) return;
+      dragRef.current = null;
+      if (world) {
+        const velocity = reducedMotion
+          ? { x: 0, y: 0 }
+          : estimateVelocity(drag.trail, performance.now(), cfg.interaction.throwWindowMs, cfg.interaction.maxThrowSpeed);
+        release(world, velocity);
+        if (reducedMotion) {
+          settle(world, cfg);
+          repaintStill();
+        } else {
+          wakeLoopRef.current();
+        }
+      }
+      if (!cancelled && !drag.moved) onSelectNode(drag.id);
+    },
+    [cfg, reducedMotion, onSelectNode, repaintStill],
+  );
+
+  const handleNodePointerDown = useCallback(
     (event: ReactPointerEvent<SVGGElement>, nodeId: string): void => {
       if (event.pointerType === "mouse" && event.button !== 0) return;
-      const state = simRef.current;
-      if (!state) return;
-      const point = toViewBox(event.clientX, event.clientY);
-      if (!point) return;
-      const node = state.nodes.find((candidate) => candidate.id === nodeId);
-      if (!node || node.isSelf) return;
-
+      const world = worldRef.current;
+      const point = toWorld(event.clientX, event.clientY);
+      const index = world?.index.get(nodeId);
+      const body = index === undefined ? undefined : world?.bodies[index];
+      if (!world || !point || !body) return;
+      if (body.kind === "self") return;
+      event.stopPropagation();
       svgRef.current?.setPointerCapture(event.pointerId);
+      const trail = createTrail();
+      pushSample(trail, { t: performance.now(), x: point.x, y: point.y });
       dragRef.current = {
+        kind: "node",
         id: nodeId,
         pointerId: event.pointerId,
-        dx: node.x - point.x,
-        dy: node.y - point.y,
+        dx: body.x - point.x,
+        dy: body.y - point.y,
         originX: event.clientX,
         originY: event.clientY,
-        x: node.x,
-        y: node.y,
         moved: false,
+        trail,
       };
-      // With no loop running (reduced motion) the drag has to paint itself.
-      if (reducedMotion) {
-        const next = dragNode(state, nodeId, node.x, node.y);
-        simRef.current = next;
-        paint(next);
-      }
     },
-    [reducedMotion, paint, toViewBox],
+    [toWorld],
+  );
+
+  const handleSurfacePointerDown = useCallback(
+    (event: ReactPointerEvent<SVGSVGElement>): void => {
+      if (dragRef.current) return;
+      const screen = toScreen(event.clientX, event.clientY);
+      if (!screen) return;
+      gestureRef.current.pointers.set(event.pointerId, screen);
+      svgRef.current?.setPointerCapture(event.pointerId);
+      updateGesture();
+    },
+    [toScreen, updateGesture],
   );
 
   const handlePointerMove = useCallback(
     (event: ReactPointerEvent<SVGSVGElement>): void => {
       const drag = dragRef.current;
-      if (!drag || event.pointerId !== drag.pointerId) return;
-      if (!drag.moved) {
-        const travel = Math.hypot(event.clientX - drag.originX, event.clientY - drag.originY);
-        if (travel < DRAG_CLICK_SLOP) return;
-        drag.moved = true;
-      }
-      const point = toViewBox(event.clientX, event.clientY);
-      if (!point) return;
-      drag.x = point.x + drag.dx;
-      drag.y = point.y + drag.dy;
-      if (reducedMotion) {
-        const state = simRef.current;
-        if (state) {
-          const next = dragNode(state, drag.id, drag.x, drag.y);
-          simRef.current = next;
-          paint(next);
+      if (drag && event.pointerId === drag.pointerId) {
+        if (!drag.moved) {
+          const travel = Math.hypot(event.clientX - drag.originX, event.clientY - drag.originY);
+          if (travel < cfg.interaction.tapSlopPx) return;
+          drag.moved = true;
+          const world = worldRef.current;
+          const start = toWorld(drag.originX, drag.originY);
+          if (!world || !start || !grab(world, drag.id, start.x + drag.dx, start.y + drag.dy)) {
+            dragRef.current = null;
+            return;
+          }
         }
+        const point = toWorld(event.clientX, event.clientY);
+        const world = worldRef.current;
+        if (!point || !world) return;
+        pushSample(drag.trail, { t: performance.now(), x: point.x, y: point.y });
+        moveAnchor(world, point.x + drag.dx, point.y + drag.dy);
+        if (reducedMotion) {
+          placeAt(world, drag.id, point.x + drag.dx, point.y + drag.dy);
+          repaintStill();
+        } else {
+          wakeLoopRef.current();
+        }
+        return;
       }
+
+      const g = gestureRef.current;
+      if (!g.pointers.has(event.pointerId)) return;
+      const screen = toScreen(event.clientX, event.clientY);
+      const camera = cameraRef.current;
+      const world = worldRef.current;
+      if (!screen || !camera || !world) return;
+      g.pointers.set(event.pointerId, screen);
+      if (g.pointers.size < 2) return;
+      const before = { distance: g.distance, midX: g.midX, midY: g.midY };
+      updateGesture();
+      if (before.distance > 0) {
+        zoomAt(camera, g.distance / before.distance, g.midX, g.midY, world.width, world.height, cfg.camera);
+      }
+      panBy(camera, g.midX - before.midX, g.midY - before.midY, world.width, world.height, cfg.camera);
+      cameraChanged();
     },
-    [reducedMotion, paint, toViewBox],
+    [cfg, reducedMotion, toWorld, toScreen, updateGesture, cameraChanged, repaintStill],
   );
 
-  const endDrag = useCallback(
+  const handlePointerEnd = useCallback(
     (event: ReactPointerEvent<SVGSVGElement>, cancelled: boolean): void => {
-      const drag = dragRef.current;
-      if (!drag || event.pointerId !== drag.pointerId) return;
-      dragRef.current = null;
       const svg = svgRef.current;
       if (svg?.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
-      const state = simRef.current;
-      if (state) {
-        const next = releaseNode(state, drag.id);
-        simRef.current = next;
-        // No loop under reduced motion: the impulse is simply never integrated
-        // and the star stays exactly where it was dropped.
-        if (reducedMotion) paint(next);
+      if (dragRef.current?.pointerId === event.pointerId) {
+        endNodeDrag(event.pointerId, cancelled);
+        return;
       }
-      if (!cancelled && !drag.moved) onSelectNode(drag.id);
+      gestureRef.current.pointers.delete(event.pointerId);
+      updateGesture();
     },
-    [reducedMotion, paint, onSelectNode],
+    [endNodeDrag, updateGesture],
   );
 
-  const handlePointerUp = useCallback(
-    (event: ReactPointerEvent<SVGSVGElement>): void => endDrag(event, false),
-    [endDrag],
-  );
-  const handlePointerCancel = useCallback(
-    (event: ReactPointerEvent<SVGSVGElement>): void => endDrag(event, true),
-    [endDrag],
-  );
-  const handleDragStart = useCallback((event: ReactDragEvent<SVGSVGElement>): void => {
-    event.preventDefault();
-  }, []);
+  // Wheel / trackpad pinch. Needs a non-passive listener to stop page zoom.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onWheel = (event: WheelEvent): void => {
+      const camera = cameraRef.current;
+      const world = worldRef.current;
+      const screen = toScreen(event.clientX, event.clientY);
+      if (!camera || !world || !screen) return;
+      event.preventDefault();
+      const factor = Math.exp(-event.deltaY * cfg.camera.wheelSensitivity);
+      zoomAt(camera, factor, screen.x, screen.y, world.width, world.height, cfg.camera);
+      cameraChanged();
+    };
+    svg.addEventListener("wheel", onWheel, { passive: false });
+    return () => svg.removeEventListener("wheel", onWheel);
+  }, [structure, cfg, toScreen, cameraChanged]);
 
-  // ─── Highlight / happy set ────────────────────────────────────────────────
+  const zoomButton = useCallback(
+    (factor: number): void => {
+      const camera = cameraRef.current;
+      const world = worldRef.current;
+      if (!camera || !world) return;
+      zoomAt(camera, factor, world.width / 2, world.height / 2, world.width, world.height, cfg.camera);
+      cameraChanged();
+    },
+    [cfg, cameraChanged],
+  );
+
+  const handleRecenter = useCallback((): void => {
+    const camera = cameraRef.current;
+    const world = worldRef.current;
+    if (!camera || !world) return;
+    recenter(camera, world.width, world.height, cfg.camera);
+    cameraChanged();
+  }, [cfg, cameraChanged]);
+
+  useEffect(() => {
+    if (!controlRef) return;
+    controlRef.current = {
+      recenter: handleRecenter,
+      kick: () => {
+        const world = worldRef.current;
+        if (!world) return;
+        const rand = mulberry32(world.steps + 1);
+        kick(world, cfg.interaction.kickSpeed, () => rand());
+        if (reducedMotion) {
+          settle(world, cfg);
+          repaintStill();
+        } else {
+          wakeLoopRef.current();
+        }
+      },
+    };
+    return () => {
+      controlRef.current = null;
+    };
+  }, [controlRef, cfg, reducedMotion, handleRecenter, repaintStill]);
+
+  // ─── Highlight ────────────────────────────────────────────────────────────
   const activeId = selectedNodeId ?? focusId ?? hoverId;
   const ringId = focusId ?? selectedNodeId;
-
-  const happyIds = useMemo(() => {
+  const focusSet = useMemo(() => {
     const set = new Set<string>();
     if (!structure || !activeId) return set;
     set.add(activeId);
     for (const neighbour of structure.adjacency.get(activeId) ?? []) set.add(neighbour);
     return set;
   }, [structure, activeId]);
+  const similarityById = useMemo(() => new Map(matches.map((m) => [m.id, m.similarity])), [matches]);
+  const romancePulseId =
+    track === "romance" && activeId !== null && (similarityById.get(activeId) ?? 0) >= ROMANCE_SPRITE_THRESHOLD
+      ? activeId
+      : null;
 
-  const similarityById = useMemo(
-    () => new Map(matches.map((match) => [match.id, match.similarity])),
-    [matches],
+  const starHandlers = useMemo<StarHandlers>(
+    () => ({
+      pointerDown: handleNodePointerDown,
+      hover: (next, leaving) => setHoverId((current) => (next === null && current !== leaving ? current : next)),
+      focus: (next, leaving) => setFocusId((current) => (next === null && current !== leaving ? current : next)),
+      select: onSelectNode,
+    }),
+    [handleNodePointerDown, onSelectNode],
   );
 
-  const activeIsRomancePulse =
-    track === "romance" &&
-    activeId !== null &&
-    (similarityById.get(activeId) ?? 0) >= ROMANCE_SPRITE_THRESHOLD;
-
-  /**
-   * Mirrors the high-romance target into a ref the imperative loop can read
-   * without re-subscribing (the loop callback deliberately has no deps).
-   */
-  useEffect(() => {
-    const similarity = activeId ? (similarityById.get(activeId) ?? 0) : 0;
-    if (track === "romance" && activeId && similarity >= 0.85) {
-      romanceSparkRef.current = {
-        id: activeId,
-        color: colorById.current.get(activeId) ?? "#e8a0bf",
-      };
-    } else {
-      romanceSparkRef.current = null;
-    }
-  }, [track, activeId, similarityById, structure]);
-
-  const isEmpty = !booting && structure !== null && activeMatches.length === 0;
-
-  const rootStyle = {
-    height: "min(72vh, 44rem)",
-    minHeight: "22rem",
-    ...style,
-  };
+  const isEmpty = structure !== null && activeMatches.length === 0;
+  const booting = structure === null;
+  const rootStyle = { height: "min(72vh, 44rem)", minHeight: "22rem", ...style };
 
   return (
-    <div
-      className={`zm-canvas ${className ?? ""}`.trim()}
-      style={rootStyle}
-    >
-      <div
-        ref={surfaceRef}
-        className="zm-canvas__surface"
-        data-track={track}
-        style={{ touchAction: "none" }}
-      >
+    <div className={`zm-canvas ${className ?? ""}`.trim()} style={rootStyle}>
+      <div ref={surfaceRef} className="zm-canvas__surface" data-track={track}>
         {structure && width > 0 && height > 0 ? (
           <svg
             ref={svgRef}
@@ -722,157 +725,93 @@ export function ConstellationCanvas({
             className="zm-canvas__svg"
             role="group"
             aria-label={CONSTELLATION_COPY.canvasLabel}
+            style={{ touchAction: "none" }}
+            onPointerDown={handleSurfacePointerDown}
             onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerCancel}
-            onDragStart={handleDragStart}
+            onPointerUp={(event) => handlePointerEnd(event, false)}
+            onPointerCancel={(event) => handlePointerEnd(event, true)}
+            onDragStart={(event) => event.preventDefault()}
           >
-            {/* ── Connection lines ── */}
-            <g ref={edgesLayerRef} aria-hidden="true" fill="none" strokeLinecap="round">
-              {structure.edges.map((edge) => (
-                <line
-                  key={edge.key}
-                  data-edge-key={edge.key}
-                  x1={round2(edge.sourceX)}
-                  y1={round2(edge.sourceY)}
-                  x2={round2(edge.targetX)}
-                  y2={round2(edge.targetY)}
-                  stroke={edge.color}
-                  strokeWidth={edge.width}
-                  strokeOpacity={edge.opacity}
-                />
-              ))}
-            </g>
+            <defs>
+              {/* One shared 50 % Bayer pattern for every glow: no per-star mask. */}
+              <pattern id={GLOW_PATTERN_ID} width={2} height={2} patternUnits="userSpaceOnUse">
+                <rect width={1} height={1} fill="currentColor" />
+                <rect x={1} y={1} width={1} height={1} fill="currentColor" />
+              </pattern>
+            </defs>
+            <g ref={skyRef}>
+              {/* ── Group figures ── */}
+              <g aria-hidden="true" fill="none">
+                {structure.groups.map((ids) => (
+                  <polygon
+                    key={ids.join("|")}
+                    data-group="1"
+                    className="zm-canvas__figure"
+                    strokeWidth={1}
+                    opacity={0}
+                    shapeRendering="crispEdges"
+                  />
+                ))}
+              </g>
 
-            {/* ── Join sparks (populated imperatively) ── */}
-            <g ref={sparksLayerRef} aria-hidden="true" />
-
-            {/* ── Stars ── */}
-            <g ref={nodesLayerRef}>
-              {structure.nodes.map((node) => {
-                const interactive = !node.isGhost;
-                const isHappy = happyIds.has(node.id);
-                const isRomance = activeIsRomancePulse && node.id === activeId;
-                const isRinged = ringId === node.id;
-                return (
-                  <g
-                    key={node.id}
-                    data-node-id={node.id}
-                    transform={`translate(${round2(node.initialX)} ${round2(node.initialY)})`}
-                    role={node.isGhost ? undefined : node.isSelf ? "img" : "button"}
-                    tabIndex={interactive ? 0 : undefined}
-                    aria-label={interactive ? node.ariaLabel : undefined}
-                    aria-hidden={node.isGhost ? true : undefined}
-                    opacity={node.opacity}
-                    style={{ cursor: interactive ? "grab" : "default" }}
-                    onPointerDown={
-                      interactive ? (event) => handlePointerDown(event, node.id) : undefined
-                    }
-                    onPointerEnter={
-                      interactive ? () => setHoverId(node.id) : undefined
-                    }
-                    onPointerLeave={
-                      interactive
-                        ? () => setHoverId((current) => (current === node.id ? null : current))
-                        : undefined
-                    }
-                    onFocus={interactive ? () => setFocusId(node.id) : undefined}
-                    onBlur={
-                      interactive
-                        ? () => setFocusId((current) => (current === node.id ? null : current))
-                        : undefined
-                    }
-                    onKeyDown={
-                      interactive && !node.isSelf
-                        ? (event: ReactKeyboardEvent<SVGGElement>) => {
-                            if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") {
-                              return;
-                            }
-                            event.preventDefault();
-                            onSelectNode(node.id);
-                          }
-                        : undefined
-                    }
-                  >
-                    {/* Dithered colour glow (no blur): a 25 % Bayer disc. */}
-                    {!node.isGhost ? (
-                      <circle
-                        r={node.radius * 2.2}
-                        fill={node.colorHex}
-                        className="zm-canvas__glow"
-                      />
-                    ) : null}
-
-                    {/* Halo: the self node wears its own colour. */}
-                    {node.isSelf ? (
-                      <g className={reducedMotion ? undefined : "zm-canvas__halo"}>
-                        <circle r={node.radius * 1.9} fill={node.colorHex} opacity={0.12} />
-                        <circle
-                          r={node.radius * 1.4}
-                          fill="none"
-                          stroke={node.colorHex}
-                          strokeWidth={1.5}
-                          strokeDasharray="3 5"
-                          opacity={0.6}
-                        />
-                      </g>
-                    ) : null}
-
-                    {/* Selected / focused ring. */}
-                    {interactive && isRinged ? (
-                      <circle
-                        r={node.radius + 5}
-                        fill="none"
-                        className="zm-canvas__ring"
-                        strokeWidth={2.5}
-                        strokeDasharray={node.isSelf ? undefined : "5 4"}
-                      />
-                    ) : null}
-
-                    <PixelAnimal
-                      animalId={node.animalId}
-                      colorId={node.colorId}
-                      size={node.displaySize}
-                      x={-node.displaySize / 2}
-                      y={-node.displaySize / 2}
-                      happy={isHappy && !isRomance}
-                      romance={isRomance}
-                      animated={!reducedMotion && interactive}
-                      opacity={1}
+              {/* ── Constellation lines ── */}
+              <g aria-hidden="true" fill="none" strokeLinecap="butt" shapeRendering="crispEdges">
+                {structure.edges.map((edge) => {
+                  const lit = activeId !== null && (edge.source === activeId || edge.target === activeId);
+                  return (
+                    <line
+                      key={edge.key}
+                      data-line-key={edge.key}
+                      stroke={edge.color}
+                      strokeWidth={lit ? edge.width + 1 : edge.width}
+                      strokeOpacity={lit ? Math.min(1, edge.opacity + 0.25) : edge.opacity}
+                      strokeDasharray={`${LINE_DASH[0]} ${LINE_DASH[1]}`}
                     />
+                  );
+                })}
+              </g>
 
-                    {isRomance ? (
-                      <OrbitingHearts size={node.displaySize} animated={!reducedMotion} />
-                    ) : null}
+              {/* ── Join flashes: one pixel of light ── */}
+              <g aria-hidden="true">
+                {structure.edges.map((edge) => (
+                  <rect
+                    key={edge.key}
+                    data-flash-key={edge.key}
+                    width={2}
+                    height={2}
+                    className="zm-canvas__flash"
+                    opacity={0}
+                    shapeRendering="crispEdges"
+                  />
+                ))}
+              </g>
 
-                    {/* Invisible, generously sized hit target (≈48 px). */}
-                    <circle
-                      r={node.radius + HIT_RADIUS_PADDING}
-                      fill="transparent"
-                      style={{ pointerEvents: interactive ? "all" : "none" }}
+              {/* ── Stars ── */}
+              <g>
+                {structure.nodes.map((node) => {
+                  const interactive = !node.isGhost && !node.isLeaving;
+                  const romance = romancePulseId === node.id;
+                  return (
+                    <StarNode
+                      key={node.id}
+                      node={node}
+                      romance={romance}
+                      happy={!romance && (focusSet.has(node.id) || happyIds.has(node.id))}
+                      dimmed={activeId !== null && interactive && !node.isSelf && !focusSet.has(node.id)}
+                      ringed={ringId === node.id}
+                      showTag={interactive && (node.isSelf || node.id === activeId)}
+                      reducedMotion={reducedMotion}
+                      flatGlow={structure.nodes.length > cfg.scene.denseSkyStars}
+                      handlers={starHandlers}
                     />
-
-                    {/* Name tag: only for you and for whatever you are looking at. */}
-                    {interactive && (node.isSelf || node.id === activeId) && node.alias ? (
-                      <text
-                        y={node.radius + 16}
-                        textAnchor="middle"
-                        className="zm-canvas__tag"
-                        fontSize={10}
-                        opacity={0.82}
-                      >
-                        {node.alias}
-                      </text>
-                    ) : null}
-                  </g>
-                );
-              })}
+                  );
+                })}
+              </g>
             </g>
           </svg>
         ) : null}
 
-        {/* ── Boot placeholder ── */}
-        {booting || !structure ? (
+        {booting ? (
           <div className="zm-canvas__overlay">
             <p className="zm-canvas__status" role="status" aria-live="polite">
               {CONSTELLATION_COPY.loading}
@@ -880,20 +819,32 @@ export function ConstellationCanvas({
           </div>
         ) : null}
 
-        {/* ── Empty sky ── */}
+        {structure ? (
+          <div className="zm-canvas__controls">
+            <Button variant="ghost" className="zm-btn--icon" aria-label={CONSTELLATION_COPY.zoomIn} title={CONSTELLATION_COPY.zoomIn} onClick={() => zoomButton(ZOOM_STEP)}>
+              <span aria-hidden="true">+</span>
+            </Button>
+            <Button variant="ghost" className="zm-btn--icon" aria-label={CONSTELLATION_COPY.zoomOut} title={CONSTELLATION_COPY.zoomOut} onClick={() => zoomButton(1 / ZOOM_STEP)}>
+              <span aria-hidden="true">−</span>
+            </Button>
+            <IconButton
+              icon="recenter"
+              label={CONSTELLATION_COPY.recenter}
+              onClick={handleRecenter}
+              disabled={centred}
+            />
+          </div>
+        ) : null}
+
         {isEmpty ? (
           <div className="zm-canvas__empty">
             <p className="zm-box zm-canvas__empty-card">
-              {emptyMessage ??
-                (track === "romance"
-                  ? CONSTELLATION_COPY.emptyRomance
-                  : CONSTELLATION_COPY.emptyAmistad)}
+              {emptyMessage ?? (track === "romance" ? CONSTELLATION_COPY.emptyRomance : CONSTELLATION_COPY.emptyAmistad)}
             </p>
           </div>
         ) : null}
       </div>
 
-      {/* ── Textual alternative for screen readers ── */}
       <section className="zm-sr-only" aria-labelledby="constellation-sr-heading">
         <h2 id="constellation-sr-heading">{CONSTELLATION_COPY.srListHeading}</h2>
         <p>{CONSTELLATION_COPY.srListIntro}</p>
@@ -904,12 +855,7 @@ export function ConstellationCanvas({
           ) : (
             activeMatches.map((match) => (
               <li key={match.id}>
-                {`${match.alias} — ${matchAriaLabel(
-                  match.animalName,
-                  match.colorName,
-                  match.similarity,
-                  match.track,
-                )}. ${CONSTELLATION_COPY.srOpenDetail}.`}
+                {`${match.alias} — ${matchAriaLabel(match.animalName, match.colorName, match.similarity, match.track)}. ${CONSTELLATION_COPY.srOpenDetail}.`}
               </li>
             ))
           )}
@@ -918,5 +864,11 @@ export function ConstellationCanvas({
     </div>
   );
 }
+
+/**
+ * Memoised so a parent re-render (the dev panel updates its metrics twice a
+ * second) never reconciles the sky; only its own state changes do.
+ */
+export const ConstellationCanvas = memo(ConstellationCanvasImpl);
 
 export default ConstellationCanvas;

@@ -17,9 +17,11 @@
  *   `getTrackThreshold(track)` (which reads `data/matching-config.json`).
  */
 
+import type { PhysicsConfig } from "@/config";
 import type { ChemistrySummary, MatchExplanation } from "@/contracts/result";
+import type { LinkKind, PairSimilarity } from "@/domain/constellation";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
-import type { CSSProperties } from "react";
+import type { CSSProperties, RefObject } from "react";
 
 // ─── Node input (the unified shape) ──────────────────────────────────────────
 
@@ -125,11 +127,43 @@ export interface ConstellationCanvasProps {
   style?: CSSProperties;
   /** Shown, centred over an empty sky, when the track has no match. */
   emptyMessage?: string;
-  /**
-   * Cap on painted connection lines. Defaults to `MAX_RENDERED_EDGES` (180).
-   * The simulation always uses every edge; only the paint is capped.
-   */
-  maxRenderedEdges?: number;
+  /** Real pairwise affinities between matches, when the server provides them. */
+  pairSimilarity?: PairSimilarity;
+  /** Dev-only hook: receives live engine metrics once per animation frame. */
+  onMetrics?: (metrics: CanvasMetrics) => void;
+  /** Dev-only: physics config override (defaults to `data/physics-config.json`). */
+  physics?: PhysicsConfig;
+  /** Dev-only: allow more than `scene.maxRealMatches` stars (stress tests). */
+  maxMatches?: number;
+  /** Dev-only: overrides the track threshold from the matching config. */
+  thresholdOverride?: number;
+  /** Dev-only: imperative handle for scenario buttons. */
+  controlRef?: RefObject<CanvasControl | null>;
+}
+
+/** Live engine numbers reported to the dev physics panel. */
+export interface CanvasMetrics {
+  fps: number;
+  /** Mean milliseconds per fixed physics step during the last frame. */
+  msPerStep: number;
+  stepsPerFrame: number;
+  kinetic: number;
+  contacts: number;
+  /** Smoothed RMS displacement per step (px). */
+  jitter: number;
+  asleep: boolean;
+  /** Seconds from the last wake-up to sleep, `null` while awake. */
+  settleSeconds: number | null;
+  bodies: number;
+  links: number;
+  groups: number;
+}
+
+/** Imperative controls the dev panel can call. */
+export interface CanvasControl {
+  recenter: () => void;
+  /** Deterministic impulse on every real star ("drag agresivo"). */
+  kick: () => void;
 }
 
 /** Props of the segmented Romance / Amistad toggle. */
@@ -217,6 +251,8 @@ export interface RenderNode {
   displaySize: number;
   isSelf: boolean;
   isGhost: boolean;
+  /** Left the active track and is fading out: never interactive. */
+  isLeaving: boolean;
   animalId: string;
   colorId: string;
   colorHex: string;
@@ -236,6 +272,8 @@ export interface RenderEdge {
   key: string;
   source: string;
   target: string;
+  /** `spoke` joins you to a match; `pair` joins two matches. */
+  kind: LinkKind;
   /** 0-1 edge weight. */
   similarity: number;
   /** Stroke width in user units, proportional to similarity. */
@@ -244,18 +282,14 @@ export interface RenderEdge {
   opacity: number;
   /** Stroke colour (the outer node's hex for self-edges, ink for the rest). */
   color: string;
-  /** Spring rest length — the "join" effect fires when distance drops below it. */
-  targetDistance: number;
-  sourceX: number;
-  sourceY: number;
-  targetX: number;
-  targetY: number;
 }
 
 /** The whole static React structure; rebuilt only on data / track / resize. */
 export interface ConstellationStructure {
   nodes: RenderNode[];
   edges: RenderEdge[];
+  /** Mutually compatible groups (ids), drawn as a figure outline. */
+  groups: (readonly string[])[];
   /** `nodeId` → ids of the nodes it is connected to under the active track. */
   adjacency: Map<string, string[]>;
   /** Track threshold the structure was built with (drives every brightness map). */
@@ -331,4 +365,7 @@ export const CONSTELLATION_COPY = {
   srOpenDetail: "Ver el detalle de esta conexión",
   srNoConnections: "En este cielo todavía no hay conexiones que listar.",
   ghostDecorative: "Estrella decorativa",
+  recenter: "Recentrar el cielo",
+  zoomIn: "Acercar",
+  zoomOut: "Alejar",
 } as const;

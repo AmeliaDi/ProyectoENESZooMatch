@@ -14,12 +14,13 @@
  * SVG) and inside plain HTML, e.g. the detail sheet's preview.
  */
 
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
 import { GRID_SIZE } from "@/domain/avatars/pixel-sprites";
 
 import { getIdleFrameIndex, subscribeIdleFrames } from "./frame-ticker";
-import { SHEET_WIDTH, frameIndex, spriteSheetUrl } from "./sprite-sheet";
+import { cachedSheetUrl, rasterSheetUrl } from "./sprite-raster";
+import { SHEET_WIDTH, frameIndex } from "./sprite-sheet";
 import type { PixelAnimalProps, SpriteFrameName } from "./types";
 
 /**
@@ -51,9 +52,22 @@ function PixelAnimalImpl({
   opacity = 1,
   className,
 }: PixelAnimalProps) {
-  const url = spriteSheetUrl(animalId, colorId);
+  // The SVG sheet paints immediately; the PNG raster replaces it once ready.
+  const [raster, setRaster] = useState<{ key: string; url: string } | null>(null);
+  const sheetKey = `${animalId}|${colorId}`;
+  const url = raster?.key === sheetKey ? raster.url : cachedSheetUrl(animalId, colorId);
   const pinned = resolveFrame(frame, romance, happy, animated);
   const imageRef = useRef<SVGImageElement | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void rasterSheetUrl(animalId, colorId).then((next) => {
+      if (alive) setRaster({ key: `${animalId}|${colorId}`, url: next });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [animalId, colorId]);
 
   useEffect(() => {
     const element = imageRef.current;

@@ -8,7 +8,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import { getTrackThreshold } from "@/domain/constellation/constellation-layout";
+import { getTrackThreshold } from "@/domain/constellation";
 import type { MatchTrack } from "@/types/microtest";
 
 import { ConstellationCanvas } from "./ConstellationCanvas";
@@ -16,12 +16,18 @@ import { useReducedMotionPreference } from "./hooks";
 import { NodeDetailSheet } from "./NodeDetailSheet";
 import { matchesForTrack } from "./render-helpers";
 import { TrackToggle } from "./TrackToggle";
-import type { ConstellationViewProps } from "./types";
+import type { ConstellationCanvasProps, ConstellationViewProps } from "./types";
 
 export interface ControlledTrack {
   /** When set, the parent owns the track and renders its own tabs. */
   track?: MatchTrack;
 }
+
+/** Dev-only pass-through to the canvas (physics panel). */
+export type CanvasExtras = Pick<
+  ConstellationCanvasProps,
+  "pairSimilarity" | "onMetrics" | "physics" | "maxMatches" | "controlRef" | "thresholdOverride"
+>;
 
 export function ConstellationView({
   me,
@@ -33,7 +39,8 @@ export function ConstellationView({
   className,
   style,
   emptyMessage,
-}: ConstellationViewProps & ControlledTrack) {
+  ...extras
+}: ConstellationViewProps & ControlledTrack & CanvasExtras) {
   const motionReduced = useReducedMotionPreference(reducedMotion);
   const [ownTrack, setOwnTrack] = useState<MatchTrack>(initialTrack);
   const track = controlledTrack ?? ownTrack;
@@ -80,6 +87,7 @@ export function ConstellationView({
           selectedNodeId={selectedId}
           onSelectNode={handleSelect}
           {...(emptyMessage !== undefined ? { emptyMessage } : {})}
+          {...extras}
         />
       </div>
       <NodeDetailSheet node={selected} self={me} track={track} reducedMotion={motionReduced} onClose={handleClose} />

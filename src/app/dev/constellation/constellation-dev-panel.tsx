@@ -30,7 +30,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ConstellationView } from "@/ui/constellation";
-import { getTrackThreshold } from "@/domain/constellation/constellation-layout";
+import { getTrackThreshold } from "@/domain/constellation";
 import type { MatchTrack } from "@/types/microtest";
 
 import { DEV_SELF, generateSyntheticMatches } from "./synthetic";
