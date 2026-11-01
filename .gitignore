@@ -26,3 +26,5 @@ __pycache__/
 *.sqlite3
 *.sqlite3-*
 /data/external/raw/
+/data/literature/cache/
+/data/literature/logs/

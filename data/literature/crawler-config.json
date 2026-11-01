@@ -1,0 +1,67 @@
+{
+  "version": "2026-11-01",
+  "userAgent": "ZooMatch-research/0.2 (proyecto estudiantil no comercial; mailto:enorastrokes@gmail.com)",
+  "contactEmail": "enorastrokes@gmail.com",
+  "paths": {
+    "database": "data/literature/literature.db",
+    "cacheDir": "data/literature/cache",
+    "logDir": "data/literature/logs",
+    "reviewQueue": "data/literature/review-queue.csv",
+    "recordsExport": "data/literature/records.csv",
+    "report": "data/literature/pilot-report.json",
+    "evidenceDoc": "docs/EVIDENCIA.md",
+    "seeds": "data/literature/seeds.json"
+  },
+  "budget": {
+    "_etiqueta": "supuesto_diseno: la usuaria tiene ~1000 créditos (ADR-014)",
+    "globalCredits": 900,
+    "perRunCredits": 300
+  },
+  "http": {
+    "timeoutMs": 45000,
+    "maxRetries": 3,
+    "backoffBaseMs": 1500,
+    "backoffMaxMs": 20000
+  },
+  "rateLimits": {
+    "_comentario": "Intervalo mínimo entre peticiones por fuente, en ms. Firecrawl gratis: 10/min en scrape y search.",
+    "crossref": 250,
+    "openalex": 250,
+    "unpaywall": 250,
+    "europepmc": 250,
+    "semanticscholar": 3500,
+    "arxiv": 3000,
+    "osf": 500,
+    "robots": 500,
+    "firecrawl": 6500
+  },
+  "firecrawl": {
+    "baseUrl": "https://api.firecrawl.dev/v2",
+    "docsCheckedOn": "2026-11-01",
+    "costs": {
+      "_fuente": "docs.firecrawl.dev/billing, consultada 2026-11-01",
+      "scrapePage": 1,
+      "jsonFormat": 4,
+      "pdfPage": 1,
+      "searchPer10Results": 2
+    },
+    "pdfMaxPages": 6,
+    "searchLimit": 5,
+    "maxExtractionTargets": 14,
+    "maxLicensePages": 12,
+    "storeInCache": true
+  },
+  "compliance": {
+    "respectRobotsTxt": true,
+    "robotsAgents": ["ZooMatch-research", "FirecrawlAgent", "*"],
+    "blockedHosts": ["sci-hub", "libgen", "z-lib", "annas-archive", "booksc", "library.lol"],
+    "stopOnStatus": [401, 402, 403, 451],
+    "maxQuoteChars": 300,
+    "maxQuotesPerPage": 4
+  },
+  "extraction": {
+    "relationalPattern": "pareja|couple|marit|matrimon|relaci|satisf|amistad|friend|díad|dyad|atracci|attract|apego|attach|conflict|speed-dat|homogam|assortat|similitud de",
+    "numericFields": ["n_individuals", "n_dyads", "effect_size", "ci_low", "ci_high"],
+    "numericTolerance": 1e-9
+  }
+}

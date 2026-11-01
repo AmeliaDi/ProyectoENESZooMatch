@@ -83,7 +83,9 @@ npm run dev             # http://localhost:3000
 
 | Script | Qué hace |
 |---|---|
-| `npm run check` | lint + typecheck + tests (lo que debe estar en verde antes de cada commit) |
+| `npm run check` | escaneo de secretos + lint + typecheck + tests (lo que debe estar en verde antes de cada commit) |
+| `npm run secrets:check` | busca claves (Firecrawl, Supabase, JWT…) en archivos rastreados y logs; `npm run hooks:install` activa el hook de pre-commit |
+| `npm run data:literature` | crawler de literatura: *dry-run* por defecto; `-- --run` gasta créditos de Firecrawl dentro de los topes (ver `docs/LITERATURA.md`) |
 | `npm run lint` / `typecheck` / `test` | por separado |
 | `npm run data:validate` | valida `data/*.json`, el catálogo y el contrato SQL ↔ TypeScript |
 | `npm run db:reset` | reinicia la base local con la migración base y la semilla |
@@ -115,6 +117,8 @@ Rutas de desarrollo (devuelven 404 en producción): `/dev/sprites`, `/dev/ui`,
 | [`docs/ARQUITECTURA.md`](./docs/ARQUITECTURA.md) | Auditoría, capas y plan de unificación |
 | [`docs/DECISIONES.md`](./docs/DECISIONES.md) | ADRs cortos: qué se decidió y por qué |
 | [`docs/SCORING.md`](./docs/SCORING.md) | Modelo de scoring y matching actual |
+| [`docs/ESTADO_ACTUAL.md`](./docs/ESTADO_ACTUAL.md) | Estado y plan de la integración HEXACO por capas |
+| [`docs/EVIDENCIA.md`](./docs/EVIDENCIA.md) · [`docs/LITERATURA.md`](./docs/LITERATURA.md) | Matriz de evidencia y pipeline de literatura (Firecrawl + APIs abiertas) |
 | [`docs/AUDIT.md`](./docs/AUDIT.md) | Auditoría previa a la unificación (histórica) |
 | [`docs/CONTEXTO_PROYECTO.md`](./docs/CONTEXTO_PROYECTO.md) | Contexto extenso previo a la unificación (histórico; las rutas `src/lib/*` ya no existen) |
 | [`DESPLIEGUE.md`](./DESPLIEGUE.md) · [`MANUAL_ADMINISTRADOR.md`](./MANUAL_ADMINISTRADOR.md) | Operación |
