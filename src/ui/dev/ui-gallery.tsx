@@ -196,8 +196,8 @@ export function UiGallery() {
 
         <Section title="Campos">
           <div className="grid max-w-md gap-4">
-            <Field label="Matrícula" hint="Nunca se guarda ni se muestra; solo un resumen cifrado." inputMode="numeric" />
-            <Field label="Matrícula" error="Revisa que tenga 9 dígitos." defaultValue="12345" />
+            <Field label="Matrícula" hint="Nunca se guarda ni se muestra: solo un resumen cifrado que no se puede revertir." />
+            <Field label="Matrícula" error="Usa solo letras y números (de 4 a 32)." defaultValue="AB-" />
           </div>
         </Section>
 
