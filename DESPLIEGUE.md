@@ -111,6 +111,22 @@ un proyecto Supabase real.
    otra región, fija la región de Vercel lo más cerca posible para reducir la latencia
    del recálculo global (H-03); no se hardcodea una región porque depende del proyecto.
 
+### Diagnóstico de "El cielo no responde"
+
+`/api/enter` deja una línea JSON en los logs de funciones de Vercel (o en la terminal
+de `next dev`) sin datos personales:
+
+| Evento | Significado | Qué revisar |
+|---|---|---|
+| `enter.misconfigured` + `missing` | Faltan variables o son inválidas (la UI dice "falta configurar el servicio") | Las variables listadas; redeploy tras cambiarlas |
+| `enter.failed` `step: profile_lookup` | No existe la tabla `profiles` o la clave de servicio es de otro proyecto | Aplicar `supabase/migrations/00000000000000_base.sql` y `seed.sql` |
+| `enter.failed` `step: create_user` | Supabase Auth rechazó al usuario | Authentication → Providers → Email habilitado; *Allow new users to sign up* activo |
+| `enter.failed` `step: insert_profile` | Esquema desactualizado | Reaplicar la migración base |
+| `enter.failed` `step: generate_link` / `verify_otp` | Magic link deshabilitado o clave publishable de otro proyecto | Proveedor Email y que URL y claves sean del mismo proyecto |
+
+También se acepta `NEXT_PUBLIC_SUPABASE_ANON_KEY` (el nombre que crea la integración
+Supabase ↔ Vercel) en lugar de `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+
 ## Persistencia
 
 - PostgreSQL/Supabase conserva perfiles, hash HMAC de matrícula, respuestas, vectores,

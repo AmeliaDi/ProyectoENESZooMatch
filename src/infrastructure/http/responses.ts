@@ -11,6 +11,7 @@ const STATUS: Record<AppError, number> = {
   "auth.forbidden": 403,
   "quiz.not_completed": 404,
   "service.unavailable": 503,
+  "service.misconfigured": 503,
   "storage.failed": 503,
   "match.pool_unstable": 503,
 };
@@ -22,6 +23,7 @@ const MESSAGE: Record<AppError, string> = {
   "auth.forbidden": "No tienes permiso para esta acción.",
   "quiz.not_completed": "Aún no completas el cuestionario.",
   "service.unavailable": "El servicio no está disponible por ahora.",
+  "service.misconfigured": "El servicio aún no está configurado.",
   "storage.failed": "No pudimos guardar o leer tus datos. Intenta de nuevo.",
   "match.pool_unstable": "Las afinidades se están recalculando. Intenta en un momento.",
 };

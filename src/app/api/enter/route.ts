@@ -10,7 +10,11 @@ async function handlePost(request: Request) {
   if (!parsed.success) return errorResponse("request.invalid");
 
   const result = await enterWithMatricula(parsed.data.matricula);
-  if (!result) return errorResponse("service.unavailable");
+  if (!result.ok) {
+    return errorResponse(
+      result.reason === "misconfigured" ? "service.misconfigured" : "service.unavailable",
+    );
+  }
 
   return jsonResponse({ ok: true, redirect: result.redirect });
 }

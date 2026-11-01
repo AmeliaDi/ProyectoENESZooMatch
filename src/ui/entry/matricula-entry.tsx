@@ -20,6 +20,7 @@ export const MATRICULA_COPY = {
   hint: "Nunca se guarda ni se muestra: solo un resumen cifrado que no se puede revertir.",
   invalid: "Usa solo letras y números (de 4 a 32).",
   unavailable: "El cielo no responde ahora. Intenta de nuevo en un momento.",
+  misconfigured: "El observatorio aún no está listo: falta configurar el servicio.",
 } as const;
 
 export function MatriculaEntry() {
@@ -28,7 +29,7 @@ export function MatriculaEntry() {
   const [matricula, setMatricula] = useState("");
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<null | "unavailable" | "misconfigured">(null);
   const submittingRef = useRef(false);
   const [deleted, setDeleted] = useState(false);
 
@@ -55,7 +56,7 @@ export function MatriculaEntry() {
   const normalized = normalizePublicMatricula(matricula);
   const valid = isPublicMatriculaValid(matricula);
   const error = failed
-    ? MATRICULA_COPY.unavailable
+    ? MATRICULA_COPY[failed]
     : touched && matricula && !valid
       ? MATRICULA_COPY.invalid
       : null;
@@ -66,7 +67,7 @@ export function MatriculaEntry() {
     if (!valid || submittingRef.current) return;
     submittingRef.current = true;
     setSubmitting(true);
-    setFailed(false);
+    setFailed(null);
     try {
       const response = await fetch("/api/enter", {
         method: "POST",
@@ -74,15 +75,15 @@ export function MatriculaEntry() {
         body: JSON.stringify({ matricula: normalized, inclusiveMode }),
       });
       const body = (await response.json().catch(() => null)) as
-        | { ok?: boolean; redirect?: string }
+        | { ok?: boolean; redirect?: string; code?: string }
         | null;
       if (response.ok && body?.ok && typeof body.redirect === "string") {
         router.replace(body.redirect as Route);
         return;
       }
-      setFailed(true);
+      setFailed(body?.code === "service.misconfigured" ? "misconfigured" : "unavailable");
     } catch {
-      setFailed(true);
+      setFailed("unavailable");
     } finally {
       submittingRef.current = false;
       setSubmitting(false);
@@ -120,7 +121,7 @@ export function MatriculaEntry() {
             value={matricula}
             onChange={(event) => {
               setMatricula(event.target.value.toUpperCase());
-              if (failed) setFailed(false);
+              if (failed) setFailed(null);
             }}
             onBlur={() => setTouched(true)}
             autoComplete="off"

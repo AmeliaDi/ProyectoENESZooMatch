@@ -9,6 +9,7 @@ export type AppError =
   | "auth.forbidden"
   | "auth.invalid_credentials"
   | "service.unavailable"
+  | "service.misconfigured"
   | "quiz.not_completed"
   | "storage.failed"
   | "match.pool_unstable";
