@@ -11,7 +11,7 @@
  * Todo el copy visible está en es-MX, cálido e inclusivo.
  */
 
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotionPreference } from "@/ui/constellation/hooks";
 import Link from "next/link";
 import {
   memo,
@@ -375,10 +375,10 @@ export function SpriteGallery() {
   const [showFrames, setShowFrames] = useState(false);
   const [blink, setBlink] = useState(false);
 
-  // prefers-reduced-motion apaga el parpadeo automático. `useReducedMotion` se
+  // prefers-reduced-motion apaga el parpadeo automático. El hook se
   // suscribe de forma segura durante SSR e hidratación, así no hay setState
   // síncrono dentro de un efecto.
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = useReducedMotionPreference();
   const motionOn = animate && !reducedMotion;
   const effectiveBlink = motionOn && blink;
 

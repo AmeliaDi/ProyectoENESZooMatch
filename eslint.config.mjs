@@ -11,7 +11,7 @@ const dataJson = {
   message: "Lee los datos validados desde `@/config`, nunca el JSON crudo.",
 };
 const framework = {
-  group: ["react", "react-dom", "next", "next/*", "framer-motion", "recharts"],
+  group: ["react", "react-dom", "next", "next/*", "recharts"],
   message: "El dominio y la aplicación no dependen del framework de UI.",
 };
 const supabase = {
@@ -34,7 +34,7 @@ function restrict(files, patterns) {
 export default defineConfig([
   ...nextVitals,
   ...nextTypeScript,
-  globalIgnores([".next/**", "coverage/**", "next-env.d.ts"]),
+  globalIgnores([".next/**", "coverage/**", "next-env.d.ts", ".qa/**"]),
 
   restrict(["src/**/*.{ts,tsx}"], [dataJson]),
   restrict(["src/domain/**/*.ts"], [
