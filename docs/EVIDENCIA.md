@@ -189,6 +189,31 @@ efecto (literal del abstract) | fuerza | límite | verificación.
 | EV-95 | Emparejamiento estable | Gale & Shapley 1962, *Am. Math. Mon.* 69:9–15, doi:10.1080/00029890.1962.11989827 | VERIFICADA |
 | EV-96 | Análisis de potencia (estudio piloto) | Faul et al. 2007, *Behav. Res. Methods* 39:175–191, doi:10.3758/bf03193146 | VERIFICADA |
 
+### 2.8 HEXACO y capas candidatas (afinado, Fase 2; verificado en Crossref el 2026-11-01)
+
+Solo se citan cifras literales del abstract. El detalle y la decisión por capa
+están en `docs/CAPAS_EVIDENCIA.md`.
+
+| id | Afirmación | Referencia | Cifra literal | Fuerza | Verif. |
+|---|---|---|---|---|---|
+| EV-100 | El modelo HEXACO (6 factores, incluye Honestidad-Humildad) se replica entre culturas. | Ashton & Lee 2007, *PSPR* 11:150–166, doi:10.1177/1088868306294907 | "cross-culturally replicated" | Fuerte | VERIFICADA |
+| EV-101 | Las escalas del HEXACO-100 tienen intercorrelaciones bajas; solo H–A supera \|.20\|. | Lee & Ashton 2016, *Assessment* 25:543–556, doi:10.1177/1073191116659134 | N = 100 318 autoinformes | Fuerte | VERIFICADA |
+| EV-102 | Existen escalas IPIP **de dominio público** para los constructos HEXACO. | Ashton, Lee & Goldberg 2007, *Pers. Individ. Dif.* 42:1515–1526, doi:10.1016/j.paid.2006.10.027; ipip.ori.org/newHEXACO_PI_key.htm | α por faceta de .69 a .88 (página IPIP) | Fuerte (estatus legal) | VERIFICADA |
+| EV-103 | Forma corta de 24 ítems (4 por factor) para los seis factores: Mini-IPIP6. | Milojev et al. 2013, *J. Res. Pers.* 47:936–944, doi:10.1016/j.jrp.2013.09.004; Jones et al. 2025, doi:10.1002/casp.70076 | H-H "sole personality dimension associated with cooperative behaviour" (N = 979) | Moderada | VERIFICADA |
+| EV-104 | Las personas solteras prefieren parejas similares en todos los factores HEXACO, sobre todo en H-H y Apertura. | Liu et al. 2018, *Eur. J. Pers.* 32:443–458, doi:10.1002/per.2159 | N > 900; 4 países | Moderada (preferencia ideal, no satisfacción) | VERIFICADA |
+| EV-105 | La similitud en metas de vida, valores y personalidad tiene efectos positivos **pequeños**; los niveles individuales predicen mejor. | Arránz Becker 2013, *Pers. Relatsh.* 20:443–461, doi:10.1111/j.1475-6811.2012.01417.x | n = 3 674 parejas; "significant yet small" | Fuerte | VERIFICADA |
+| EV-106 | La autotrascendencia predice la calidad relacional **propia**, no la de la pareja. | van der Wal et al. 2023, *PSPB* 50:1066–1079, doi:10.1177/01461672231156975 | 5 estudios | Moderada | VERIFICADA |
+| EV-107 | La similitud de apego **no** predice el bienestar; solo los niveles (actor y pareja). | Weidmann, Yang, Purol & Chopik 2024, *JSPR* 42:591–612, doi:10.1177/02654075241298710 | 1 602 parejas; "no evidence for any similarity effects" | Fuerte | VERIFICADA |
+| EV-108 | En parejas españolas, los efectos actor del apego son más frecuentes; la evitación daña más. | Molero et al. 2017, *Eur. J. Soc. Psychol.* 47:337–347, doi:10.1002/ejsp.2276 | 174 parejas | Moderada | VERIFICADA |
+| EV-109 | La similitud de personalidad (real o percibida) no se relaciona con la atracción inicial. | Humberg et al. 2023, *Pers. Sci.* 4, doi:10.5964/ps.7551 | 397 personas; 940 citas rápidas | Moderada | VERIFICADA |
+| EV-110 | La comunicación y la satisfacción se influyen en ambas direcciones, pero ninguna vía es robusta. | Lavner, Karney & Bradbury 2016, *J. Marriage Fam.* 78:680–694, doi:10.1111/jomf.12301 | "neither pathway was particularly robust" | Moderada | VERIFICADA |
+| EV-111 | Las parejas se parecen poco en estilos de humor; predice el humor **percibido** de la pareja. | Cann, Davis & Zapata 2011, *Humor* 24:1–20, doi:10.1515/humr.2011.001 | 82 parejas | Débil | VERIFICADA |
+| EV-112 | La empatía precisa no se asocia a la satisfacción al controlar la similitud; la percibida sí. | Cramer & Jowett 2010, *JSPR* 27:327–349, doi:10.1177/0265407509348384 | 149 parejas | Moderada | VERIFICADA |
+| EV-113 | La homogamia explica poco los estilos de vida compartidos; pesa el ciclo vital. | Kalmijn & Bernasco 2001, *J. Marriage Fam.* 63:639–654, doi:10.1111/j.1741-3737.2001.00639.x | 1 523 parejas; "modest" | Débil | VERIFICADA |
+| EV-114 | Versión española breve del ECR (ECR-12) con invariancia por género. | Guzmán-González et al. 2020, *Psicol. Reflex. Crít.* 33, doi:10.1186/s41155-020-00145-w; Lafontaine et al. 2016, doi:10.1027/1015-5759/a000243 | 3 703 adultos chilenos | Fuerte (medición) | VERIFICADA |
+| EV-115 | Versión española del Inventario de Sexismo Ambivalente. | Expósito, Moya & Glick 1998, *Rev. Psicol. Soc.* 13:159–169, doi:10.1174/021347498760350641 | 1 110 varones | Moderada (medición) | VERIFICADA |
+| EV-116 | El PVQ mide los 10 valores de Schwartz con un método menos abstracto. | Schwartz et al. 2001, *J. Cross-Cult. Psychol.* 32:519–542, doi:10.1177/0022022101032005001 | 4 muestras | Fuerte (medición) | VERIFICADA |
+
 ---
 
 ## 3. Auditoría del modelo vigente contra la evidencia

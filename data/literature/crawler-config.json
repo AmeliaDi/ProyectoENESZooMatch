@@ -48,20 +48,42 @@
     "pdfMaxPages": 6,
     "searchLimit": 5,
     "maxExtractionTargets": 14,
-    "maxLicensePages": 12,
+    "maxLicensePages": 16,
     "storeInCache": true
   },
   "compliance": {
     "respectRobotsTxt": true,
-    "robotsAgents": ["ZooMatch-research", "FirecrawlAgent", "*"],
-    "blockedHosts": ["sci-hub", "libgen", "z-lib", "annas-archive", "booksc", "library.lol"],
-    "stopOnStatus": [401, 402, 403, 451],
+    "robotsAgents": [
+      "ZooMatch-research",
+      "FirecrawlAgent",
+      "*"
+    ],
+    "blockedHosts": [
+      "sci-hub",
+      "libgen",
+      "z-lib",
+      "annas-archive",
+      "booksc",
+      "library.lol"
+    ],
+    "stopOnStatus": [
+      401,
+      402,
+      403,
+      451
+    ],
     "maxQuoteChars": 300,
     "maxQuotesPerPage": 4
   },
   "extraction": {
     "relationalPattern": "pareja|couple|marit|matrimon|relaci|satisf|amistad|friend|díad|dyad|atracci|attract|apego|attach|conflict|speed-dat|homogam|assortat|similitud de",
-    "numericFields": ["n_individuals", "n_dyads", "effect_size", "ci_low", "ci_high"],
+    "numericFields": [
+      "n_individuals",
+      "n_dyads",
+      "effect_size",
+      "ci_low",
+      "ci_high"
+    ],
     "numericTolerance": 1e-9
   }
 }

@@ -1,0 +1,32 @@
+{
+  "_comentario": "Criterios de admisión de capas (Fase 2 del afinado). Todos son obligatorios para que una capa entre al puntaje. Lo evalúa scripts/literature/lib/layers.ts; las fichas están en layer-candidates.json y la tabla en docs/CAPAS_EVIDENCIA.md.",
+  "version": "2026-11-01",
+  "evidence": {
+    "_etiqueta": "supuesto_diseno",
+    "minVerifiedStudies": 1,
+    "requireDyadicOrRelationalOutcome": true,
+    "admissibleForScore": ["similitud", "ventana", "complementariedad"],
+    "_nota": "Un efecto solo de nivel (actor/pareja) no justifica una función de compatibilidad: puntuar niveles equivaldría a declarar a unas personas 'más emparejables' que otras."
+  },
+  "redundancy": {
+    "_etiqueta": "supuesto_diseno",
+    "maxLatentCorrelationWithHexaco": 0.7,
+    "_nota": "Si la correlación latente con algún factor HEXACO supera el umbral, la capa no aporta información nueva. Sin datos reales se acepta 'no_redundante_teorico' y se mide en la Fase 3 con el modelo de medición."
+  },
+  "license": {
+    "_etiqueta": "supuesto_diseno",
+    "admissible": ["dominio_publico", "cc", "libre_investigacion", "items_originales"]
+  },
+  "budget": {
+    "_etiqueta": "supuesto_diseno (ADR-014 y decisión de la usuaria: ~60 ítems)",
+    "coreMaxMinutes": 9,
+    "secondsPerLikertItem": 7,
+    "coreTargetItems": 60,
+    "coreToleranceItems": 3
+  },
+  "sensitivity": {
+    "_etiqueta": "supuesto_diseno",
+    "forbidSensitiveInference": true,
+    "forbidSexualBehaviorItems": true
+  }
+}

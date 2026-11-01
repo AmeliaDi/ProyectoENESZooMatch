@@ -192,6 +192,25 @@ sin verificar**.
   ejemplo, amistad en búfalos de agua). La Fase 2 filtra por criterios de
   admisión; ningún registro entra al modelo por aparecer aquí.
 
+### 5.8 Corrida 2 (Fase 2: capas candidatas)
+
+- **Coste:** 130 créditos; la cuenta pasó de 868 a 738 y el tope global va
+  en 287 de 900.
+- **Semillas nuevas:**
+  - 10 estudios nombrados;
+  - 8 búsquedas por tema (comunicación, metas, estilo de vida, RIASEC,
+    validaciones en español, HEXACO en pareja y actitudes políticas);
+  - 7 páginas de licencia;
+  - 4 búsquedas de licencia (HSQ, NCS, ISA y TMMS).
+- **Resultados:**
+  - 131 registros;
+  - 14 extracciones, 5 de ellas desde caché;
+  - 0 anomalías.
+- **Uso:** las tablas y las decisiones están en `docs/CAPAS_EVIDENCIA.md`.
+  Las búsquedas de licencias de NCS, ISA, TMMS y HSQ solo devolvieron
+  artículos o PDFs no oficiales, así que esas licencias siguen sin
+  verificar.
+
 ## 6. Archivos
 
 | Archivo | Versionado | Contenido |
@@ -201,6 +220,8 @@ sin verificar**.
 | `data/literature/records.csv` | sí | 100 registros con metadatos |
 | `data/literature/review-queue.csv` | sí | Cola de revisión humana; regenerarla conserva las columnas `verificacion`, `decision`, `reviewer`, `reviewed_on` y `notes` |
 | `data/literature/pilot-report.json` | sí | Reporte de la última corrida |
+| `data/literature/layer-criteria.json` | sí | Criterios de admisión de capas (Fase 2) |
+| `data/literature/layer-candidates.json` | sí | Fichas de capas candidatas; `npm run data:layers` calcula la decisión |
 | `data/literature/literature.db` | no (`*.db`) | Registro completo de llamadas, páginas, citas, extracciones y anomalías |
 | `data/literature/cache/` | no | Respuestas crudas (incluye texto completo; no se redistribuye) |
 

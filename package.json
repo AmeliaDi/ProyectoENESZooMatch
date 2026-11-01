@@ -19,7 +19,8 @@
     "data:literature": "node --no-warnings scripts/literature/run.mts",
     "data:validate": "vitest run src/config src/infrastructure/supabase/schema.test.ts src/domain/avatars/archetype-catalog.test.ts",
     "db:reset": "supabase db reset",
-    "db:apply": "node scripts/db-apply.mjs"
+    "db:apply": "node scripts/db-apply.mjs",
+    "data:layers": "node --no-warnings scripts/literature/layers.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

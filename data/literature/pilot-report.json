@@ -1,15 +1,17 @@
 {
-  "runId": "2026-11-01T08-16-02-031Z",
+  "runId": "2026-11-01T14-07-06-967Z",
   "mode": "run",
   "firecrawlApi": "v2 (docs 2026-11-01)",
-  "records": 100,
+  "records": 131,
   "recordsByOrigin": {
-    "busqueda": 24,
+    "arxiv": 2,
+    "busqueda": 39,
     "EVIDENCIA.md": 60,
-    "investigacion": 15,
-    "busqueda_oa": 1
+    "investigacion": 20,
+    "busqueda_oa": 6,
+    "psyarxiv": 4
   },
-  "recordsOpenAccess": 39,
+  "recordsOpenAccess": 62,
   "namedStudies": [
     {
       "label": "Dyrenforth et al. 2010",
@@ -122,6 +124,76 @@
       "title": "The Experiences in Close Relationship Scale (ECR)-Short Form: Reliability, Validity, and Factor Structure",
       "doi": "10.1080/00223890701268041",
       "score": 1
+    },
+    {
+      "label": "Gaunt 2006",
+      "status": "ok",
+      "title": "Couple Similarity and Marital Satisfaction: Are Similar Spouses Happier?",
+      "doi": "10.1111/j.1467-6494.2006.00414.x",
+      "score": 1
+    },
+    {
+      "label": "Bahns et al. 2017",
+      "status": "ok",
+      "title": "Similarity in relationships as niche construction: Choice, stability, and influence within dyads in a free choice environment.",
+      "doi": "10.1037/pspp0000088",
+      "score": 1
+    },
+    {
+      "label": "Selfhout et al. 2010",
+      "status": "sin resultados con ese autor y año",
+      "title": null,
+      "doi": null,
+      "score": 0
+    },
+    {
+      "label": "Schwartz et al. 2012",
+      "status": "ok",
+      "title": "Refining the theory of basic individual values.",
+      "doi": "10.1037/a0029393",
+      "score": 1
+    },
+    {
+      "label": "Penke & Asendorpf 2008",
+      "status": "ok",
+      "title": "Beyond global sociosexual orientations: A more differentiated look at sociosexuality and its effects on courtship and romantic relationships.",
+      "doi": "10.1037/0022-3514.95.5.1113",
+      "score": 1
+    },
+    {
+      "label": "Glick & Fiske 1996",
+      "status": "ok",
+      "title": "The Ambivalent Sexism Inventory: Differentiating hostile and benevolent sexism.",
+      "doi": "10.1037//0022-3514.70.3.491",
+      "score": 1
+    },
+    {
+      "label": "Martin et al. 2003",
+      "status": "ok",
+      "title": "Individual differences in uses of humor and their relation to psychological well-being: Development of the Humor Styles Questionnaire",
+      "doi": "10.1016/s0092-6566(02)00534-2",
+      "score": 1
+    },
+    {
+      "label": "Cacioppo, Petty & Kao 1984",
+      "status": "ok",
+      "title": "The Efficient Assessment of Need for Cognition",
+      "doi": "10.1207/s15327752jpa4803_13",
+      "score": 1
+    },
+    {
+      "label": "Fernández-Berrocal et al. 2004",
+      "status": "sin resultados con ese autor y año",
+      "title": null,
+      "doi": null,
+      "score": 0
+    },
+    {
+      "label": "Davis 1983",
+      "status": "ok",
+      "title": "Measuring individual differences in empathy: Evidence for a multidimensional approach.",
+      "doi": "10.1037//0022-3514.44.1.113",
+      "score": 1
     }
   ],
   "firecrawlCalls": [
@@ -168,6 +240,48 @@
       "status": "robots.txt lo impide"
     },
     {
+      "kind": "license_page",
+      "url": "https://ipip.ori.org/newORAISKey.htm",
+      "estimate": 1,
+      "status": "HTTP 200, 0 citas"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://ipip.ori.org/newMultipleconstructs.htm",
+      "estimate": 1,
+      "status": "HTTP 200, 2 citas"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://www.onetcenter.org/license_toolsdev.html",
+      "estimate": 1,
+      "status": "HTTP 200, 4 citas"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://www.onetcenter.org/IP.html",
+      "estimate": 1,
+      "status": "HTTP 200, 4 citas"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://www.larspenke.eu/en/research/soi-r.html",
+      "estimate": 1,
+      "status": "HTTP 200, 0 citas"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://www.eckerd.edu/psychology/iri/",
+      "estimate": 1,
+      "status": "HTTP 200, 1 citas"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://labs.psychology.illinois.edu/~rcfraley/measures/brennan.html",
+      "estimate": 1,
+      "status": "HTTP 200, 0 citas"
+    },
+    {
       "kind": "license_search",
       "url": "Portrait Values Questionnaire PVQ-RR permission to use research",
       "estimate": 2,
@@ -192,6 +306,54 @@
       "status": "HTTP 200, 0 citas"
     },
     {
+      "kind": "license_search",
+      "url": "Humor Styles Questionnaire Martin permission to use free research",
+      "estimate": 2,
+      "status": "5 resultados"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://psypack.com/assessments/humor-styles-questionnaire-hsq/",
+      "estimate": 1,
+      "status": "HTTP 200, 0 citas"
+    },
+    {
+      "kind": "license_search",
+      "url": "escala necesidad de cognición versión breve española validación",
+      "estimate": 2,
+      "status": "5 resultados"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://www.psicothema.com/pdf/489.pdf",
+      "estimate": 7,
+      "status": "HTTP 200, 4 citas"
+    },
+    {
+      "kind": "license_search",
+      "url": "Inventario de Sexismo Ambivalente versión española Expósito Moya Glick",
+      "estimate": 2,
+      "status": "5 resultados"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://www.researchgate.net/publication/233501729_Sexismo_ambivalente_medicion_y_correlatos",
+      "estimate": 1,
+      "status": "HTTP 200, 4 citas"
+    },
+    {
+      "kind": "license_search",
+      "url": "TMMS-24 Fernández-Berrocal escala uso libre investigación",
+      "estimate": 2,
+      "status": "5 resultados"
+    },
+    {
+      "kind": "license_page",
+      "url": "https://psicologiaveracruz.wordpress.com/wp-content/uploads/2016/02/trait-meta-mood-scale-tmms-24.pdf",
+      "estimate": 16,
+      "status": "HTTP 200, 1 citas"
+    },
+    {
       "kind": "extraction",
       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5181851/",
       "estimate": 0,
@@ -211,9 +373,57 @@
     },
     {
       "kind": "extraction",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3218801/",
+      "estimate": 10,
+      "status": "extraído (2 pasadas)"
+    },
+    {
+      "kind": "extraction",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4852543/",
+      "estimate": 10,
+      "status": "extraído (2 pasadas)"
+    },
+    {
+      "kind": "extraction",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13185362/",
+      "estimate": 10,
+      "status": "extraído (2 pasadas)"
+    },
+    {
+      "kind": "extraction",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12910757/",
+      "estimate": 10,
+      "status": "extraído (2 pasadas)"
+    },
+    {
+      "kind": "extraction",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7295914/",
+      "estimate": 10,
+      "status": "extraído (2 pasadas)"
+    },
+    {
+      "kind": "extraction",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6400405/",
+      "estimate": 10,
+      "status": "extraído (2 pasadas)"
+    },
+    {
+      "kind": "extraction",
       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7212830/",
       "estimate": 0,
       "status": "extraído (2 pasadas, desde caché)"
+    },
+    {
+      "kind": "extraction",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12756379/",
+      "estimate": 10,
+      "status": "extraído (2 pasadas)"
+    },
+    {
+      "kind": "extraction",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13323009/",
+      "estimate": 10,
+      "status": "extraído (2 pasadas)"
     },
     {
       "kind": "extraction",
@@ -223,66 +433,18 @@
     },
     {
       "kind": "extraction",
-      "url": "http://e-spacio.uned.es/fez/view/bibliuned:DptoPSyO-FPSI-Articulos-Ifernandez-0042",
-      "estimate": 0,
-      "status": "robots.txt lo impide"
-    },
-    {
-      "kind": "extraction",
-      "url": "https://www.sciencedirect.com/science/article/pii/S0092656622000617/pdf",
-      "estimate": 0,
-      "status": "extraído (2 pasadas, desde caché)"
-    },
-    {
-      "kind": "extraction",
-      "url": "https://figshare.com/articles/journal_contribution/Couple_similarity_and_marital_satisfaction_are_similar_spouses_happier_/24402799",
-      "estimate": 0,
-      "status": "HTTP 403"
-    },
-    {
-      "kind": "extraction",
-      "url": "https://osf.io/x86cy",
-      "estimate": 0,
-      "status": "extraído (2 pasadas, desde caché)"
-    },
-    {
-      "kind": "extraction",
-      "url": "https://doi.org/10.1177/21582440251358988",
-      "estimate": 0,
-      "status": "extraído (2 pasadas, desde caché)"
-    },
-    {
-      "kind": "extraction",
-      "url": "https://hrcak.srce.hr/file/266938",
-      "estimate": 0,
-      "status": "HTTP 418"
-    },
-    {
-      "kind": "extraction",
-      "url": "https://ejop.psychopen.eu/index.php/ejop/article/download/697/697.pdf",
-      "estimate": 0,
-      "status": "extraído (2 pasadas, desde caché)"
-    },
-    {
-      "kind": "extraction",
-      "url": "https://ps.psychopen.eu/index.php/ps/article/download/7551/7551.pdf",
-      "estimate": 0,
-      "status": "HTTP 404"
-    },
-    {
-      "kind": "extraction",
-      "url": "https://www.socialprism.pk/index.php/socialprism/article/download/140/138",
-      "estimate": 0,
-      "status": "extraído (2 pasadas, desde caché)"
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13089360/",
+      "estimate": 10,
+      "status": "extraído (2 pasadas)"
     }
   ],
-  "creditsEstimatedOrSpent": 0,
+  "creditsEstimatedOrSpent": 130,
   "creditsRemainingBefore": 868,
-  "creditsRemainingAfter": 868,
+  "creditsRemainingAfter": 738,
   "stoppedBy": null,
   "anomalies": [],
   "exported": {
-    "reviewRows": 87,
-    "records": 100
+    "reviewRows": 210,
+    "records": 131
   }
 }

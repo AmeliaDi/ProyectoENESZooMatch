@@ -1,60 +1,407 @@
 {
-  "_comentario": "Semillas del piloto (Fase 1). Los DOIs de docs/EVIDENCIA.md se extraen en tiempo de ejecución. Los estudios nombrados vienen de docs/investigacion/ (beta, sin DOI): se resuelven por búsqueda en OpenAlex y quedan pendiente_humana.",
-  "maxRecords": 100,
+  "_comentario": "Semillas del piloto (Fase 1). Los DOIs de docs/EVIDENCIA.md se extraen en tiempo de ejecución. Los estudios nombrados vienen de docs/investigacion/ (beta, sin DOI): se resuelven por búsqueda en OpenAlex y quedan pendiente_humana. Fase 2: semillas de capas candidatas (valores, apego, conflicto, sociosexualidad, empatía, IE, humor, intereses, roles de género, necesidad de cognición).",
+  "maxRecords": 160,
   "namedStudies": [
-    { "label": "Dyrenforth et al. 2010", "author": "Dyrenforth", "query": "Predicting relationship and life satisfaction from personality in nationally representative samples from three countries", "year": 2010, "topic": "similitud_bigfive" },
-    { "label": "van Scheppingen et al. 2018", "author": "Scheppingen", "query": "Longitudinal actor, partner, and similarity effects of personality on well-being", "year": 2019, "topic": "similitud_bigfive" },
-    { "label": "Becker 2013", "author": "Becker", "query": "Effects of similarity of life goals, values, and personality on relationship satisfaction and stability", "year": 2013, "topic": "similitud_valores" },
-    { "label": "Luo et al. 2008", "author": "Luo", "query": "Predicting marital satisfaction from self, partner, and couple characteristics: Is it me, you, or us?", "year": 2008, "topic": "similitud_bigfive" },
-    { "label": "Leikas et al. 2018", "author": "Leikas", "query": "Relationship satisfaction and similarity of personality traits, personal values, and attitudes", "year": 2018, "topic": "similitud_valores" },
-    { "label": "Humberg et al. 2023", "author": "Humberg", "query": "Is actual or perceptual personality similarity associated with attraction in initial romantic encounters", "year": 2023, "topic": "atraccion" },
-    { "label": "Shiota & Levenson 2007", "author": "Shiota", "query": "Birds of a feather don't always fly farthest: Similarity in Big Five personality predicts more negative marital satisfaction trajectories", "year": 2007, "topic": "similitud_bigfive" },
-    { "label": "Weidmann et al. 2016", "author": "Weidmann", "query": "The interdependence of personality and satisfaction in couples: A review", "year": 2016, "topic": "actor_pareja" },
-    { "label": "Zentner 2005", "author": "Zentner", "query": "Ideal mate personality concepts and compatibility in close relationships", "year": 2005, "topic": "ideales" },
-    { "label": "Joel et al. 2020", "author": "Joel", "query": "Machine learning uncovers the most robust self-report predictors of relationship quality across 43 longitudinal couples studies", "year": 2020, "topic": "prediccion" },
-    { "label": "Joel, Eastwick & Finkel 2017", "author": "Joel", "query": "Is romantic desire predictable? Machine learning applied to initial romantic attraction", "year": 2017, "topic": "prediccion" },
-    { "label": "Romero et al. 2015", "author": "Romero", "query": "Assessing six factors in Spain: Validation of the HEXACO-100 in relation to the Five Factor Model and other conceptually relevant criteria", "year": 2015, "topic": "hexaco_espanol" },
-    { "label": "Ashton & Lee 2009", "author": "Ashton", "query": "The HEXACO-60: A short measure of the major dimensions of personality", "year": 2009, "topic": "hexaco" },
-    { "label": "Fraley et al. 2011", "author": "Fraley", "query": "The Experiences in Close Relationships-Relationship Structures questionnaire", "year": 2011, "topic": "apego" },
-    { "label": "Funk & Rogge 2007", "author": "Funk", "query": "Testing the ruler with item response theory: increasing precision of measurement for relationship satisfaction with the Couples Satisfaction Index", "year": 2007, "topic": "resultado_relacional" },
-    { "label": "Wei et al. 2007 (ECR-S)", "author": "Wei", "query": "The Experiences in Close Relationship Scale (ECR)-short form: Reliability, validity, and factor structure", "year": 2007, "topic": "apego" }
+    {
+      "label": "Dyrenforth et al. 2010",
+      "author": "Dyrenforth",
+      "query": "Predicting relationship and life satisfaction from personality in nationally representative samples from three countries",
+      "year": 2010,
+      "topic": "similitud_bigfive"
+    },
+    {
+      "label": "van Scheppingen et al. 2018",
+      "author": "Scheppingen",
+      "query": "Longitudinal actor, partner, and similarity effects of personality on well-being",
+      "year": 2019,
+      "topic": "similitud_bigfive"
+    },
+    {
+      "label": "Becker 2013",
+      "author": "Becker",
+      "query": "Effects of similarity of life goals, values, and personality on relationship satisfaction and stability",
+      "year": 2013,
+      "topic": "similitud_valores"
+    },
+    {
+      "label": "Luo et al. 2008",
+      "author": "Luo",
+      "query": "Predicting marital satisfaction from self, partner, and couple characteristics: Is it me, you, or us?",
+      "year": 2008,
+      "topic": "similitud_bigfive"
+    },
+    {
+      "label": "Leikas et al. 2018",
+      "author": "Leikas",
+      "query": "Relationship satisfaction and similarity of personality traits, personal values, and attitudes",
+      "year": 2018,
+      "topic": "similitud_valores"
+    },
+    {
+      "label": "Humberg et al. 2023",
+      "author": "Humberg",
+      "query": "Is actual or perceptual personality similarity associated with attraction in initial romantic encounters",
+      "year": 2023,
+      "topic": "atraccion"
+    },
+    {
+      "label": "Shiota & Levenson 2007",
+      "author": "Shiota",
+      "query": "Birds of a feather don't always fly farthest: Similarity in Big Five personality predicts more negative marital satisfaction trajectories",
+      "year": 2007,
+      "topic": "similitud_bigfive"
+    },
+    {
+      "label": "Weidmann et al. 2016",
+      "author": "Weidmann",
+      "query": "The interdependence of personality and satisfaction in couples: A review",
+      "year": 2016,
+      "topic": "actor_pareja"
+    },
+    {
+      "label": "Zentner 2005",
+      "author": "Zentner",
+      "query": "Ideal mate personality concepts and compatibility in close relationships",
+      "year": 2005,
+      "topic": "ideales"
+    },
+    {
+      "label": "Joel et al. 2020",
+      "author": "Joel",
+      "query": "Machine learning uncovers the most robust self-report predictors of relationship quality across 43 longitudinal couples studies",
+      "year": 2020,
+      "topic": "prediccion"
+    },
+    {
+      "label": "Joel, Eastwick & Finkel 2017",
+      "author": "Joel",
+      "query": "Is romantic desire predictable? Machine learning applied to initial romantic attraction",
+      "year": 2017,
+      "topic": "prediccion"
+    },
+    {
+      "label": "Romero et al. 2015",
+      "author": "Romero",
+      "query": "Assessing six factors in Spain: Validation of the HEXACO-100 in relation to the Five Factor Model and other conceptually relevant criteria",
+      "year": 2015,
+      "topic": "hexaco_espanol"
+    },
+    {
+      "label": "Ashton & Lee 2009",
+      "author": "Ashton",
+      "query": "The HEXACO-60: A short measure of the major dimensions of personality",
+      "year": 2009,
+      "topic": "hexaco"
+    },
+    {
+      "label": "Fraley et al. 2011",
+      "author": "Fraley",
+      "query": "The Experiences in Close Relationships-Relationship Structures questionnaire",
+      "year": 2011,
+      "topic": "apego"
+    },
+    {
+      "label": "Funk & Rogge 2007",
+      "author": "Funk",
+      "query": "Testing the ruler with item response theory: increasing precision of measurement for relationship satisfaction with the Couples Satisfaction Index",
+      "year": 2007,
+      "topic": "resultado_relacional"
+    },
+    {
+      "label": "Wei et al. 2007 (ECR-S)",
+      "author": "Wei",
+      "query": "The Experiences in Close Relationship Scale (ECR)-short form: Reliability, validity, and factor structure",
+      "year": 2007,
+      "topic": "apego"
+    },
+    {
+      "label": "Gaunt 2006",
+      "author": "Gaunt",
+      "query": "Couple similarity and marital satisfaction: Are similar spouses happier?",
+      "year": 2006,
+      "topic": "similitud_valores"
+    },
+    {
+      "label": "Bahns et al. 2017",
+      "author": "Bahns",
+      "query": "Similarity in relationships as niche construction: Choice, stability, and influence within dyads in a free choice environment",
+      "year": 2017,
+      "topic": "amistad"
+    },
+    {
+      "label": "Selfhout et al. 2010",
+      "author": "Selfhout",
+      "query": "Emerging late adolescent friendship networks and Big Five personality traits: a social network approach",
+      "year": 2010,
+      "topic": "amistad"
+    },
+    {
+      "label": "Schwartz et al. 2012",
+      "author": "Schwartz",
+      "query": "Refining the theory of basic individual values",
+      "year": 2012,
+      "topic": "valores"
+    },
+    {
+      "label": "Penke & Asendorpf 2008",
+      "author": "Penke",
+      "query": "Beyond global sociosexual orientations: A more differentiated look at sociosexuality and its effects on courtship and romantic relationships",
+      "year": 2008,
+      "topic": "sociosexualidad"
+    },
+    {
+      "label": "Glick & Fiske 1996",
+      "author": "Glick",
+      "query": "The Ambivalent Sexism Inventory: Differentiating hostile and benevolent sexism",
+      "year": 1996,
+      "topic": "roles_genero"
+    },
+    {
+      "label": "Martin et al. 2003",
+      "author": "Martin",
+      "query": "Individual differences in uses of humor and their relation to psychological well-being: Development of the Humor Styles Questionnaire",
+      "year": 2003,
+      "topic": "humor"
+    },
+    {
+      "label": "Cacioppo, Petty & Kao 1984",
+      "author": "Cacioppo",
+      "query": "The efficient assessment of need for cognition",
+      "year": 1984,
+      "topic": "necesidad_cognicion"
+    },
+    {
+      "label": "Fernández-Berrocal et al. 2004",
+      "author": "Fernández-Berrocal",
+      "query": "Validity and reliability of the Spanish modified version of the Trait Meta-Mood Scale",
+      "year": 2004,
+      "topic": "inteligencia_emocional"
+    },
+    {
+      "label": "Davis 1983",
+      "author": "Davis",
+      "query": "Measuring individual differences in empathy: Evidence for a multidimensional approach",
+      "year": 1983,
+      "topic": "empatia"
+    }
   ],
   "topicSearches": [
-    { "topic": "similitud_valores", "query": "value similarity romantic couples relationship satisfaction Schwartz", "limit": 3 },
-    { "topic": "apego", "query": "attachment similarity couples anxiety avoidance relationship satisfaction dyadic", "limit": 3 },
-    { "topic": "conflicto", "query": "conflict resolution style similarity couples relationship satisfaction", "limit": 2 },
-    { "topic": "sociosexualidad", "query": "sociosexual orientation similarity romantic partners", "limit": 2 },
-    { "topic": "necesidad_cognicion", "query": "need for cognition similarity romantic partners", "limit": 2 },
-    { "topic": "empatia", "query": "empathy partner similarity relationship satisfaction dyadic", "limit": 2 },
-    { "topic": "inteligencia_emocional", "query": "emotional intelligence couples relationship satisfaction meta-analysis", "limit": 2 },
-    { "topic": "intereses_amistad", "query": "friendship similarity interests personality homophily friends", "limit": 3 },
-    { "topic": "humor", "query": "humor styles similarity romantic partners relationship satisfaction", "limit": 2 },
-    { "topic": "roles_genero", "query": "gender role attitudes similarity couples marital satisfaction", "limit": 2 },
-    { "topic": "hexaco_pareja", "query": "HEXACO honesty-humility romantic partners assortative mating", "limit": 3 }
+    {
+      "topic": "similitud_valores",
+      "query": "value similarity romantic couples relationship satisfaction Schwartz",
+      "limit": 3
+    },
+    {
+      "topic": "apego",
+      "query": "attachment similarity couples anxiety avoidance relationship satisfaction dyadic",
+      "limit": 3
+    },
+    {
+      "topic": "conflicto",
+      "query": "conflict resolution style similarity couples relationship satisfaction",
+      "limit": 2
+    },
+    {
+      "topic": "sociosexualidad",
+      "query": "sociosexual orientation similarity romantic partners",
+      "limit": 2
+    },
+    {
+      "topic": "necesidad_cognicion",
+      "query": "need for cognition similarity romantic partners",
+      "limit": 2
+    },
+    {
+      "topic": "empatia",
+      "query": "empathy partner similarity relationship satisfaction dyadic",
+      "limit": 2
+    },
+    {
+      "topic": "inteligencia_emocional",
+      "query": "emotional intelligence couples relationship satisfaction meta-analysis",
+      "limit": 2
+    },
+    {
+      "topic": "intereses_amistad",
+      "query": "friendship similarity interests personality homophily friends",
+      "limit": 3
+    },
+    {
+      "topic": "humor",
+      "query": "humor styles similarity romantic partners relationship satisfaction",
+      "limit": 2
+    },
+    {
+      "topic": "roles_genero",
+      "query": "gender role attitudes similarity couples marital satisfaction",
+      "limit": 2
+    },
+    {
+      "topic": "hexaco_pareja",
+      "query": "HEXACO honesty-humility romantic partners assortative mating",
+      "limit": 3
+    },
+    {
+      "topic": "comunicacion",
+      "query": "communication patterns couples demand withdraw relationship satisfaction meta-analysis",
+      "limit": 2
+    },
+    {
+      "topic": "metas_relacion",
+      "query": "relationship goals similarity partners commitment long-term short-term",
+      "limit": 2
+    },
+    {
+      "topic": "estilo_vida",
+      "query": "lifestyle similarity partners leisure activities relationship satisfaction",
+      "limit": 2
+    },
+    {
+      "topic": "intereses_amistad",
+      "query": "vocational interests RIASEC similarity friends",
+      "limit": 2
+    },
+    {
+      "topic": "validacion_espanol",
+      "query": "Spanish validation short form attachment Experiences in Close Relationships",
+      "limit": 2
+    },
+    {
+      "topic": "validacion_espanol",
+      "query": "Spanish adaptation Portrait Values Questionnaire validation",
+      "limit": 2
+    },
+    {
+      "topic": "hexaco_pareja",
+      "query": "HEXACO personality similarity couples satisfaction honesty-humility partner",
+      "limit": 2
+    },
+    {
+      "topic": "actitudes_politicas",
+      "query": "political attitudes similarity spouses assortative mating",
+      "limit": 2
+    }
   ],
   "openAccessSearches": [
-    { "topic": "similitud_bigfive", "query": "personality similarity couples relationship satisfaction dyadic", "limit": 4 },
-    { "topic": "amistad", "query": "friendship personality similarity friends dyadic", "limit": 2 }
+    {
+      "topic": "similitud_bigfive",
+      "query": "personality similarity couples relationship satisfaction dyadic",
+      "limit": 4
+    },
+    {
+      "topic": "amistad",
+      "query": "friendship personality similarity friends dyadic",
+      "limit": 2
+    }
   ],
   "preprintSearches": [
-    { "topic": "similitud_bigfive", "titleWord": "assortative", "limit": 2 },
-    { "topic": "amistad", "titleWord": "friendship", "limit": 2 }
+    {
+      "topic": "similitud_bigfive",
+      "titleWord": "assortative",
+      "limit": 2
+    },
+    {
+      "topic": "amistad",
+      "titleWord": "friendship",
+      "limit": 2
+    }
   ],
   "arxivSearches": [
-    { "topic": "emparejamiento", "query": "abs:\"stable matching\" AND abs:\"dating\"", "limit": 2 }
+    {
+      "topic": "emparejamiento",
+      "query": "abs:\"stable matching\" AND abs:\"dating\"",
+      "limit": 2
+    }
   ],
   "licensePages": [
-    { "topic": "licencia_hexaco", "url": "https://hexaco.org/hexaco-inventory" },
-    { "topic": "licencia_hexaco", "url": "https://hexaco.org/hexaco-online" },
-    { "topic": "licencia_ipip", "url": "https://ipip.ori.org/newPermission.htm" },
-    { "topic": "licencia_ipip_hexaco", "url": "https://ipip.ori.org/newHEXACO_PI_key.htm" },
-    { "topic": "licencia_ecr", "url": "https://labs.psychology.illinois.edu/~rcfraley/measures/measures.html" },
-    { "topic": "licencia_ecr", "url": "https://labs.psychology.illinois.edu/~rcfraley/measures/relstructures.htm" },
-    { "topic": "licencia_csi", "url": "https://www.courses.rochester.edu/surveys/funk/" }
+    {
+      "topic": "licencia_hexaco",
+      "url": "https://hexaco.org/hexaco-inventory"
+    },
+    {
+      "topic": "licencia_hexaco",
+      "url": "https://hexaco.org/hexaco-online"
+    },
+    {
+      "topic": "licencia_ipip",
+      "url": "https://ipip.ori.org/newPermission.htm"
+    },
+    {
+      "topic": "licencia_ipip_hexaco",
+      "url": "https://ipip.ori.org/newHEXACO_PI_key.htm"
+    },
+    {
+      "topic": "licencia_ecr",
+      "url": "https://labs.psychology.illinois.edu/~rcfraley/measures/measures.html"
+    },
+    {
+      "topic": "licencia_ecr",
+      "url": "https://labs.psychology.illinois.edu/~rcfraley/measures/relstructures.htm"
+    },
+    {
+      "topic": "licencia_csi",
+      "url": "https://www.courses.rochester.edu/surveys/funk/"
+    },
+    {
+      "topic": "licencia_ipip",
+      "url": "https://ipip.ori.org/newORAISKey.htm"
+    },
+    {
+      "topic": "licencia_ipip",
+      "url": "https://ipip.ori.org/newMultipleconstructs.htm"
+    },
+    {
+      "topic": "licencia_riasec",
+      "url": "https://www.onetcenter.org/license_toolsdev.html"
+    },
+    {
+      "topic": "licencia_riasec",
+      "url": "https://www.onetcenter.org/IP.html"
+    },
+    {
+      "topic": "licencia_soi_r",
+      "url": "https://www.larspenke.eu/en/research/soi-r.html"
+    },
+    {
+      "topic": "licencia_iri",
+      "url": "https://www.eckerd.edu/psychology/iri/"
+    },
+    {
+      "topic": "licencia_ecr",
+      "url": "https://labs.psychology.illinois.edu/~rcfraley/measures/brennan.html"
+    }
   ],
   "licenseSearches": [
-    { "topic": "licencia_pvq", "query": "Portrait Values Questionnaire PVQ-RR permission to use research", "includeDomains": [] },
-    { "topic": "licencia_ecr_s", "query": "ECR-S short form Wei Russell permission scale download", "includeDomains": [] }
+    {
+      "topic": "licencia_pvq",
+      "query": "Portrait Values Questionnaire PVQ-RR permission to use research",
+      "includeDomains": []
+    },
+    {
+      "topic": "licencia_ecr_s",
+      "query": "ECR-S short form Wei Russell permission scale download",
+      "includeDomains": []
+    },
+    {
+      "topic": "licencia_hsq",
+      "query": "Humor Styles Questionnaire Martin permission to use free research",
+      "includeDomains": []
+    },
+    {
+      "topic": "licencia_ncs",
+      "query": "escala necesidad de cognición versión breve española validación",
+      "includeDomains": []
+    },
+    {
+      "topic": "licencia_asi",
+      "query": "Inventario de Sexismo Ambivalente versión española Expósito Moya Glick",
+      "includeDomains": []
+    },
+    {
+      "topic": "licencia_tmms",
+      "query": "TMMS-24 Fernández-Berrocal escala uso libre investigación",
+      "includeDomains": []
+    }
   ],
   "licenseKeywords": "permission|permiso|licen|copyright|commercial|comercial|free of charge|public domain|dominio público|without charge|research purposes|investigación|may be used|reproduce|cite"
 }

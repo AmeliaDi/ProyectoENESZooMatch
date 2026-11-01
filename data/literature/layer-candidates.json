@@ -1,0 +1,203 @@
+{
+  "_comentario": "Fichas de capas candidatas (Fase 2 del afinado). 'verificacion' describe qué se comprobó: crossref_abstract (metadatos + abstract leído), crossref_metadatos (solo existencia), pendiente_humana (extracción del crawler sin revisar). Solo lo verificado cuenta para el criterio 1. Ver docs/CAPAS_EVIDENCIA.md.",
+  "version": "2026-11-01",
+  "fixedCore": [
+    { "id": "filtros", "capa": 0, "itemsNucleo": 3, "likert": false, "motivo": "Decisión de producto: elegibilidad mutua (orientación, identidad de género declarada, tipo de relación)." },
+    { "id": "hexaco", "capa": 1, "itemsNucleo": 24, "likert": true, "motivo": "Decisión de producto (núcleo). 4 ítems por factor, formato Mini-IPIP6; ítems IPIP de dominio público." },
+    { "id": "mbti", "capa": 4, "itemsNucleo": 4, "likert": true, "motivo": "Identidad visual (animal). 1 ítem original por eje; el resto se apoya en la covarianza con HEXACO (EV-30)." },
+    { "id": "eneagrama", "capa": 4, "itemsNucleo": 9, "likert": true, "motivo": "Identidad visual (color y aura). 1 ítem motivacional original por tipo; softmax con entropía." }
+  ],
+  "candidates": [
+    {
+      "id": "valores",
+      "nombre": "Valores personales y metas de vida (Schwartz)",
+      "relaciones": ["pareja", "amistad"],
+      "evidencia": [
+        { "ref": "Arránz Becker 2013, Pers. Relatsh. 20:443–461", "doi": "10.1111/j.1475-6811.2012.01417.x", "verificacion": "crossref_abstract", "efecto": "similitud", "fuerza": "moderada", "hallazgo": "n = 3 674 parejas (pairfam): la similitud en dimensiones específicas y el perfil ajustado por estereotipo tuvieron efectos 'significant yet small positive' en la satisfacción; los niveles individuales predicen mejor." },
+        { "ref": "Leikas et al. 2018, Pers. Individ. Dif. 123:191–198 (EV-24)", "doi": "10.1016/j.paid.2017.11.024", "verificacion": "crossref_abstract", "efecto": "similitud", "fuerza": "moderada", "hallazgo": "Con superficie de respuesta: la similitud en valores de autodirección se asocia a la satisfacción; la similitud en rasgos no." },
+        { "ref": "Gaunt 2006, J. Pers. 74:1401–1420 (EV-23)", "doi": "10.1111/j.1467-6494.2006.00414.x", "verificacion": "crossref_abstract", "efecto": "similitud", "fuerza": "moderada", "hallazgo": "Mayor similitud, mayor satisfacción; más en personalidad y valores que en actitudes." },
+        { "ref": "van der Wal et al. 2023, PSPB 50:1066–1079", "doi": "10.1177/01461672231156975", "verificacion": "crossref_abstract", "efecto": "nivel", "fuerza": "moderada", "hallazgo": "La autotrascendencia predice la calidad relacional propia (actor), no la de la pareja." }
+      ],
+      "efectoParaPuntaje": "similitud",
+      "redundancia": { "estado": "no_redundante_teorico", "nota": "Valores y rasgos son constructos distintos; la correlación latente con HEXACO (sobre todo H y O) se medirá en la Fase 3." },
+      "escalaEspanol": { "nombre": "PVQ-21 / PVQ-40", "ref": "Beramendi & Zubieta 2017, Psychologia 60:68–84 (Argentina)", "doi": "10.2117/psysoc.2017.68", "estado": "crossref_metadatos" },
+      "licencia": { "estado": "no_verificada", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9131418/", "cita": "La licencia CC BY-NC encontrada es la del artículo, no la del instrumento.", "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": true, "itemsNucleo": 8, "itemsOpcional": 4, "funcion": "similitud con penalización asimétrica en valores centrales" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "admitida",
+      "motivo": "Mejor evidencia de similitud disponible; ítems originales sobre los 4 valores de orden superior y metas de vida."
+    },
+    {
+      "id": "actitudes_sociales_genero",
+      "nombre": "Actitudes sociales y perspectiva de género",
+      "relaciones": ["pareja", "amistad"],
+      "evidencia": [
+        { "ref": "Leikas et al. 2018 (EV-24)", "doi": "10.1016/j.paid.2017.11.024", "verificacion": "crossref_abstract", "efecto": "similitud", "fuerza": "moderada", "hallazgo": "La similitud en actitudes políticas se asocia a la satisfacción." },
+        { "ref": "Luo & Klohnen 2005, JPSP 88:304–326 (EV-22)", "doi": "10.1037/0022-3514.88.2.304", "verificacion": "crossref_abstract", "efecto": "similitud", "fuerza": "moderada", "hallazgo": "Las parejas se parecen mucho en actitudes (emparejamiento selectivo)." },
+        { "ref": "Alford et al. 2011, J. Politics 73:362–379", "doi": "10.1017/s0022381611000016", "verificacion": "crossref_metadatos", "efecto": "desconocido", "fuerza": "sin_datos", "hallazgo": "Emparejamiento selectivo político; abstract no disponible." },
+        { "ref": "Miculka & Imhoff 2026, Int. Rev. Soc. Psychol. 39", "doi": "10.5334/irsp.1102", "verificacion": "pendiente_humana", "efecto": "similitud", "fuerza": "sin_datos", "hallazgo": "249 díadas, preregistrado (extraído por el crawler, sin revisar)." },
+        { "ref": "Park, Jun & Joo 2020, J. Korean Home Manag. Assoc. 38:127–141", "doi": "10.7466/jkhma.2020.38.1.127", "verificacion": "crossref_metadatos", "efecto": "desconocido", "fuerza": "sin_datos", "hallazgo": "Similitud en actitudes de rol de género y satisfacción; abstract no disponible." }
+      ],
+      "efectoParaPuntaje": "similitud",
+      "redundancia": { "estado": "no_redundante_teorico", "nota": "Correlación esperada con H y O; se mide en la Fase 3." },
+      "escalaEspanol": { "nombre": "ISA (Inventario de Sexismo Ambivalente), versión española", "ref": "Expósito, Moya & Glick 1998, Rev. Psicol. Soc. 13:159–169", "doi": "10.1174/021347498760350641", "estado": "crossref_abstract" },
+      "licencia": { "estado": "no_verificada", "url": "https://www.researchgate.net/publication/233501729_Sexismo_ambivalente_medicion_y_correlatos", "cita": "Content may be subject to copyright.", "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": true, "itemsNucleo": 6, "itemsOpcional": 2, "funcion": "similitud; dealbreaker asimétrico en igualdad de trato" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "admitida",
+      "motivo": "Similitud en actitudes con respaldo; ítems originales de actitudes (no de identidad ni partidistas)."
+    },
+    {
+      "id": "intereses_estilo_vida",
+      "nombre": "Intereses, ocio y estilo de vida universitario",
+      "relaciones": ["amistad", "pareja"],
+      "evidencia": [
+        { "ref": "Bahns et al. 2017, JPSP 112:329–355 (EV-18)", "doi": "10.1037/pspp0000088", "verificacion": "crossref_abstract", "efecto": "similitud", "fuerza": "moderada", "hallazgo": "Las díadas que se forman libremente son similares en la mayoría de las variables." },
+        { "ref": "Selfhout et al. 2010, J. Pers. 78:509–538 (EV-17)", "doi": "10.1111/j.1467-6494.2010.00625.x", "verificacion": "crossref_abstract", "efecto": "similitud", "fuerza": "moderada", "hallazgo": "En la universidad la amistad se forma por similitud (A, E, O)." },
+        { "ref": "Kalmijn & Bernasco 2001, J. Marriage Fam. 63:639–654", "doi": "10.1111/j.1741-3737.2001.00639.x", "verificacion": "crossref_abstract", "efecto": "nivel", "fuerza": "debil", "hallazgo": "Descriptivo (1 523 parejas): los estilos de vida separados dependen sobre todo del ciclo vital; homogamia con papel 'modest'." }
+      ],
+      "efectoParaPuntaje": "similitud",
+      "redundancia": { "estado": "no_redundante_teorico", "nota": "Los intereses se relacionan con O y X; se mide en la Fase 3." },
+      "escalaEspanol": { "nombre": "O*NET Interest Profiler (RIASEC), formato corto", "ref": "onetcenter.org/IP.html", "doi": null, "estado": "pagina_oficial" },
+      "licencia": { "estado": "cc", "url": "https://www.onetcenter.org/IP.html", "cita": "The O*NET Interest Profiler may be redistributed or used to develop other assessments under a choice of licenses.", "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": true, "itemsNucleo": 6, "itemsOpcional": 6, "funcion": "similitud (homofilia), más peso en amistad" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "admitida",
+      "motivo": "Evidencia de homofilia en la formación de amistades; prior débil para pareja. Ítems originales inspirados en RIASEC y vida universitaria."
+    },
+    {
+      "id": "apego",
+      "nombre": "Apego adulto (ansiedad y evitación)",
+      "relaciones": ["pareja"],
+      "evidencia": [
+        { "ref": "Weidmann, Yang, Purol & Chopik 2024, JSPR 42:591–612", "doi": "10.1177/02654075241298710", "verificacion": "crossref_abstract", "efecto": "nulo", "fuerza": "fuerte", "hallazgo": "1 602 parejas, superficie de respuesta: 'no evidence for any similarity effects'; solo efectos actor y pareja." },
+        { "ref": "Molero et al. 2017, Eur. J. Soc. Psychol. 47:337–347", "doi": "10.1002/ejsp.2276", "verificacion": "crossref_abstract", "efecto": "nivel", "fuerza": "moderada", "hallazgo": "174 parejas españolas: efectos actor más frecuentes; la evitación es más dañina que la ansiedad." },
+        { "ref": "Candel & Turliuc 2019 (EV-54)", "doi": "10.1016/j.paid.2019.04.037", "verificacion": "crossref_abstract", "efecto": "nivel", "fuerza": "fuerte", "hallazgo": "Metaanálisis: la inseguridad se asocia a menor satisfacción; actor > pareja." }
+      ],
+      "efectoParaPuntaje": "solo_nivel",
+      "redundancia": { "estado": "no_redundante_teorico", "nota": "La ansiedad de apego se solapa con Emocionalidad." },
+      "escalaEspanol": { "nombre": "ECR-12 en español (Chile)", "ref": "Guzmán-González et al. 2020, Psicol. Reflex. Crit. 33", "doi": "10.1186/s41155-020-00145-w", "estado": "crossref_abstract" },
+      "licencia": { "estado": "restringida", "url": "https://labs.psychology.illinois.edu/~rcfraley/measures/measures.html", "cita": "Because the chapters are copyrighted by Guilford Press, they should not be reproduced without permission.", "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "descartada",
+      "motivo": "La similitud no tiene efecto (Weidmann 2024); puntuar niveles clasificaría a personas como 'menos emparejables'. Además se elimina el apego inferido actual."
+    },
+    {
+      "id": "conflicto_comunicacion",
+      "nombre": "Estilos de conflicto y comunicación",
+      "relaciones": ["pareja"],
+      "evidencia": [
+        { "ref": "Overall & McNulty 2017 (EV-58)", "doi": "10.1016/j.copsyc.2016.03.002", "verificacion": "crossref_abstract", "efecto": "nivel", "fuerza": "moderada", "hallazgo": "Que la comunicación directa ayude depende del contexto; no hay un estilo bueno universal." },
+        { "ref": "Lavner, Karney & Bradbury 2016, J. Marriage Fam. 78:680–694", "doi": "10.1111/jomf.12301", "verificacion": "crossref_abstract", "efecto": "nivel", "fuerza": "moderada", "hallazgo": "Comunicación y satisfacción se relacionan en ambas direcciones, pero 'neither pathway was particularly robust'." },
+        { "ref": "Joel et al. 2020 (EV-03)", "doi": "10.1073/pnas.1917036117", "verificacion": "crossref_abstract", "efecto": "nivel", "fuerza": "fuerte", "hallazgo": "El conflicto percibido es una variable de la relación: no existe antes de conocerse." }
+      ],
+      "efectoParaPuntaje": "sin_evidencia",
+      "redundancia": { "estado": "no_redundante_teorico", "nota": "Se solapa con Amabilidad (paciencia, flexibilidad) de HEXACO." },
+      "escalaEspanol": { "nombre": "—", "ref": "No se buscó escala: no hay evidencia de similitud que la justifique.", "doi": null, "estado": "no_aplica" },
+      "licencia": { "estado": "no_verificada", "url": null, "cita": null, "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": true, "itemsNucleo": 0, "itemsOpcional": 4, "funcion": "narrativa (peso 0): 'lo que podrían platicar'" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "opcional_narrativa",
+      "motivo": "Sin evidencia de similitud ni de complementariedad medida antes de conocerse. Módulo opcional solo para narrativa."
+    },
+    {
+      "id": "sociosexualidad",
+      "nombre": "Orientación sociosexual (SOI-R)",
+      "relaciones": ["pareja"],
+      "evidencia": [
+        { "ref": "Penke & Asendorpf 2008, JPSP 95:1113–1135", "doi": "10.1037/0022-3514.95.5.1113", "verificacion": "crossref_metadatos", "efecto": "desconocido", "fuerza": "sin_datos", "hallazgo": "Abstract no disponible en Crossref." },
+        { "ref": "Tempelhof & Allen 2008, Pers. Individ. Dif. 45:41–48", "doi": "10.1016/j.paid.2008.02.016", "verificacion": "crossref_metadatos", "efecto": "desconocido", "fuerza": "sin_datos", "hallazgo": "Similitudes en parejas; abstract no disponible." }
+      ],
+      "efectoParaPuntaje": "sin_evidencia",
+      "redundancia": { "estado": "no_redundante_teorico", "nota": "Se solapa con el filtro duro 'tipo de relación'." },
+      "escalaEspanol": { "nombre": "SOI-R (25 idiomas)", "ref": "larspenke.eu/en/translated-soi-r.html", "doi": null, "estado": "pagina_oficial" },
+      "licencia": { "estado": "libre_investigacion", "url": "https://www.larspenke.eu/en/research/soi-r.html", "cita": "Please feel free to use them in your research!", "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "sensible": { "inferencia": false, "conductaSexual": true },
+      "decisionDeclarada": "descartada",
+      "motivo": "Pregunta por conducta sexual (dato sensible) y lo relevante ya lo cubre el filtro declarado 'tipo de relación'."
+    },
+    {
+      "id": "empatia",
+      "nombre": "Empatía (IRI)",
+      "relaciones": ["pareja", "amistad"],
+      "evidencia": [
+        { "ref": "Cramer & Jowett 2010, JSPR 27:327–349", "doi": "10.1177/0265407509348384", "verificacion": "crossref_abstract", "efecto": "nivel", "fuerza": "moderada", "hallazgo": "149 parejas: la empatía precisa no se relacionó con la satisfacción al controlar similitud; la percibida sí (actor)." },
+        { "ref": "Levesque et al. 2014, Eur. J. Psychol. 10:118–134", "doi": "10.5964/ejop.v10i1.697", "verificacion": "crossref_metadatos", "efecto": "nivel", "fuerza": "sin_datos", "hallazgo": "187 parejas (extracción pendiente_humana): la preocupación empática mejora la satisfacción propia." }
+      ],
+      "efectoParaPuntaje": "solo_nivel",
+      "redundancia": { "estado": "redundante", "nota": "Preocupación empática ≈ Emocionalidad (sentimentalidad) y Amabilidad de HEXACO." },
+      "escalaEspanol": { "nombre": "IRI", "ref": "Davis 1983, JPSP 44:113–126", "doi": "10.1037/0022-3514.44.1.113", "estado": "crossref_metadatos" },
+      "licencia": { "estado": "no_verificada", "url": "https://www.eckerd.edu/psychology/iri/", "cita": "Permissions and Advice on Using the IRI", "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "descartada",
+      "motivo": "Solo efectos de nivel; redundante con HEXACO; la licencia remite a un documento no consultado."
+    },
+    {
+      "id": "inteligencia_emocional",
+      "nombre": "Inteligencia emocional percibida (TMMS-24)",
+      "relaciones": ["pareja"],
+      "evidencia": [
+        { "ref": "Relationship Love Styles… 2025, SAGE Open", "doi": "10.1177/21582440251358988", "verificacion": "pendiente_humana", "efecto": "nivel", "fuerza": "sin_datos", "hallazgo": "823 personas en España, transversal y no diádico (crawler)." }
+      ],
+      "efectoParaPuntaje": "sin_evidencia",
+      "redundancia": { "estado": "redundante", "nota": "Se solapa con Emocionalidad y Extraversión." },
+      "escalaEspanol": { "nombre": "TMMS-24", "ref": "Fernández-Berrocal et al. 2004 (no resuelto en OpenAlex)", "doi": null, "estado": "no_verificada" },
+      "licencia": { "estado": "no_verificada", "url": null, "cita": "Solo se encontró un PDF no oficial; no se usa como fuente.", "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "descartada",
+      "motivo": "Sin evidencia diádica verificada y redundante con HEXACO."
+    },
+    {
+      "id": "necesidad_cognicion",
+      "nombre": "Necesidad de cognición",
+      "relaciones": ["pareja", "amistad"],
+      "evidencia": [
+        { "ref": "Cacioppo, Petty & Kao 1984, J. Pers. Assess. 48:306–307", "doi": "10.1207/s15327752jpa4803_13", "verificacion": "crossref_metadatos", "efecto": "desconocido", "fuerza": "sin_datos", "hallazgo": "Escala corta; no es evidencia relacional." }
+      ],
+      "efectoParaPuntaje": "sin_evidencia",
+      "redundancia": { "estado": "redundante", "nota": "≈ Apertura (inquisitividad) de HEXACO." },
+      "escalaEspanol": { "nombre": "Validación española en Psicothema (2001)", "ref": "psicothema.com/pdf/489.pdf", "doi": null, "estado": "pagina_oficial" },
+      "licencia": { "estado": "restringida", "url": "https://www.psicothema.com/pdf/489.pdf", "cita": "Copyright © 2001 Psicothema", "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "descartada",
+      "motivo": "La búsqueda no encontró evidencia relacional y el constructo ya está en Apertura."
+    },
+    {
+      "id": "humor",
+      "nombre": "Estilos de humor (HSQ)",
+      "relaciones": ["pareja", "amistad"],
+      "evidencia": [
+        { "ref": "Cann, Davis & Zapata 2011, Humor 24:1–20", "doi": "10.1515/humr.2011.001", "verificacion": "crossref_abstract", "efecto": "nulo", "fuerza": "debil", "hallazgo": "82 parejas: 'little similarity within couples on humor styles'; predice el humor percibido de la pareja, no el autoinforme." }
+      ],
+      "efectoParaPuntaje": "sin_evidencia",
+      "redundancia": { "estado": "no_redundante_teorico", "nota": "Humor afiliativo ≈ Extraversión." },
+      "escalaEspanol": { "nombre": "HSQ", "ref": "Martin et al. 2003, J. Res. Pers. 37:48–75", "doi": "10.1016/s0092-6566(02)00534-2", "estado": "crossref_metadatos" },
+      "licencia": { "estado": "no_verificada", "url": "https://psypack.com/assessments/humor-styles-questionnaire-hsq/", "cita": null, "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": true, "itemsNucleo": 0, "itemsOpcional": 1, "funcion": "narrativa (peso 0) dentro de intereses" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "opcional_narrativa",
+      "motivo": "Lo que predice es el humor percibido dentro de la relación, no medible antes; queda un ítem narrativo opcional."
+    },
+    {
+      "id": "lenguajes_amor",
+      "nombre": "Lenguajes del amor",
+      "relaciones": ["pareja"],
+      "evidencia": [
+        { "ref": "Impett, Park & Muise 2024 (EV-60)", "doi": "10.1177/09637214231217663", "verificacion": "crossref_abstract", "efecto": "nulo", "fuerza": "moderada", "hallazgo": "'not provide strong empirical support' en ninguno de sus 3 supuestos." }
+      ],
+      "efectoParaPuntaje": "sin_evidencia",
+      "redundancia": { "estado": "desconocido", "nota": "—" },
+      "escalaEspanol": { "nombre": "—", "ref": "—", "doi": null, "estado": "no_aplica" },
+      "licencia": { "estado": "no_verificada", "url": null, "cita": null, "consultado": "2026-11-01" },
+      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "descartada",
+      "motivo": "Sin apoyo empírico; hoy pesa 25 % en romance y se elimina del puntaje."
+    }
+  ]
+}
