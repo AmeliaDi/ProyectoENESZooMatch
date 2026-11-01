@@ -186,6 +186,30 @@ estrellas el cuello es el pintado SVG, no la física (ver FISICA §6).
 **Dependencias.** `framer-motion` se retiró: su único uso era `useReducedMotion` en la
 galería de sprites, que ahora usa el hook propio `useReducedMotionPreference`.
 
+**Umbral aceptado (2026-11-01).** Con más de 120 nodos basta con superar 30 fps en
+gama media; los valores de `data/physics-config.json` quedan congelados.
+
+## ADR-014 · HEXACO como núcleo y presupuesto del afinado
+
+**Contexto.** El prompt de afinado cambia el núcleo de Big Five a HEXACO y pide
+crawler de literatura con Firecrawl. Detalle en `docs/ESTADO_ACTUAL.md` §5.
+
+**Decisión.**
+- Proyecto estudiantil y no comercial: se puede usar el HEXACO-PI-R bajo sus
+  términos de investigación no comercial (se registran URL y fecha en la Fase 3).
+  IPIP-HEXACO queda como respaldo de dominio público.
+- Cuestionario de **unos 60 ítems** en total, repartidos entre HEXACO, filtros,
+  identidad, socio-cultural, género, MBTI, Eneagrama y las capas aprobadas.
+- Crawler en Node/TS con `node:sqlite` (sin dependencias nuevas); pipeline
+  estadístico offline en Python con versiones fijadas.
+- Firecrawl: tope global de 900 créditos (de ~1000) y 300 por corrida;
+  `--dry-run` por defecto.
+- La investigación de la usuaria vive en `docs/investigacion/` como **beta no
+  verificada**; no alimenta parámetros hasta verificarse.
+
+**Consecuencias.** Ninguna cifra de `docs/investigacion/` entra en `data/` sin pasar
+por la cola de revisión humana.
+
 ---
 
 ## Pendientes conocidos (no decididos aún)

@@ -16,7 +16,7 @@
 | Migración | Una sola: `supabase/migrations/00000000000000_base.sql` |
 | `FIRECRAWL_API_KEY` | Solo está en `.env.local`, que git ignora (`.gitignore:9`). No aparece en ningún archivo rastreado ni en `moredata md/` |
 | Escaneo de secretos (`secrets:check` o hook) | **No existe** (se añade en la Fase 1) |
-| Python | **No está instalado**: solo existe el alias de Microsoft Store. Los scripts `.py` actuales no se pueden ejecutar |
+| Python | Al auditar no estaba instalado; ahora hay **3.15.2** (ver §5) |
 
 ### Números mágicos detectados (deuda técnica)
 
@@ -68,7 +68,7 @@ Están en `data/matching-config.json`.
 
 Todos estos valores son `supuesto_diseno`.
 
-## 4. Qué aporta la investigación de la usuaria (`moredata md/`)
+## 4. Qué aporta la investigación de la usuaria (`docs/investigacion/`)
 
 | Documento | Uso | Fiabilidad |
 |---|---|---|
@@ -86,7 +86,18 @@ Quedan como hipótesis hasta verificarlas en la Fase 1.
 3. **La evidencia de HEXACO en parejas es escasa.** Hacerlo núcleo es una decisión de producto, apoyada en H-H y en el emparejamiento selectivo. No es un hallazgo predictivo, y así debe documentarse.
 4. Las cifras contradictorias (Joel 2020: 45/18 % frente a 37/<5 %; H-H r≈.44) **no se usan** hasta verificarlas contra la fuente original.
 
-## 5. Decisiones abiertas (necesito tu respuesta)
+## 5. Decisiones tomadas (2026-11-01)
+
+| # | Decisión |
+|---|---|
+| 1 | El proyecto es estudiantil y **no comercial**, así que el HEXACO-PI-R se puede usar para investigación no comercial. Aun así, la Fase 3 verifica y registra los términos (URL y fecha), y los ítems IPIP-HEXACO quedan como respaldo |
+| 2 | Unos **60 ítems** en total: HEXACO, identidad, socio-cultural, género, algo de MBTI, algo de Eneagrama y las capas que aprueba la Fase 2 |
+| 3 | Python **3.15.2** está instalado. El crawler se hace en Node/TS (`node:sqlite`) y el pipeline estadístico en Python |
+| 4 | Firecrawl tiene unos 1000 créditos. El tope global en config es de 900 (deja margen) y el tope por corrida es de 300 |
+| 5 | La investigación se versionó en `docs/investigacion/` como **beta, no verificada** |
+| 6 | Física: con más de 120 nodos basta con superar 30 fps. Se aceptan los valores de ADR-013 |
+
+### Decisiones abiertas originales (resueltas arriba)
 
 1. **Licencia de HEXACO.** El HEXACO-PI-R es gratis para investigación no comercial, y otros usos requieren permiso. Hay que confirmarlo en hexaco.org (Fase 3). Opciones:
    - (a) pedir permiso a Lee y Ashton;
