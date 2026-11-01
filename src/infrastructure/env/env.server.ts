@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { readEnv } from "@/infrastructure/env/env-aliases";
+
 const serverEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(32),
@@ -12,9 +14,9 @@ type EnvSource = Record<string, string | undefined>;
 
 export function getServerEnv(source: EnvSource = process.env): ServerEnv | null {
   const result = serverEnvSchema.safeParse({
-    NEXT_PUBLIC_SUPABASE_URL: source.NEXT_PUBLIC_SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY,
-    MATRICULA_HMAC_SECRET: source.MATRICULA_HMAC_SECRET,
+    NEXT_PUBLIC_SUPABASE_URL: readEnv(source, "NEXT_PUBLIC_SUPABASE_URL"),
+    SUPABASE_SERVICE_ROLE_KEY: readEnv(source, "SUPABASE_SERVICE_ROLE_KEY"),
+    MATRICULA_HMAC_SECRET: readEnv(source, "MATRICULA_HMAC_SECRET"),
   });
 
   return result.success ? result.data : null;

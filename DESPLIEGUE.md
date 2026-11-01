@@ -124,8 +124,16 @@ de `next dev`) sin datos personales:
 | `enter.failed` `step: insert_profile` | Esquema desactualizado | Reaplicar la migración base |
 | `enter.failed` `step: generate_link` / `verify_otp` | Magic link deshabilitado o clave publishable de otro proyecto | Proveedor Email y que URL y claves sean del mismo proyecto |
 
-También se acepta `NEXT_PUBLIC_SUPABASE_ANON_KEY` (el nombre que crea la integración
-Supabase ↔ Vercel) en lugar de `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+Nombres aceptados (el primero es el canónico; ver `src/infrastructure/env/env-aliases.ts`):
+
+| Canónico | Alias aceptados |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `SUPABASE_URL` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_ANON_KEY` |
+| `SUPABASE_SERVICE_ROLE_KEY` | `SUPABASE_SECRET_KEY` (`sb_secret_...`) |
+
+Así funcionan tanto los nombres del panel de Supabase como los de la integración
+Supabase ↔ Vercel.
 
 ## Persistencia
 
