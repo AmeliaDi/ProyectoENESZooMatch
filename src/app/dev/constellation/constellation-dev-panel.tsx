@@ -92,7 +92,7 @@ function Segmented<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className="inline-flex items-center gap-1 border border-ink/20 bg-paper p-1"
+      className="inline-flex items-center gap-1 border border-atlas-grid bg-atlas-sky p-1"
     >
       {options.map((option) => (
         <button
@@ -100,8 +100,8 @@ function Segmented<T extends string>({
           type="button"
           aria-pressed={value === option.value}
           onClick={() => onChange(option.value)}
-          className={`px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 ${
-            value === option.value ? "bg-ink text-paper" : "text-ink/55 hover:text-ink"
+          className={`px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-atlas-focus focus-visible:ring-offset-2 ${
+            value === option.value ? "bg-atlas-gold text-atlas-on-gold" : "text-atlas-muted hover:text-atlas-fg"
           }`}
         >
           {option.label}
@@ -130,9 +130,9 @@ function Slider({
 }) {
   return (
     <label className="block">
-      <span className="flex items-baseline justify-between font-mono text-[0.62rem] uppercase tracking-[0.16em] text-ink/50">
+      <span className="flex items-baseline justify-between font-pixel text-[0.62rem] uppercase tracking-[0.16em] text-atlas-muted">
         {label}
-        <strong className="text-ink">{display}</strong>
+        <strong className="text-atlas-fg">{display}</strong>
       </span>
       <input
         type="range"
@@ -141,7 +141,7 @@ function Slider({
         step={step}
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="mt-2 w-full accent-clay"
+        className="mt-2 w-full accent-atlas-gold"
       />
     </label>
   );
@@ -179,20 +179,20 @@ export function ConstellationDevPanel() {
   ).length;
 
   return (
-    <main className="min-h-screen bg-paper text-ink">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/15 px-5 py-4 sm:px-8">
+    <main className="zm-root min-h-screen bg-atlas-sky text-atlas-fg">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-atlas-grid px-5 py-4 sm:px-8">
         <div>
-          <p className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-ink/45">
+          <p className="font-pixel text-[0.62rem] uppercase tracking-[0.2em] text-atlas-muted">
             Herramienta de desarrollo
           </p>
-          <h1 className="font-display text-2xl font-semibold tracking-[-0.03em]">
+          <h1 className="font-pixel text-2xl font-semibold tracking-[-0.03em]">
             Constelación · datos sintéticos
           </h1>
         </div>
-        <nav className="flex flex-wrap items-center gap-2 font-mono text-[0.62rem] uppercase tracking-[0.14em]">
+        <nav className="flex flex-wrap items-center gap-2 font-pixel text-[0.62rem] uppercase tracking-[0.14em]">
           <Link
             href="/"
-            className="border border-ink/20 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2"
+            className="border border-atlas-grid px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-atlas-focus focus-visible:ring-offset-2"
           >
             Inicio
           </Link>
@@ -203,7 +203,7 @@ export function ConstellationDevPanel() {
         {/* ── Controles ── */}
         <section
           aria-label="Controles del cielo sintético"
-          className="flex flex-col gap-5 border border-ink/15 bg-ink/[0.02] p-5"
+          className="flex flex-col gap-5 border border-atlas-grid bg-atlas-raised p-5"
         >
           <Slider
             label="Nodos"
@@ -234,7 +234,7 @@ export function ConstellationDevPanel() {
           />
 
           <div className="flex flex-col gap-2">
-            <span className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-ink/50">
+            <span className="font-pixel text-[0.62rem] uppercase tracking-[0.16em] text-atlas-muted">
               Pista inicial
             </span>
             <Segmented<MatchTrack>
@@ -252,39 +252,39 @@ export function ConstellationDevPanel() {
             <button
               type="button"
               onClick={reroll}
-              className="bg-ink px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] text-paper outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2"
+              className="bg-atlas-gold px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] text-atlas-on-gold outline-none focus-visible:ring-2 focus-visible:ring-atlas-focus focus-visible:ring-offset-2"
             >
               Re-sortear afinidades
             </button>
             <button
               type="button"
               onClick={clearMatches}
-              className="border border-ink/25 px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2"
+              className="border border-atlas-grid px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] outline-none focus-visible:ring-2 focus-visible:ring-atlas-focus focus-visible:ring-offset-2"
             >
               0 coincidencias
             </button>
           </div>
 
-          <dl className="grid grid-cols-2 gap-2 border-t border-ink/15 pt-4 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-ink/55">
+          <dl className="grid grid-cols-2 gap-2 border-t border-atlas-grid pt-4 font-pixel text-[0.62rem] uppercase tracking-[0.12em] text-atlas-muted">
             <div>
               <dt>FPS</dt>
-              <dd className="text-lg text-ink">{fps}</dd>
+              <dd className="text-lg text-atlas-fg">{fps}</dd>
             </div>
             <div>
               <dt>Generadas</dt>
-              <dd className="text-lg text-ink">{matches.length}</dd>
+              <dd className="text-lg text-atlas-fg">{matches.length}</dd>
             </div>
             <div>
               <dt> romance &gt; {REAL_ROMANCE_THRESHOLD.toFixed(2)}</dt>
-              <dd className="text-lg text-ink">{visibleRomance}</dd>
+              <dd className="text-lg text-atlas-fg">{visibleRomance}</dd>
             </div>
             <div>
               <dt> amistad &gt; {REAL_AMISTAD_THRESHOLD.toFixed(2)}</dt>
-              <dd className="text-lg text-ink">{visibleAmistad}</dd>
+              <dd className="text-lg text-atlas-fg">{visibleAmistad}</dd>
             </div>
           </dl>
 
-          <p className="border-t border-ink/15 pt-4 text-xs leading-relaxed text-ink/55">
+          <p className="border-t border-atlas-grid pt-4 text-xs leading-relaxed text-atlas-muted">
             El umbral del motor está <strong>congelado</strong> en
             {" "}
             <code>matching-config.json</code> (romance
@@ -298,7 +298,7 @@ export function ConstellationDevPanel() {
         {/* ── Cielo ── */}
         <section aria-label="Constelación sintética" className="relative">
           <div
-            className="pointer-events-none absolute right-3 top-3 z-10 border border-ink/20 bg-paper/85 px-3 py-1 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-ink/70"
+            className="pointer-events-none absolute right-3 top-3 z-10 border border-atlas-grid bg-atlas-frame px-3 py-1 font-pixel text-[0.62rem] uppercase tracking-[0.14em] text-atlas-muted"
             aria-hidden="true"
           >
             {fps} fps

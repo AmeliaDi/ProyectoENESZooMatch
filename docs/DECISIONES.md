@@ -139,6 +139,34 @@ se usa ninguna librería de iconos ni de componentes.
 
 ---
 
+## ADR-012 · Pantallas de la Fase 3: claves de icono, privacidad real y k-anonimato
+
+**Iconos desde el dominio.** El dominio emitía emojis para badges y categorías.
+Ahora emite claves (`personalidad`, `valores_relacionales`…) y la UI las convierte
+en iconos pixel (`category-icons.ts`). El dominio sigue sin saber de React, y la
+UI no muestra ningún emoji.
+
+**Confianza y tensión verificables.** `generateMatchExplanation` añade
+`confidence` (alta o media según el margen sobre el umbral y el piso por
+categoría) y `tension` (el `argmin` del desglose). Los parámetros están en
+`matching-config.json → explainability`, marcados como **supuestos de diseño**. La
+etiqueta prohibida "Almas gemelas" pasa a "Afinidad muy alta".
+
+**Pausar y borrar con backend.** Se eligió implementarlos en lugar de dejarlos
+pendientes: el esquema ya tenía `ON DELETE CASCADE` y no hay datos que conservar.
+`paused_at` saca al perfil del pool y un trigger mueve la versión del pool, así
+que el recálculo concurrente sigue siendo seguro.
+
+**"Pocas personas" sin filtrar el tamaño.** `GET /api/result` devuelve un
+booleano `few_people`, nunca el conteo, para no ayudar a reidentificar a nadie en
+un pool pequeño. El admin aplica un piso de k-anonimato a cada celda agregada.
+
+**Menos dependencias.** `recharts` se desinstaló: el admin usa barras pixel
+propias. `framer-motion` queda solo en la galería de sprites (dev); la Fase 4
+decide si se retira.
+
+---
+
 ## Pendientes conocidos (no decididos aún)
 
 - **Alias:** hoy es determinista con sufijo de 4 caracteres en base 36. Una colisión

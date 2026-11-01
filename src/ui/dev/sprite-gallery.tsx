@@ -176,7 +176,7 @@ const SpriteView = memo(function SpriteView({
   if (!sprite) {
     return (
       <span
-        className="grid place-items-center font-mono text-[0.6rem] text-clay"
+        className="grid place-items-center font-pixel text-[0.6rem] text-atlas-gold"
         style={{ width: px, height: px }}
         aria-hidden="true"
       >
@@ -254,7 +254,7 @@ function SpriteCard({
 
   return (
     <figure
-      className="specimen-card admin-reveal group flex flex-col items-center gap-2 rounded-xl border border-ink/12 bg-paper/50 p-3 outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+      className="group flex flex-col items-center gap-2 border border-atlas-grid bg-atlas-frame p-3 outline-none focus-visible:ring-2 focus-visible:ring-atlas-focus focus-visible:ring-offset-2 focus-visible:ring-offset-atlas-sky"
       style={{ animationDelay: `${Math.min(index, 24) * 22}ms` }}
       tabIndex={0}
       aria-label={cardLabel}
@@ -264,7 +264,7 @@ function SpriteCard({
       onBlur={() => setHover(false)}
     >
       <div
-        className="grid place-items-center rounded-lg transition-colors duration-300"
+        className="grid place-items-center transition-colors duration-300"
         style={{ ...bgStyle, width: px + 20, height: px + 20 }}
       >
         <SpriteView
@@ -276,13 +276,13 @@ function SpriteCard({
         />
       </div>
       <figcaption className="flex w-full flex-col items-center gap-0.5 text-center">
-        <span className="font-display text-[0.82rem] font-semibold capitalize leading-tight text-ink">
+        <span className="font-pixel text-[0.82rem] font-semibold capitalize leading-tight text-atlas-fg">
           {entry.diminutivo}
         </span>
-        <span className="font-mono text-[0.58rem] uppercase tracking-[0.12em] text-leaf">
+        <span className="font-pixel text-[0.58rem] uppercase tracking-[0.12em] text-atlas-gold">
           {entry.etiqueta} · {FAMILY_LABELS[entry.family]}
         </span>
-        <span className="font-mono text-[0.56rem] uppercase tracking-[0.1em] text-clay/80">
+        <span className="font-pixel text-[0.56rem] uppercase tracking-[0.1em] text-atlas-gold/80">
           {entry.enneagram} · {entry.attachment}
         </span>
       </figcaption>
@@ -291,7 +291,7 @@ function SpriteCard({
         <div className="mt-1 grid w-full grid-cols-5 gap-1" aria-label={`Estados de ${entry.diminutivo}`}>
           {FRAME_PREVIEWS.map((preview) => (
             <div key={preview.key} className="flex flex-col items-center gap-0.5">
-              <div className="grid h-8 w-full place-items-center rounded border border-ink/10 bg-paper/70">
+              <div className="grid h-8 w-full place-items-center border border-atlas-grid bg-atlas-frame">
                 {preview.key === "romance_duo" ? (
                   <div className="flex items-center" aria-hidden="true">
                     <PixelAnimal animalId={entry.id} colorId={colorId} size={13} happy />
@@ -310,7 +310,7 @@ function SpriteCard({
                   />
                 )}
               </div>
-              <span className="font-mono text-[0.42rem] uppercase tracking-[0.06em] text-ink/45">
+              <span className="font-pixel text-[0.42rem] uppercase tracking-[0.06em] text-atlas-muted">
                 {preview.label}
               </span>
             </div>
@@ -333,11 +333,11 @@ interface SegmentedProps {
 function Segmented({ legend, options, value, onChange }: SegmentedProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-leaf">
+      <span className="font-pixel text-[0.6rem] font-bold uppercase tracking-[0.16em] text-atlas-gold">
         {legend}
       </span>
       <div
-        className="inline-flex rounded-full border border-ink/15 bg-paper/60 p-0.5"
+        className="inline-flex border border-atlas-grid bg-atlas-frame p-0.5"
         role="group"
         aria-label={legend}
       >
@@ -349,10 +349,10 @@ function Segmented({ legend, options, value, onChange }: SegmentedProps) {
               type="button"
               aria-pressed={active}
               onClick={() => onChange(option.value)}
-              className={`rounded-full px-3 py-1 text-[0.72rem] font-semibold transition-colors ${
+              className={` px-3 py-1 text-[0.72rem] font-semibold transition-colors ${
                 active
-                  ? "bg-moss text-paper"
-                  : "text-ink/70 hover:bg-ink/5 hover:text-ink"
+                  ? "bg-atlas-raised text-atlas-on-gold"
+                  : "text-atlas-muted hover:bg-atlas-raised hover:text-atlas-fg"
               }`}
             >
               {option.label}
@@ -485,19 +485,18 @@ export function SpriteGallery() {
   const hasAlert = audit.errors.length > 0 || audit.collisions.length > 0;
 
   return (
-    <div className="public-shell min-h-screen text-ink">
-      <div className="grain" aria-hidden="true" />
+    <div className="zm-root min-h-screen bg-atlas-sky text-atlas-fg">
 
       <div className="relative z-20 mx-auto max-w-[110rem] px-4 pb-24 sm:px-6 lg:px-10">
         {/* ── Encabezado ─────────────────────────────────────────────── */}
-        <header className="flex flex-col gap-5 border-b border-ink/15 py-8">
+        <header className="flex flex-col gap-5 border-b border-atlas-grid py-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex flex-col gap-2">
               <p className="eyebrow">ZooMatch · modo desarrollo</p>
-              <h1 className="font-display text-3xl font-semibold tracking-[-0.03em] text-ink sm:text-4xl">
+              <h1 className="font-pixel text-3xl font-semibold tracking-[-0.03em] text-atlas-fg sm:text-4xl">
                 Galería de sprites
               </h1>
-              <p className="max-w-xl text-sm text-ink/70">
+              <p className="max-w-xl text-sm text-atlas-muted">
                 Todos los animalitos que genera el motor pixelado, en vivo.
                 Cambia el color, el fondo o el tamaño para revisar que cada
                 criatura se lea bien donde vaya a vivir.
@@ -505,7 +504,7 @@ export function SpriteGallery() {
             </div>
             <Link
               href="/"
-              className="rounded-full border border-ink/20 px-4 py-2 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-ink/70 transition-colors hover:border-clay hover:text-clay"
+              className="border border-atlas-grid px-4 py-2 font-pixel text-[0.68rem] uppercase tracking-[0.14em] text-atlas-muted transition-colors hover:border-atlas-gold hover:text-atlas-gold"
             >
               ← volver
             </Link>
@@ -513,10 +512,10 @@ export function SpriteGallery() {
 
           {/* Contador en vivo */}
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <p className="font-display text-lg font-semibold text-clay">
+            <p className="font-pixel text-lg font-semibold text-atlas-gold">
               {visibleAnimals.length} animalitos × {COLOR_TOTAL} colores
             </p>
-            <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-leaf">
+            <p className="font-pixel text-[0.68rem] uppercase tracking-[0.14em] text-atlas-gold">
               {visibleItems.length} sprites en pantalla · {ANIMAL_TOTAL} en el
               catálogo · {ALL_FAMILIES.length} familias de sprite
             </p>
@@ -526,13 +525,13 @@ export function SpriteGallery() {
         {/* ── Barra de controles ─────────────────────────────────────── */}
         <section
           aria-label="Controles de la galería"
-          className="sticky top-0 z-30 -mx-4 mt-4 border-b border-ink/15 bg-paper/85 px-4 py-4 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10"
+          className="sticky top-0 z-30 -mx-4 mt-4 border-b border-atlas-grid bg-atlas-frame px-4 py-4 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10"
         >
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-end gap-4">
               {/* Buscador */}
               <label className="flex min-w-[15rem] flex-1 flex-col gap-1.5">
-                <span className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-leaf">
+                <span className="font-pixel text-[0.6rem] font-bold uppercase tracking-[0.16em] text-atlas-gold">
                   Buscar
                 </span>
                 <input
@@ -540,7 +539,7 @@ export function SpriteGallery() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="p. ej. gatito, ave, marino, INTJ…"
-                  className="w-full rounded-full border border-ink/20 bg-paper/70 px-4 py-2 text-sm text-ink placeholder:text-ink/40 outline-none focus:border-clay focus:ring-2 focus:ring-clay/40"
+                  className="w-full border border-atlas-grid bg-atlas-frame px-4 py-2 text-sm text-atlas-fg placeholder:text-atlas-muted outline-none focus:border-atlas-gold focus:ring-2 focus:ring-atlas-focus/40"
                 />
               </label>
 
@@ -567,22 +566,22 @@ export function SpriteGallery() {
 
               {/* Animación */}
               <div className="flex flex-col gap-1.5">
-                <span className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-leaf">
+                <span className="font-pixel text-[0.6rem] font-bold uppercase tracking-[0.16em] text-atlas-gold">
                   Animación
                 </span>
                 <button
                   type="button"
                   aria-pressed={animate}
                   onClick={() => setAnimate((a) => !a)}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.72rem] font-semibold transition-colors ${
+                  className={`inline-flex items-center gap-2  border px-3 py-1.5 text-[0.72rem] font-semibold transition-colors ${
                     animate
-                      ? "border-clay bg-clay text-paper"
-                      : "border-ink/20 bg-paper/60 text-ink/70 hover:border-clay/60"
+                      ? "border-atlas-gold bg-atlas-gold text-atlas-on-gold"
+                      : "border-atlas-grid bg-atlas-frame text-atlas-muted hover:border-atlas-gold"
                   }`}
                 >
                   <span
-                    className={`inline-block h-2 w-2 rounded-full ${
-                      animate ? "bg-paper" : "bg-ink/40"
+                    className={`inline-block h-2 w-2  ${
+                      animate ? "bg-atlas-sky" : "bg-atlas-raised"
                     }`}
                     aria-hidden="true"
                   />
@@ -592,17 +591,17 @@ export function SpriteGallery() {
 
               {/* Estados de animación */}
               <div className="flex flex-col gap-1.5">
-                <span className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-leaf">
+                <span className="font-pixel text-[0.6rem] font-bold uppercase tracking-[0.16em] text-atlas-gold">
                   Estados
                 </span>
                 <button
                   type="button"
                   aria-pressed={showFrames}
                   onClick={() => setShowFrames((value) => !value)}
-                  className={`rounded-full border px-3 py-1.5 text-[0.72rem] font-semibold transition-colors ${
+                  className={` border px-3 py-1.5 text-[0.72rem] font-semibold transition-colors ${
                     showFrames
-                      ? "border-moss bg-moss text-paper"
-                      : "border-ink/20 bg-paper/60 text-ink/70 hover:border-clay/60"
+                      ? "border-atlas-gold bg-atlas-raised text-atlas-on-gold"
+                      : "border-atlas-grid bg-atlas-frame text-atlas-muted hover:border-atlas-gold"
                   }`}
                 >
                   {showFrames ? "5 frames visibles" : "ver 5 frames"}
@@ -611,14 +610,14 @@ export function SpriteGallery() {
 
               {/* Exportar */}
               <div className="flex flex-col gap-1.5">
-                <span className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-leaf">
+                <span className="font-pixel text-[0.6rem] font-bold uppercase tracking-[0.16em] text-atlas-gold">
                   Exportar
                 </span>
                 <button
                   type="button"
                   onClick={exportSheet}
                   disabled={visibleItems.length === 0}
-                  className="rounded-full border border-moss bg-moss px-4 py-1.5 text-[0.72rem] font-semibold text-paper transition-transform hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
+                  className="border border-atlas-gold bg-atlas-raised px-4 py-1.5 text-[0.72rem] font-semibold text-atlas-on-gold transition-transform hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   descargar PNG
                 </button>
@@ -628,13 +627,13 @@ export function SpriteGallery() {
             {/* Selector de color / textura */}
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-leaf">
+                <span className="font-pixel text-[0.6rem] font-bold uppercase tracking-[0.16em] text-atlas-gold">
                   Color / textura ({COLOR_TOTAL})
                 </span>
                 <div className="flex items-center gap-3">
                   {activeColor ? (
-                    <span className="font-mono text-[0.66rem] text-ink/70">
-                      <span className="font-semibold text-ink">
+                    <span className="font-pixel text-[0.66rem] text-atlas-muted">
+                      <span className="font-semibold text-atlas-fg">
                         {activeColor.nombre}
                       </span>{" "}
                       · {activeColor.hex} · {activeColor.textura} ·{" "}
@@ -644,7 +643,7 @@ export function SpriteGallery() {
                   <button
                     type="button"
                     onClick={pickRandomColor}
-                    className="rounded-full border border-clay/50 px-3 py-1 font-mono text-[0.64rem] uppercase tracking-[0.1em] text-clay transition-colors hover:bg-clay hover:text-paper"
+                    className="border border-atlas-gold px-3 py-1 font-pixel text-[0.64rem] uppercase tracking-[0.1em] text-atlas-gold transition-colors hover:bg-atlas-gold hover:text-atlas-on-gold"
                   >
                     color aleatorio
                   </button>
@@ -660,14 +659,14 @@ export function SpriteGallery() {
                       aria-pressed={active}
                       title={`${color.nombre} · ${color.hex} · ${color.textura}`}
                       onClick={() => setColorId(color.id)}
-                      className={`inline-flex items-center gap-1.5 rounded-full border py-1 pl-1 pr-2.5 text-[0.68rem] transition-colors ${
+                      className={`inline-flex items-center gap-1.5  border py-1 pl-1 pr-2.5 text-[0.68rem] transition-colors ${
                         active
-                          ? "border-clay bg-clay/10 text-ink"
-                          : "border-ink/15 bg-paper/50 text-ink/70 hover:border-ink/35"
+                          ? "border-atlas-gold bg-atlas-gold/10 text-atlas-fg"
+                          : "border-atlas-grid bg-atlas-frame text-atlas-muted hover:border-atlas-grid"
                       }`}
                     >
                       <span
-                        className="h-4 w-4 shrink-0 rounded-full border border-ink/25"
+                        className="h-4 w-4 shrink-0 border border-atlas-grid"
                         style={{ backgroundColor: color.hex }}
                         aria-hidden="true"
                       />
@@ -683,25 +682,25 @@ export function SpriteGallery() {
         {/* ── Banner de auditoría ────────────────────────────────────── */}
         <div aria-live="polite" className="mt-5">
           {hasAlert ? (
-            <div className="rounded-xl border-2 border-clay bg-clay/10 px-4 py-3 text-sm text-ink">
-              <p className="font-display font-semibold text-clay">
+            <div className="border-2 border-atlas-gold bg-atlas-gold/10 px-4 py-3 text-sm text-atlas-fg">
+              <p className="font-pixel font-semibold text-atlas-gold">
                 ¡Ojo! Hay detalles que revisar en el motor:
               </p>
               {audit.errors.length > 0 ? (
-                <p className="mt-1 font-mono text-[0.72rem] text-ink/80">
+                <p className="mt-1 font-pixel text-[0.72rem] text-atlas-muted">
                   {audit.errors.length} sprite(s) no se pudieron generar:{" "}
                   {audit.errors.join(", ")}
                 </p>
               ) : null}
               {audit.collisions.length > 0 ? (
-                <p className="mt-1 font-mono text-[0.72rem] text-ink/80">
+                <p className="mt-1 font-pixel text-[0.72rem] text-atlas-muted">
                   {audit.collisions.length} colisión(es) de grid idéntico:{" "}
                   {audit.collisions.join(" · ")}
                 </p>
               ) : null}
             </div>
           ) : (
-            <p className="rounded-xl border border-friendship-deep/30 bg-friendship/10 px-4 py-2 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-friendship-deep">
+            <p className="border border-atlas-amistad bg-atlas-raised px-4 py-2 font-pixel text-[0.7rem] uppercase tracking-[0.12em] text-atlas-amistad">
               todo distinto ✓ · {visibleItems.length} sprites únicos, sin
               colisiones
             </p>
@@ -711,16 +710,16 @@ export function SpriteGallery() {
         {/* ── Cuadrícula del catálogo ────────────────────────────────── */}
         <section aria-label="Animalitos del catálogo" className="mt-8">
           <div className="mb-4 flex items-baseline gap-3">
-            <h2 className="font-display text-xl font-semibold text-ink">
+            <h2 className="font-pixel text-xl font-semibold text-atlas-fg">
               Catálogo
             </h2>
-            <span className="font-mono text-[0.66rem] uppercase tracking-[0.14em] text-leaf">
+            <span className="font-pixel text-[0.66rem] uppercase tracking-[0.14em] text-atlas-gold">
               {visibleAnimals.length} de {ANIMALS_LIST.length} · color {activeColor?.nombre ?? colorId}
             </span>
           </div>
 
           {visibleAnimals.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-ink/20 px-4 py-8 text-center text-sm text-ink/60">
+            <p className="border border-dashed border-atlas-grid px-4 py-8 text-center text-sm text-atlas-muted">
               Ningún animalito coincide con “{query}”. Prueba con otra palabra
               cariñosa.
             </p>
@@ -744,7 +743,7 @@ export function SpriteGallery() {
           )}
         </section>
 
-        <footer className="mt-14 border-t border-ink/15 pt-6 font-mono text-[0.64rem] uppercase tracking-[0.14em] text-ink/45">
+        <footer className="mt-14 border-t border-atlas-grid pt-6 font-pixel text-[0.64rem] uppercase tracking-[0.14em] text-atlas-muted">
           motor determinista · {GRID_SIZE}×{GRID_SIZE}px por sprite · ruta
           exclusiva de desarrollo
         </footer>
