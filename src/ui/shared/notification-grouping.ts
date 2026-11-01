@@ -1,0 +1,82 @@
+/**
+ * Pure grouping for notification toasts: one toast per kind, newest first,
+ * never more than `maxVisible`. No countdowns, no urgency.
+ */
+
+import type { ToastData, ToastTone } from "@/ui/kit/toast";
+
+export interface IncomingNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  read: boolean;
+  created_at?: string;
+}
+
+const TONE: Record<string, ToastTone> = {
+  match_romance: "romance",
+  match_amistad: "amistad",
+};
+
+export interface GroupedToast extends ToastData {
+  /** Every notification id folded into this toast (all are marked read together). */
+  ids: string[];
+}
+
+export function groupNotifications(
+  list: readonly IncomingNotification[],
+  dismissed: ReadonlySet<string>,
+  maxVisible: number,
+): GroupedToast[] {
+  const groups = new Map<string, IncomingNotification[]>();
+  for (const n of list) {
+    if (n.read || dismissed.has(n.id)) continue;
+    const bucket = groups.get(n.type) ?? [];
+    bucket.push(n);
+    groups.set(n.type, bucket);
+  }
+  const toasts: GroupedToast[] = [];
+  for (const [type, items] of groups) {
+    const sorted = [...items].sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
+    const head = sorted[0]!;
+    const extra = sorted.length - 1;
+    toasts.push({
+      id: head.id,
+      ids: sorted.map((n) => n.id),
+      tone: TONE[type] ?? "neutral",
+      title: head.title,
+      body: extra > 0 ? `${head.body} (y ${extra} ${extra === 1 ? "aviso más" : "avisos más"})` : head.body,
+    });
+  }
+  return toasts.slice(0, Math.max(0, maxVisible));
+}
+
+export const NOTIFICATIONS_PAUSED_KEY = "zoomatch:notifications-paused";
+
+export function readNotificationsPaused(): boolean {
+  try {
+    return window.localStorage.getItem(NOTIFICATIONS_PAUSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function writeNotificationsPaused(paused: boolean): void {
+  try {
+    if (paused) window.localStorage.setItem(NOTIFICATIONS_PAUSED_KEY, "1");
+    else window.localStorage.removeItem(NOTIFICATIONS_PAUSED_KEY);
+    window.dispatchEvent(new Event(NOTIFICATIONS_PAUSED_KEY));
+  } catch {
+    // Private mode: the toggle simply does not persist.
+  }
+}
+
+export function subscribeNotificationsPaused(callback: () => void): () => void {
+  window.addEventListener(NOTIFICATIONS_PAUSED_KEY, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(NOTIFICATIONS_PAUSED_KEY, callback);
+    window.removeEventListener("storage", callback);
+  };
+}

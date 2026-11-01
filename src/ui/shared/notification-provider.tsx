@@ -1,154 +1,117 @@
 "use client";
 
+/**
+ * Notifications: discreet, grouped by kind, pausable from Ajustes. Polling
+ * stops while the tab is hidden or the person paused them. Toasts never
+ * expire on a timer and never steal focus (no false urgency).
+ */
+
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import type { AppNotification, NotificationType } from "@/types/microtest";
 
-// ─── Toast variant map ────────────────────────────────────────────────────────
+import { EXPERIENCE } from "@/config";
+import { ToastStack } from "@/ui/kit/toast";
 
-const TOAST_VARIANT: Record<NotificationType, string> = {
-  match_romance: "romance",
-  match_amistad: "amistad",
-  no_match: "no-match",
-  welcome: "welcome",
-};
-
-// ─── Context ──────────────────────────────────────────────────────────────────
+import {
+  groupNotifications,
+  readNotificationsPaused,
+  subscribeNotificationsPaused,
+  type IncomingNotification,
+} from "./notification-grouping";
 
 interface NotificationContextValue {
-  notifications: AppNotification[];
   unreadCount: number;
-  markAsRead: (ids: string[]) => Promise<void>;
-  dismiss: (id: string) => void;
+  paused: boolean;
 }
 
-const NotificationContext = createContext<NotificationContextValue | null>(null);
+const NotificationContext = createContext<NotificationContextValue>({ unreadCount: 0, paused: false });
 
 export function useNotifications(): NotificationContextValue {
-  const ctx = useContext(NotificationContext);
-  if (!ctx) throw new Error("useNotifications must be used within NotificationProvider");
-  return ctx;
+  return useContext(NotificationContext);
 }
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+export function useNotificationsPaused(): boolean {
+  return useSyncExternalStore(subscribeNotificationsPaused, readNotificationsPaused, () => false);
+}
+
+function parseList(data: unknown): IncomingNotification[] {
+  if (!data || typeof data !== "object") return [];
+  const list = (data as { notifications?: unknown }).notifications;
+  if (!Array.isArray(list)) return [];
+  return list.filter(
+    (n): n is IncomingNotification =>
+      Boolean(n) &&
+      typeof n === "object" &&
+      typeof (n as IncomingNotification).id === "string" &&
+      typeof (n as IncomingNotification).title === "string" &&
+      typeof (n as IncomingNotification).body === "string",
+  );
+}
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [visibleToast, setVisibleToast] = useState<AppNotification | null>(null);
-  const dismissedRef = useRef<Set<string>>(new Set());
-  const unauthorizedRef = useRef(false);
+  const paused = useNotificationsPaused();
+  const [list, setList] = useState<IncomingNotification[]>([]);
+  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
+  const unauthorized = useRef(false);
 
-  const markAsRead = useCallback(async (ids: string[]) => {
-    if (ids.length === 0) return;
-    try {
-      await fetch("/api/notifications", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids }),
-      });
-      setNotifications((prev) =>
-        prev.map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)),
-      );
-    } catch {
-      /* silent — non-critical */
+  useEffect(() => {
+    if (paused) return;
+    let active = true;
+    async function poll() {
+      if (unauthorized.current || document.hidden) return;
+      try {
+        const res = await fetch("/api/notifications", { cache: "no-store" });
+        if (res.status === 401) unauthorized.current = true;
+        if (!res.ok || !active) return;
+        setList(parseList(await res.json()));
+      } catch {
+        // Non-critical: the next tick tries again.
+      }
     }
-  }, []);
+    void poll();
+    const timer = window.setInterval(poll, EXPERIENCE.notifications.pollMs);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [paused]);
+
+  const toasts = useMemo(
+    () => (paused ? [] : groupNotifications(list, dismissed, EXPERIENCE.notifications.maxVisible)),
+    [list, dismissed, paused],
+  );
 
   const dismiss = useCallback(
     (id: string) => {
-      setVisibleToast(null);
-      dismissedRef.current.add(id);
-      void markAsRead([id]);
+      const ids = toasts.find((t) => t.id === id)?.ids ?? [id];
+      setDismissed((prev) => new Set([...prev, ...ids]));
+      void fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      }).catch(() => undefined);
     },
-    [markAsRead],
+    [toasts],
   );
 
-  useEffect(() => {
-    let active = true;
-
-    async function fetchNotifications() {
-      if (unauthorizedRef.current) return;
-      try {
-        const res = await fetch("/api/notifications");
-        if (res.status === 401) {
-          unauthorizedRef.current = true;
-          return;
-        }
-        if (!res.ok) return;
-        const data: unknown = await res.json();
-        if (!active) return;
-        if (!data || typeof data !== "object") return;
-        const list = (data as { notifications?: unknown }).notifications;
-        if (!Array.isArray(list) || list.length === 0) return;
-
-        setNotifications(list as AppNotification[]);
-
-        const unread = (list as AppNotification[]).find(
-          (n) => !n.read && !dismissedRef.current.has(n.id),
-        );
-        if (unread) setVisibleToast(unread);
-      } catch {
-        /* silent — notifications are non-critical */
-      }
-    }
-
-    void fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30_000);
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const value = useMemo(
+    () => ({ unreadCount: list.filter((n) => !n.read && !dismissed.has(n.id)).length, paused }),
+    [list, dismissed, paused],
+  );
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, dismiss }}>
+    <NotificationContext.Provider value={value}>
       {children}
-      <AnimatePresence>
-        {visibleToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`notification-toast notification-toast--${TOAST_VARIANT[visibleToast.type] ?? "welcome"}`}
-            role="alert"
-            aria-live="polite"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-ink">{visibleToast.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-ink/70">{visibleToast.body}</p>
-              </div>
-              <button
-                onClick={() => dismiss(visibleToast.id)}
-                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ink/10 text-ink/60 transition-colors hover:bg-ink/20"
-                aria-label="Cerrar notificación"
-              >
-                ×
-              </button>
-            </div>
-            {visibleToast.type !== "welcome" && (
-              <a
-                href="/resultado"
-                onClick={() => dismiss(visibleToast.id)}
-                className="mt-3 inline-block text-xs font-semibold text-clay transition-colors hover:text-clay/80"
-              >
-                Ver compatibilidad →
-              </a>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ToastStack toasts={toasts} onDismiss={dismiss} />
     </NotificationContext.Provider>
   );
 }
