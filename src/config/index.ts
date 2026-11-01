@@ -10,4 +10,6 @@ export { ENNEAGRAM_ASSIGNMENTS, ENNEAGRAM_DATA } from "./enneagram";
 export { EXPERIENCE } from "./experience";
 export type { Experience } from "./experience";
 export { MATCHING_CONFIG } from "./matching";
+export { PHYSICS, physicsSchema } from "./physics";
+export type { PhysicsConfig } from "./physics";
 export { LIKERT_SCALE, QUIZ_ITEMS, QUIZ_VERSION } from "./quiz";

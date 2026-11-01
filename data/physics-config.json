@@ -1,0 +1,105 @@
+{
+  "version": "1.0",
+  "integration": {
+    "stepHz": 120,
+    "maxStepsPerFrame": 8,
+    "maxFrameSeconds": 0.1
+  },
+  "bodies": {
+    "selfRadius": 28,
+    "matchRadius": 28,
+    "ghostRadius": 6,
+    "clearance": 6,
+    "matchDisplayBase": 12,
+    "matchDisplayScale": 8
+  },
+  "orbit": {
+    "minRadius": 90,
+    "radiusRatio": 0.42,
+    "gamma": 1.25
+  },
+  "edges": {
+    "minDistance": 80,
+    "maxDistance": 300,
+    "stiffnessMin": 4,
+    "stiffnessMax": 9,
+    "dampingRatio": 0.92,
+    "linksPerNode": 2
+  },
+  "home": {
+    "stiffness": 6,
+    "ghostStiffness": 2,
+    "dampingRatio": 1
+  },
+  "collision": {
+    "stiffness": 260,
+    "softMargin": 10,
+    "dampingRatio": 0.7,
+    "projectionIterations": 24
+  },
+  "gravity": { "strength": 0.5 },
+  "group": {
+    "strength": 0.5,
+    "neighbourCap": 8,
+    "maxSize": 6,
+    "maxGroups": 3,
+    "sectorSpacing": 1.15
+  },
+  "air": { "damping": 0.6 },
+  "bounds": {
+    "padding": 40,
+    "hardMargin": 10,
+    "stiffness": 40,
+    "dampingRatio": 1
+  },
+  "limits": { "maxSpeed": 1200 },
+  "sleep": {
+    "kineticThreshold": 2,
+    "seconds": 0.6
+  },
+  "ambient": {
+    "driftAmplitude": 1.5,
+    "driftHz": 0.08,
+    "breatheScale": 0.006,
+    "breathePeriodSeconds": 9,
+    "idleFrameDivider": 2
+  },
+  "interaction": {
+    "anchorStiffness": 260,
+    "anchorDampingRatio": 1,
+    "throwWindowMs": 90,
+    "maxThrowSpeed": 1400,
+    "tapSlopPx": 6,
+    "kickSpeed": 900
+  },
+  "camera": {
+    "minZoom": 0.6,
+    "maxZoom": 2.6,
+    "followRate": 14,
+    "recenterRate": 5,
+    "wheelSensitivity": 0.0015
+  },
+  "bonds": {
+    "joinFactor": 1.08,
+    "breakFactor": 1.3,
+    "traceSeconds": 0.45,
+    "fadeSeconds": 0.6,
+    "flashSeconds": 0.22,
+    "leanPx": 1,
+    "happySeconds": 1.4,
+    "groupTraceSeconds": 1.2
+  },
+  "transition": {
+    "fadeSeconds": 0.55
+  },
+  "scene": {
+    "maxRealMatches": 24,
+    "defaultGhosts": 8,
+    "maxGhosts": 12,
+    "settleSeconds": 14,
+    "ghostOrbitMin": 0.46,
+    "ghostOrbitSpan": 0.12,
+    "ghostAngleJitter": 0.8,
+    "denseSkyStars": 40
+  }
+}
