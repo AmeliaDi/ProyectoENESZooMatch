@@ -16,7 +16,7 @@
  *
  * The module is pure and SSR-safe: storage helpers guard `window` and never run
  * at import time. The React selector lives in
- * `src/components/inclusive-mode-selector.tsx`.
+ * `src/ui/shared/inclusive-mode-selector.tsx`.
  */
 
 export const INCLUSIVE_MODES = [

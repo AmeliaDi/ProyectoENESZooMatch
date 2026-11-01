@@ -1,5 +1,16 @@
 {
   "version": "experience-1",
+  "dawn": {
+    "gridWidth": 96,
+    "gridHeight": 48,
+    "stars": 22,
+    "seed": 2604,
+    "stepMs": 70,
+    "sparkleArm": 3
+  },
+  "onboarding": {
+    "storageKey": "zoomatch:onboarding-seen"
+  },
   "quiz": {
     "secondsPerItem": 9,
     "breathEvery": 12,
@@ -19,5 +30,9 @@
   "notifications": {
     "pollMs": 30000,
     "maxVisible": 2
+  },
+  "admin": {
+    "pollMs": 60000,
+    "kAnonymity": 5
   }
 }

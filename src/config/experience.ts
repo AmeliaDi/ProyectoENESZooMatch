@@ -11,6 +11,16 @@ const positiveInt = z.number().int().positive();
  */
 export const experienceSchema = z.strictObject({
   version: z.string().min(1),
+  /** Entry scene: seeded stars lighting up in order, yours last. */
+  dawn: z.strictObject({
+    gridWidth: positiveInt,
+    gridHeight: positiveInt,
+    stars: z.number().int().min(2).max(64),
+    seed: z.number().int(),
+    stepMs: positiveInt,
+    sparkleArm: z.number().int().min(1).max(4),
+  }),
+  onboarding: z.strictObject({ storageKey: z.string().min(1) }),
   quiz: z.strictObject({
     /** Used only to tell people roughly how long the test takes. */
     secondsPerItem: positiveInt,
@@ -37,6 +47,11 @@ export const experienceSchema = z.strictObject({
   notifications: z.strictObject({
     pollMs: z.number().int().min(5000),
     maxVisible: positiveInt,
+  }),
+  admin: z.strictObject({
+    pollMs: z.number().int().min(10000),
+    /** Aggregated cells below k are suppressed (k-anonymity floor). */
+    kAnonymity: z.number().int().min(2),
   }),
 });
 

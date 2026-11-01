@@ -9,7 +9,7 @@
  * custom event emitted by `writeInclusiveMode`.
  */
 
-import { useSyncExternalStore } from "react";
+import { useId, useSyncExternalStore } from "react";
 
 import {
   INCLUSIVE_MODES,
@@ -19,6 +19,7 @@ import {
   writeInclusiveMode,
   type InclusiveMode,
 } from "@/domain/messages/inclusive-text";
+import { ChoiceGroup } from "@/ui/kit/choice";
 
 export function useInclusiveMode(): InclusiveMode {
   return useSyncExternalStore(
@@ -28,36 +29,23 @@ export function useInclusiveMode(): InclusiveMode {
   );
 }
 
+const OPTIONS = INCLUSIVE_MODES.map((mode) => ({ value: mode.id, label: mode.label }));
+
 export function InclusiveModeSelector({ className }: { className?: string }) {
   const mode = useInclusiveMode();
-
+  const labelId = useId();
   return (
-    <fieldset className={className}>
-      <legend className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-ink/45">
-        Lenguaje inclusivo
-      </legend>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {INCLUSIVE_MODES.map((option) => {
-          const active = option.id === mode;
-          return (
-            <button
-              key={option.id}
-              type="button"
-              aria-pressed={active}
-              title={option.description}
-              onClick={() => writeInclusiveMode(option.id)}
-              className={`rounded-full border px-3 py-1.5 text-[0.7rem] font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
-                active
-                  ? "border-moss bg-moss text-paper"
-                  : "border-ink/20 bg-paper/60 text-ink/65 hover:border-clay/60 hover:text-ink"
-              }`}
-            >
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
-    </fieldset>
+    <div className={["zm-setting", className ?? ""].join(" ")}>
+      <p id={labelId} className="zm-setting__label">
+        ¿Cómo quieres que te hablemos?
+      </p>
+      <ChoiceGroup<InclusiveMode>
+        labelledBy={labelId}
+        options={OPTIONS}
+        selected={[mode]}
+        onToggle={writeInclusiveMode}
+      />
+    </div>
   );
 }
 

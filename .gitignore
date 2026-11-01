@@ -3,6 +3,7 @@
 /coverage/
 *.tsbuildinfo
 /.next-dev*.log
+/.qa/
 
 .env
 .env.*
