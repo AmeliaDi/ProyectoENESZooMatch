@@ -1,174 +1,134 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
-import { LIKERT_SCALE, QUIZ_ITEMS } from "@/config/quiz";
-import {
-  type ApiError,
-  BrandHeader,
-  FieldMarks,
-  LoadingFrame,
-  RECOMPUTE_PENDING_KEY,
-  ease,
-} from "@/ui/shared/chrome";
+import type { QuizSubmittedDto } from "@/contracts/result";
+import { EXPERIENCE, LIKERT_SCALE, QUIZ_ITEMS } from "@/config";
+import { AtlasShell } from "@/ui/kit/atlas-shell";
+import { Button } from "@/ui/kit/button";
+import { ChoiceGroup } from "@/ui/kit/choice";
+import { Likert } from "@/ui/kit/likert";
+import { ConstellationProgress } from "@/ui/kit/progress";
+import { ErrorState } from "@/ui/kit/states";
+import { type ApiError, LoadingFrame, RECOMPUTE_PENDING_KEY } from "@/ui/shared/chrome";
+import { Onboarding, hasSeenOnboarding } from "@/ui/entry/onboarding";
 import { useInclusiveMode } from "@/ui/shared/inclusive-mode-selector";
 
 import { CATEGORY_LABELS, QUIZ_STORAGE_KEY, parseQuizDraft, type QuizDraft } from "./quiz-draft";
+import {
+  buildSubmission,
+  countAnswered,
+  isAnswered,
+  optionLabel,
+  presentationOrder,
+  resumeIndex,
+  toggleOption,
+} from "./quiz-flow";
+import { Reveal } from "./reveal";
 
-const ITEMS = QUIZ_ITEMS;
-const LIKERT_OPTIONS = LIKERT_SCALE;
+const { sensitiveCategories, exclusiveOption, breathEvery } = EXPERIENCE.quiz;
+const ITEMS = presentationOrder(QUIZ_ITEMS, sensitiveCategories);
 const TOTAL = ITEMS.length;
+const SENSITIVE = new Set(sensitiveCategories);
+const FIRST_SENSITIVE = ITEMS.findIndex((item) => SENSITIVE.has(item.categoria));
+const LIKERT_OPTIONS = LIKERT_SCALE.map((o) => ({ value: o.valor, label: o.etiqueta }));
 
-// ─── PublicQuiz ─────────────────────────────────────────────────────────────
+type Stage = "loading" | "onboarding" | "quiz" | "reveal";
+
+function isLikertValue(value: number): value is 1 | 2 | 3 | 4 | 5 {
+  return Number.isInteger(value) && value >= 1 && value <= 5;
+}
 
 export function PublicQuiz() {
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
   const inclusiveMode = useInclusiveMode();
+  const promptId = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const submitLock = useRef(false);
 
+  const [stage, setStage] = useState<Stage>("loading");
   const [draft, setDraft] = useState<QuizDraft>({ likert: {}, filters: {} });
   const [index, setIndex] = useState(0);
-  const [loaded, setLoaded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<ApiError>(null);
+  const [revealed, setRevealed] = useState<QuizSubmittedDto["profile"] | null>(null);
 
-  const item = ITEMS[index]!;
+  const item = ITEMS[index] ?? ITEMS[0]!;
+  const answered = useMemo(() => countAnswered(ITEMS, draft), [draft]);
   const isLast = index === TOTAL - 1;
+  const currentAnswered = isAnswered(item, draft);
 
-  const answeredCount = useMemo(() => {
-    let count = 0;
-    for (const it of ITEMS) {
-      if (it.tipo_respuesta === "likert_5") {
-        if (draft.likert[it.id] !== undefined) count++;
-      } else {
-        const sel = draft.filters[it.id];
-        if (sel && sel.length > 0) count++;
-      }
-    }
-    return count;
-  }, [draft]);
-
-  const progress = (answeredCount / TOTAL) * 100;
-  const currentItemAnswered =
-    item.tipo_respuesta === "likert_5"
-      ? draft.likert[item.id] !== undefined
-      : (draft.filters[item.id]?.length ?? 0) > 0;
-
-  // Restore draft from localStorage. The read is committed from a deferred
-  // callback (not synchronously in the effect body) so the external-store sync
-  // doesn't trigger a cascading render; `loaded` keeps the first client render
-  // stable on <LoadingFrame>, preserving SSR/hydration output.
+  // Restore after mount so the server render and first client render agree.
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
       const stored = parseQuizDraft(window.localStorage.getItem(QUIZ_STORAGE_KEY));
       setDraft(stored);
-      // Jump to first unanswered item
-      const firstMissing = ITEMS.findIndex((it) =>
-        it.tipo_respuesta === "likert_5"
-          ? stored.likert[it.id] === undefined
-          : (stored.filters[it.id]?.length ?? 0) === 0,
-      );
-      setIndex(firstMissing === -1 ? TOTAL - 1 : firstMissing);
-      setLoaded(true);
+      setIndex(resumeIndex(ITEMS, stored));
+      setStage(hasSeenOnboarding() ? "quiz" : "onboarding");
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Persist draft
   useEffect(() => {
-    if (loaded) window.localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(draft));
-  }, [draft, loaded]);
+    if (stage === "quiz") window.localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(draft));
+  }, [draft, stage]);
 
-  // Focus heading on item change
   useEffect(() => {
-    if (loaded) headingRef.current?.focus();
-  }, [index, loaded]);
+    if (stage === "quiz") headingRef.current?.focus();
+  }, [index, stage]);
 
-  const chooseLikert = useCallback(
-    (value: 1 | 2 | 3 | 4 | 5) => {
-      setError(null);
-      setDraft((prev) => ({ ...prev, likert: { ...prev.likert, [item.id]: value } }));
-    },
-    [item.id],
-  );
+  const goNext = useCallback(() => setIndex((i) => Math.min(TOTAL - 1, i + 1)), []);
 
-  const toggleFilter = useCallback(
-    (option: string) => {
-      setError(null);
-      setDraft((prev) => {
-        const current = prev.filters[item.id] ?? [];
-        const next = current.includes(option)
-          ? current.filter((o) => o !== option)
-          : [...current, option];
-        return { ...prev, filters: { ...prev.filters, [item.id]: next } };
-      });
-    },
-    [item.id],
-  );
+  function chooseLikert(value: number) {
+    if (!isLikertValue(value)) return;
+    setError(null);
+    setDraft((prev) => ({ ...prev, likert: { ...prev.likert, [item.id]: value } }));
+  }
 
-  async function submitQuiz(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!isLast || !currentItemAnswered || submitLock.current) return;
+  function toggleFilter(option: string) {
+    setError(null);
+    setDraft((prev) => ({
+      ...prev,
+      filters: { ...prev.filters, [item.id]: toggleOption(prev.filters[item.id] ?? [], option, exclusiveOption) },
+    }));
+  }
 
-    const allAnswered = ITEMS.every((it) =>
-      it.tipo_respuesta === "likert_5"
-        ? draft.likert[it.id] !== undefined
-        : (draft.filters[it.id]?.length ?? 0) > 0,
-    );
-    if (!allAnswered) {
-      const firstMissing = ITEMS.findIndex((it) =>
-        it.tipo_respuesta === "likert_5"
-          ? draft.likert[it.id] === undefined
-          : (draft.filters[it.id]?.length ?? 0) === 0,
-      );
-      setIndex(firstMissing === -1 ? TOTAL - 1 : firstMissing);
+  async function submit() {
+    if (submitLock.current) return;
+    const payload = buildSubmission(ITEMS, draft);
+    if (!payload) {
+      setIndex(resumeIndex(ITEMS, draft));
       return;
     }
-
     submitLock.current = true;
     setSubmitting(true);
     setError(null);
     try {
-      const likertPayload = ITEMS.filter((it) => it.tipo_respuesta === "likert_5").map((it) => ({
-        itemId: it.id,
-        value: draft.likert[it.id]!,
-      }));
-      const filtersPayload = ITEMS.filter((it) => it.tipo_respuesta === "seleccion_multiple").map(
-        (it) => ({
-          itemId: it.id,
-          selected: draft.filters[it.id]!,
-        }),
-      );
-
       const response = await fetch("/api/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ likert: likertPayload, filters: filtersPayload, inclusiveMode }),
+        body: JSON.stringify({ ...payload, inclusiveMode }),
       });
-
       if (!response.ok) {
         setError(response.status === 401 ? "session" : "generic");
         return;
       }
-      const payload = (await response.json().catch(() => null)) as {
-        recomputePending?: boolean;
-      } | null;
+      const body = (await response.json().catch(() => null)) as QuizSubmittedDto | null;
       window.localStorage.removeItem(QUIZ_STORAGE_KEY);
-      if (payload?.recomputePending) {
-        window.sessionStorage.setItem(RECOMPUTE_PENDING_KEY, "1");
+      if (body?.recomputePending) window.sessionStorage.setItem(RECOMPUTE_PENDING_KEY, "1");
+      else window.sessionStorage.removeItem(RECOMPUTE_PENDING_KEY);
+      if (body?.profile?.enneagram) {
+        setRevealed(body.profile);
+        setStage("reveal");
       } else {
-        window.sessionStorage.removeItem(RECOMPUTE_PENDING_KEY);
+        router.replace("/resultado");
       }
-      router.replace("/resultado");
     } catch {
       setError("generic");
     } finally {
@@ -177,173 +137,124 @@ export function PublicQuiz() {
     }
   }
 
-  if (!loaded) return <LoadingFrame label="Recuperando tus respuestas…" />;
+  if (stage === "loading") return <LoadingFrame label="Recuperando tus respuestas…" plate="Lámina 02 · test" />;
 
-  const categoryLabel = CATEGORY_LABELS[item.categoria] ?? item.categoria;
-  const counterText = `${String(index + 1).padStart(2, "0")} / ${TOTAL}`;
+  if (stage === "onboarding") {
+    return (
+      <AtlasShell plate="Lámina 02 · antes de empezar">
+        <main className="zm-center">
+          <Onboarding onDone={() => setStage("quiz")} />
+        </main>
+      </AtlasShell>
+    );
+  }
+
+  if (stage === "reveal" && revealed) {
+    return (
+      <AtlasShell plate="Lámina 03 · revelación">
+        <main className="zm-center">
+          <Reveal profile={revealed} onContinue={() => router.replace("/resultado")} />
+        </main>
+      </AtlasShell>
+    );
+  }
+
+  const isSensitive = SENSITIVE.has(item.categoria);
+  const showSensitiveNote = index === FIRST_SENSITIVE;
+  const showBreath = !isSensitive && index > 0 && index % breathEvery === 0;
+  const options = (item.opciones ?? []).map((option) => ({
+    value: option,
+    label: optionLabel(option),
+    ...(option === exclusiveOption ? { icon: "privacy" as const } : {}),
+  }));
 
   return (
-    <main className="public-shell min-h-screen">
-      <div className="grain" aria-hidden="true" />
-      <FieldMarks />
-      <BrandHeader step="Microtest · 02" />
-
-      <section className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-4xl flex-col px-5 py-7 sm:px-8 sm:py-10">
-        {/* Progress header */}
-        <div className="mb-8" aria-label={`Pregunta ${index + 1} de ${TOTAL}`}>
-          <div className="mb-3 flex items-center justify-between font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ink/55">
-            <span>{categoryLabel}</span>
-            <span>{counterText}</span>
-          </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-ink/10">
-            <motion.div
-              className="h-full rounded-full bg-clay"
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: reduceMotion ? 0 : 0.45, ease }}
-            />
-          </div>
+    <AtlasShell plate="Lámina 02 · test">
+      <main className="zm-quiz">
+        <div className="zm-quiz__progress">
+          <ConstellationProgress total={TOTAL} answered={answered} current={index} />
+          <p className="zm-quiz__meta">
+            <span>{CATEGORY_LABELS[item.categoria] ?? item.categoria}</span>
+            <span aria-live="polite">
+              Pregunta {index + 1} de {TOTAL}
+            </span>
+          </p>
         </div>
 
-        <form onSubmit={submitQuiz} className="flex flex-1 flex-col">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.article
-              key={item.id}
-              initial={reduceMotion ? false : { opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              {...(reduceMotion ? {} : { exit: { opacity: 0, x: -18 } })}
-              transition={{ duration: 0.35, ease }}
-              className="flex flex-1 flex-col justify-center"
-            >
-              <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-clay">
-                Responde desde tu primera impresión
-              </p>
-              <h1
-                ref={headingRef}
-                tabIndex={-1}
-                className="max-w-3xl text-balance font-display text-[clamp(2rem,6vw,4.5rem)] leading-[1.0] tracking-[-0.04em] outline-none"
-              >
-                {item.texto}
-              </h1>
+        {showSensitiveNote ? (
+          <p className="zm-box zm-quiz__note" role="note">
+            Las últimas preguntas son sobre identidad y lo que buscas. Solo se usan como filtros de
+            romance, nunca se muestran a nadie, y puedes elegir “Prefiero no decir”.
+          </p>
+        ) : null}
+        {showBreath ? (
+          <p className="zm-quiz__breath" role="note">
+            Vas bien. Si quieres una pausa, tu avance ya está guardado en este dispositivo.
+          </p>
+        ) : null}
 
-              {item.tipo_respuesta === "likert_5" ? (
-                <fieldset className="mt-10 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  <legend className="sr-only">Selecciona cuánto estás de acuerdo</legend>
-                  {LIKERT_OPTIONS.map((option) => {
-                    const value = option.valor as 1 | 2 | 3 | 4 | 5;
-                    const active = draft.likert[item.id] === value;
-                    return (
-                      <label
-                        key={value}
-                        className={`group flex min-h-14 cursor-pointer items-center gap-3 border px-4 py-3 transition-colors focus-within:ring-2 focus-within:ring-clay focus-within:ring-offset-2 ${
-                          active
-                            ? "border-ink bg-ink text-paper"
-                            : "border-ink/20 bg-paper/55 hover:border-ink/55"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={`answer-${item.id}`}
-                          value={value}
-                          checked={active}
-                          onChange={() => chooseLikert(value)}
-                          className="h-4 w-4 accent-clay"
-                        />
-                        <span className="text-sm font-semibold leading-5">{option.etiqueta}</span>
-                      </label>
-                    );
-                  })}
-                </fieldset>
-              ) : (
-                <fieldset className="mt-10">
-                  <legend className="sr-only">Selecciona todas las que apliquen</legend>
-                  <p className="mb-4 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-ink/50">
-                    Selecciona todas las que apliquen
-                  </p>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {(item.opciones ?? []).map((option) => {
-                      const selected = draft.filters[item.id]?.includes(option) ?? false;
-                      return (
-                        <label
-                          key={option}
-                          className={`group flex min-h-14 cursor-pointer items-center gap-3 border px-4 py-3 transition-colors focus-within:ring-2 focus-within:ring-clay focus-within:ring-offset-2 ${
-                            selected
-                              ? "border-ink bg-ink text-paper"
-                              : "border-ink/20 bg-paper/55 hover:border-ink/55"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            name={`filter-${item.id}`}
-                            value={option}
-                            checked={selected}
-                            onChange={() => toggleFilter(option)}
-                            className="h-4 w-4 accent-clay"
-                          />
-                          <span className="text-sm font-semibold capitalize leading-5">
-                            {option.replaceAll("_", " ")}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-              )}
-            </motion.article>
-          </AnimatePresence>
-
-          {error && (
-            <div
-              role="alert"
-              className="mt-6 border-l-4 border-clay bg-clay/10 px-4 py-3 text-sm leading-6 text-ink"
-            >
-              {error === "session" ? (
-                <>
-                  Tu sesión ya no está disponible.{" "}
-                  <Link href="/" className="font-bold underline underline-offset-4">
-                    Volver al acceso
-                  </Link>
-                  .
-                </>
-              ) : (
-                "No pudimos guardar tus respuestas. Tu avance sigue en este dispositivo; inténtalo otra vez."
-              )}
-            </div>
+        <article className="zm-quiz__item" key={item.id} data-sensitive={isSensitive}>
+          <h1 id={promptId} ref={headingRef} tabIndex={-1} className="zm-quiz__prompt">
+            {item.texto}
+          </h1>
+          {item.tipo_respuesta === "likert_5" ? (
+            <Likert
+              labelledBy={promptId}
+              options={LIKERT_OPTIONS}
+              value={draft.likert[item.id] ?? null}
+              onChange={chooseLikert}
+            />
+          ) : (
+            <>
+              <p className="zm-quiz__hint">Elige todas las que apliquen.</p>
+              <ChoiceGroup
+                labelledBy={promptId}
+                options={options}
+                selected={draft.filters[item.id] ?? []}
+                onToggle={toggleFilter}
+                multiple
+                size="card"
+              />
+            </>
           )}
+        </article>
 
-          <div className="mt-8 flex items-center justify-between gap-3 border-t border-ink/15 pt-5">
-            <button
-              type="button"
-              onClick={() => setIndex((c) => Math.max(0, c - 1))}
-              disabled={index === 0 || submitting}
-              className="min-h-12 px-2 text-xs font-bold uppercase tracking-[0.15em] text-ink/60 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-clay disabled:opacity-25"
-            >
-              ← Anterior
-            </button>
-            {isLast ? (
-              <button
-                type="submit"
-                disabled={!currentItemAnswered || submitting}
-                className="min-h-12 bg-clay px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-paper outline-none transition hover:bg-ink focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-3 disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                {submitting ? "Enviando una vez…" : "Descubrir resultado"}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIndex((c) => Math.min(TOTAL - 1, c + 1))}
-                disabled={!currentItemAnswered}
-                className="min-h-12 bg-ink px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-paper outline-none transition hover:bg-moss focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-3 disabled:cursor-not-allowed disabled:opacity-25"
-              >
-                Siguiente →
-              </button>
-            )}
-          </div>
-        </form>
+        {error ? (
+          <ErrorState
+            title={error === "session" ? "Tu sesión se cerró" : "No pudimos guardar"}
+            body={
+              error === "session"
+                ? "Vuelve a entrar con tu matrícula; tus respuestas siguen en este dispositivo."
+                : "Tu avance sigue en este dispositivo. Intenta de nuevo en un momento."
+            }
+            action={
+              error === "session" ? (
+                <Link href="/" className="zm-box zm-btn zm-btn--secondary">
+                  Volver a entrar
+                </Link>
+              ) : undefined
+            }
+          />
+        ) : null}
 
-        <p className="mt-6 text-center font-mono text-[0.58rem] uppercase tracking-[0.16em] text-ink/35">
-          Demo educativa de estadística · no es evaluación psicológica ni consejo profesional
-        </p>
-      </section>
-    </main>
+        <nav className="zm-quiz__nav" aria-label="Navegación del test">
+          <Button variant="ghost" icon="back" onClick={() => setIndex((i) => Math.max(0, i - 1))} disabled={index === 0 || submitting}>
+            Atrás
+          </Button>
+          <Link href="/" className="zm-box zm-btn zm-btn--ghost" aria-label="Pausar: tu avance queda guardado">
+            Pausar
+          </Link>
+          {isLast ? (
+            <Button variant="primary" icon="check" onClick={() => void submit()} disabled={!currentAnswered || submitting} busy={submitting}>
+              {submitting ? "Calculando" : "Terminar"}
+            </Button>
+          ) : (
+            <Button variant="primary" iconAfter="next" onClick={goNext} disabled={!currentAnswered}>
+              Siguiente
+            </Button>
+          )}
+        </nav>
+      </main>
+    </AtlasShell>
   );
 }

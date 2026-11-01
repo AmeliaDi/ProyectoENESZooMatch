@@ -13,7 +13,17 @@ export type { AffinityBreakdown, ChemistrySummary, MatchExplanation } from "@/do
 export interface QuizSubmittedDto {
   ok: true;
   recomputePending: boolean;
-  profile: { alias: string; animal: string; color: string; narrative: string };
+  profile: {
+    alias: string;
+    animal: string;
+    color: string;
+    narrative: string;
+    /** Display names for the reveal (own profile only). */
+    animalName: string;
+    colorName: string;
+    mbtiCode: string;
+    enneagram: { code: string; nombre: string; arquetipo: string };
+  };
 }
 
 export interface MatchEntryDto {
@@ -41,6 +51,8 @@ export interface ResultDto {
   narrative: string;
   mbti_code: string | null;
   matches: { romance: MatchEntryDto[]; amistad: MatchEntryDto[] };
+  /** Coarse flag (never the count) so the empty state can say "somos pocxs". */
+  few_people: boolean;
   no_match_message: string;
 }
 

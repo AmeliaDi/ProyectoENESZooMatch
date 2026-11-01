@@ -3,6 +3,7 @@ import { MICROTEST_ITEMS, scoreQuiz } from "@/domain/matching";
 import { generateProfileIdentity } from "@/domain/identity/profile-generator";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import { generateWelcomeMessage } from "@/domain/messages/notification-copy";
+import { enneagramProfileFor } from "@/domain/psychometrics/psychometrics";
 import { err, ok, type Result } from "@/domain/shared";
 import type { QuizSubmission, ScoredProfile } from "@/types/microtest";
 
@@ -99,6 +100,7 @@ export async function submitQuiz(
     });
   }
 
+  const enneagram = enneagramProfileFor(scored.normalizedScores);
   return ok({
     ok: true,
     recomputePending: !recomputed.ok,
@@ -107,6 +109,10 @@ export async function submitQuiz(
       animal: identity.animalId,
       color: identity.colorId,
       narrative: identity.narrative,
+      animalName: identity.animalDiminutivo,
+      colorName: identity.colorNombre,
+      mbtiCode: scored.mbtiCode,
+      enneagram: { code: enneagram.code, nombre: enneagram.nombre, arquetipo: enneagram.arquetipo },
     },
   });
 }

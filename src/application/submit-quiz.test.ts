@@ -45,7 +45,19 @@ describe("submitQuiz", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.recomputePending).toBe(false);
-    expect(Object.keys(result.value.profile).sort()).toEqual(["alias", "animal", "color", "narrative"]);
+    // Own profile only: display names, MBTI and enneagram for the reveal; no
+    // vectors, scores or answers.
+    expect(Object.keys(result.value.profile).sort()).toEqual([
+      "alias",
+      "animal",
+      "animalName",
+      "color",
+      "colorName",
+      "enneagram",
+      "mbtiCode",
+      "narrative",
+    ]);
+    expect(result.value.profile.enneagram.code).toMatch(/^[1-9]w[1-9]$/);
     expect(store.results.get(USER_A)?.answers).toHaveLength(QUIZ_ITEMS.length);
   });
 
