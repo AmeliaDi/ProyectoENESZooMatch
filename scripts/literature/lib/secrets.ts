@@ -12,6 +12,7 @@ export const SECRET_RULES: readonly SecretRule[] = [
   { name: "firecrawl-key", regex: /\bfc-[A-Za-z0-9]{20,}\b/ },
   { name: "supabase-secret-key", regex: /\bsb_secret_[A-Za-z0-9_-]{10,}/ },
   { name: "supabase-access-token", regex: /\bsbp_[A-Za-z0-9]{20,}\b/ },
+  { name: "vercel-token", regex: /\bvcp_[A-Za-z0-9]{20,}\b/ },
   { name: "jwt", regex: /\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/ },
   { name: "openai-style-key", regex: /\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b/ },
   { name: "aws-access-key", regex: /\bAKIA[0-9A-Z]{16}\b/ },
@@ -19,7 +20,7 @@ export const SECRET_RULES: readonly SecretRule[] = [
   { name: "private-key", regex: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
   {
     name: "env-assignment",
-    regex: /^\s*(?:FIRECRAWL_API_KEY|SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|MATRICULA_HMAC_SECRET|UPSTASH_REDIS_REST_TOKEN)\s*=\s*["']?[A-Za-z0-9_\-.]{16,}/,
+    regex: /^\s*(?:FIRECRAWL_API_KEY|VERCEL_TOKEN|SUPABASE_ACCESS_TOKEN|SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|MATRICULA_HMAC_SECRET|UPSTASH_REDIS_REST_TOKEN)\s*=\s*["']?[A-Za-z0-9_\-.]{16,}/,
   },
 ];
 
