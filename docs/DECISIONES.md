@@ -117,6 +117,26 @@ ningún avatar ni layout existente cambia.
 **Límite.** No son criptográficos. Para todo lo que identifica a una persona (matrícula,
 alias futuro) se usa el puerto `Hmac`.
 
+## ADR-011 · Sistema de diseño "Atlas de bolsillo"
+
+**Decisión.** Dirección A de `DISENO.md`: Pixelify Sans para rótulos y Atkinson
+Hyperlegible Next para lectura, ambas OFL y autoalojadas con `next/font`. Hay cuatro
+modos diseñados por separado (noche, día y sus variantes de alto contraste) y un
+píxel lógico de 2 px. Las sombras son duras y las texturas se hacen con dithering
+Bayer, sin blur.
+
+**Por qué.** Era la única dirección donde el modo día pedido sale natural de la
+metáfora, tenía la mejor legibilidad para un test largo en móvil y es lo bastante
+sobria para el admin.
+
+**Cómo se mantiene.** Los tokens viven en `data/design-tokens.json`, validados con
+Zod. `atlas.css` repite los valores para el primer pintado y un test impide que se
+desincronicen. El contraste AA (o AAA en los modos de alto contraste) se verifica
+con tests, no a ojo.
+
+**Sin dependencias nuevas.** Iconos, dithering, cielo y kit son código propio; no
+se usa ninguna librería de iconos ni de componentes.
+
 ---
 
 ## Pendientes conocidos (no decididos aún)

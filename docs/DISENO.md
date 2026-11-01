@@ -1,8 +1,15 @@
-# Dirección de arte de ZooMatch: Fase 1 (propuesta, sin implementar)
+# Dirección de arte de ZooMatch
 
-> Estado: **propuesta para elegir**. Aquí todavía no se toca código. Cuando se
-> elija una dirección (A, B o C), este documento se recorta a esa dirección y
-> pasa a ser la referencia de la Fase 2 (sistema de diseño).
+> Estado: **decidido: dirección A, "Atlas de bolsillo"** (2026-10-31), con
+> estos ajustes:
+>
+> - **Pixelify Sans** para rótulos y **Atkinson Hyperlegible Next** para lectura.
+> - La **luciérnaga** de la dirección B como estrella que se enciende en el test,
+>   en color `amistad`.
+>
+> El sistema de diseño ya implementado (Fase 2) está en la [sección 7](#7-sistema-de-diseño-fase-2).
+> Las secciones 0 a 6 se conservan como registro de la propuesta y de por qué
+> se eligió A (ver ADR-011 en `DECISIONES.md`).
 
 Concepto fijo: **un cielo nocturno hecho de animalitos pixel art**. Cada persona
 es una estrella-criatura y las afinidades son constelaciones. La sensación que
@@ -476,6 +483,86 @@ Razones:
 
 Con tu elección paso a la Fase 2: tokens en `@theme`, componentes de `src/ui/`,
 el atlas de iconos y la galería `/dev/ui`.
+
+---
+
+## 7. Sistema de diseño (Fase 2)
+
+### 7.1 Una sola fuente de verdad
+
+| Qué | Dónde | Cómo se protege |
+|---|---|---|
+| Tokens (paleta por modo, píxel, contraste, movimiento, z-index, cielo) | `data/design-tokens.json` | Esquema Zod en `src/config/design.ts` (hex en mayúsculas, 20 roles por modo, táctil ≥ 44 y múltiplo del píxel) |
+| Variables CSS para el primer pintado | `src/app/atlas.css`, entre `/* mode:X */ … /* end:X */` | `design.test.ts` compara cada bloque (y el fallback `prefers-color-scheme: light`) con el JSON |
+| Tiles de dithering `--zm-dither-25/50/75` | `atlas.css` | Igualdad exacta con `bayerMaskDataUri()` |
+| Contraste | `contrastPairs` en el JSON | Test por modo: texto ≥ 4.5 y UI ≥ 3; en alto contraste, texto ≥ 7 y UI ≥ 4.5 |
+
+**Para cambiar un color:** edita el JSON, copia el valor al bloque del modo en
+`atlas.css` (y al fallback si es `day`) y corre `npm test`. Si el contraste no
+pasa, el test dice qué par falla y con qué razón.
+
+### 7.2 Modos
+
+Cuatro paletas diseñadas por separado, ninguna invertida:
+
+- **Noche** (`night`): azul tinta `#101826` con dorado de latón `#E8B04A`.
+- **Día** (`day`): papel cálido `#F3EAD7` con tinta `#1B2233`. Dorado y texto
+  secundario se oscurecieron (`#7A4F00`, `#525A70`) para pasar AA también sobre `raised`.
+- **Noche y día de alto contraste** (`night-hc`, `day-hc`): mismas formas,
+  razón ≥ 7 en texto y ≥ 4.5 en UI.
+
+La elección se guarda por dispositivo (`localStorage: zoomatch:theme`). Un
+script inline la aplica antes del primer pintado, así que no hay destello del
+cielo equivocado. Si no hay elección guardada, se sigue `prefers-color-scheme`.
+
+### 7.3 La regla del píxel
+
+- Un píxel lógico `--zm-px = 2px`. Bordes, escalones, sombras y separaciones son
+  múltiplos enteros de él.
+- Las sombras son `drop-shadow` con desplazamiento duro y **sin blur**. Las
+  esquinas son escalonadas (con `clip-path`), nunca `border-radius`.
+- Iconos de 12×12 a escala ×1, ×2 o ×3, y sprites de 16×16 a ×2 (chip), ×3
+  (nodo) o ×6 (detalle). Siempre con `image-rendering: pixelated` /
+  `shape-rendering: crispEdges`.
+- El cielo (`PixelSky`) redondea `logicalPx × devicePixelRatio` a un entero de
+  píxeles físicos por celda, así que una estrella nunca queda borrosa ni
+  desigual con DPR 1, 1.5, 2 o 3.
+
+### 7.4 Componentes (`src/ui/kit/`)
+
+| Componente | Notas de accesibilidad y comportamiento |
+|---|---|
+| `Button`, `IconButton` | 4 variantes; estados hover, active (se hunde 1 px), disabled y busy (`aria-busy`). `IconButton` exige `label` |
+| `Chip` | El tono colorea el borde y el icono; el texto siempre usa `fg`, así que pasa AA |
+| `Tabs` | `tablist` del patrón APG con tabindex móvil (flechas, Home y End) |
+| `Frame` | Marco de atlas con escalón doble, graduaciones y coordenada decorativa (`aria-hidden`) |
+| `Field` | `label` asociado; pista y error enlazados con `aria-describedby`; `aria-invalid` |
+| `Likert` | `radiogroup` de 5 gemas pixel (más grandes en los extremos); flechas, Home y End |
+| `ConstellationProgress` | Una estrella por ítem, unidas por una línea; `progressbar` con texto "n de N" |
+| `Dialog` | `<dialog>` nativo en variante `sheet` (inferior en móvil) o `modal`; fondo con dither, no con blur |
+| `ToastStack` | Región `status` *polite*; sin cuenta regresiva ni auto-cierre (sin urgencia falsa) |
+| `Tooltip` | Aparece con hover y foco |
+| `LoadingState`, `EmptyState`, `ErrorState` | Estrellas que se encienden en pasos; personajes pixel opcionales |
+| `PixelSky` | Canvas con 3 capas de estrellas y nebulosa en dither Bayer; parpadeo a 8 fps; se detiene con `prefers-reduced-motion` y con la pestaña oculta |
+
+### 7.5 Iconos
+
+32 iconos dibujados como texto en `src/ui/design/icons.ts` (`#` línea,
+`+` relleno al 50 % con Bayer, `.` vacío). Se generan como `<symbol>` de un
+solo atlas SVG (`IconAtlas`, montado una vez) y se usan con `<use>`. Un test
+comprueba que son exactamente 32, todos de 12×12 y sin duplicados.
+
+### 7.6 Galería
+
+`/dev/ui` (responde 404 en producción) muestra todos los componentes y estados,
+el selector de los 4 modos, los iconos a ×1, ×2 y ×3 y una tabla de contraste
+calculada en vivo con `contrastRatio`.
+
+### 7.7 Pendiente para la Fase 3
+
+Las pantallas actuales siguen usando las clases heredadas (`text-ink`, radiales,
+`backdrop-blur`, `rounded-*` y emojis en los avisos). Se migran al kit en la
+Fase 3 y después se borran los tokens viejos.
 
 ## Anexo: verificación de licencias tipográficas
 
