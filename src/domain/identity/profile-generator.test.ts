@@ -216,7 +216,8 @@ describe("generateProfileNarrative", () => {
 
   it("weaves in the animal metaphor of the selected species", () => {
     expect(narrative).toContain("regeneración y adaptabilidad");
-    expect(narrative.toLowerCase()).toContain("axolotl");
+    expect(narrative).toContain("Tu naturaleza de ajolotito");
+    expect(narrative.toLowerCase()).not.toContain("axolotl");
   });
 
   it("is deterministic and varies with the identity", () => {
@@ -232,6 +233,13 @@ describe("generateProfileNarrative", () => {
         expect(text).not.toMatch(FORBIDDEN_PATTERN);
         expect(text).not.toMatch(/\d/);
       }
+    }
+  });
+
+  it("never leaks the English source name into es-MX copy", () => {
+    for (const animal of catalogo.animales) {
+      const text = generateProfileNarrative(animal, EMERALD, TOP_DIMENSIONS);
+      expect(text).toContain(`naturaleza de ${animal.diminutivo_es} `);
     }
   });
 

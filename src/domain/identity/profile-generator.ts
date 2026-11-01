@@ -595,7 +595,8 @@ export function generateProfileNarrative(
     animal.rasgos_personalidad.slice(0, 2).join(" y ") || "autenticidad y belleza";
   const animalTrait = ANIMAL_TRAITS[animal.nombre_fuente] ?? fallbackTrait;
   sentences.push(
-    `Tu naturaleza de ${animal.nombre_fuente.toLowerCase()} te dota de ${animalTrait}, ` +
+    // `nombre_fuente` is the English source name; user-facing copy stays es-MX.
+    `Tu naturaleza de ${animal.diminutivo_es} te dota de ${animalTrait}, ` +
     `una cualidad que se siente en cada interacción contigo.`
   );
 
