@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { isOriginAllowed, mergeVary, parseAllowedOrigins } from "@/infrastructure/security/origin";
+import {
+  isOriginAllowed,
+  mergeVary,
+  parseAllowedOrigins,
+  requestHosts,
+} from "@/infrastructure/security/origin";
 import { evaluateRateLimit } from "@/infrastructure/security/rate-limit.server";
 
 describe("API origin policy", () => {
@@ -11,13 +16,30 @@ describe("API origin policy", () => {
   });
 
   it("allows same-origin, allowlisted, and non-browser requests only", () => {
-    const requestUrl = "https://zoomatch.example/api/result";
+    const hosts = requestHosts("https://zoomatch.example/api/result", new Headers());
     const allowlist = ["https://ops.example"];
 
-    expect(isOriginAllowed(null, requestUrl, allowlist)).toBe(true);
-    expect(isOriginAllowed("https://zoomatch.example", requestUrl, allowlist)).toBe(true);
-    expect(isOriginAllowed("https://ops.example", requestUrl, allowlist)).toBe(true);
-    expect(isOriginAllowed("https://zoomatch.example.attacker.test", requestUrl, allowlist)).toBe(false);
+    expect(isOriginAllowed(null, hosts, allowlist)).toBe(true);
+    expect(isOriginAllowed("https://zoomatch.example", hosts, allowlist)).toBe(true);
+    expect(isOriginAllowed("https://ops.example", hosts, allowlist)).toBe(true);
+    expect(isOriginAllowed("https://zoomatch.example.attacker.test", hosts, allowlist)).toBe(false);
+    expect(isOriginAllowed("javascript:alert(1)", hosts, allowlist)).toBe(false);
+  });
+
+  it("accepts the public host even when request.url was rewritten", () => {
+    // next dev rewrites request.url to localhost; Vercel aliases share one function.
+    const lan = requestHosts(
+      "http://localhost:3000/api/enter",
+      new Headers({ host: "192.168.1.64:3000" }),
+    );
+    expect(isOriginAllowed("http://192.168.1.64:3000", lan, [])).toBe(true);
+
+    const alias = requestHosts(
+      "https://zoomatch-git-main.vercel.app/api/enter",
+      new Headers({ "x-forwarded-host": "zoomatch.vercel.app" }),
+    );
+    expect(isOriginAllowed("https://zoomatch.vercel.app", alias, [])).toBe(true);
+    expect(isOriginAllowed("https://evil.example", alias, [])).toBe(false);
   });
 
   it("merges Origin into existing Vary values once", () => {

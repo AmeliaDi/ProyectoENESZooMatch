@@ -125,7 +125,9 @@ de `next dev`) sin datos personales:
 
 | Evento | Significado | Qué revisar |
 |---|---|---|
+| `api.origin_rejected` (HTTP 403) | El navegador llegó por un dominio que no coincide con `Host` / `X-Forwarded-Host` | Añadir el dominio a `CORS_ALLOWED_ORIGINS` |
 | `enter.misconfigured` + `missing` | Faltan variables o son inválidas (la UI dice "falta configurar el servicio") | Las variables listadas; redeploy tras cambiarlas |
+| `enter.misconfigured` + `otherProject` | Una clave JWT legacy pertenece a otro proyecto que la URL (`supabaseRef`) | Dos integraciones Supabase en Vercel: deja solo una (ver abajo) |
 | `enter.failed` `step: profile_lookup` | No existe la tabla `profiles` o la clave de servicio es de otro proyecto | Aplicar `supabase/migrations/00000000000000_base.sql` y `seed.sql` |
 | `enter.failed` `step: create_user` | Supabase Auth rechazó al usuario | Authentication → Providers → Email habilitado; *Allow new users to sign up* activo |
 | `enter.failed` `step: insert_profile` | Esquema desactualizado | Reaplicar la migración base |
@@ -141,6 +143,15 @@ Nombres aceptados (el primero es el canónico; ver `src/infrastructure/env/env-a
 
 Así funcionan tanto los nombres del panel de Supabase como los de la integración
 Supabase ↔ Vercel.
+
+### Un solo proyecto Supabase por despliegue
+
+Si Vercel tiene conectadas dos integraciones o proyectos Supabase, cada una inyecta
+sus propias `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_URL`, claves y `POSTGRES_*`, y
+la URL puede quedar de un proyecto y la clave de otro. Deja **una** integración
+(Vercel → Settings → Integrations / Storage), borra las variables sobrantes y
+redespliega. Todos los logs de error de `/api/enter` incluyen `supabaseRef` (el ref
+público del proyecto, no un secreto) para confirmar a cuál apunta el despliegue.
 
 ## Persistencia
 

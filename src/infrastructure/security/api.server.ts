@@ -1,4 +1,10 @@
-import { isOriginAllowed, mergeVary, parseAllowedOrigins } from "@/infrastructure/security/origin";
+import {
+  isOriginAllowed,
+  mergeVary,
+  parseAllowedOrigins,
+  requestHosts,
+} from "@/infrastructure/security/origin";
+import { logServerEvent } from "@/infrastructure/observability/log.server";
 import { checkRateLimit, type RateLimitDecision } from "@/infrastructure/security/rate-limit.server";
 
 export interface ApiSecurityPolicy {
@@ -15,11 +21,13 @@ function configuredOrigins(): string[] {
 }
 
 function originIsAllowed(request: Request): boolean {
-  return isOriginAllowed(
+  const allowed = isOriginAllowed(
     request.headers.get("origin"),
-    request.url,
+    requestHosts(request.url, request.headers),
     configuredOrigins(),
   );
+  if (!allowed) logServerEvent("warn", "api.origin_rejected", { path: new URL(request.url).pathname });
+  return allowed;
 }
 
 function applyCorsHeaders(

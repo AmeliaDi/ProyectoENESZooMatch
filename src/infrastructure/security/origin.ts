@@ -17,17 +17,36 @@ export function parseAllowedOrigins(value: string | undefined): string[] {
   )];
 }
 
+/**
+ * Hosts the browser may legitimately have used to reach this server. Next.js
+ * does not always rebuild `request.url` with the public host (dev rewrites it
+ * to `localhost`; on Vercel aliases and custom domains reach the same
+ * function), so the `Host` / `X-Forwarded-Host` headers are the source of truth,
+ * as in Next's own server-action CSRF check.
+ */
+export function requestHosts(requestUrl: string, headers: Headers): string[] {
+  const hosts = [
+    headers.get("x-forwarded-host")?.split(",")[0],
+    headers.get("host"),
+    URL.canParse(requestUrl) ? new URL(requestUrl).host : undefined,
+  ];
+  const normalized = hosts
+    .map((host) => host?.trim().toLowerCase() ?? "")
+    .filter((host) => host.length > 0);
+  return [...new Set(normalized)];
+}
+
 export function isOriginAllowed(
   origin: string | null,
-  requestUrl: string,
+  hosts: readonly string[],
   configuredOrigins: readonly string[],
 ): boolean {
   if (!origin) return true;
 
   try {
-    const normalizedOrigin = new URL(origin).origin;
-    const sameOrigin = normalizedOrigin === new URL(requestUrl).origin;
-    return sameOrigin || configuredOrigins.includes(normalizedOrigin);
+    const url = new URL(origin);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+    return hosts.includes(url.host.toLowerCase()) || configuredOrigins.includes(url.origin);
   } catch {
     return false;
   }

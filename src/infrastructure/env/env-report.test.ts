@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { getServerEnv } from "./env.server";
-import { missingEnvNames } from "./env-report.server";
+import { mismatchedKeyNames, missingEnvNames } from "./env-report.server";
 
 const VALID = {
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
@@ -43,5 +43,22 @@ describe("missingEnvNames", () => {
     });
     expect(report).toEqual(["NEXT_PUBLIC_SUPABASE_URL|SUPABASE_URL", "MATRICULA_HMAC_SECRET"]);
     expect(report.join()).not.toContain("short");
+  });
+});
+
+function fakeJwt(ref: string): string {
+  const part = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  return `${part({ alg: "HS256" })}.${part({ ref, role: "service_role" })}.signature`;
+}
+
+describe("mismatchedKeyNames", () => {
+  it("flags a legacy key from another Supabase project", () => {
+    const source = { ...VALID, SUPABASE_SERVICE_ROLE_KEY: fakeJwt("otherproject") };
+    expect(mismatchedKeyNames(source)).toEqual(["SUPABASE_SERVICE_ROLE_KEY"]);
+  });
+
+  it("accepts legacy keys of the same project and new-style keys", () => {
+    expect(mismatchedKeyNames({ ...VALID, SUPABASE_SERVICE_ROLE_KEY: fakeJwt("example") })).toEqual([]);
+    expect(mismatchedKeyNames(VALID)).toEqual([]);
   });
 });

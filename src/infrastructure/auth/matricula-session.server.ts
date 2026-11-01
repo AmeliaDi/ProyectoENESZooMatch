@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { hashMatricula, privateLoginEmail } from "@/infrastructure/auth/identity.server";
-import { missingEnvNames } from "@/infrastructure/env/env-report.server";
+import { mismatchedKeyNames, missingEnvNames } from "@/infrastructure/env/env-report.server";
 import { getServerEnv } from "@/infrastructure/env/env.server";
 import { logServerEvent, safeErrorFields } from "@/infrastructure/observability/log.server";
 import { createAdminClient } from "@/infrastructure/supabase/admin.server";
@@ -33,9 +33,27 @@ interface ProfileRow {
 const RACE_RETRIES = 5;
 const RACE_DELAY_MS = 25;
 
+/** Project ref (public, not a secret) so logs reveal env vars from mixed projects. */
+function supabaseRef(): string | null {
+  const url = getServerEnv()?.NEXT_PUBLIC_SUPABASE_URL;
+  return url ? new URL(url).hostname.split(".")[0] ?? null : null;
+}
+
+/**
+ * 401/403 from Supabase means the key does not belong to the URL's project
+ * (e.g. env vars injected by two different Supabase integrations), not an outage.
+ */
+const KEY_REJECTED_STATUSES = new Set([401, 403]);
+/** Missing table/function: the base migration was not applied to this project. */
+const SCHEMA_MISSING_CODES = new Set(["42P01", "PGRST202", "PGRST205"]);
+
 function fail(step: EntryStep, error: unknown): MatriculaEntryResult {
-  logServerEvent("error", "enter.failed", { step, ...safeErrorFields(error) });
-  return { ok: false, reason: "unavailable" };
+  const fields = safeErrorFields(error);
+  logServerEvent("error", "enter.failed", { step, supabaseRef: supabaseRef(), ...fields });
+  const status = typeof fields.errorStatus === "number" ? fields.errorStatus : 0;
+  const code = typeof fields.errorCode === "string" ? fields.errorCode : "";
+  const misconfigured = KEY_REJECTED_STATUSES.has(status) || SCHEMA_MISSING_CODES.has(code);
+  return { ok: false, reason: misconfigured ? "misconfigured" : "unavailable" };
 }
 
 function findProfile(admin: SupabaseClient, matriculaHash: string) {
@@ -87,8 +105,13 @@ export async function enterWithMatricula(
   const env = getServerEnv();
   const admin = createAdminClient();
   const sessionClient = await createClient();
-  if (!env || !admin || !sessionClient) {
-    logServerEvent("error", "enter.misconfigured", { missing: missingEnvNames().join(",") });
+  const mismatched = mismatchedKeyNames();
+  if (!env || !admin || !sessionClient || mismatched.length > 0) {
+    logServerEvent("error", "enter.misconfigured", {
+      missing: missingEnvNames().join(","),
+      otherProject: mismatched.join(","),
+      supabaseRef: supabaseRef(),
+    });
     return { ok: false, reason: "misconfigured" };
   }
 
@@ -97,7 +120,8 @@ export async function enterWithMatricula(
     const email = privateLoginEmail(matriculaHash);
 
     const lookup = await findProfile(admin, matriculaHash);
-    if (lookup.error) return fail("profile_lookup", lookup.error);
+    // PostgREST reports the HTTP status on the response, not on the error.
+    if (lookup.error) return fail("profile_lookup", { ...lookup.error, status: lookup.status });
 
     const profile = lookup.data ?? (await createProfile(admin, matriculaHash, email));
     if ("ok" in profile) return profile;
