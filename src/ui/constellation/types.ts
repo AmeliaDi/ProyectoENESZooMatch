@@ -291,11 +291,11 @@ export interface NodeMeta {
  * Warm, affective, inclusive (‑x endings), never clinical.
  */
 export const CONSTELLATION_COPY = {
-  viewTitle: "Tu constelación de almas compatibles",
+  viewTitle: "Tu constelación",
   viewSubtitle:
-    "Cada estrellita es alguien que vibra contigo. Arrástralas, acércalas y toca una para leer su historia.",
-  trackRomance: "💫 Romance",
-  trackAmistad: "✨ Amistad",
+    "Cada estrella es alguien con quien tu afinidad estimada es alta. Arrástralas y toca una para ver por qué.",
+  trackRomance: "Romance",
+  trackAmistad: "Amistad",
   trackToggleLabel: "Elige el tipo de conexión que quieres explorar",
   loading: "Acomodando las estrellas…",
   canvasLabel:
@@ -304,9 +304,9 @@ export const CONSTELLATION_COPY = {
   connectionsOne: "conexión",
   connectionsMany: "conexiones",
   emptyRomance:
-    "Aún no aparece un alma gemela en este cielo, pero tranquilx: las constelaciones se siguen acomodando y tu vibra sigue siendo única <3",
+    "Aún no aparece una afinidad romántica en este cielo. Las constelaciones se siguen acomodando y tu vibra sigue siendo única.",
   emptyAmistad:
-    "Todavía no llega esx amigx con el que harías click inmediato, pero tu manada sigue creciendo. Vuelve pronto <3",
+    "Todavía no llega esa amistad con la que harías click, pero el cielo sigue creciendo.",
   closeSheet: "Cerrar detalle",
   sheetEyebrowRomance: "Conexión romántica",
   sheetEyebrowAmistad: "Conexión de amistad",

@@ -206,6 +206,17 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
       }
     },
 
+    async countActive() {
+      const res = await attempt(() =>
+        admin
+          .from(TABLE.profiles)
+          .select("user_id", { count: "exact", head: true })
+          .not("quiz_completed_at", "is", null)
+          .is("paused_at", null),
+      );
+      return res && !res.error && typeof res.count === "number" ? res.count : null;
+    },
+
     async findOwn(userId) {
       const res = await attempt(() =>
         admin

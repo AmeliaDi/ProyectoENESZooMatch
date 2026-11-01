@@ -33,6 +33,7 @@ export interface PublicResult {
   narrative: string;
   mbti_code: string | null;
   matches: { romance: ResultMatch[]; amistad: ResultMatch[] };
+  fewPeople: boolean;
   no_match_message: string;
 }
 
@@ -195,6 +196,7 @@ export function parsePublicResult(raw: unknown): PublicResult | null {
       romance: parseMatchList(raw.matches.romance),
       amistad: parseMatchList(raw.matches.amistad),
     },
+    fewPeople: raw.few_people === true,
     no_match_message: optionalString(raw.no_match_message) ?? NO_MATCH_MESSAGE,
   };
 }

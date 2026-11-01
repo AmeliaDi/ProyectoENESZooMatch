@@ -65,8 +65,18 @@ describe("getResult", () => {
     expect(result.ok && result.value).toMatchObject({
       alias: OWN.alias,
       matches: { romance: [], amistad: [] },
+      few_people: true,
       no_match_message: NO_MATCH_MESSAGE,
     });
+  });
+
+  it("exposes only a coarse few-people flag, never the pool size", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    const result = await getResult(VIEWER, wire(store));
+    if (!result.ok) throw new Error("expected ok");
+    expect(typeof result.value.few_people).toBe("boolean");
+    expect(Object.keys(result.value)).not.toContain("pool_size");
   });
 
   it("never leaks the counterpart user id and keeps handles stable per viewer", async () => {

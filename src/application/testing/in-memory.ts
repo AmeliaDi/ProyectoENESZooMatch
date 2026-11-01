@@ -81,6 +81,7 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
     async loadCompletedPool() {
       return store.faults.pool ? failed : ok(store.pool());
     },
+    countActive: async () => store.pool().length,
     findOwn: async () => ok(store.own),
     findCounterparts: async (ids) => store.counterparts.filter((c) => ids.includes(c.userId)),
   };

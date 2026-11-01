@@ -1,3 +1,4 @@
+import { EXPERIENCE } from "@/config";
 import {
   computeChemistrySummary,
   generateMatchExplanation,
@@ -23,7 +24,7 @@ const FALLBACK_ALIAS = "alguien especial";
 const OPAQUE_ID_LENGTH = 16;
 
 export interface GetResultDeps {
-  profiles: Pick<ProfileRepository, "findOwn" | "findCounterparts">;
+  profiles: Pick<ProfileRepository, "findOwn" | "findCounterparts" | "countActive">;
   matches: Pick<MatchRepository, "listFor">;
   /** One-way digest (hex) used to derive per-viewer opaque match handles. */
   digest(input: string): string;
@@ -102,9 +103,10 @@ export async function getResult(
   viewerId: string,
   deps: GetResultDeps,
 ): Promise<Result<ResultDto, AppError>> {
-  const [own, matches] = await Promise.all([
+  const [own, matches, active] = await Promise.all([
     deps.profiles.findOwn(viewerId),
     deps.matches.listFor(viewerId),
+    deps.profiles.countActive(),
   ]);
   if (!own.ok) return own;
   if (!matches.ok) return matches;
@@ -130,6 +132,7 @@ export async function getResult(
     narrative: profile.narrative,
     mbti_code: profile.mbtiCode,
     matches: { romance, amistad },
+    few_people: active !== null && active < EXPERIENCE.result.fewPeopleThreshold,
     no_match_message: NO_MATCH_MESSAGE,
   });
 }

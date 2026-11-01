@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { NotificationProvider } from "@/ui/shared/notification-provider";
 import { PublicResultView } from "@/ui/result/result-view";
+import { NotificationProvider } from "@/ui/shared/notification-provider";
 
 export const metadata: Metadata = { title: "Resultado | ZooMatch" };
 

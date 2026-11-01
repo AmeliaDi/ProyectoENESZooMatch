@@ -706,26 +706,20 @@ export function ConstellationCanvas({
 
   return (
     <div
-      className={`constellation-canvas relative w-full select-none ${className ?? ""}`.trim()}
+      className={`zm-canvas ${className ?? ""}`.trim()}
       style={rootStyle}
     >
       <div
         ref={surfaceRef}
-        className="cosmic-sky absolute inset-0 overflow-hidden rounded-3xl border border-white/10"
+        className="zm-canvas__surface"
+        data-track={track}
         style={{ touchAction: "none" }}
       >
-        <div className="cosmic-stars" aria-hidden="true" />
-        <div
-          className={`cosmic-nebula ${
-            track === "romance" ? "cosmic-nebula--romance" : "cosmic-nebula--amistad"
-          }`}
-          aria-hidden="true"
-        />
         {structure && width > 0 && height > 0 ? (
           <svg
             ref={svgRef}
             viewBox={`0 0 ${structure.width} ${structure.height}`}
-            className="absolute inset-0 h-full w-full"
+            className="zm-canvas__svg"
             role="group"
             aria-label={CONSTELLATION_COPY.canvasLabel}
             onPointerMove={handlePointerMove}
@@ -800,19 +794,18 @@ export function ConstellationCanvas({
                         : undefined
                     }
                   >
-                    {/* Soft colour glow behind every real star. */}
+                    {/* Dithered colour glow (no blur): a 25 % Bayer disc. */}
                     {!node.isGhost ? (
                       <circle
                         r={node.radius * 2.2}
                         fill={node.colorHex}
-                        opacity={0.14}
-                        style={{ filter: "blur(4px)" }}
+                        className="zm-canvas__glow"
                       />
                     ) : null}
 
                     {/* Halo: the self node wears its own colour. */}
                     {node.isSelf ? (
-                      <g className={reducedMotion ? undefined : "animate-pulse"}>
+                      <g className={reducedMotion ? undefined : "zm-canvas__halo"}>
                         <circle r={node.radius * 1.9} fill={node.colorHex} opacity={0.12} />
                         <circle
                           r={node.radius * 1.4}
@@ -830,7 +823,7 @@ export function ConstellationCanvas({
                       <circle
                         r={node.radius + 5}
                         fill="none"
-                        className="stroke-clay"
+                        className="zm-canvas__ring"
                         strokeWidth={2.5}
                         strokeDasharray={node.isSelf ? undefined : "5 4"}
                       />
@@ -864,7 +857,7 @@ export function ConstellationCanvas({
                       <text
                         y={node.radius + 16}
                         textAnchor="middle"
-                        className="pointer-events-none fill-paper font-mono"
+                        className="zm-canvas__tag"
                         fontSize={10}
                         opacity={0.82}
                       >
@@ -880,12 +873,8 @@ export function ConstellationCanvas({
 
         {/* ── Boot placeholder ── */}
         {booting || !structure ? (
-          <div className="absolute inset-0 grid place-items-center px-6 text-center">
-            <p
-              className="font-mono text-[0.68rem] tracking-[0.18em] text-paper/60 uppercase"
-              role="status"
-              aria-live="polite"
-            >
+          <div className="zm-canvas__overlay">
+            <p className="zm-canvas__status" role="status" aria-live="polite">
               {CONSTELLATION_COPY.loading}
             </p>
           </div>
@@ -893,8 +882,8 @@ export function ConstellationCanvas({
 
         {/* ── Empty sky ── */}
         {isEmpty ? (
-          <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center px-6">
-            <p className="max-w-sm text-center text-sm leading-relaxed text-paper/75 italic">
+          <div className="zm-canvas__empty">
+            <p className="zm-box zm-canvas__empty-card">
               {emptyMessage ??
                 (track === "romance"
                   ? CONSTELLATION_COPY.emptyRomance
@@ -905,7 +894,7 @@ export function ConstellationCanvas({
       </div>
 
       {/* ── Textual alternative for screen readers ── */}
-      <section className="sr-only" aria-labelledby="constellation-sr-heading">
+      <section className="zm-sr-only" aria-labelledby="constellation-sr-heading">
         <h2 id="constellation-sr-heading">{CONSTELLATION_COPY.srListHeading}</h2>
         <p>{CONSTELLATION_COPY.srListIntro}</p>
         <ul>

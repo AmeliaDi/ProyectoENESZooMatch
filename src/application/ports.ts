@@ -71,6 +71,8 @@ export interface ProfileRepository {
   setInclusiveMode(userId: string, mode: InclusiveMode): Promise<void>;
   /** Completed and not paused: the only profiles that take part in matching. */
   loadCompletedPool(): Promise<Result<PoolProfile[], StorageError>>;
+  /** Best-effort size of the active pool; `null` when unknown. Never exposed raw. */
+  countActive(): Promise<number | null>;
   findOwn(userId: string): Promise<Result<OwnProfile | null, StorageError>>;
   /** Best-effort: missing counterparts simply produce no explanation. */
   findCounterparts(userIds: readonly string[]): Promise<CounterpartProfile[]>;

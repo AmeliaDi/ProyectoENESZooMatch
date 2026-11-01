@@ -84,6 +84,7 @@ describe("parsePublicResult", () => {
       "alias",
       "animal",
       "color",
+      "fewPeople",
       "matches",
       "mbti_code",
       "narrative",

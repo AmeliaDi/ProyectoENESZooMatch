@@ -1,22 +1,9 @@
 "use client";
 
 /**
- * ConstellationView — the composed experience, and Phase C's entry point.
- *
- * Owns the three pieces of state that tie the sub-components together:
- *   • the active track,
- *   • the selected node (drives both the happy-frame highlight and the sheet),
- *   • the resolved reduced-motion preference.
- *
- * Phase C only needs to map `GET /api/result` onto `me` / `matches` and drop
- * this component on a page:
- *
- * ```tsx
- * <ConstellationView me={me} matches={matches} initialTrack="romance" />
- * ```
- *
- * The sub-components are also exported individually from `./index` in case a
- * route wants to own the toggle or the sheet itself.
+ * ConstellationView — the canvas plus its detail sheet, with the track either
+ * owned here (dev panel) or controlled by the parent (result screen, which
+ * shares the Romance/Amistad tabs with the list view).
  */
 
 import { useCallback, useMemo, useState } from "react";
@@ -29,22 +16,28 @@ import { useReducedMotionPreference } from "./hooks";
 import { NodeDetailSheet } from "./NodeDetailSheet";
 import { matchesForTrack } from "./render-helpers";
 import { TrackToggle } from "./TrackToggle";
-import { CONSTELLATION_COPY, type ConstellationViewProps } from "./types";
+import type { ConstellationViewProps } from "./types";
+
+export interface ControlledTrack {
+  /** When set, the parent owns the track and renders its own tabs. */
+  track?: MatchTrack;
+}
 
 export function ConstellationView({
   me,
   matches,
   initialTrack = "romance",
+  track: controlledTrack,
   ghostCount = 8,
   reducedMotion,
   className,
   style,
-  title = CONSTELLATION_COPY.viewTitle,
   emptyMessage,
-}: ConstellationViewProps) {
+}: ConstellationViewProps & ControlledTrack) {
   const motionReduced = useReducedMotionPreference(reducedMotion);
-  const [track, setTrack] = useState<MatchTrack>(initialTrack);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [ownTrack, setOwnTrack] = useState<MatchTrack>(initialTrack);
+  const track = controlledTrack ?? ownTrack;
+  const [selection, setSelection] = useState<{ id: string; track: MatchTrack } | null>(null);
 
   const counts = useMemo(
     () => ({
@@ -54,58 +47,29 @@ export function ConstellationView({
     [matches],
   );
 
-  // Only a match that is real under the ACTIVE track can open the sheet, so a
-  // stale selection can never surface somebody the sky is not showing.
-  const selected = useMemo(() => {
-    if (selectedNodeId === null) return null;
-    return matches.find((match) => match.id === selectedNodeId && match.track === track) ?? null;
-  }, [matches, selectedNodeId, track]);
+  // A selection made under another track is ignored, so a stale one can never
+  // surface somebody the sky is not showing.
+  const selectedId = selection?.track === track ? selection.id : null;
+  const selected = useMemo(
+    () => (selectedId ? (matches.find((m) => m.id === selectedId && m.track === track) ?? null) : null),
+    [matches, selectedId, track],
+  );
 
-  const handleTrackChange = useCallback((next: MatchTrack): void => {
-    setTrack(next);
-    setSelectedNodeId(null);
-  }, []);
-
-  const handleSelectNode = useCallback((nodeId: string): void => {
-    setSelectedNodeId((current) => (current === nodeId ? null : nodeId));
-  }, []);
-
-  const handleClose = useCallback((): void => {
-    setSelectedNodeId(null);
-  }, []);
+  const handleSelect = useCallback(
+    (nodeId: string) => setSelection((current) => (current?.id === nodeId ? null : { id: nodeId, track })),
+    [track],
+  );
+  const handleClose = useCallback(() => setSelection(null), []);
 
   return (
-    <section
-      className={`constellation-view w-full ${className ?? ""}`.trim()}
-      style={style}
-      aria-labelledby="constellation-view-title"
-    >
-      <header className="mb-4">
-        <h2
-          id="constellation-view-title"
-          className="font-display text-2xl leading-tight font-semibold tracking-[-0.02em] text-ink sm:text-3xl"
-        >
-          {title}
-        </h2>
-        <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-ink/70">
-          {CONSTELLATION_COPY.viewSubtitle}
-        </p>
-      </header>
-
-      <TrackToggle
-        track={track}
-        onChange={handleTrackChange}
-        counts={counts}
-        reducedMotion={motionReduced}
-        panelId="constellation-panel"
-        className="mb-4"
-      />
-
+    <section className={`zm-sky-view ${className ?? ""}`.trim()} style={style} aria-label="Tu constelación">
+      {controlledTrack === undefined ? (
+        <TrackToggle track={track} onChange={setOwnTrack} counts={counts} panelId="constellation-panel" />
+      ) : null}
       <div
-        id="constellation-panel"
+        id={`constellation-panel-${track}`}
         role="tabpanel"
         aria-labelledby={`constellation-tab-${track}`}
-        className="outline-none"
       >
         <ConstellationCanvas
           me={me}
@@ -113,19 +77,12 @@ export function ConstellationView({
           track={track}
           ghostCount={ghostCount}
           reducedMotion={motionReduced}
-          selectedNodeId={selectedNodeId}
-          onSelectNode={handleSelectNode}
+          selectedNodeId={selectedId}
+          onSelectNode={handleSelect}
           {...(emptyMessage !== undefined ? { emptyMessage } : {})}
         />
       </div>
-
-      <NodeDetailSheet
-        node={selected}
-        self={me}
-        track={track}
-        reducedMotion={motionReduced}
-        onClose={handleClose}
-      />
+      <NodeDetailSheet node={selected} self={me} track={track} reducedMotion={motionReduced} onClose={handleClose} />
     </section>
   );
 }

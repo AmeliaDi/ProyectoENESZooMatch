@@ -56,6 +56,7 @@ function makeResult(overrides: Partial<PublicResult> = {}): PublicResult {
     narrative: "Eres un ajolotito con una capacidad infinita de regenerar.",
     mbti_code: "ENFJ",
     matches: { romance: [makeMatch()], amistad: [] },
+    fewPeople: false,
     no_match_message: "mensaje",
     ...overrides,
   };
