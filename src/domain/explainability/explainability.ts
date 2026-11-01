@@ -36,7 +36,7 @@ import { getMatchingConfig } from "@/domain/matching/config";
 
 /** Qualitative chemistry bands, from highest to lowest affinity. */
 export type ChemistryLevel =
-  | "almas_gemelas" //       relative position >= 0.70
+  | "afinidad_muy_alta" //   relative position >= 0.70
   | "quimica_excepcional" // >= 0.45
   | "quimica_fuerte" //      >= 0.25
   | "buena_quimica" //       >= 0.10
@@ -74,8 +74,32 @@ export interface AffinityBreakdown {
   percentage: number;
   /** Dynamic affective phrase chosen from the category's range template. */
   phrase: string;
-  /** Category icon (emoji). */
+  /** Category key reused as icon key; the UI maps it to a pixel icon. */
   icon: string;
+}
+
+/** Qualitative confidence of an estimated affinity (never a probability). */
+export type ConfidenceLevel = "alta" | "media";
+
+export interface MatchConfidence {
+  level: ConfidenceLevel;
+  /** Short es-MX label, e.g. "Confianza alta". */
+  label: string;
+  /** One sentence derived from the same numbers (margin and weakest category). */
+  reason: string;
+}
+
+/**
+ * The weakest category of the breakdown, framed as something to talk about.
+ * It is exactly `argmin(breakdown.percentage)`, so it is verifiable.
+ */
+export interface HealthyTension {
+  category: string;
+  categoryLabel: string;
+  percentage: number;
+  /** `true` when even the weakest category stays above the confidence floor. */
+  complementary: boolean;
+  text: string;
 }
 
 export interface PersonalitySummary {
@@ -146,6 +170,10 @@ export interface MatchExplanation extends MatchNarrative {
   headline: string;
   /** Derived Big Five/MBTI/Enneagram/attachment layer. */
   psychometrics?: MatchPsychometrics;
+  /** Qualitative confidence derived from the threshold margin and category floor. */
+  confidence?: MatchConfidence;
+  /** Weakest category, presented as a conversation to have (not a verdict). */
+  tension?: HealthyTension | null;
 }
 
 // ─── Internal constants ───────────────────────────────────────────────────────
@@ -183,16 +211,17 @@ const CATEGORY_LABELS: Record<AffinityCategory, string> = {
   identidad: "Identidad y compromiso",
 };
 
+/** Icon keys equal the category keys; the UI owns the pixel drawings. */
 const CATEGORY_ICONS: Record<AffinityCategory, string> = {
-  personalidad: "🧠",
-  afinidad_cultural: "🎨",
-  intimidad_afecto: "💝",
-  valores_relacionales: "⚖️",
-  identidad: "🌈",
+  personalidad: "personalidad",
+  afinidad_cultural: "afinidad_cultural",
+  intimidad_afecto: "intimidad_afecto",
+  valores_relacionales: "valores_relacionales",
+  identidad: "identidad",
 };
 
 const LEVEL_LABELS: Record<ChemistryLevel, string> = {
-  almas_gemelas: "Almas gemelas",
+  afinidad_muy_alta: "Afinidad muy alta",
   quimica_excepcional: "Química excepcional",
   quimica_fuerte: "Química fuerte",
   buena_quimica: "Buena química",
@@ -1288,7 +1317,7 @@ export function computeChemistrySummary(similarity: number, track: MatchTrack): 
   const relativePosition = clamp01((normalized - threshold) / span);
 
   let level: ChemistryLevel;
-  if (relativePosition >= 0.70) level = "almas_gemelas";
+  if (relativePosition >= 0.70) level = "afinidad_muy_alta";
   else if (relativePosition >= 0.45) level = "quimica_excepcional";
   else if (relativePosition >= 0.25) level = "quimica_fuerte";
   else if (relativePosition >= 0.10) level = "buena_quimica";
@@ -1566,5 +1595,80 @@ export function generateMatchExplanation(
     compatibility: computePsychometricCompatibility(user, match),
   };
 
-  return { ...narrative, chemistry, breakdown, personalitySummary, headline, psychometrics };
+  const confidence = computeMatchConfidence(chemistry, breakdown);
+  const tension = findHealthyTension(breakdown);
+  return {
+    ...narrative,
+    chemistry,
+    breakdown,
+    personalitySummary,
+    headline,
+    psychometrics,
+    confidence,
+    tension,
+  };
+}
+
+// ─── Confidence and healthy tension ───────────────────────────────────────────
+
+const EXPLAIN = MATCHING_CONFIG.explainability;
+
+function weakest(breakdown: readonly AffinityBreakdown[]): AffinityBreakdown | null {
+  let low: AffinityBreakdown | null = null;
+  for (const entry of breakdown) {
+    if (!low || entry.percentage < low.percentage) low = entry;
+  }
+  return low;
+}
+
+/**
+ * "Alta" only when the pair clears the threshold by a configured margin AND
+ * no category falls under the floor; otherwise "media". Pairs below the
+ * threshold are never shown, so there is no "baja".
+ */
+export function computeMatchConfidence(
+  chemistry: ChemistrySummary,
+  breakdown: readonly AffinityBreakdown[],
+): MatchConfidence {
+  const low = weakest(breakdown);
+  const marginOk = chemistry.relativePosition >= EXPLAIN.confidence_high_margin;
+  const floorOk = !low || low.percentage >= EXPLAIN.category_floor;
+  if (marginOk && floorOk) {
+    return {
+      level: "alta",
+      label: "Confianza alta",
+      reason: "Supera con holgura el umbral y ninguna área queda baja.",
+    };
+  }
+  return {
+    level: "media",
+    label: "Confianza media",
+    reason: !marginOk
+      ? "Está cerca del umbral: es una afinidad posible, no contundente."
+      : `Un área (${low?.categoryLabel.toLowerCase() ?? ""}) queda por debajo del resto.`,
+  };
+}
+
+const TENSION_TEXT: Record<AffinityCategory, string> = {
+  personalidad: "Tienen ritmos de personalidad distintos; puede equilibrarlos si lo platican.",
+  afinidad_cultural: "Sus gustos no coinciden tanto: buen pretexto para enseñarse cosas nuevas.",
+  intimidad_afecto: "Expresan el afecto de forma diferente; vale la pena decir qué necesita cada quien.",
+  valores_relacionales: "Aquí ven algunas cosas distinto; conviene hablarlo pronto y con calma.",
+  identidad: "Imaginan el compromiso de forma algo distinta; platíquenlo sin prisa.",
+};
+
+/** Returns the weakest breakdown category as a conversation starter. */
+export function findHealthyTension(
+  breakdown: readonly AffinityBreakdown[],
+): HealthyTension | null {
+  const low = weakest(breakdown);
+  if (!low) return null;
+  const category = low.category as AffinityCategory;
+  return {
+    category: low.category,
+    categoryLabel: low.categoryLabel,
+    percentage: low.percentage,
+    complementary: low.percentage >= EXPLAIN.category_floor,
+    text: TENSION_TEXT[category] ?? TENSION_TEXT.personalidad,
+  };
 }

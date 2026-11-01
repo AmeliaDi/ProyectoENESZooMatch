@@ -63,37 +63,38 @@ export const MICROTEST_ITEMS: readonly QuizItem[] = QUIZ_ITEMS;
 
 interface BadgeMeta {
   readonly label: string;
+  /** Category key; the UI maps it to a pixel icon (no emoji in the domain). */
   readonly icon: string;
 }
 
-/** Human-readable Spanish label + icon for every scored dimension. */
+/** Human-readable Spanish label + icon key for every scored dimension. */
 const BADGE_METADATA = {
-  personalidad_apertura: { label: "Misma curiosidad por el mundo", icon: "🌍" },
-  personalidad_responsabilidad: { label: "Ritmo de vida compatible", icon: "⚡" },
-  personalidad_extraversion: { label: "Misma energía social", icon: "✨" },
-  personalidad_amabilidad: { label: "Calidez compartida", icon: "🤗" },
-  personalidad_estabilidad_emocional: { label: "Equilibrio emocional alineado", icon: "🧘" },
-  identidad_exclusividad: { label: "Misma visión de compromiso", icon: "💫" },
-  identidad_comunicacion_afectiva: { label: "Comunicación afectiva compatible", icon: "💬" },
-  cultural_musica_exploracion: { label: "Gustos musicales conectados", icon: "🎵" },
-  cultural_estetica_visual: { label: "Misma sensibilidad estética", icon: "🎨" },
-  cultural_hobbies_creativos: { label: "Hobbies creativos compartidos", icon: "✂️" },
-  cultural_vida_universitaria: { label: "Misma vibra universitaria", icon: "🎓" },
-  cultural_humor: { label: "Humor compatible", icon: "😄" },
-  intimidad_palabras_afirmacion: { label: "Ambos valoran las palabras de amor", icon: "💝" },
-  intimidad_tiempo_calidad: { label: "Mismo lenguaje: tiempo juntos", icon: "⏰" },
-  intimidad_regalos_detalle: { label: "Ambos aman los detalles", icon: "🎁" },
-  intimidad_contacto_fisico: { label: "Mismo lenguaje: contacto físico", icon: "🫂" },
-  intimidad_actos_servicio: { label: "Ambos valoran los actos de servicio", icon: "🤲" },
-  intimidad_apertura_emocional: { label: "Apertura emocional profunda", icon: "💗" },
-  intimidad_comunicacion_deseos: { label: "Comunicación de deseos alineada", icon: "🗣️" },
-  intimidad_limites_respeto: { label: "Respeto por límites compartido", icon: "🛡️" },
-  valores_empatia: { label: "Empatía mutua", icon: "💞" },
-  valores_confianza: { label: "Confianza como base", icon: "🔒" },
-  valores_gestion_conflicto: { label: "Misma forma de resolver conflictos", icon: "🕊️" },
-  valores_igualdad_genero: { label: "Valores de igualdad alineados", icon: "⚖️" },
-  valores_corresponsabilidad: { label: "Corresponsabilidad compartida", icon: "🤝" },
-  valores_respeto_diversidad: { label: "Respeto por la diversidad", icon: "🌈" },
+  personalidad_apertura: { label: "Misma curiosidad por el mundo", icon: "personalidad" },
+  personalidad_responsabilidad: { label: "Ritmo de vida compatible", icon: "personalidad" },
+  personalidad_extraversion: { label: "Misma energía social", icon: "personalidad" },
+  personalidad_amabilidad: { label: "Calidez compartida", icon: "personalidad" },
+  personalidad_estabilidad_emocional: { label: "Equilibrio emocional alineado", icon: "personalidad" },
+  identidad_exclusividad: { label: "Misma visión de compromiso", icon: "identidad" },
+  identidad_comunicacion_afectiva: { label: "Comunicación afectiva compatible", icon: "identidad" },
+  cultural_musica_exploracion: { label: "Gustos musicales conectados", icon: "afinidad_cultural" },
+  cultural_estetica_visual: { label: "Misma sensibilidad estética", icon: "afinidad_cultural" },
+  cultural_hobbies_creativos: { label: "Hobbies creativos compartidos", icon: "afinidad_cultural" },
+  cultural_vida_universitaria: { label: "Misma vibra universitaria", icon: "afinidad_cultural" },
+  cultural_humor: { label: "Humor compatible", icon: "afinidad_cultural" },
+  intimidad_palabras_afirmacion: { label: "Valoran las palabras de afecto", icon: "intimidad_afecto" },
+  intimidad_tiempo_calidad: { label: "Mismo lenguaje: tiempo juntos", icon: "intimidad_afecto" },
+  intimidad_regalos_detalle: { label: "Valoran los detalles", icon: "intimidad_afecto" },
+  intimidad_contacto_fisico: { label: "Mismo lenguaje: contacto físico", icon: "intimidad_afecto" },
+  intimidad_actos_servicio: { label: "Valoran los actos de servicio", icon: "intimidad_afecto" },
+  intimidad_apertura_emocional: { label: "Apertura emocional profunda", icon: "intimidad_afecto" },
+  intimidad_comunicacion_deseos: { label: "Comunicación de deseos alineada", icon: "intimidad_afecto" },
+  intimidad_limites_respeto: { label: "Respeto por límites compartido", icon: "intimidad_afecto" },
+  valores_empatia: { label: "Empatía mutua", icon: "valores_relacionales" },
+  valores_confianza: { label: "Confianza como base", icon: "valores_relacionales" },
+  valores_gestion_conflicto: { label: "Misma forma de resolver conflictos", icon: "valores_relacionales" },
+  valores_igualdad_genero: { label: "Valores de igualdad alineados", icon: "valores_relacionales" },
+  valores_corresponsabilidad: { label: "Corresponsabilidad compartida", icon: "valores_relacionales" },
+  valores_respeto_diversidad: { label: "Respeto por la diversidad", icon: "valores_relacionales" },
 } as const satisfies Record<string, BadgeMeta>;
 
 const BADGE_LOOKUP = BADGE_METADATA as Record<string, BadgeMeta>;
@@ -612,7 +613,7 @@ export function generateBadges(
       dimension,
       label: meta?.label ?? dimension,
       affinity,
-      icon: meta?.icon ?? "•",
+      icon: meta?.icon ?? "general",
     };
   });
 

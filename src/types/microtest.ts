@@ -289,6 +289,13 @@ export interface MatchingConfig {
     target_coverage: number;
     max_users: number;
   };
+  /** Design assumptions for the qualitative confidence shown with a match. */
+  explainability: {
+    /** Minimum relative position above the threshold for "confianza alta". */
+    confidence_high_margin: number;
+    /** Category percentage under which a match is never "alta". */
+    category_floor: number;
+  };
 }
 
 // Notification types

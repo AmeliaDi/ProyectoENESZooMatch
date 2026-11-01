@@ -78,7 +78,7 @@ const ALL_COPY: Array<{ type: NotificationType; title: string; body: string }> =
     ].map((ctx) => ({ type, ...generateNotificationCopy(type, ctx) })),
   ),
   { type: "welcome", ...generateWelcomeMessage(USER_ANIMAL, USER_COLOR) },
-  { type: "no_match", body: NO_MATCH_MESSAGE, title: "Tu momento llegará 🌱" },
+  { type: "no_match", body: NO_MATCH_MESSAGE, title: "Tu momento llegará" },
 ];
 
 // ─── No-match message ─────────────────────────────────────────────────────────

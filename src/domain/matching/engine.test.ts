@@ -787,7 +787,7 @@ describe("generateBadges", () => {
     for (const badge of badges) {
       expect(typeof badge.dimension).toBe("string");
       expect(badge.label.length).toBeGreaterThan(0);
-      expect(badge.icon.length).toBeGreaterThan(0);
+      expect(badge.icon).toMatch(/^[a-z_]+$/);
       expect(badge.affinity).toBeGreaterThanOrEqual(0);
       expect(badge.affinity).toBeLessThanOrEqual(1);
       expect(Object.keys(badge).sort()).toEqual(["affinity", "dimension", "icon", "label"]);
@@ -820,7 +820,7 @@ describe("generateBadges", () => {
       dimension: "valores_empatia",
       label: "Empatía mutua",
       affinity: expect.closeTo(0.5, 12),
-      icon: "💞",
+      icon: "valores_relacionales",
     });
   });
 
@@ -830,7 +830,7 @@ describe("generateBadges", () => {
     expect(badge).toBeDefined();
     if (!badge) return;
     expect(badge.label).toBe("dimension_desconocida");
-    expect(badge.icon).toBe("•");
+    expect(badge.icon).toBe("general");
     expect(badge.affinity).toBeCloseTo(1, 12);
   });
 

@@ -91,5 +91,9 @@
     "method": "bisection",
     "target_coverage": 0.06,
     "max_users": 300
+  },
+  "explainability": {
+    "confidence_high_margin": 0.25,
+    "category_floor": 60
   }
 }

@@ -4,7 +4,10 @@ import {
   buildMatchNarrative,
   cognitiveComplementarity,
   computeChemistrySummary,
+  computeMatchConfidence,
+  findHealthyTension,
   generateMatchExplanation,
+  type AffinityBreakdown,
 } from "./explainability";
 import { getMatchingConfig } from "@/domain/matching/config";
 import type { MatchTrack } from "@/types/microtest";
@@ -36,7 +39,7 @@ describe("computeChemistrySummary", () => {
         "quimica_excepcional",
       );
       expect(computeChemistrySummary(similarityAt(track, 0.75), track).level).toBe(
-        "almas_gemelas",
+        "afinidad_muy_alta",
       );
     },
   );
@@ -64,7 +67,7 @@ describe("computeChemistrySummary", () => {
     const summary = computeChemistrySummary(1, "romance");
 
     expect(summary.percentage).toBe(100);
-    expect(summary.level).toBe("almas_gemelas");
+    expect(summary.level).toBe("afinidad_muy_alta");
     expect(summary.relativePosition).toBe(1);
   });
 });
@@ -363,5 +366,63 @@ describe("generateMatchExplanation", () => {
     expect(explanation.dinamicaCotidiana.length).toBeGreaterThan(40);
     expect(explanation.puntoDeAtencion.length).toBeGreaterThan(40);
     expect(explanation.chemistry.percentage).toBe(80);
+  });
+
+  it("emits icon keys, never emojis", () => {
+    const vector = Array.from({ length: 26 }, () => 0.5);
+    const explanation = generateMatchExplanation(
+      0.8, vector, vector, "romance", "a", "b", null, null, "c", null, null,
+    );
+    for (const entry of explanation.breakdown) {
+      expect(entry.icon).toBe(entry.category);
+    }
+  });
+
+  it("derives tension and confidence from its own breakdown", () => {
+    const a = Array.from({ length: 26 }, () => 0.5);
+    const b = a.map((value, index) => (index >= 12 && index < 20 ? 0.95 : value));
+    const explanation = generateMatchExplanation(
+      0.9, a, b, "romance", "a", "b", null, null, "c", null, null,
+    );
+    const lowest = Math.min(...explanation.breakdown.map((entry) => entry.percentage));
+    expect(explanation.tension?.percentage).toBe(lowest);
+    expect(explanation.confidence).toEqual(
+      computeMatchConfidence(explanation.chemistry, explanation.breakdown),
+    );
+  });
+});
+
+function entry(category: string, percentage: number): AffinityBreakdown {
+  return { category, categoryLabel: category, percentage, phrase: "", icon: category };
+}
+
+describe("computeMatchConfidence", () => {
+  const { confidence_high_margin: margin, category_floor: floor } = config.explainability;
+
+  it("is high only with margin above the threshold and every category over the floor", () => {
+    const high = computeChemistrySummary(similarityAt("romance", margin + 0.05), "romance");
+    expect(computeMatchConfidence(high, [entry("personalidad", floor + 5)]).level).toBe("alta");
+    expect(computeMatchConfidence(high, [entry("personalidad", floor - 5)]).level).toBe("media");
+
+    const close = computeChemistrySummary(similarityAt("romance", margin / 2), "romance");
+    expect(computeMatchConfidence(close, [entry("personalidad", 99)]).level).toBe("media");
+  });
+});
+
+describe("findHealthyTension", () => {
+  it("returns the argmin category and flags whether it stays above the floor", () => {
+    const tension = findHealthyTension([
+      entry("personalidad", 90),
+      entry("intimidad_afecto", 40),
+      entry("valores_relacionales", 70),
+    ]);
+    expect(tension?.category).toBe("intimidad_afecto");
+    expect(tension?.percentage).toBe(40);
+    expect(tension?.complementary).toBe(false);
+    expect(tension?.text.length).toBeGreaterThan(20);
+  });
+
+  it("is null without categories", () => {
+    expect(findHealthyTension([])).toBeNull();
   });
 });

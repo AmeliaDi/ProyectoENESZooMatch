@@ -17,7 +17,7 @@ const BADGE: CompatibilityBadge = {
   dimension: "valores_empatia",
   label: "Empatía",
   affinity: 0.9,
-  icon: "💜",
+  icon: "valores_relacionales",
 };
 
 function makeMatch(overrides: Partial<ResultMatch> = {}): ResultMatch {

@@ -74,6 +74,7 @@ describe("base migration", () => {
   it("versions the pool with a trigger-maintained counter, not timestamps", () => {
     expect(SQL).toContain("AFTER UPDATE OF quiz_completed_at ON public.profiles");
     expect(SQL).toContain("AFTER DELETE ON public.profiles");
+    expect(SQL).toContain("AFTER UPDATE OF paused_at ON public.profiles");
     expect(SQL).toMatch(/private\.pool_version\(\) IS DISTINCT FROM p_pool_version/);
   });
 
@@ -92,6 +93,12 @@ describe("base migration", () => {
     expect(PUBLIC_FUNCTIONS.get("notify_matches")).toContain(
       "AND type IN ('match_romance', 'match_amistad', 'no_match')",
     );
+  });
+
+  it("keeps notification copy free of emojis", () => {
+    const notify = PUBLIC_FUNCTIONS.get("notify_matches") ?? "";
+    expect(notify).not.toMatch(/\p{Extended_Pictographic}/u);
+    expect(notify.toLowerCase()).not.toContain("perfecci");
   });
 
   it("keeps participant tables free of client policies", () => {

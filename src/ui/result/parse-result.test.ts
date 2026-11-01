@@ -208,9 +208,9 @@ describe("parsePublicResult", () => {
 
     const [full, sparse] = parsed.matches.romance as [ResultMatch, ResultMatch];
     expect(full.similarity).toBeCloseTo(0.87, 12);
-    // Labels and icons always come from the local badge map, never from the server.
+    // Labels and icon keys always come from the local map, never from the server.
     expect(full.badges).toEqual([
-      { dimension: "valores_empatia", label: "Empatía", affinity: 0.9, icon: "💜" },
+      { dimension: "valores_empatia", label: "Empatía", affinity: 0.9, icon: "valores_relacionales" },
     ]);
     expect(sparse.animal).toBe("");
     expect(sparse.color).toBe("");
@@ -239,12 +239,12 @@ describe("parsePublicResult", () => {
     ) as PublicResult;
 
     expect(parsed.matches.romance[0]?.badges).toEqual([
-      { dimension: "cultural_humor", label: "Humor", affinity: 0.8, icon: "😄" },
+      { dimension: "cultural_humor", label: "Humor", affinity: 0.8, icon: "afinidad_cultural" },
       {
         dimension: "dimension_desconocida",
         label: "dimension desconocida",
         affinity: 0.4,
-        icon: "✨",
+        icon: "general",
       },
     ]);
   });

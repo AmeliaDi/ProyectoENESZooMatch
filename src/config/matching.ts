@@ -90,6 +90,10 @@ export const matchingConfigSchema = z.strictObject({
     target_coverage: unit,
     max_users: z.number().int().positive(),
   }),
+  explainability: z.strictObject({
+    confidence_high_margin: unit,
+    category_floor: z.number().int().min(0).max(100),
+  }),
 });
 
 /** Validated, frozen `data/matching-config.json`. */

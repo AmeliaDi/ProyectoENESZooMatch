@@ -94,7 +94,7 @@ function makeState(
 }
 
 function makeBadge(dimension: string, affinity: number): CompatibilityBadge {
-  return { dimension, label: `Label ${dimension}`, affinity, icon: "★" };
+  return { dimension, label: `Label ${dimension}`, affinity, icon: "general" };
 }
 
 const SELF: ConstellationSelfInput = {

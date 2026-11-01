@@ -140,8 +140,8 @@ describe("bayer", () => {
 });
 
 describe("icons", () => {
-  it("has exactly 32 unique 12×12 drawings", () => {
-    expect(ICON_NAMES).toHaveLength(32);
+  it("has 32 UI icons plus 5 category icons, all unique 12×12 drawings", () => {
+    expect(ICON_NAMES).toHaveLength(37);
     const seen = new Set<string>();
     for (const name of ICON_NAMES) {
       const rows = iconDrawing(name);

@@ -1,7 +1,7 @@
 /**
  * Client-side parser for `GET /api/result`. It never trusts the payload:
- * malformed entries are dropped, badge labels/icons come from a local map,
- * and a missing chemistry summary is derived from the similarity percentage.
+ * malformed entries are dropped, badge labels come from a local map and the
+ * badge icon is the dimension's category key (rendered as a pixel icon).
  */
 import type { ChemistrySummary, MatchExplanation } from "@/contracts/result";
 import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
@@ -36,38 +36,51 @@ export interface PublicResult {
   no_match_message: string;
 }
 
-const DIMENSION_BADGE_MAP: Record<string, { icon: string; label: string }> = {
-  personalidad_apertura: { icon: "🌱", label: "Curiosidad" },
-  personalidad_responsabilidad: { icon: "⚓", label: "Responsabilidad" },
-  personalidad_extraversion: { icon: "⚡", label: "Energía social" },
-  personalidad_amabilidad: { icon: "🤝", label: "Amabilidad" },
-  personalidad_estabilidad_emocional: { icon: "🌊", label: "Calma emocional" },
-  mbti_extraversion: { icon: "🔆", label: "Extraversión" },
-  mbti_intuicion: { icon: "🔮", label: "Intuición" },
-  mbti_pensamiento: { icon: "🧠", label: "Pensamiento" },
-  mbti_juicio: { icon: "📐", label: "Estructura" },
-  identidad_exclusividad: { icon: "💫", label: "Exclusividad" },
-  identidad_comunicacion_afectiva: { icon: "💬", label: "Comunicación afectiva" },
-  cultural_musica_exploracion: { icon: "🎵", label: "Música" },
-  cultural_estetica_visual: { icon: "🎨", label: "Estética" },
-  cultural_hobbies_creativos: { icon: "✂️", label: "Creatividad" },
-  cultural_vida_universitaria: { icon: "🎓", label: "Vida universitaria" },
-  cultural_humor: { icon: "😄", label: "Humor" },
-  intimidad_palabras_afirmacion: { icon: "💌", label: "Palabras de afirmación" },
-  intimidad_tiempo_calidad: { icon: "⏳", label: "Tiempo de calidad" },
-  intimidad_regalos_detalle: { icon: "🎁", label: "Detalles" },
-  intimidad_contacto_fisico: { icon: "🫂", label: "Contacto físico" },
-  intimidad_actos_servicio: { icon: "🛠️", label: "Actos de servicio" },
-  intimidad_apertura_emocional: { icon: "🫀", label: "Apertura emocional" },
-  intimidad_comunicacion_deseos: { icon: "🗣️", label: "Comunicación de deseos" },
-  intimidad_limites_respeto: { icon: "🚧", label: "Límites y respeto" },
-  valores_empatia: { icon: "💜", label: "Empatía" },
-  valores_confianza: { icon: "🔐", label: "Confianza" },
-  valores_gestion_conflicto: { icon: "🕊️", label: "Gestión de conflicto" },
-  valores_igualdad_genero: { icon: "⚖️", label: "Igualdad de género" },
-  valores_corresponsabilidad: { icon: "🤲", label: "Corresponsabilidad" },
-  valores_respeto_diversidad: { icon: "🌈", label: "Respeto a la diversidad" },
+const DIMENSION_LABELS: Record<string, string> = {
+  personalidad_apertura: "Curiosidad",
+  personalidad_responsabilidad: "Responsabilidad",
+  personalidad_extraversion: "Energía social",
+  personalidad_amabilidad: "Amabilidad",
+  personalidad_estabilidad_emocional: "Calma emocional",
+  mbti_extraversion: "Extraversión",
+  mbti_intuicion: "Intuición",
+  mbti_pensamiento: "Pensamiento",
+  mbti_juicio: "Estructura",
+  identidad_exclusividad: "Exclusividad",
+  identidad_comunicacion_afectiva: "Comunicación afectiva",
+  cultural_musica_exploracion: "Música",
+  cultural_estetica_visual: "Estética",
+  cultural_hobbies_creativos: "Creatividad",
+  cultural_vida_universitaria: "Vida universitaria",
+  cultural_humor: "Humor",
+  intimidad_palabras_afirmacion: "Palabras de afirmación",
+  intimidad_tiempo_calidad: "Tiempo de calidad",
+  intimidad_regalos_detalle: "Detalles",
+  intimidad_contacto_fisico: "Contacto físico",
+  intimidad_actos_servicio: "Actos de servicio",
+  intimidad_apertura_emocional: "Apertura emocional",
+  intimidad_comunicacion_deseos: "Comunicación de deseos",
+  intimidad_limites_respeto: "Límites y respeto",
+  valores_empatia: "Empatía",
+  valores_confianza: "Confianza",
+  valores_gestion_conflicto: "Gestión de conflicto",
+  valores_igualdad_genero: "Igualdad de género",
+  valores_corresponsabilidad: "Corresponsabilidad",
+  valores_respeto_diversidad: "Respeto a la diversidad",
 };
+
+const CATEGORY_BY_PREFIX: ReadonlyArray<readonly [string, string]> = [
+  ["personalidad_", "personalidad"],
+  ["mbti_", "personalidad"],
+  ["identidad_", "identidad"],
+  ["cultural_", "afinidad_cultural"],
+  ["intimidad_", "intimidad_afecto"],
+  ["valores_", "valores_relacionales"],
+];
+
+function categoryOf(dimension: string): string {
+  return CATEGORY_BY_PREFIX.find(([prefix]) => dimension.startsWith(prefix))?.[1] ?? "general";
+}
 
 const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
@@ -79,12 +92,11 @@ const optionalString = (value: unknown): string | null =>
   typeof value === "string" ? value : null;
 
 function badgeForDimension(dimension: string, affinity: number): CompatibilityBadge {
-  const entry = DIMENSION_BADGE_MAP[dimension];
   return {
     dimension,
-    label: entry?.label ?? dimension.replaceAll("_", " "),
+    label: DIMENSION_LABELS[dimension] ?? dimension.replaceAll("_", " "),
     affinity,
-    icon: entry?.icon ?? "✨",
+    icon: categoryOf(dimension),
   };
 }
 

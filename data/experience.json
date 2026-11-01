@@ -1,0 +1,23 @@
+{
+  "version": "experience-1",
+  "quiz": {
+    "secondsPerItem": 9,
+    "breathEvery": 12,
+    "exclusiveOption": "prefiero no decir",
+    "sensitiveCategories": ["identidad_filtros"]
+  },
+  "reveal": {
+    "cellStepMs": 6,
+    "seed": 4051
+  },
+  "result": {
+    "minimumLoadingMs": 1200,
+    "timeoutMs": 9000,
+    "fewPeopleThreshold": 12,
+    "detailBreakdownMax": 5
+  },
+  "notifications": {
+    "pollMs": 30000,
+    "maxVisible": 2
+  }
+}

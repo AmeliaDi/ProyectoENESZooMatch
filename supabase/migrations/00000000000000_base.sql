@@ -99,6 +99,8 @@ CREATE TABLE public.profiles (
     'femenino', 'masculino', 'neutro_e', 'neutro_universal'
   )),
   quiz_completed_at TIMESTAMPTZ,
+  -- Paused profiles keep their data but leave the matching pool.
+  paused_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT profiles_romance_vector_shape CHECK (
@@ -278,6 +280,15 @@ CREATE TRIGGER profiles_pool_deleted
   FOR EACH ROW
   WHEN (OLD.quiz_completed_at IS NOT NULL)
   EXECUTE FUNCTION private.bump_pool_revision();
+
+CREATE TRIGGER profiles_pool_paused
+  AFTER UPDATE OF paused_at ON public.profiles
+  FOR EACH ROW
+  WHEN (NEW.paused_at IS DISTINCT FROM OLD.paused_at AND NEW.quiz_completed_at IS NOT NULL)
+  EXECUTE FUNCTION private.bump_pool_revision();
+
+CREATE INDEX profiles_active_pool_idx
+  ON public.profiles (user_id) WHERE quiz_completed_at IS NOT NULL AND paused_at IS NULL;
 
 CREATE FUNCTION private.pool_version()
 RETURNS text
@@ -480,10 +491,10 @@ BEGIN
 
   IF v_romance > 0 THEN
     INSERT INTO public.notifications (user_id, type, title, body, metadata)
-    VALUES (p_user_id, 'match_romance', 'El universo conspiró a tu favor 💫',
+    VALUES (p_user_id, 'match_romance', 'El universo conspiró a tu favor',
       CASE WHEN v_romance = 1
         THEN '¡Oye! Tienes a un ser extraordinario en el campus con quien podrías tener una química increíble. Tu energía de '
-             || v_identity || ' combinó a la perfección.'
+             || v_identity || ' resonó de forma especial.'
         ELSE '¡Oye! Tienes a ' || v_romance || ' seres extraordinarios en el campus con los que podrías tener una química increíble. Tu energía de '
              || v_identity || ' resonó con cada unx de ellxs.'
       END,
@@ -493,7 +504,7 @@ BEGIN
 
   IF v_amistad > 0 THEN
     INSERT INTO public.notifications (user_id, type, title, body, metadata)
-    VALUES (p_user_id, 'match_amistad', 'Tu vibra resonó con alguien ✨',
+    VALUES (p_user_id, 'match_amistad', 'Tu vibra resonó con alguien',
       CASE WHEN v_amistad = 1
         THEN '¡Hey! Tu energía de ' || v_identity
              || ' conectó con alguien del campus. Hay una química de amistad que vale la pena explorar.'
@@ -506,7 +517,7 @@ BEGIN
 
   IF v_romance = 0 AND v_amistad = 0 THEN
     INSERT INTO public.notifications (user_id, type, title, body)
-    VALUES (p_user_id, 'no_match', 'Tu momento llegará 🌱',
+    VALUES (p_user_id, 'no_match', 'Tu momento llegará',
       'Aún no llega ese ser especial a la base de datos, pero tranquilx, tu vibra es única y esto es solo un proyecto de estadística, no una medida de tu inmenso valor <3');
     v_count := v_count + 1;
   END IF;
@@ -584,7 +595,7 @@ BEGIN
     'romanceThreshold', p_romance_threshold,
     'amistadThreshold', p_amistad_threshold,
     'totalProfiles',
-      (SELECT count(*) FROM public.profiles WHERE quiz_completed_at IS NOT NULL),
+      (SELECT count(*) FROM public.profiles WHERE quiz_completed_at IS NOT NULL AND paused_at IS NULL),
     'romanceMatches', (SELECT count(*) FROM public.matches WHERE track = 'romance'),
     'amistadMatches', (SELECT count(*) FROM public.matches WHERE track = 'amistad'),
     'usersWithRomanceMatch', (

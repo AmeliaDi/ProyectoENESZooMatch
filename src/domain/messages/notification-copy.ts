@@ -59,21 +59,21 @@ function generateRomanceMatchCopy(context: NotificationContext): NotificationCop
 
   if (matchCount === 1 && match) {
     return {
-      title: "El universo conspir\u00f3 a tu favor \ud83d\udcab",
-      body: `Tienes a un ser extraordinario en el campus con quien podr\u00edas tener una qu\u00edmica incre\u00edble. Tu energ\u00eda de ${userAnimal} ${userColor} combin\u00f3 a la perfecci\u00f3n con ${match.animal} ${match.color}.`,
+      title: "El universo conspir\u00f3 a tu favor",
+      body: `Tienes a un ser extraordinario en el campus con quien podr\u00edas tener una qu\u00edmica incre\u00edble. Tu energ\u00eda de ${userAnimal} ${userColor} resuen\u00f3 con ${match.animal} ${match.color}.`,
     };
   }
 
   if (matchCount > 1) {
     return {
-      title: "El universo conspir\u00f3 a tu favor \ud83d\udcab",
+      title: "El universo conspir\u00f3 a tu favor",
       body: `Tienes a ${matchCount} seres extraordinarios en el campus con los que podr\u00edas tener una qu\u00edmica incre\u00edble. Tu energ\u00eda de ${userAnimal} ${userColor} reson\u00f3 con cada unx de ellxs.`,
     };
   }
 
   // Fallback single match without details
   return {
-    title: "El universo conspir\u00f3 a tu favor \ud83d\udcab",
+    title: "El universo conspir\u00f3 a tu favor",
     body: `Tu energ\u00eda de ${userAnimal} ${userColor} encontr\u00f3 una resonancia especial en el campus. Hay alguien con quien la qu\u00edmica fluye de forma \u00fanica.`,
   };
 }
@@ -86,21 +86,21 @@ function generateFriendshipMatchCopy(context: NotificationContext): Notification
 
   if (matchCount === 1 && match) {
     return {
-      title: "Tu vibra reson\u00f3 con alguien \u2728",
+      title: "Tu vibra reson\u00f3 con alguien",
       body: `Tu energ\u00eda de ${userAnimal} ${userColor} conect\u00f3 con ${match.animal} ${match.color}. Hay una qu\u00edmica de amistad que vale la pena explorar \u2014 sus personalidades se complementan de forma \u00fanica.`,
     };
   }
 
   if (matchCount > 1) {
     return {
-      title: "Tu vibra reson\u00f3 con el campus \u2728",
+      title: "Tu vibra reson\u00f3 con el campus",
       body: `Tu energ\u00eda de ${userAnimal} ${userColor} reson\u00f3 con ${matchCount} personas del campus. Hay amistades esperando florecer \u2014 sus personalidades y gustos se complementan de forma hermosa.`,
     };
   }
 
   // Fallback single match without details
   return {
-    title: "Tu vibra reson\u00f3 con alguien \u2728",
+    title: "Tu vibra reson\u00f3 con alguien",
     body: `Tu energ\u00eda de ${userAnimal} ${userColor} encontr\u00f3 una conexi\u00f3n de amistad genuina en el campus. Hay alguien cuyo esp\u00edritu complementa el tuyo.`,
   };
 }
@@ -109,7 +109,7 @@ function generateFriendshipMatchCopy(context: NotificationContext): Notification
 
 function generateNoMatchCopy(): NotificationCopy {
   return {
-    title: "Tu momento llegar\u00e1 \ud83c\udf31",
+    title: "Tu momento llegar\u00e1",
     body: NO_MATCH_MESSAGE,
   };
 }
@@ -121,7 +121,7 @@ function generateNoMatchCopy(): NotificationCopy {
  */
 export function generateWelcomeMessage(animal: string, color: string): NotificationCopy {
   return {
-    title: "Tu perfil ya brilla en el h\u00e1bitat \ud83c\udf1f",
+    title: "Tu perfil ya brilla en el h\u00e1bitat",
     body: `Tu esencia de ${animal} ${color} ya est\u00e1 registrada. Cuando alguien compatible entre al h\u00e1bitat, el universo te lo har\u00e1 saber.`,
   };
 }
