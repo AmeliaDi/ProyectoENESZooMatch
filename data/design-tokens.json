@@ -1,0 +1,114 @@
+{
+  "version": "atlas-1",
+  "direction": "A · Atlas de bolsillo",
+  "pixel": {
+    "logicalPx": 2,
+    "spriteGrid": 16,
+    "iconGrid": 12,
+    "iconScale": 2,
+    "spriteScales": { "chip": 2, "node": 3, "detail": 6 },
+    "atlasTickEvery": 8
+  },
+  "touchTargetMin": 44,
+  "contrast": { "text": 4.5, "ui": 3, "textHighContrast": 7, "uiHighContrast": 4.5 },
+  "modes": {
+    "night": {
+      "highContrast": false,
+      "colors": {
+        "sky": "#101826", "frame": "#18233A", "raised": "#22305A",
+        "fg": "#F2E8D5", "fg-muted": "#A9B3C7",
+        "gold": "#E8B04A", "on-gold": "#101826",
+        "romance": "#F08A7E", "on-romance": "#101826",
+        "amistad": "#7FD1B9", "on-amistad": "#101826",
+        "danger": "#FF8A80", "on-danger": "#101826",
+        "rim": "#8B9BC4", "focus": "#FFD27A",
+        "shadow": "#05080F", "grid": "#3A4A6B", "star": "#F2E8D5",
+        "nebula-1": "#22305A", "nebula-2": "#2B2447"
+      }
+    },
+    "day": {
+      "highContrast": false,
+      "colors": {
+        "sky": "#F3EAD7", "frame": "#FBF6EA", "raised": "#E9DDC2",
+        "fg": "#1B2233", "fg-muted": "#525A70",
+        "gold": "#7A4F00", "on-gold": "#FBF6EA",
+        "romance": "#A8342A", "on-romance": "#FBF6EA",
+        "amistad": "#1F6B57", "on-amistad": "#FBF6EA",
+        "danger": "#A3201B", "on-danger": "#FBF6EA",
+        "rim": "#6E6A8A", "focus": "#1B2233",
+        "shadow": "#BFAF8C", "grid": "#C9BC9F", "star": "#1B2233",
+        "nebula-1": "#E6D9BC", "nebula-2": "#EADFC8"
+      }
+    },
+    "night-hc": {
+      "highContrast": true,
+      "colors": {
+        "sky": "#000000", "frame": "#0B0B0B", "raised": "#1C1C1C",
+        "fg": "#FFFFFF", "fg-muted": "#E6E6E6",
+        "gold": "#FFD27A", "on-gold": "#000000",
+        "romance": "#FFB3AB", "on-romance": "#000000",
+        "amistad": "#9DF2D8", "on-amistad": "#000000",
+        "danger": "#FFA39B", "on-danger": "#000000",
+        "rim": "#FFFFFF", "focus": "#FFD27A",
+        "shadow": "#3A3A3A", "grid": "#4D4D4D", "star": "#FFFFFF",
+        "nebula-1": "#1C1C1C", "nebula-2": "#262626"
+      }
+    },
+    "day-hc": {
+      "highContrast": true,
+      "colors": {
+        "sky": "#FFFFFF", "frame": "#FFFFFF", "raised": "#EDEDED",
+        "fg": "#000000", "fg-muted": "#262626",
+        "gold": "#5C3B00", "on-gold": "#FFFFFF",
+        "romance": "#7D1E17", "on-romance": "#FFFFFF",
+        "amistad": "#0A4A3B", "on-amistad": "#FFFFFF",
+        "danger": "#7A1210", "on-danger": "#FFFFFF",
+        "rim": "#000000", "focus": "#000000",
+        "shadow": "#000000", "grid": "#BDBDBD", "star": "#000000",
+        "nebula-1": "#EDEDED", "nebula-2": "#E3E3E3"
+      }
+    }
+  },
+  "contrastPairs": [
+    { "fg": "fg", "bg": ["sky", "frame", "raised"], "kind": "text" },
+    { "fg": "fg-muted", "bg": ["sky", "frame", "raised"], "kind": "text" },
+    { "fg": "gold", "bg": ["sky", "frame", "raised"], "kind": "text" },
+    { "fg": "romance", "bg": ["sky", "frame", "raised"], "kind": "text" },
+    { "fg": "amistad", "bg": ["sky", "frame", "raised"], "kind": "text" },
+    { "fg": "danger", "bg": ["sky", "frame", "raised"], "kind": "text" },
+    { "fg": "on-gold", "bg": ["gold"], "kind": "text" },
+    { "fg": "on-romance", "bg": ["romance"], "kind": "text" },
+    { "fg": "on-amistad", "bg": ["amistad"], "kind": "text" },
+    { "fg": "on-danger", "bg": ["danger"], "kind": "text" },
+    { "fg": "rim", "bg": ["sky", "frame", "raised"], "kind": "ui" },
+    { "fg": "focus", "bg": ["sky", "frame", "raised"], "kind": "ui" },
+    { "fg": "star", "bg": ["sky"], "kind": "ui" }
+  ],
+  "motion": {
+    "durationsMs": { "tap": 120, "exit": 180, "enter": 240, "emphasis": 360, "reveal": 900 },
+    "easings": {
+      "atlas-out": [0.2, 0.8, 0.2, 1],
+      "atlas-in": [0.6, 0, 0.8, 0.2],
+      "atlas-in-out": [0.65, 0, 0.35, 1]
+    },
+    "pixelSteps": 4
+  },
+  "zIndex": { "sky": 0, "canvas": 10, "chrome": 20, "sheet": 40, "modal": 50, "toast": 60, "tooltip": 70 },
+  "sky": {
+    "seed": 1729,
+    "tileCells": 192,
+    "layers": [
+      { "size": 1, "density": 0.0045, "twinkles": false, "parallax": 0.1 },
+      { "size": 2, "density": 0.0014, "twinkles": true, "parallax": 0.2 },
+      { "size": 3, "density": 0.0005, "twinkles": true, "parallax": 0.35 }
+    ],
+    "twinklePeriodMs": [2000, 7000],
+    "twinkleLevels": [1, 0.62, 0.34],
+    "twinkleFps": 8,
+    "nebula": [
+      { "x": 0.22, "y": 0.28, "rx": 0.34, "ry": 0.22, "tone": "nebula-1", "peak": 0.75 },
+      { "x": 0.78, "y": 0.72, "rx": 0.3, "ry": 0.26, "tone": "nebula-2", "peak": 0.65 },
+      { "x": 0.6, "y": 0.18, "rx": 0.18, "ry": 0.12, "tone": "nebula-2", "peak": 0.45 }
+    ]
+  }
+}

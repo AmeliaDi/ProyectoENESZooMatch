@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./atlas.css";
+@import "./kit.css";
 
 @theme {
   --color-paper: #f0eadb;
