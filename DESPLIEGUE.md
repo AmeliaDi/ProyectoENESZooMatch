@@ -111,6 +111,13 @@ un proyecto Supabase real.
    otra región, fija la región de Vercel lo más cerca posible para reducir la latencia
    del recálculo global (H-03); no se hardcodea una región porque depende del proyecto.
 
+### Aplicar la base sin el panel
+
+Con un token personal (`SUPABASE_ACCESS_TOKEN=sbp_...` en `.env.local`, nunca en Vercel),
+`npm run db:apply` aplica la migración base y la semilla a un esquema `public` vacío y
+recarga PostgREST. Si el esquema ya tiene tablas se detiene sin tocar nada;
+`npm run db:apply -- --status` muestra el conteo de filas por tabla.
+
 ### Diagnóstico de "El cielo no responde"
 
 `/api/enter` deja una línea JSON en los logs de funciones de Vercel (o en la terminal

@@ -87,6 +87,7 @@ npm run dev             # http://localhost:3000
 | `npm run lint` / `typecheck` / `test` | por separado |
 | `npm run data:validate` | valida `data/*.json`, el catálogo y el contrato SQL ↔ TypeScript |
 | `npm run db:reset` | reinicia la base local con la migración base y la semilla |
+| `npm run db:apply` | aplica migración + semilla a un proyecto Supabase remoto vacío vía Management API (`SUPABASE_ACCESS_TOKEN` en `.env.local`); `-- --status` cuenta filas |
 | `npm run build` | build de producción |
 
 Las variables de entorno están en [`.env.example`](./.env.example) y se validan con Zod en
