@@ -143,6 +143,11 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | 3. Test modular | Cerrada | `docs/TEST.md`, `docs/MEDICION.md`, `docs/DECISION_MODELO_RASGOS.md`, ADR-016, `scripts/psychometrics/` |
 | 4. Matching | Siguiente | — |
 
+Despliegue (2026-11-01): `zooenes.vercel.app` usa solo el proyecto Supabase
+`uchrlfvhaiisoyndwprf`, Node 24 y variables manuales; `POST /api/enter` con
+una matrícula nueva responde 200. Detalle en `DESPLIEGUE.md`. Falta Upstash
+(rate limit en fail-open).
+
 Para rehacer los datos de la Fase 3: `npm run data:psychometrics` (requiere
 `.venv-psy`, ver `scripts/psychometrics/requirements.txt`). Tras editar ítems,
 hay que volver a correrlo: un test compara el hash del banco con el de

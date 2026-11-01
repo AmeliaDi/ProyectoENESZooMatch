@@ -153,6 +153,24 @@ la URL puede quedar de un proyecto y la clave de otro. Deja **una** integración
 redespliega. Todos los logs de error de `/api/enter` incluyen `supabaseRef` (el ref
 público del proyecto, no un secreto) para confirmar a cuál apunta el despliegue.
 
+**Nunca borres un store de Supabase desde Vercel**: borrarlo elimina también el
+proyecto Supabase. Para quitar uno sobrante, desconecta solo la *connection*.
+
+### Estado del despliegue actual (2026-11-01)
+
+| Dato | Valor |
+|---|---|
+| Proyecto Vercel | `zooenes` (`zooenes.vercel.app`), producción desde `main`, región `iad1`, Node 24 |
+| Supabase usado | `uchrlfvhaiisoyndwprf` (único con esquema y seed) |
+| Supabase desconectado | `ujkawlvzglsgejkrhzih`: sin esquema; se desconectó del proyecto, no se borró |
+| Variables | Manuales, en production y preview: las de la tabla de alias anterior + `MATRICULA_HMAC_SECRET` |
+| Variables `default_*` del store | Borradas; la app no las lee. Si la integración las vuelve a crear, son inofensivas |
+| Rate limit | Sin Upstash: fail-open (ver §Vercel, punto 5) |
+
+Avisos del build que se pueden ignorar: `npm warn ERESOLVE` (los plugins de
+`eslint-config-next` aún declaran `eslint <= 9` y el proyecto usa eslint 10; el
+lint corre bien) y `Unknown env config "cache-dir"` (lo inyecta Vercel).
+
 ## Persistencia
 
 - PostgreSQL/Supabase conserva perfiles, hash HMAC de matrícula, respuestas, vectores,
