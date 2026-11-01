@@ -72,7 +72,7 @@ más [`supabase/seed.sql`](./supabase/seed.sql) para el catálogo.
 
 ## Desarrollo
 
-Requisitos: Node ≥ 22.12, y Docker + Supabase CLI para la base local.
+Requisitos: Node 24, y Docker + Supabase CLI para la base local.
 
 ```bash
 npm install

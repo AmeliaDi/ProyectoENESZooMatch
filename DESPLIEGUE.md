@@ -13,7 +13,7 @@ Todo vive en la rama `main`; Vercel debe desplegar desde ella.
      `supabase/promote_admin.sql` con tu correo.
    - Alternativa por CLI: `supabase link --project-ref <REF>` + `supabase db push`
      y luego el seed con `psql` (ver abajo).
-2. **Vercel**: importa el repo, rama de producción `main`, Node 22 o superior, y
+2. **Vercel**: importa el repo, rama de producción `main`, Node 24, y
    define `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
    `SUPABASE_SERVICE_ROLE_KEY` y `MATRICULA_HMAC_SECRET` (≥ 32 caracteres).
    Upstash es opcional para pruebas y obligatorio para el evento.
@@ -28,7 +28,7 @@ un proyecto Supabase real.
 
 ## Requisitos
 
-- Node.js `>=22.12.0` (coincide con `engines` en `package.json`).
+- Node.js 24 (`engines: "24.x"` en `package.json`; Vercel y CI usan la misma).
 - Supabase CLI y, para desarrollo local, Docker con recursos suficientes.
 - Una cuenta de Supabase y un proyecto Vercel para el despliegue público.
 
@@ -82,7 +82,7 @@ un proyecto Supabase real.
 ## Vercel
 
 1. Importa el repositorio en Vercel y conserva la raíz del proyecto.
-2. Configura Node.js `>=22.12.0` para el proyecto. El build y start usan los scripts
+2. Node.js 24.x (fijado por `engines`). El build y start usan los scripts
    `npm run build` y `npm run start`.
 3. Crea las variables de entorno en **Settings → Environment Variables**:
 
