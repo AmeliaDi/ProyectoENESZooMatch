@@ -212,6 +212,35 @@ por la cola de revisión humana.
 
 ---
 
+## ADR-015 · Aprobaciones de la Fase 2: licencias, extracciones, extras y Big Five derivado
+
+**Contexto.** Al cerrar la Fase 2 (`docs/CAPAS_EVIDENCIA.md` §6) la usuaria
+respondió a las preguntas abiertas.
+
+**Decisión.**
+- **Licencias.** Uso personal y académico, sin auditoría ni publicación: se
+  aprueban todas las escalas (IPIP-HEXACO, PVQ, ISA, ECR-12, etc.) para usarse o
+  adaptarse. En las fichas: `licencia.aprobadaUsuaria = true`. El `estado`
+  observado (p. ej. "restringida") se conserva como hallazgo, no se borra.
+- **Extracciones del crawler.** Las 210 filas de `review-queue.csv` quedan
+  `verificada_usuaria / aprobar` (revisión en bloque, beta). Excepción anotada:
+  en Joel et al. 2020, `effect_size = 0.45` es **porcentaje de varianza** (45 %),
+  no una r; no se usa como correlación.
+- **Extras de peso mínimo.** Apego (declarado, ya no inferido), conflicto y
+  lenguajes del amor no tienen respaldo para puntuar, pero se conservan "solo
+  como un extra": nueva decisión `extra_peso_minimo`. Pesos máximos 0.02 + 0.02
+  + 0.01; tope total `extras.maxTotalWeight = 0.05` (`supuesto_diseno`). Nunca
+  son piso ni dealbreaker y viven en módulos opcionales. El término
+  multiplicativo `f_penal` de conflicto desaparece.
+- **Big Five.** Se **deriva** de HEXACO (capa 2) en lugar de administrarse; la
+  justificación y el mapeo van en `docs/DECISION_MODELO_RASGOS.md`.
+
+**Consecuencias.** "Verificada por la usuaria" no equivale a verificación
+independiente: en los documentos se sigue distinguiendo `crossref_abstract`
+(verificado contra el resumen) de `verificada_usuaria` (aprobación en bloque).
+
+---
+
 ## Pendientes conocidos (no decididos aún)
 
 - **Alias:** hoy es determinista con sufijo de 4 caracteres en base 36. Una colisión

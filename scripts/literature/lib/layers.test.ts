@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { budgetSummary, evaluateCandidate, loadLayerFiles, type LayerCandidate } from "./layers.ts";
+import { budgetSummary, evaluateCandidate, extrasWeight, loadLayerFiles, type LayerCandidate } from "./layers.ts";
 
 const { criteria, data } = loadLayerFiles("data/literature/layer-criteria.json", "data/literature/layer-candidates.json");
 
@@ -38,7 +38,7 @@ describe("layer admission", () => {
 
   it("restricted licences pass only with original items", () => {
     const c = base();
-    c.licencia = { ...c.licencia, estado: "restringida" };
+    c.licencia = { ...c.licencia, estado: "restringida", aprobadaUsuaria: false };
     c.plan = { ...c.plan, itemsOriginales: false };
     expect(evaluateCandidate(c, criteria).criteria.license).toBe(false);
     c.plan = { ...c.plan, itemsOriginales: true };
@@ -50,6 +50,22 @@ describe("layer admission", () => {
     const summary = budgetSummary(data, criteria, evaluations);
     expect(summary.withinBudget).toBe(true);
     expect(summary.coreMinutes).toBeLessThanOrEqual(criteria.budget.coreMaxMinutes);
+  });
+
+  it("product extras need an explicit decision and stay under the weight cap", () => {
+    const c = base();
+    c.evidencia = c.evidencia.map((s) => ({ ...s, efecto: "nulo" as const }));
+    expect(evaluateCandidate(c, criteria).decision).toBe("opcional_narrativa");
+    c.productoExtra = { pesoMax: 0.01, motivo: "test" };
+    expect(evaluateCandidate(c, criteria).decision).toBe("extra_peso_minimo");
+    const evaluations = data.candidates.map((x) => evaluateCandidate(x, criteria));
+    expect(extrasWeight(data, evaluations)).toBeLessThanOrEqual(criteria.extras.maxTotalWeight);
+  });
+
+  it("extras never enter the core", () => {
+    for (const c of data.candidates.filter((x) => x.decisionDeclarada === "extra_peso_minimo")) {
+      expect(c.plan.itemsNucleo, c.id).toBe(0);
+    }
   });
 
   it("discarded layers contribute no items", () => {

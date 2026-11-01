@@ -9,7 +9,7 @@ import { z } from "zod";
 
 const verification = z.enum(["crossref_abstract", "crossref_metadatos", "pendiente_humana"]);
 const effect = z.enum(["similitud", "ventana", "complementariedad", "nivel", "nulo", "desconocido"]);
-const decision = z.enum(["admitida", "opcional_narrativa", "descartada"]);
+const decision = z.enum(["admitida", "extra_peso_minimo", "opcional_narrativa", "descartada"]);
 
 export const layerCriteriaSchema = z.object({
   version: z.string(),
@@ -20,6 +20,7 @@ export const layerCriteriaSchema = z.object({
   }),
   redundancy: z.object({ maxLatentCorrelationWithHexaco: z.number().gt(0).lt(1) }),
   license: z.object({ admissible: z.array(z.string()).min(1) }),
+  extras: z.object({ maxTotalWeight: z.number().gt(0).lt(0.1) }),
   budget: z.object({
     coreMaxMinutes: z.number().positive(),
     secondsPerLikertItem: z.number().positive(),
@@ -46,7 +47,14 @@ const candidate = z.object({
   efectoParaPuntaje: z.enum(["similitud", "ventana", "complementariedad", "solo_nivel", "sin_evidencia"]),
   redundancia: z.object({ estado: z.enum(["no_redundante_teorico", "redundante", "desconocido"]), nota: z.string() }),
   escalaEspanol: z.object({ nombre: z.string(), ref: z.string(), doi: z.string().nullable(), estado: z.string() }),
-  licencia: z.object({ estado: z.string(), url: z.string().nullable(), cita: z.string().nullable(), consultado: z.string() }),
+  licencia: z.object({
+    estado: z.string(),
+    url: z.string().nullable(),
+    cita: z.string().nullable(),
+    consultado: z.string(),
+    /** ADR-015: uso personal y académico aprobado por la usuaria. Se conserva `estado` como hallazgo. */
+    aprobadaUsuaria: z.boolean().optional(),
+  }),
   plan: z.object({
     itemsOriginales: z.boolean(),
     itemsNucleo: z.number().int().nonnegative(),
@@ -54,6 +62,8 @@ const candidate = z.object({
     funcion: z.string(),
   }),
   sensible: z.object({ inferencia: z.boolean(), conductaSexual: z.boolean() }),
+  /** ADR-015: decisión de producto para conservar una capa sin evidencia como extra de peso mínimo. */
+  productoExtra: z.object({ pesoMax: z.number().gt(0), motivo: z.string() }).optional(),
   decisionDeclarada: decision,
   motivo: z.string(),
 });
@@ -98,16 +108,30 @@ export function evaluateCandidate(c: LayerCandidate, criteria: LayerCriteria): C
   const result: CriteriaResult = {
     evidence: verifiedSupporting >= criteria.evidence.minVerifiedStudies,
     nonRedundant: c.redundancia.estado !== "redundante",
-    license: c.plan.itemsOriginales || criteria.license.admissible.includes(c.licencia.estado),
+    license: c.plan.itemsOriginales
+      || c.licencia.aprobadaUsuaria === true
+      || criteria.license.admissible.includes(c.licencia.estado),
     safe: !(criteria.sensitivity.forbidSensitiveInference && c.sensible.inferencia)
       && !(criteria.sensitivity.forbidSexualBehaviorItems && c.sensible.conductaSexual),
   };
   const all = result.evidence && result.nonRedundant && result.license && result.safe;
   // Narrative-only modules carry zero weight, so they only need to be safe,
-  // licensable and actually planned as optional items.
-  const narrative = !all && result.safe && result.license && c.plan.itemsOpcional > 0;
-  const decided: LayerDecision = all ? "admitida" : narrative ? "opcional_narrativa" : "descartada";
+  // licensable and actually planned as optional items. Product "extras" are
+  // the same plus a small, capped weight (never a floor or dealbreaker).
+  const usable = !all && result.safe && result.license && c.plan.itemsOpcional > 0;
+  const decided: LayerDecision = all
+    ? "admitida"
+    : usable && c.productoExtra
+      ? "extra_peso_minimo"
+      : usable ? "opcional_narrativa" : "descartada";
   return { id: c.id, criteria: result, decision: decided, verifiedSupporting };
+}
+
+/** Total weight reserved for product extras; must stay under `extras.maxTotalWeight`. */
+export function extrasWeight(data: LayerCandidates, evaluations: readonly CandidateEvaluation[]): number {
+  return data.candidates
+    .filter((c) => evaluations.find((e) => e.id === c.id)?.decision === "extra_peso_minimo")
+    .reduce((s, c) => s + (c.productoExtra?.pesoMax ?? 0), 0);
 }
 
 export interface BudgetSummary {

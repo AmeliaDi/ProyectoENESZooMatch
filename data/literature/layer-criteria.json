@@ -15,7 +15,13 @@
   },
   "license": {
     "_etiqueta": "supuesto_diseno",
-    "admissible": ["dominio_publico", "cc", "libre_investigacion", "items_originales"]
+    "admissible": ["dominio_publico", "cc", "libre_investigacion", "items_originales"],
+    "_nota": "ADR-015: la usuaria aprobó el uso personal y académico de todas las escalas (licencia.aprobadaUsuaria). El estado observado se conserva como hallazgo."
+  },
+  "extras": {
+    "_etiqueta": "supuesto_diseno (ADR-015, decisión de la usuaria)",
+    "maxTotalWeight": 0.05,
+    "_nota": "Capas sin evidencia que la usuaria decidió conservar 'solo como un extra'. Su peso total no puede superar este tope y nunca actúan como piso ni dealbreaker."
   },
   "budget": {
     "_etiqueta": "supuesto_diseno (ADR-014 y decisión de la usuaria: ~60 ítems)",

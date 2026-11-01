@@ -138,29 +138,29 @@ platicar".
   - 6 ítems en el núcleo y 6 opcionales.
   - Más peso en amistad que en romance.
 
-### 3.4 Apego: **descartada**
+### 3.4 Apego: **extra_peso_minimo** (antes descartada; ADR-015)
 
 - **Evidencia en contra de la similitud:** Weidmann et al. 2024 (EV-107;
   1 602 parejas, superficie de respuesta) encontró "no evidence for any
   similarity effects". Lo que predice es el **nivel** (EV-54, EV-108).
 - **Licencia:** el ECR está restringido por Guilford. El ECR-12 en español
   existe (EV-114), pero heredaría esa restricción.
-- **Consecuencia:**
-  - Se **elimina** también el apego **inferido** que hoy calcula
-    `attachmentProfileFor` (ver `ESTADO_ACTUAL.md`). Inferir un rasgo de
-    apego a partir de otros rasgos contradice el criterio 5.
-  - La narrativa de apego desaparece del copy.
+- **Consecuencia (tras ADR-015):**
+  - Se elimina el apego **inferido** que hoy calcula `attachmentProfileFor`:
+    inferir apego desde otros rasgos contradice el criterio 5.
+  - En su lugar, 4 ítems **declarados** opcionales con peso ≤ 0.02, nunca
+    piso ni dealbreaker.
 
-### 3.5 Conflicto y comunicación: **opcional_narrativa**
+### 3.5 Conflicto y comunicación: **extra_peso_minimo** (ADR-015)
 
 - **Evidencia:**
   - Overall & McNulty 2017 (EV-58): no hay un estilo bueno universal.
   - Lavner 2016 (EV-110): ninguna vía es robusta.
   - Joel 2020 (EV-03): el conflicto es una variable **de la relación** y
     no existe antes de conocerse.
-- **Plan:** 4 ítems originales opcionales, con peso 0. Solo dan material
-  para "lo que podrían platicar". Se elimina del puntaje el término de
-  conflicto que hoy existe (`f_penal`).
+- **Plan:** 4 ítems originales opcionales con peso ≤ 0.02 y material para
+  "lo que podrían platicar". El término multiplicativo `f_penal` desaparece:
+  el conflicto deja de poder hundir un match.
 
 ### 3.6 Sociosexualidad: **descartada**
 
@@ -184,10 +184,11 @@ platicar".
   humor; lo que predice es el humor **percibido** dentro de la relación.
 - **Plan:** 1 ítem opcional, solo narrativo, dentro de intereses.
 
-### 3.9 Lenguajes del amor: **descartada**
+### 3.9 Lenguajes del amor: **extra_peso_minimo** (antes descartada; ADR-015)
 
 - EV-60: no tienen apoyo empírico.
-- Hoy pesan **25 %** en romance (11 ítems). Ese peso se elimina.
+- Hoy pesan **25 %** en romance (11 ítems). Bajan a ≤ **1 %** con 3 ítems
+  opcionales, "solo como un extra".
 
 ## 4. Propuesta de reparto del núcleo (60 ítems, unos 7 minutos)
 
@@ -211,6 +212,7 @@ platicar".
 | Intereses | +6 |
 | Conflicto y comunicación (narrativo) | +4 |
 | Humor (narrativo) | +1 |
+| Extras de peso mínimo: apego declarado +4, lenguajes del amor +3 | +7 |
 
 A esto se suman, por decidir en la Fase 3:
 - más ítems MBTI y Eneagrama (para reducir la entropía del avatar);
@@ -240,14 +242,23 @@ La decisión final se toma con datos en `DECISION_MODELO_RASGOS.md` (Fase 3).
 - La correlación latente con HEXACO (criterio 2) es hoy **teórica**. Se
   medirá en la Fase 3 con el modelo de medición; si alguna capa supera el
   umbral de 0.7, se reevalúa.
-- Siguen sin verificar:
-  - las licencias de PVQ, ISA, IRI, HSQ y TMMS;
-  - todas las extracciones del crawler (`pendiente_humana`).
-  Ninguna de esas fuentes alimenta parámetros.
+- Licencias y extracciones quedaron **aprobadas por la usuaria en bloque**
+  (ADR-015). Eso no equivale a una verificación independiente: se
+  distinguen de las verificadas contra el resumen (`crossref_abstract`).
 - Los ítems originales no tienen validación propia. Necesitan el pipeline
   de la Fase 3 (sintético) y un piloto real.
 
-## 6. Preguntas para aprobar
+## 6. Respuestas de la usuaria (2026-11-01, ADR-015)
+
+1. **Sí**: las 3 capas admitidas entran al núcleo; conflicto y humor como
+   opcionales.
+2. **No eliminar**: lenguajes del amor, apego y conflicto bajan a un peso
+   mínimo "solo como un extra" (`extra_peso_minimo`, total ≤ 0.05).
+3. **Delegado**: Big Five se deriva de HEXACO (`DECISION_MODELO_RASGOS.md`).
+4. Extracciones del crawler: todas aprobadas.
+5. Licencias: todas aprobadas (uso personal y académico).
+
+### Preguntas originales
 
 1. ¿Aprobamos las **3 capas admitidas** (valores, actitudes y género,
    intereses) en el núcleo, y las 2 **narrativas** (conflicto y humor) como
