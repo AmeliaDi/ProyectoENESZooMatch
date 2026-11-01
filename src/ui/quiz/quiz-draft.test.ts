@@ -45,15 +45,15 @@ describe("CATEGORY_LABELS", () => {
 
 describe("parseQuizDraft", () => {
   it("returns an empty draft when nothing is stored", () => {
-    expect(parseQuizDraft(null)).toEqual({ likert: {}, filters: {} });
-    expect(parseQuizDraft("")).toEqual({ likert: {}, filters: {} });
+    expect(parseQuizDraft(null)).toEqual({ likert: {}, filters: {}, skipped: [] });
+    expect(parseQuizDraft("")).toEqual({ likert: {}, filters: {}, skipped: [] });
   });
 
   it("returns an empty draft for malformed JSON", () => {
-    expect(parseQuizDraft("{oops")).toEqual({ likert: {}, filters: {} });
-    expect(parseQuizDraft("[]")).toEqual({ likert: {}, filters: {} });
-    expect(parseQuizDraft("null")).toEqual({ likert: {}, filters: {} });
-    expect(parseQuizDraft('"texto"')).toEqual({ likert: {}, filters: {} });
+    expect(parseQuizDraft("{oops")).toEqual({ likert: {}, filters: {}, skipped: [] });
+    expect(parseQuizDraft("[]")).toEqual({ likert: {}, filters: {}, skipped: [] });
+    expect(parseQuizDraft("null")).toEqual({ likert: {}, filters: {}, skipped: [] });
+    expect(parseQuizDraft('"texto"')).toEqual({ likert: {}, filters: {}, skipped: [] });
   });
 
   it("keeps only Likert values in the 1–5 range", () => {

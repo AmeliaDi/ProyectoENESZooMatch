@@ -28,3 +28,4 @@ __pycache__/
 /data/external/raw/
 /data/literature/cache/
 /data/literature/logs/
+.venv-psy/

@@ -1,0 +1,7 @@
+# Offline psychometric pipeline only. The app runtime stays in TypeScript and
+# reads data/psychometric-params.json; none of these ship to the browser.
+# Python 3.15.2 (.venv-psy).
+numpy==2.5.4
+scipy==1.18.1
+statsmodels==0.15.0
+pandas==3.1.0

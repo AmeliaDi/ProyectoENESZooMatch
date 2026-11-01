@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { EXPERIENCE, QUIZ_ITEMS } from "@/config";
+import { CORE_ITEMS, EXPERIENCE } from "@/config";
 import type { IconName } from "@/ui/design/icons";
 import { Button } from "@/ui/kit/button";
 import { Icon } from "@/ui/kit/icon";
 
-const MINUTES = Math.max(1, Math.round((QUIZ_ITEMS.length * EXPERIENCE.quiz.secondsPerItem) / 60));
+const MINUTES = Math.max(1, Math.round((CORE_ITEMS.length * EXPERIENCE.quiz.secondsPerItem) / 60));
 
 interface Plate {
   icon: IconName;
@@ -19,7 +19,7 @@ export const ONBOARDING_PLATES: readonly Plate[] = [
   {
     icon: "quiz",
     title: "Qué es el test",
-    body: `${QUIZ_ITEMS.length} frases cortas, unos ${MINUTES} minutos. No hay respuestas buenas ni malas; puedes pausar y volver cuando quieras.`,
+    body: `${CORE_ITEMS.length} frases cortas, unos ${MINUTES} minutos. No hay respuestas buenas ni malas; puedes pausar y volver cuando quieras.`,
   },
   {
     icon: "privacy",

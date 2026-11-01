@@ -10,6 +10,8 @@ export interface FlowItem {
   categoria: string;
   tipo_respuesta: string;
   opciones?: readonly string[] | undefined;
+  /** Sensitive Likert item that accepts "prefiero no decir" (ADR-016). */
+  skippable?: boolean | undefined;
 }
 
 /**
@@ -25,9 +27,8 @@ export function presentationOrder<T extends FlowItem>(
 }
 
 export function isAnswered(item: FlowItem, draft: QuizDraft): boolean {
-  return item.tipo_respuesta === "likert_5"
-    ? draft.likert[item.id] !== undefined
-    : (draft.filters[item.id]?.length ?? 0) > 0;
+  if (item.tipo_respuesta !== "likert_5") return (draft.filters[item.id]?.length ?? 0) > 0;
+  return draft.likert[item.id] !== undefined || (item.skippable === true && draft.skipped.includes(item.id));
 }
 
 export function countAnswered(items: readonly FlowItem[], draft: QuizDraft): number {
@@ -50,16 +51,25 @@ export function toggleOption(current: readonly string[], option: string, exclusi
   return [...current.filter((o) => o !== exclusive), option];
 }
 
+/** Marks or unmarks a sensitive Likert item as "prefiero no decir" (clears its value). */
+export function toggleSkip(draft: QuizDraft, itemId: string): QuizDraft {
+  if (draft.skipped.includes(itemId)) {
+    return { ...draft, skipped: draft.skipped.filter((id) => id !== itemId) };
+  }
+  const likert = { ...draft.likert };
+  delete likert[itemId];
+  return { ...draft, likert, skipped: [...draft.skipped, itemId] };
+}
+
 export function buildSubmission(items: readonly FlowItem[], draft: QuizDraft) {
-  const likert = items
-    .filter((i) => i.tipo_respuesta === "likert_5")
-    .map((i) => ({ itemId: i.id, value: draft.likert[i.id] }));
+  if (items.some((item) => !isAnswered(item, draft))) return null;
+  const likert = items.flatMap((i) => {
+    const value = i.tipo_respuesta === "likert_5" ? draft.likert[i.id] : undefined;
+    return value === undefined ? [] : [{ itemId: i.id, value }];
+  });
   const filters = items
     .filter((i) => i.tipo_respuesta === "seleccion_multiple")
     .map((i) => ({ itemId: i.id, selected: draft.filters[i.id] ?? [] }));
-  if (likert.some((a) => a.value === undefined) || filters.some((a) => a.selected.length === 0)) {
-    return null;
-  }
   return { likert, filters };
 }
 
@@ -69,8 +79,7 @@ const OPTION_LABELS: Record<string, string> = {
   anarquia_relacional: "Anarquía relacional",
   sin_definir: "Sin definir todavía",
   solo_amistad: "Solo amistad",
-  agenero: "Agénero",
-  todxs: "Todas las personas",
+  "no binarie": "No binarie",
 };
 
 export function optionLabel(option: string): string {

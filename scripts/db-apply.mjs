@@ -8,6 +8,8 @@
 //
 // Usage: npm run db:apply             → migration + seed on an EMPTY public schema
 //        npm run db:apply -- --status  → table row counts only
+//        npm run db:apply -- --seed    → re-apply the idempotent seed on an existing
+//          schema and drop quiz_items no longer in the bank (only if unanswered)
 // The base migration is not idempotent; on a populated schema the script
 // stops instead of guessing. Reset the project first (deletes all data).
 import { existsSync, readFileSync } from "node:fs";
@@ -50,7 +52,21 @@ const STATUS_SQL = `
   where table_schema = 'public' and table_type = 'BASE TABLE'
   order by 1`;
 
+const seedOnly = process.argv.includes("--seed");
 const existing = await query(STATUS_SQL);
+if (seedOnly) {
+  const seed = readFileSync(FILES[1], "utf8");
+  await query(seed);
+  const ids = [...seed.matchAll(/^  \('([A-Z]{1,3}\d{1,2})', '/gm)].map((m) => `'${m[1]}'`);
+  const dropped = await query(
+    `delete from public.quiz_items q where q.id not in (${ids.join(",")})
+       and not exists (select 1 from public.quiz_responses r where r.item_id = q.id) returning q.id`,
+  );
+  await query("notify pgrst, 'reload schema'");
+  console.log(`seed aplicado (${ids.length} ítems); obsoletos eliminados: ${dropped.length}`);
+  console.table(await query(STATUS_SQL));
+  process.exit(0);
+}
 if (!process.argv.includes("--status") && existing.length > 0) {
   console.error(
     `El esquema public ya tiene ${existing.length} tablas; no se aplicó nada. ` +

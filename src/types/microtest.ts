@@ -107,6 +107,32 @@ export interface QuizSubmission {
 // ─── Item schema ──────────────────────────────────────────────────────────────
 export type ResponseType = "likert_5" | "seleccion_multiple";
 
+/** Questionnaire modules (ADR-016): the core is mandatory, the rest optional. */
+export const QUIZ_MODULE_IDS = [
+  "nucleo",
+  "hexaco_facetas",
+  "puente_big_five",
+  "valores",
+  "actitudes",
+  "intereses",
+  "estilo_vida",
+  "relacional",
+  "mbti",
+  "eneagrama",
+  "subtipo",
+] as const;
+export type QuizModuleId = (typeof QUIZ_MODULE_IDS)[number];
+
+export const ITEM_ORIGINS = ["ipip_hexaco", "ipip", "original", "concepto"] as const;
+export type ItemOrigin = (typeof ITEM_ORIGINS)[number];
+
+/** DS social desirability, AMB ambiguity, SENS sensitive (skippable), 1I single-item scale. */
+export const ITEM_FLAGS = ["DS", "AMB", "SENS", "1I"] as const;
+export type ItemFlag = (typeof ITEM_FLAGS)[number];
+
+/** Trait layer (docs/ESTADO_ACTUAL.md): 0 filters, 1 HEXACO, 2 Big Five, 3 soft, 4 avatar/narrative. */
+export type TraitLayer = 0 | 1 | 2 | 3 | 4;
+
 export interface QuizItem {
   id: string;
   categoria: Category;
@@ -121,6 +147,13 @@ export interface QuizItem {
   track_amistad: boolean;
   filtro_duro: boolean;
   fuente_id: string;
+  modulo: QuizModuleId;
+  capa: TraitLayer;
+  /** Latent factor or scale the item loads on (e.g. `hex_h`, `mbti_ei`, `ennea_4`). */
+  factor: string;
+  faceta?: string;
+  origen: ItemOrigin;
+  banderas: ItemFlag[];
 }
 
 // ─── Scored profile ───────────────────────────────────────────────────────────

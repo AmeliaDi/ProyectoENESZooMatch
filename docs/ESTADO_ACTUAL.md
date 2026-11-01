@@ -133,6 +133,21 @@ Quedan como hipótesis hasta verificarlas en la Fase 1.
 
 Me detengo al final de cada fase, con un commit por fase en `main` y su push correspondiente.
 
+### Avance
+
+| Fase | Estado | Dónde mirar |
+|---|---|---|
+| 0. Estado | Cerrada | este documento |
+| 1. Firecrawl | Cerrada | `docs/LITERATURA.md`, `scripts/literature/` |
+| 2. Capas | Cerrada | `docs/CAPAS_EVIDENCIA.md`, ADR-015 |
+| 3. Test modular | Cerrada | `docs/TEST.md`, `docs/MEDICION.md`, `docs/DECISION_MODELO_RASGOS.md`, ADR-016, `scripts/psychometrics/` |
+| 4. Matching | Siguiente | — |
+
+Para rehacer los datos de la Fase 3: `npm run data:psychometrics` (requiere
+`.venv-psy`, ver `scripts/psychometrics/requirements.txt`). Tras editar ítems,
+hay que volver a correrlo: un test compara el hash del banco con el de
+`data/psychometric-params.json`.
+
 ## 7. Lo que no se puede afirmar (se mantiene)
 
 - No hay validez predictiva demostrada sin datos reales de resultados.

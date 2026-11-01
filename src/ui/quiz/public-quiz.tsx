@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import type { QuizSubmittedDto } from "@/contracts/result";
-import { EXPERIENCE, LIKERT_SCALE, QUIZ_ITEMS } from "@/config";
+import { CORE_ITEMS, EXPERIENCE, LIKERT_SCALE, isSkippableItem } from "@/config";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { ChoiceGroup } from "@/ui/kit/choice";
@@ -25,11 +25,16 @@ import {
   presentationOrder,
   resumeIndex,
   toggleOption,
+  toggleSkip,
 } from "./quiz-flow";
 import { Reveal } from "./reveal";
 
 const { sensitiveCategories, exclusiveOption, breathEvery } = EXPERIENCE.quiz;
-const ITEMS = presentationOrder(QUIZ_ITEMS, sensitiveCategories);
+// Core only (ADR-016); optional modules are offered after the result (Phase 7).
+const ITEMS = presentationOrder(
+  CORE_ITEMS.map((item) => ({ ...item, skippable: isSkippableItem(item) })),
+  sensitiveCategories,
+);
 const TOTAL = ITEMS.length;
 const SENSITIVE = new Set(sensitiveCategories);
 const FIRST_SENSITIVE = ITEMS.findIndex((item) => SENSITIVE.has(item.categoria));
@@ -49,7 +54,7 @@ export function PublicQuiz() {
   const submitLock = useRef(false);
 
   const [stage, setStage] = useState<Stage>("loading");
-  const [draft, setDraft] = useState<QuizDraft>({ likert: {}, filters: {} });
+  const [draft, setDraft] = useState<QuizDraft>({ likert: {}, filters: {}, skipped: [] });
   const [index, setIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<ApiError>(null);
@@ -88,7 +93,11 @@ export function PublicQuiz() {
   function chooseLikert(value: number) {
     if (!isLikertValue(value)) return;
     setError(null);
-    setDraft((prev) => ({ ...prev, likert: { ...prev.likert, [item.id]: value } }));
+    setDraft((prev) => ({
+      ...prev,
+      likert: { ...prev.likert, [item.id]: value },
+      skipped: prev.skipped.filter((id) => id !== item.id),
+    }));
   }
 
   function toggleFilter(option: string) {
@@ -198,12 +207,23 @@ export function PublicQuiz() {
             {item.texto}
           </h1>
           {item.tipo_respuesta === "likert_5" ? (
-            <Likert
-              labelledBy={promptId}
-              options={LIKERT_OPTIONS}
-              value={draft.likert[item.id] ?? null}
-              onChange={chooseLikert}
-            />
+            <>
+              <Likert
+                labelledBy={promptId}
+                options={LIKERT_OPTIONS}
+                value={draft.likert[item.id] ?? null}
+                onChange={chooseLikert}
+              />
+              {item.skippable ? (
+                <ChoiceGroup
+                  labelledBy={promptId}
+                  options={[{ value: exclusiveOption, label: optionLabel(exclusiveOption), icon: "privacy" as const }]}
+                  selected={draft.skipped.includes(item.id) ? [exclusiveOption] : []}
+                  onToggle={() => setDraft((prev) => toggleSkip(prev, item.id))}
+                  multiple
+                />
+              ) : null}
+            </>
           ) : (
             <>
               <p className="zm-quiz__hint">Elige todas las que apliquen.</p>

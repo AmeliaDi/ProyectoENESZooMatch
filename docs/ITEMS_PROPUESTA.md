@@ -1,6 +1,6 @@
-# Propuesta de ítems (Fase 3 del afinado). Borrador para aprobación
+# Propuesta de ítems (Fase 3 del afinado). Aprobada
 
-> Estado: **borrador**. Hasta que la usuaria lo apruebe no se escribe en
+> Estado: **aprobada** (2026-11-01). Implementada en `scripts/psychometrics/bank*.py`; la tabla viva es `docs/TEST.md`. Antes:
 > `data/microtest.json`. Escala Likert 1–5 ("Nada que ver conmigo" → "Totalmente
 > yo"). Polaridad `+` = puntúa hacia el polo nombrado; `−` = inverso (6 − x).
 >

@@ -12,4 +12,11 @@ export type { Experience } from "./experience";
 export { MATCHING_CONFIG } from "./matching";
 export { PHYSICS, physicsSchema } from "./physics";
 export type { PhysicsConfig } from "./physics";
-export { LIKERT_SCALE, QUIZ_ITEMS, QUIZ_VERSION } from "./quiz";
+export {
+  CORE_ITEMS,
+  LIKERT_SCALE,
+  QUIZ_ITEMS,
+  QUIZ_MODULES,
+  QUIZ_VERSION,
+  isSkippableItem,
+} from "./quiz";

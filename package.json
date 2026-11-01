@@ -20,7 +20,9 @@
     "data:validate": "vitest run src/config src/infrastructure/supabase/schema.test.ts src/domain/avatars/archetype-catalog.test.ts",
     "db:reset": "supabase db reset",
     "db:apply": "node scripts/db-apply.mjs",
-    "data:layers": "node --no-warnings scripts/literature/layers.mts"
+    "data:layers": "node --no-warnings scripts/literature/layers.mts",
+    "data:bank": "python scripts/psychometrics/bank.py",
+    "data:psychometrics": "python scripts/psychometrics/bank.py && python scripts/psychometrics/run.py"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

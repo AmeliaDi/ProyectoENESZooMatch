@@ -147,7 +147,10 @@ function deriveMbtiCode(normalized: DimensionScores): string {
  * `(raw - min) / (max - min)`, clamped to `[0, 1]`. Dimensions with no
  * contributing items default to `0.5`.
  *
- * @throws If any Likert item required for scoring is missing from `answers`.
+ * Optional-module items and sensitive core items (`SENS`) may be absent: they
+ * are skipped, never imputed (ADR-016), so the dimension rests on fewer items.
+ *
+ * @throws If a mandatory core Likert item is missing from `answers`.
  */
 export function scoreQuiz(answers: QuizSubmission, items: readonly QuizItem[]): ScoredProfile {
   const likertByItem = new Map<string, LikertValue>(
@@ -168,7 +171,10 @@ export function scoreQuiz(answers: QuizSubmission, items: readonly QuizItem[]): 
 
     const answer = likertByItem.get(item.id);
     if (answer === undefined) {
-      throw new Error(`Incomplete quiz: missing answer for item "${item.id}"`);
+      if (isMandatoryLikert(item)) {
+        throw new Error(`Incomplete quiz: missing answer for item "${item.id}"`);
+      }
+      continue;
     }
 
     for (const [dimension, weight] of weights) {
@@ -221,22 +227,26 @@ function relationshipPairCompatible(x: string, y: string): boolean {
   return (fromX?.includes(y) ?? false) || (fromY?.includes(x) ?? false);
 }
 
-const ORIENTATION_WILDCARDS = new Set(["todxs", "prefiero no decir"]);
-const GENDER_WILDCARD = "prefiero no decir";
+/**
+ * "Prefiero no decir". In the orientation or relationship-type filter it opts
+ * the person out of romance (friendship only, ADR-016); in gender identity it
+ * hides nothing from the other side's orientation (no inference either way).
+ */
+const PREFER_NOT_TO_SAY = "prefiero no decir";
 
 const ORIENTATION_TARGETS: Record<string, readonly string[]> = {
   hombres: ["hombre"],
   mujeres: ["mujer"],
-  "personas no binarias": ["no binario", "género fluido", "agenero"],
+  "personas no binarias": ["no binarie", "género fluido", "agénero", "otra"],
 };
 
+function isMandatoryLikert(item: QuizItem): boolean {
+  return item.modulo === "nucleo" && !item.banderas.includes("SENS");
+}
+
 export function attractedTo(orientations: string[], genders: string[]): boolean {
-  if (
-    orientations.length === 0 ||
-    orientations.some((value) => ORIENTATION_WILDCARDS.has(value)) ||
-    genders.length === 0 ||
-    genders.includes(GENDER_WILDCARD)
-  ) {
+  if (orientations.includes(PREFER_NOT_TO_SAY)) return false;
+  if (orientations.length === 0 || genders.length === 0 || genders.includes(PREFER_NOT_TO_SAY)) {
     return true;
   }
 
@@ -244,18 +254,10 @@ export function attractedTo(orientations: string[], genders: string[]): boolean 
   return targets.length === 0 || genders.some((gender) => targets.includes(gender));
 }
 
-function aceCompatible(a: string[], b: string[]): boolean {
-  return (
-    (!a.includes("asexual") || b.includes("asexual") || b.includes("demisexual")) &&
-    (!b.includes("asexual") || a.includes("asexual") || a.includes("demisexual"))
-  );
-}
-
 function isAttractionCompatible(a: HardFilters, b: HardFilters): boolean {
   return (
     attractedTo(a.orientacion_sexual, b.identidad_genero) &&
-    attractedTo(b.orientacion_sexual, a.identidad_genero) &&
-    aceCompatible(a.orientacion_sexual, b.orientacion_sexual)
+    attractedTo(b.orientacion_sexual, a.identidad_genero)
   );
 }
 
@@ -267,9 +269,11 @@ function isAttractionCompatible(a: HardFilters, b: HardFilters): boolean {
  *  - `no_monogamia_etica` / `poliamor` / `anarquia_relacional` match each other.
  *  - `sin_definir` matches everything except strict `monogamia`.
  *  - exactly `["solo_amistad"]` blocks romance; mixed selections ignore that value.
+ *  - `prefiero no decir` blocks romance (friendship only).
  * An empty selection is treated as "no filter expressed" (compatible).
  */
 export function isRelationshipCompatible(a: string[], b: string[]): boolean {
+  if (a.includes(PREFER_NOT_TO_SAY) || b.includes(PREFER_NOT_TO_SAY)) return false;
   const isSoloAmistadOnly = (values: string[]) =>
     values.length === 1 && values[0] === "solo_amistad";
   if (isSoloAmistadOnly(a) || isSoloAmistadOnly(b)) return false;

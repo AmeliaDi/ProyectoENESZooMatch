@@ -28,12 +28,12 @@ describe("romance hard-filter matrix", () => {
 
   it("keeps the score orthogonal for a solo_amistad project", () => {
     const soloFriends = filters({
-      orientacion_sexual: ["todxs"],
+      orientacion_sexual: ["mujeres", "hombres", "personas no binarias"],
       identidad_genero: ["prefiero no decir"],
       tipo_relacion_busca: ["solo_amistad"],
     });
     const open = filters({
-      orientacion_sexual: ["todxs"],
+      orientacion_sexual: ["mujeres", "hombres", "personas no binarias"],
       identidad_genero: ["prefiero no decir"],
       tipo_relacion_busca: ["monogamia"],
     });
@@ -79,7 +79,7 @@ describe("romance hard-filter matrix", () => {
     });
     const second = filters({
       orientacion_sexual: ["mujeres"],
-      identidad_genero: ["no binario"],
+      identidad_genero: ["no binarie"],
       tipo_relacion_busca: ["poliamor"],
     });
 
@@ -89,7 +89,7 @@ describe("romance hard-filter matrix", () => {
 
   it("treats wildcards as the universal set, never as a false indicator", () => {
     const wildcard = filters({
-      orientacion_sexual: ["todxs"],
+      orientacion_sexual: ["mujeres", "hombres", "personas no binarias"],
       identidad_genero: ["prefiero no decir"],
       // An unexpressed relationship project is universal too; `sin_definir`
       // deliberately excludes strict monogamy by product design.

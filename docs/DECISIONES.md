@@ -241,6 +241,42 @@ independiente: en los documentos se sigue distinguiendo `crossref_abstract`
 
 ---
 
+## ADR-016 · Test modular: núcleo de 60 ítems, módulos opcionales y ausentes sin imputar
+
+**Contexto.** Fase 3 del afinado. El banco aprobado (`docs/ITEMS_PROPUESTA.md`)
+tiene 173 ítems; el presupuesto del núcleo es ≈ 60 ítems / ≤ 9 min (ADR-014).
+
+**Decisión.**
+- **Fuente única.** `scripts/psychometrics/bank*.py` genera `data/microtest.json`,
+  `docs/TEST.md` y el bloque `quiz_items` de `supabase/seed.sql`. Nadie edita esos
+  archivos a mano; el generador valida ids, banderas, orden y cobertura.
+- **Núcleo obligatorio:** 57 Likert + 3 filtros (≈ 7 min a 7 s/ítem). HEXACO 24
+  (1 por faceta, ≥ 1 inverso por factor), valores 8, actitudes 6, intereses 6,
+  MBTI 4 y Eneagrama 9. Orden explícito en el JSON: nunca dos ítems seguidos del
+  mismo factor ni dos inversos seguidos; lo sensible al final.
+- **Módulos opcionales (113 ítems):** facetas HEXACO, puente Big Five, valores,
+  actitudes, intereses, estilo de vida, relacional, MBTI, Eneagrama y subtipo.
+  Se ofrecen después del resultado (UI en la Fase 7).
+- **Ausentes = más incertidumbre, nunca imputación.** `scoreQuiz` omite los
+  ítems opcionales sin respuesta. En el puente heredado, una dimensión sin ítems
+  queda en 0.5; en el modelo latente (Fase 4), el prior N(0, R) se actualiza
+  solo con lo respondido y el error estándar crece.
+- **Likert sensibles omitibles** (VAL5, VAL6, ACT2 y ACT3): la UI ofrece
+  "Prefiero no decir", que no se envía. La validación exige el resto del núcleo.
+- **"Prefiero no decir" en FIL1 o FIL3 ⇒ solo amistad.** Ya no es comodín.
+  Se retiran "todxs" y la regla de compatibilidad asexual/demisexual de los
+  filtros; la forma de sentir atracción pasa a un chip opcional que no filtra.
+  "personas no binarias" incluye no binarie, género fluido, agénero y otra.
+- **Puente heredado temporal.** Los ítems conservan `pesos` hacia las 30
+  dimensiones del motor actual; el Eneagrama y los ítems sin equivalente no
+  alimentan ninguna. La Fase 4 lo reemplaza por el puntaje latente.
+
+**Consecuencias.** Las bases con el banco anterior se actualizan con
+`npm run db:apply -- --seed`, que borra los ítems obsoletos solo si no tienen
+respuestas. Los perfiles guardados con el banco viejo deben rehacer el test.
+
+---
+
 ## Pendientes conocidos (no decididos aún)
 
 - **Alias:** hoy es determinista con sufijo de 4 caracteres en base 36. Una colisión

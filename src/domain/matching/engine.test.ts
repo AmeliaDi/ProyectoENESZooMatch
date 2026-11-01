@@ -48,12 +48,24 @@ const AMISTAD_TRACK = MATCHING_CONFIG.tracks.amistad;
 const LIKERT_ITEMS = MICROTEST_ITEMS.filter((item) => item.tipo_respuesta === "likert_5");
 const FILTER_ITEMS = MICROTEST_ITEMS.filter((item) => item.tipo_respuesta === "seleccion_multiple");
 
-/** Answer values used for the three hard-filter items (IF01/IF02/IF03). */
+/** Answer values used for the three hard-filter items (FIL1/FIL2/FIL3). */
 const DEFAULT_FILTER_SELECTIONS: Record<string, string[]> = {
-  IF01: ["mujeres"],
-  IF02: ["no binario"],
-  IF03: ["monogamia"],
+  FIL1: ["mujeres"],
+  FIL2: ["no binarie"],
+  FIL3: ["monogamia"],
 };
+
+/** Likert overrides that push every item feeding `dimensions` toward 0 or 1. */
+function poleOverrides(dimensions: readonly Dimension[], high: boolean): Record<string, LikertValue> {
+  const overrides: Record<string, LikertValue> = {};
+  for (const item of LIKERT_ITEMS) {
+    for (const dimension of dimensions) {
+      const weight = item.pesos[dimension];
+      if (weight !== undefined) overrides[item.id] = (weight === 1) === high ? 5 : 1;
+    }
+  }
+  return overrides;
+}
 
 const INTIMACY_INDICES = ROMANCE_VECTOR_DIMENSIONS
   .map((dimension, index) => ({ dimension, index }))
@@ -73,7 +85,7 @@ function buildSubmission(
     })),
     filters: FILTER_ITEMS.map((item) => ({
       itemId: item.id,
-      selected: filterSelections[item.id] ?? ["todxs"],
+      selected: filterSelections[item.id] ?? [],
     })),
   };
 }
@@ -202,14 +214,9 @@ describe("scoreQuiz", () => {
   });
 
   it("reads the letters from the four MBTI axes independently", () => {
-    const introvert = scoreQuiz(
-      buildSubmission(3, { PM01: 1, PM02: 5, PM03: 1, PM04: 5, PM05: 1, PM06: 1, PM07: 1, PM08: 1 }),
-      MICROTEST_ITEMS,
-    );
-    const extravert = scoreQuiz(
-      buildSubmission(3, { PM01: 5, PM02: 1, PM03: 5, PM04: 1, PM05: 5, PM06: 5, PM07: 5, PM08: 5 }),
-      MICROTEST_ITEMS,
-    );
+    const axes: Dimension[] = ["mbti_extraversion", "mbti_intuicion", "mbti_pensamiento", "mbti_juicio"];
+    const introvert = scoreQuiz(buildSubmission(3, poleOverrides(axes, false)), MICROTEST_ITEMS);
+    const extravert = scoreQuiz(buildSubmission(3, poleOverrides(axes, true)), MICROTEST_ITEMS);
 
     expect(introvert.normalizedScores.mbti_extraversion).toBeCloseTo(0, 12);
     expect(introvert.mbtiCode).toBe("ISFP");
@@ -220,9 +227,23 @@ describe("scoreQuiz", () => {
   it("extracts the three hard filters from the multi-select items", () => {
     expect(neutral.hardFilters).toEqual({
       orientacion_sexual: ["mujeres"],
-      identidad_genero: ["no binario"],
+      identidad_genero: ["no binarie"],
       tipo_relacion_busca: ["monogamia"],
     });
+  });
+
+  it("skips unanswered optional and sensitive items instead of imputing them", () => {
+    const coreOnly: QuizSubmission = {
+      likert: buildSubmission().likert.filter((answer) => {
+        const item = LIKERT_ITEMS.find((candidate) => candidate.id === answer.itemId);
+        return item?.modulo === "nucleo" && !item.banderas.includes("SENS");
+      }),
+      filters: buildSubmission().filters,
+    };
+    const profile = scoreQuiz(coreOnly, MICROTEST_ITEMS);
+    // HUM1 is the only item for cultural_humor and is optional: neutral, not imputed.
+    expect(profile.rawScores.cultural_humor).toBe(0);
+    expect(profile.normalizedScores.cultural_humor).toBe(0.5);
   });
 
   it("treats unanswered filters as an unexpressed preference", () => {
@@ -267,8 +288,8 @@ describe("scoreQuiz", () => {
       return weights.includes(1) && weights.includes(-1);
     });
 
+    // The bank keys most scales both ways; single-direction scales may be all positive.
     expect(positiveOnly.length).toBeGreaterThan(0);
-    expect(negativeOnly.length).toBeGreaterThan(0);
     expect(mixed.length).toBeGreaterThan(0);
 
     const lowest = scoreQuiz(buildSubmission(1), MICROTEST_ITEMS);
@@ -289,19 +310,19 @@ describe("scoreQuiz", () => {
     }
   });
 
-  it("proves reverse scoring with the apertura pair PB01 (+1) and PB02 (-1)", () => {
+  it("proves reverse scoring with the apertura items O2 (+1), O3 (-1) and O4 (+1)", () => {
     const agreeWithOpenness = scoreQuiz(
-      buildSubmission(3, { PB01: 5, PB02: 1 }),
+      buildSubmission(3, { O2: 5, O3: 1, O4: 5 }),
       MICROTEST_ITEMS,
     );
     const disagreeWithOpenness = scoreQuiz(
-      buildSubmission(3, { PB01: 1, PB02: 5 }),
+      buildSubmission(3, { O2: 1, O3: 5, O4: 1 }),
       MICROTEST_ITEMS,
     );
 
-    expect(agreeWithOpenness.rawScores.personalidad_apertura).toBe(10);
+    expect(agreeWithOpenness.rawScores.personalidad_apertura).toBe(15);
     expect(agreeWithOpenness.normalizedScores.personalidad_apertura).toBeCloseTo(1, 12);
-    expect(disagreeWithOpenness.rawScores.personalidad_apertura).toBe(2);
+    expect(disagreeWithOpenness.rawScores.personalidad_apertura).toBe(3);
     expect(disagreeWithOpenness.normalizedScores.personalidad_apertura).toBeCloseTo(0, 12);
     // Untouched dimensions keep the neutral score.
     expect(agreeWithOpenness.normalizedScores.cultural_humor).toBeCloseTo(0.5, 12);
@@ -315,12 +336,12 @@ describe("scoreQuiz", () => {
 
   it("rejects a submission that is missing a scored item", () => {
     const incomplete: QuizSubmission = {
-      likert: buildSubmission().likert.filter((answer) => answer.itemId !== "PB01"),
+      likert: buildSubmission().likert.filter((answer) => answer.itemId !== "H1"),
       filters: buildSubmission().filters,
     };
 
     expect(() => scoreQuiz(incomplete, MICROTEST_ITEMS)).toThrow(/Incomplete quiz/);
-    expect(() => scoreQuiz(incomplete, MICROTEST_ITEMS)).toThrow(/PB01/);
+    expect(() => scoreQuiz(incomplete, MICROTEST_ITEMS)).toThrow(/H1/);
   });
 });
 
@@ -392,7 +413,7 @@ describe("checkHardFilters", () => {
       identidad_genero: ["hombre"],
     });
     const wildcard = hardFilters({
-      orientacion_sexual: ["todxs"],
+      orientacion_sexual: ["mujeres", "hombres", "personas no binarias"],
       identidad_genero: ["prefiero no decir"],
     });
 
@@ -400,22 +421,32 @@ describe("checkHardFilters", () => {
     expect(checkHardFilters(gayManA, wildcard)).toBe(true);
   });
 
-  it("requires an asexual person’s match to be asexual or demisexual", () => {
-    const asexual = hardFilters({
-      orientacion_sexual: ["asexual"],
+  it("keeps people who prefer not to say their orientation or bond type in friendship only", () => {
+    const open = hardFilters({
+      orientacion_sexual: ["mujeres", "hombres", "personas no binarias"],
       identidad_genero: ["mujer"],
     });
-    const allosexual = hardFilters({
+    const hiddenOrientation = hardFilters({
+      orientacion_sexual: ["prefiero no decir"],
+      identidad_genero: ["mujer"],
+    });
+    const hiddenBond = hardFilters({
       orientacion_sexual: ["mujeres"],
       identidad_genero: ["mujer"],
-    });
-    const demisexual = hardFilters({
-      orientacion_sexual: ["demisexual"],
-      identidad_genero: ["mujer"],
+      tipo_relacion_busca: ["prefiero no decir"],
     });
 
-    expect(checkHardFilters(asexual, allosexual)).toBe(false);
-    expect(checkHardFilters(asexual, demisexual)).toBe(true);
+    expect(checkHardFilters(open, hiddenOrientation)).toBe(false);
+    expect(checkHardFilters(hiddenOrientation, open)).toBe(false);
+    expect(checkHardFilters(open, hiddenBond)).toBe(false);
+  });
+
+  it("counts non-binary, fluid, agender and other identities under 'personas no binarias'", () => {
+    const seeker = hardFilters({ orientacion_sexual: ["personas no binarias"], identidad_genero: ["mujer"] });
+    for (const identity of ["no binarie", "género fluido", "agénero", "otra"]) {
+      const other = hardFilters({ orientacion_sexual: ["mujeres"], identidad_genero: [identity] });
+      expect(checkHardFilters(seeker, other), identity).toBe(true);
+    }
   });
 
   it("treats solo_amistad-only as romance-incompatible but not a friendship filter", () => {
@@ -1149,10 +1180,12 @@ describe("MATCHING_CONFIG", () => {
 });
 
 describe("MICROTEST_ITEMS", () => {
-  it("holds 60 items split into 57 Likert and 3 hard-filter questions", () => {
-    expect(MICROTEST_ITEMS).toHaveLength(60);
-    expect(LIKERT_ITEMS).toHaveLength(57);
+  it("holds a 60-item core split into 57 Likert and 3 hard-filter questions", () => {
+    const core = MICROTEST_ITEMS.filter((item) => item.modulo === "nucleo");
+    expect(core).toHaveLength(60);
+    expect(core.filter((item) => item.tipo_respuesta === "likert_5")).toHaveLength(57);
     expect(FILTER_ITEMS).toHaveLength(3);
+    expect(MICROTEST_ITEMS.length).toBeGreaterThan(core.length);
   });
 
   it("marks every multi-select item as a hard filter bound to a profile field", () => {

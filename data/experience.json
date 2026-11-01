@@ -12,7 +12,7 @@
     "storageKey": "zoomatch:onboarding-seen"
   },
   "quiz": {
-    "secondsPerItem": 9,
+    "secondsPerItem": 7,
     "breathEvery": 12,
     "exclusiveOption": "prefiero no decir",
     "sensitiveCategories": ["identidad_filtros"]

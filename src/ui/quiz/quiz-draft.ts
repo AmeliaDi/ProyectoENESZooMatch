@@ -4,6 +4,8 @@ export const QUIZ_STORAGE_KEY = "zoomatch:quiz-draft";
 export type QuizDraft = {
   likert: Partial<Record<string, 1 | 2 | 3 | 4 | 5>>;
   filters: Partial<Record<string, string[]>>;
+  /** Sensitive Likert items answered with "prefiero no decir" (never sent, ADR-016). */
+  skipped: string[];
 };
 
 export const CATEGORY_LABELS: Record<string, string> = {
@@ -21,7 +23,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /** Parses a stored draft, dropping anything malformed instead of throwing. */
 export function parseQuizDraft(raw: string | null): QuizDraft {
-  const empty: QuizDraft = { likert: {}, filters: {} };
+  const empty: QuizDraft = { likert: {}, filters: {}, skipped: [] };
   if (!raw) return empty;
   let parsed: unknown;
   try {
@@ -49,5 +51,9 @@ export function parseQuizDraft(raw: string | null): QuizDraft {
     }
   }
 
-  return { likert, filters };
+  const skipped = Array.isArray(parsed.skipped)
+    ? parsed.skipped.filter((v): v is string => typeof v === "string" && likert[v] === undefined)
+    : [];
+
+  return { likert, filters, skipped };
 }
