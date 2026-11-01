@@ -165,6 +165,27 @@ un pool pequeño. El admin aplica un piso de k-anonimato a cada celda agregada.
 propias. `framer-motion` queda solo en la galería de sprites (dev); la Fase 4
 decide si se retira.
 
+## ADR-013 · Física de la constelación con hogares, paso fijo y sueño
+
+**Contexto.** El motor anterior integraba por *tick* sin unidades, repelía en O(n²),
+teletransportaba al arrastrar y deriva y resortes competían, así que tardaba ~1750
+ticks en asentarse.
+
+**Decisión.** La escena calcula un hogar por estrella (órbita por afinidad, orden
+cíclico conservado, grupos en sector) y cada resorte reposa a la distancia entre
+hogares: el equilibrio es exacto y las fuerzas valen cero en él. La integración es
+Euler semi-implícito a 120 Hz con acumulador e interpolación; los contactos se
+proyectan de forma inelástica; el mundo duerme cuando la energía cinética se queda
+baja. Deriva, inclinación y respiración son solo de dibujo. Detalle y métricas en
+`docs/FISICA.md`.
+
+**Consecuencias.** Mismo movimiento a 30/60/90/120 Hz, energía que no crece, cambio
+de pista sin cruces y sin teletransportes, y el bucle se detiene en reposo. Con 100
+estrellas el cuello es el pintado SVG, no la física (ver FISICA §6).
+
+**Dependencias.** `framer-motion` se retiró: su único uso era `useReducedMotion` en la
+galería de sprites, que ahora usa el hook propio `useReducedMotionPreference`.
+
 ---
 
 ## Pendientes conocidos (no decididos aún)

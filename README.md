@@ -95,7 +95,8 @@ Las variables de entorno están en [`.env.example`](./.env.example) y se validan
 [`DESPLIEGUE.md`](./DESPLIEGUE.md); la operación del panel, en
 [`MANUAL_ADMINISTRADOR.md`](./MANUAL_ADMINISTRADOR.md).
 
-Rutas de desarrollo (devuelven 404 en producción): `/dev/sprites` y `/dev/constellation`.
+Rutas de desarrollo (devuelven 404 en producción): `/dev/sprites`, `/dev/ui`,
+`/dev/constellation` y `/dev/physics` (afinación de la física; ver `docs/FISICA.md`).
 
 ## Privacidad y seguridad
 

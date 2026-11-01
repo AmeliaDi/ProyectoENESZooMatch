@@ -38,7 +38,7 @@ El prompt menciona `src/components/`, pero esa carpeta no existe. La UI vive en
 | `src/ui/dev/sprite-gallery.tsx` | `/dev/sprites` | 754 | Galería de desarrollo |
 | `src/app/globals.css` | Tokens `@theme` | 608 | Paleta paper/ink/moss/clay |
 | `src/domain/avatars/pixel-sprites.ts` | Sprites | 2449 | `GRID_SIZE = 16` |
-| `src/domain/constellation/constellation-layout.ts` | Física | 1183 | Sin paso fijo, repulsión O(n²) |
+| `src/domain/constellation/constellation-layout.ts` | Física | 1183 | Sin paso fijo, repulsión O(n²) (reemplazado en la Fase 4, ver `FISICA.md`) |
 
 Tipografía actual: solo pilas del sistema (Iowan/Palatino, Avenir Next, IBM Plex
 Mono). No se usa `next/font`, así que la identidad tipográfica depende del
