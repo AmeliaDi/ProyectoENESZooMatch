@@ -23,6 +23,7 @@
 }
 .zm-shell__brand {
   display: inline-flex;
+  min-height: var(--zm-touch);
   align-items: center;
   gap: calc(var(--zm-px) * 4);
   color: var(--zm-fg);

@@ -336,6 +336,15 @@
   --box-rim: var(--zm-focus);
 }
 
+/* Selected boxes already spend their rim on the selection tone, so focus
+   moves outside as a square 1-px ring (QA: tabs and chosen options lost it). */
+.zm-box[aria-selected="true"]:focus-visible,
+.zm-box[aria-checked="true"]:focus-visible,
+.zm-box[aria-pressed="true"]:focus-visible {
+  outline: var(--zm-px) solid var(--zm-focus);
+  outline-offset: calc(var(--zm-px) * 2);
+}
+
 /* ─── Motion ──────────────────────────────────────────────── */
 @keyframes zm-star-on {
   0% { opacity: 0; transform: scale(0.5); }
