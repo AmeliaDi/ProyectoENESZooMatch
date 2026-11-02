@@ -22,6 +22,7 @@
     "db:apply": "node scripts/db-apply.mjs",
     "data:layers": "node --no-warnings scripts/literature/layers.mts",
     "data:matching": "node --no-warnings scripts/matching/run.mjs --write",
+    "data:avatars": "node --no-warnings scripts/avatars/run.mjs",
     "data:bank": "python scripts/psychometrics/bank.py",
     "data:psychometrics": "python scripts/psychometrics/bank.py && python scripts/psychometrics/run.py"
   },

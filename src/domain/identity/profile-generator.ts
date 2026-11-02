@@ -1,11 +1,13 @@
 /**
  * ZooMatch — Profile Identity Generator
- * Selects animal + color based on quiz scores, generates unique empowering narrative.
+ * Turns the avatar spec (MBTI → animal, Eneagrama → colour; see
+ * `domain/avatars/avatar-spec`) into the public identity: alias and a
+ * unique, empowering narrative.
  */
 
 import type { ArchetypeAnimal, ArchetypeColor } from "@/types/archetype";
 import type { DimensionScores, ProfileIdentity } from "@/types/microtest";
-import { BIG_FIVE_DIMENSIONS } from "@/types/microtest";
+import type { AvatarVisual } from "@/domain/avatars/avatar-spec";
 import { stringHash } from "@/domain/shared";
 import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 
@@ -427,127 +429,11 @@ const FEMININE_ANIMALS = new Set([
   "salamandrita", "langostita", "suricatita",
 ]);
 
+/** Spanish diminutives in -a (garcita, ballenita, nutria) take "una". */
 function getArticle(diminutivo: string): string {
-  return FEMININE_ANIMALS.has(diminutivo) ? "una" : "un";
+  return FEMININE_ANIMALS.has(diminutivo) || diminutivo.endsWith("a") ? "una" : "un";
 }
 
-
-// ─── Cosine Similarity ────────────────────────────────────────────────────────
-
-function cosineSimilarity(a: number[], b: number[]): number {
-  let dot = 0;
-  let normA = 0;
-  let normB = 0;
-  for (let i = 0; i < a.length; i++) {
-    const ai = a[i]!;
-    const bi = b[i]!;
-    dot += ai * bi;
-    normA += ai * ai;
-    normB += bi * bi;
-  }
-  const denom = Math.sqrt(normA) * Math.sqrt(normB);
-  return denom === 0 ? 0 : dot / denom;
-}
-
-// ─── Animal Selection ─────────────────────────────────────────────────────────
-
-/**
- * Selects the best-matching animal based on the user's normalized personality scores.
- * Algorithm:
- * 1. Extract the user's Big Five scores (5 dims, each 0-1)
- * 2. For each animal in the catalog, compute cosine similarity between
- *    the user's Big Five vector and the animal's personality_affinity vector
- * 3. Return the animal with highest similarity
- * 4. Tie-break: deterministic by animal id (alphabetical)
- */
-export function selectAnimal(normalizedScores: DimensionScores): CatalogAnimal {
-  const userVector = BIG_FIVE_DIMENSIONS.map((dim) => normalizedScores[dim] ?? 0);
-
-  let bestAnimal: CatalogAnimal | null = null;
-  let bestScore = -1;
-
-  for (const animal of ANIMALES) {
-    const animalVector = BIG_FIVE_DIMENSIONS.map(
-      (dim) => animal.personality_affinity[dim] ?? 0
-    );
-    const similarity = cosineSimilarity(userVector, animalVector);
-
-    if (
-      similarity > bestScore ||
-      (similarity === bestScore && bestAnimal !== null && animal.id < bestAnimal.id)
-    ) {
-      bestScore = similarity;
-      bestAnimal = animal;
-    }
-  }
-
-  return bestAnimal ?? ANIMALES[0]!;
-}
-
-// ─── Color Selection ──────────────────────────────────────────────────────────
-
-/**
- * Selects a color based on the user's cultural affinity + intimacy dimensions.
- * Algorithm:
- * 1. Compute an "emotional temperature" from cultural + intimacy scores
- * 2. Within the temperature group, select based on dominant aesthetic dimension
- * 3. Deterministic selection: hash(userId + scores) % candidates.length
- */
-export function selectColor(normalizedScores: DimensionScores, userId: string): CatalogColor {
-  const extraversion = normalizedScores.personalidad_extraversion ?? 0;
-  const openness = normalizedScores.personalidad_apertura ?? 0;
-  const cultural = normalizedScores.cultural_estetica_visual ?? 0;
-  const intimacy = normalizedScores.intimidad_apertura_emocional ?? 0;
-
-  // Determine temperature
-  let temperatura: string;
-  if (extraversion > 0.6 && cultural > 0.5) {
-    temperatura = "calido";
-  } else if (openness > 0.6 && extraversion <= 0.4) {
-    temperatura = "frio";
-  } else {
-    temperatura = "neutro";
-  }
-
-  // Determine preferred textures based on dominant cultural/intimacy dimension
-  const hobbies = normalizedScores.cultural_hobbies_creativos ?? 0;
-  const estetica = normalizedScores.cultural_estetica_visual ?? 0;
-
-  let preferredTexturas: string[];
-  if (estetica > hobbies && estetica > intimacy) {
-    preferredTexturas = ["sedosa", "luminosa"];
-  } else if (hobbies > estetica && hobbies > intimacy) {
-    preferredTexturas = ["cristalina", "acuosa"];
-  } else if (intimacy > estetica && intimacy > hobbies) {
-    preferredTexturas = ["aterciopelada"];
-  } else {
-    preferredTexturas = ["mate", "terrosa"];
-  }
-
-  // Filter candidates by temperature
-  let candidates: readonly ArchetypeColor[] = COLORES.filter((c) => c.temperatura === temperatura);
-
-  // Try to narrow by preferred texture
-  const textureMatch = candidates.filter((c) => preferredTexturas.includes(c.textura));
-  if (textureMatch.length > 0) {
-    candidates = textureMatch;
-  }
-
-  // If no candidates in this temperature, fall back to all colors
-  if (candidates.length === 0) {
-    candidates = COLORES;
-  }
-
-  // Deterministic selection using hash of userId + score fingerprint
-  const scoreFingerprint = Object.values(normalizedScores)
-    .slice(0, 10)
-    .map((v) => Math.round((v ?? 0) * 100))
-    .join("");
-  const hash = stringHash(userId + scoreFingerprint);
-  const index = hash % candidates.length;
-
-  return candidates[index]!;
-}
 
 // ─── Top Dimensions ───────────────────────────────────────────────────────────
 
@@ -681,10 +567,12 @@ function generateAlias(animal: CatalogAnimal, color: CatalogColor, userId: strin
  */
 export function generateProfileIdentity(
   normalizedScores: DimensionScores,
-  userId: string
+  userId: string,
+  avatar: AvatarVisual,
 ): ProfileIdentity {
-  const animal = selectAnimal(normalizedScores);
-  const color = selectColor(normalizedScores, userId);
+  const animal = ANIMALES.find((a) => a.id === avatar.animalId);
+  const color = COLORES.find((c) => c.id === avatar.colorId);
+  if (!animal || !color) throw new Error(`Avatar outside the catalogue: ${avatar.animalId}/${avatar.colorId}`);
   const topDims = getTopDimensions(normalizedScores, 3);
   const narrative = generateProfileNarrative(animal, color, topDims);
   const alias = generateAlias(animal, color, userId);
@@ -695,6 +583,7 @@ export function generateProfileIdentity(
     colorId: color.id,
     colorNombre: color.nombre,
     colorHex: color.hex,
+    mark: avatar.mark,
     alias,
     narrative,
   };

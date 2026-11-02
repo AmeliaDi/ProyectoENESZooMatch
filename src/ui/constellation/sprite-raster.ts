@@ -13,27 +13,28 @@
 import { GRID_SIZE } from "@/domain/avatars/pixel-sprites";
 
 import { SHEET_WIDTH, spriteSheetUrl } from "./sprite-sheet";
+import type { SpriteMark } from "./types";
 
 const pngCache = new Map<string, string>();
 const pending = new Map<string, Promise<string>>();
 
-function key(animalId: string, colorId: string): string {
-  return `${animalId}\u0000${colorId}`;
+function key(animalId: string, colorId: string, mark: SpriteMark | null): string {
+  return `${animalId}\u0000${colorId}\u0000${mark ?? ""}`;
 }
 
 /** PNG URL if already rasterised, otherwise the SVG sheet. */
-export function cachedSheetUrl(animalId: string, colorId: string): string {
-  return pngCache.get(key(animalId, colorId)) ?? spriteSheetUrl(animalId, colorId);
+export function cachedSheetUrl(animalId: string, colorId: string, mark: SpriteMark | null = null): string {
+  return pngCache.get(key(animalId, colorId, mark)) ?? spriteSheetUrl(animalId, colorId, mark);
 }
 
 /** Rasterises a sheet once; resolves to the PNG URL (or the SVG on failure). */
-export function rasterSheetUrl(animalId: string, colorId: string): Promise<string> {
-  const k = key(animalId, colorId);
+export function rasterSheetUrl(animalId: string, colorId: string, mark: SpriteMark | null = null): Promise<string> {
+  const k = key(animalId, colorId, mark);
   const done = pngCache.get(k);
   if (done) return Promise.resolve(done);
   const inflight = pending.get(k);
   if (inflight) return inflight;
-  const svg = spriteSheetUrl(animalId, colorId);
+  const svg = spriteSheetUrl(animalId, colorId, mark);
   const job = (async (): Promise<string> => {
     try {
       const image = new Image();

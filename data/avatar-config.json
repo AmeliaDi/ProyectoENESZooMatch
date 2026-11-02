@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "nota": "Identidad visual (capa 4, docs/AVATARES.md). MBTI → silueta, Eneagrama → color + emblema, ala → tono, subtipo → marca. No pesa en el puntaje. Umbral de entropía y temperatura del eneagrama: matching-config (fuente única). Cada constante: {valor, etiqueta, fuente}.",
+  "species_pools": {
+    "etiqueta": "supuesto_diseno",
+    "fuente": "scripts/avatars/assign.mjs: afinidad MBTI del catálogo (centroides Big Five de generar_catalogo.py) + temperamento; codicioso, cada especie una sola vez",
+    "pools": {"ENFJ":["delfincito","jirafita","lobito","suricatita","fenixito"],"ENFP":["mariposita","alebrijito","tucancito","ranita","focita"],"ENTJ":["cocodrilito","dragoncito","halconcito","ardillita","avispita"],"ENTP":["huroncito","mapachito","libelula","colibrito","zorrito"],"ESFJ":["perrito","abejita","patito","pinguino","pelicanito"],"ESFP":["nutria","huskito","guacamayito","potrillo","cangurito"],"ESTJ":["chihuahuita","hormiguita","caracolito","koalita"],"ESTP":["cabrita","leoncito","guepardito","coyotito","jaguarito"],"INFJ":["osito_anteojos","ciervito","ajolote_celestial","ballenita","cisnecito"],"INFP":["kitsune","osito","mariquita"],"INTJ":["serpientita","buhito","nahualito","garcita","mantisita"],"INTP":["murcielaguito","camaleoncito","ornitorrincocito","quetzalito","ajolotito"],"ISFJ":["wombatito","capibarita","pandita","llamita","tortuguita"],"ISFP":["luciernita","chinchillita","venadito","conejito","caballito"],"ISTJ":["alcito","armadillito","castorcito","polarito","pangolincito"],"ISTP":["tritoncito","erizito","lagartijita","langostita","sapito"]}
+  },
+  "species_clarity_cuts": {
+    "valores": { "3": [0.3463, 0.4604], "4": [0.3163, 0.4051, 0.502], "5": [0.2936, 0.3713, 0.4378, 0.527] },
+    "etiqueta": "estimado_sintetico",
+    "fuente": "Cuantiles k/n de la claridad c = media de |2Φ(θ)−1| sobre los 4 ejes MBTI (población sintética N=1000, semilla de calibración): cada especie del pool recibe ~1/n de quienes comparten código. Más claridad → especie más arquetípica (primera del pool)"
+  },
+  "ambiguity": {
+
+    "wing_margin": { "valor": 0.05, "etiqueta": "supuesto_diseno", "fuente": "Si |P(ala izq) − P(ala der)| < margen, no se muestra ala (tono base)" },
+    "subtype_max_se": { "valor": 0.85, "etiqueta": "estimado_sintetico", "fuente": "SE posterior medio del subtipo: 1.00 sin módulo y 0.72 con módulo (scripts/matching/population, semilla 7); solo se dibuja la marca si el SE del instinto dominante es < 0.85" },
+    "subtype_margin": { "valor": 0.25, "etiqueta": "supuesto_diseno", "fuente": "Diferencia mínima en θ entre el instinto dominante y el segundo" }
+  },
+  "emblem_tone": {
+    "valor": "#F2E8D5",
+    "etiqueta": "supuesto_diseno",
+    "fuente": "Tinta crema del atlas (token fg nocturno). El emblema se dibuja SOBRE el cuerpo, así que su contraste se mide contra la silueta: ≥ 3:1 con los 28 tonos de la paleta (test)"
+  },
+  "emblems": {
+    "1": { "id": "brujula", "nombre": "brújula", "razon": "Busca hacer lo correcto: una aguja que apunta a su norte." },
+    "2": { "id": "corazon", "nombre": "corazoncito", "razon": "Se orienta a cuidar y a ser cercanx." },
+    "3": { "id": "estrella", "nombre": "estrella", "razon": "Quiere brillar por lo que logra." },
+    "4": { "id": "luna", "nombre": "luna creciente", "razon": "Busca lo propio y lo profundo; la luna cambia y sigue siendo ella." },
+    "5": { "id": "lupa", "nombre": "lente", "razon": "Observa y entiende antes de actuar." },
+    "6": { "id": "escudo", "nombre": "escudo", "razon": "Busca seguridad y lealtad." },
+    "7": { "id": "chispa", "nombre": "chispa", "razon": "Persigue lo nuevo y lo divertido." },
+    "8": { "id": "corona", "nombre": "corona", "razon": "Protege y toma el mando." },
+    "9": { "id": "hoja", "nombre": "hojita", "razon": "Busca calma y armonía." },
+    "neutro": { "id": "aura", "nombre": "aura suave", "razon": "Tu eneagrama aún no se define con claridad: no forzamos un tipo." }
+  },
+  "subtypes": {
+    "sp": { "id": "punto_bajo", "nombre": "conservación", "razon": "Una marca a ras de suelo: arraigo y cuidado de lo propio." },
+    "so": { "id": "punto_lateral", "nombre": "social", "razon": "Dos marcas a los lados: atención al grupo." },
+    "sx": { "id": "punto_alto", "nombre": "vínculo", "razon": "Una marca alta y central: intensidad uno a uno." }
+  }
+}

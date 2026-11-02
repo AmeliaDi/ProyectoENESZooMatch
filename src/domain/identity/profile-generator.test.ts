@@ -1,16 +1,15 @@
 import { describe, expect, it } from "vitest";
 
+import type { AvatarVisual } from "@/domain/avatars/avatar-spec";
 import {
   generateProfileIdentity,
   generateProfileNarrative,
   getTopDimensions,
-  selectAnimal,
-  selectColor,
   type CatalogAnimal,
   type CatalogColor,
   type DimensionAffinity,
 } from "@/domain/identity/profile-generator";
-import { ALL_DIMENSIONS, BIG_FIVE_DIMENSIONS } from "@/types/microtest";
+import { ALL_DIMENSIONS } from "@/types/microtest";
 import type { DimensionScores } from "@/types/microtest";
 
 import { CATALOG as catalogo } from "@/config";
@@ -51,156 +50,18 @@ function scored(overrides: Partial<Record<string, number>>, base = 0.5): Dimensi
   ) as DimensionScores;
 }
 
-function bigFiveVector(animal: CatalogAnimal): number[] {
-  return BIG_FIVE_DIMENSIONS.map((dimension) => animal.personality_affinity[dimension] ?? 0);
-}
-
-function cosine(first: readonly number[], second: readonly number[]): number {
-  let dot = 0;
-  let magnitudeFirst = 0;
-  let magnitudeSecond = 0;
-  for (let index = 0; index < first.length; index += 1) {
-    const a = first[index] ?? 0;
-    const b = second[index] ?? 0;
-    dot += a * b;
-    magnitudeFirst += a * a;
-    magnitudeSecond += b * b;
-  }
-  const denominator = Math.sqrt(magnitudeFirst) * Math.sqrt(magnitudeSecond);
-  return denominator === 0 ? 0 : dot / denominator;
-}
 
 const AXOLOTL = animalById("ajolotito");
 const MANTIS = animalById("mantisita");
 const HUMMINGBIRD = animalById("colibrito");
-const EMERALD = colorById("verde-esmeralda");
-const PASTEL_PINK = colorById("rosa-pastel");
+const EMERALD = colorById("ennea-6");
+const PASTEL_PINK = colorById("ennea-2-w3");
 
 const TOP_DIMENSIONS: DimensionAffinity[] = [
   { dimension: "valores_empatia", score: 0.95, label: "empatía profunda" },
   { dimension: "cultural_humor", score: 0.9, label: "sentido del humor" },
   { dimension: "personalidad_apertura", score: 0.8, label: "apertura a nuevas experiencias" },
 ];
-
-// ─── Animal selection ─────────────────────────────────────────────────────────
-
-describe("selectAnimal", () => {
-  it("returns a complete entry from the catalogue", () => {
-    const animal = selectAnimal(uniformScores());
-
-    expect(CATALOG_ANIMALS).toHaveLength(catalogo.metadatos.total_animales);
-    expect(CATALOG_ANIMALS.some((entry) => entry.id === animal.id)).toBe(true);
-    expect(animal.id.length).toBeGreaterThan(0);
-    expect(animal.nombre_fuente.length).toBeGreaterThan(0);
-    expect(animal.diminutivo_es.length).toBeGreaterThan(0);
-    expect(animal.categoria_fauna.length).toBeGreaterThan(0);
-    for (const dimension of BIG_FIVE_DIMENSIONS) {
-      expect(animal.personality_affinity[dimension]).toBeGreaterThanOrEqual(0);
-      expect(animal.personality_affinity[dimension]).toBeLessThanOrEqual(1);
-    }
-  });
-
-  it("is deterministic for the same score profile", () => {
-    const scores = uniformScores(0.5);
-
-    expect(selectAnimal(scores)).toEqual(selectAnimal(scores));
-    expect(selectAnimal(scored({ personalidad_extraversion: 0.9 })).id).toBe(
-      selectAnimal(scored({ personalidad_extraversion: 0.9 })).id,
-    );
-  });
-
-  it("picks an animal whose Big Five affinity is parallel to the user profile", () => {
-    // Two catalog vectors that are clearly not proportional to each other.
-    expect(cosine(bigFiveVector(HUMMINGBIRD), bigFiveVector(MANTIS))).toBeLessThan(0.95);
-
-    const social = selectAnimal(scored(HUMMINGBIRD.personality_affinity));
-    const methodical = selectAnimal(scored(MANTIS.personality_affinity));
-
-    expect(cosine(bigFiveVector(social), bigFiveVector(HUMMINGBIRD))).toBeCloseTo(1, 12);
-    expect(cosine(bigFiveVector(methodical), bigFiveVector(MANTIS))).toBeCloseTo(1, 12);
-    expect(social.id).not.toBe(methodical.id);
-  });
-
-  it("separates an extraverted profile from an introverted one", () => {
-    const extraverted = selectAnimal(
-      scored({
-        personalidad_apertura: 0.4,
-        personalidad_responsabilidad: 0.3,
-        personalidad_extraversion: 1,
-        personalidad_amabilidad: 0.4,
-        personalidad_estabilidad_emocional: 0.3,
-      }, 0),
-    );
-    const introverted = selectAnimal(
-      scored({
-        personalidad_apertura: 0.4,
-        personalidad_responsabilidad: 0.9,
-        personalidad_extraversion: 0,
-        personalidad_amabilidad: 0.2,
-        personalidad_estabilidad_emocional: 0.8,
-      }, 0),
-    );
-
-    expect(extraverted.personality_affinity.personalidad_extraversion).toBeGreaterThanOrEqual(
-      introverted.personality_affinity.personalidad_extraversion!,
-    );
-    expect(bigFiveVector(extraverted)).not.toEqual(bigFiveVector(introverted));
-  });
-
-  it("never returns an empty result even for extreme score profiles", () => {
-    for (const value of [0, 0.25, 0.5, 0.75, 1]) {
-      expect(selectAnimal(uniformScores(value)).id.length).toBeGreaterThan(0);
-    }
-  });
-});
-
-// ─── Color selection ──────────────────────────────────────────────────────────
-
-describe("selectColor", () => {
-  const warmScores = scored({ personalidad_extraversion: 0.9, cultural_estetica_visual: 0.8 });
-  const coolScores = scored({ personalidad_apertura: 0.9, personalidad_extraversion: 0.2 });
-
-  it("returns a catalog color with a valid six-digit hex", () => {
-    const color = selectColor(uniformScores(), "user-1");
-
-    expect(CATALOG_COLORS).toHaveLength(catalogo.metadatos.total_colores);
-    expect(CATALOG_COLORS.some((entry) => entry.id === color.id)).toBe(true);
-    expect(color.hex).toMatch(HEX_PATTERN);
-    expect(color.nombre.length).toBeGreaterThan(0);
-    expect(["calido", "frio", "neutro"]).toContain(color.temperatura);
-  });
-
-  it("is deterministic for the same user id and scores", () => {
-    expect(selectColor(warmScores, "user-42")).toEqual(selectColor(warmScores, "user-42"));
-    expect(selectColor(coolScores, "user-42").id).toBe(selectColor(coolScores, "user-42").id);
-  });
-
-  it("gives warm personalities warm colors", () => {
-    expect(selectColor(warmScores, "user-1").temperatura).toBe("calido");
-    expect(selectColor(warmScores, "user-2").temperatura).toBe("calido");
-    expect(selectColor(warmScores, "user-3").temperatura).toBe("calido");
-  });
-
-  it("gives introspective personalities cool colors", () => {
-    expect(selectColor(coolScores, "user-1").temperatura).toBe("frio");
-    expect(selectColor(coolScores, "user-2").temperatura).toBe("frio");
-  });
-
-  it("falls back to the neutral temperature for balanced profiles", () => {
-    expect(selectColor(uniformScores(0.5), "user-1").temperatura).toBe("neutro");
-  });
-
-  it("changes the pick when the user id changes, staying inside the temperature", () => {
-    const picks = ["user-a", "user-b", "user-c", "user-d", "user-e"].map((userId) =>
-      selectColor(warmScores, userId),
-    );
-
-    for (const color of picks) {
-      expect(color.temperatura).toBe("calido");
-      expect(color.hex).toMatch(HEX_PATTERN);
-    }
-  });
-});
 
 // ─── Narrative generation ─────────────────────────────────────────────────────
 
@@ -243,6 +104,11 @@ describe("generateProfileNarrative", () => {
     }
   });
 
+  it("uses the feminine article for diminutives ending in -a", () => {
+    expect(generateProfileNarrative(animalById("garcita"), EMERALD, [])).toMatch(/^Eres una garcita /);
+    expect(generateProfileNarrative(AXOLOTL, EMERALD, [])).toMatch(/^Eres un ajolotito /);
+  });
+
   it("still produces a full paragraph without top dimensions", () => {
     const short = generateProfileNarrative(AXOLOTL, EMERALD, []);
 
@@ -260,7 +126,8 @@ describe("generateProfileIdentity", () => {
     cultural_estetica_visual: 0.7,
     valores_empatia: 0.95,
   });
-  const identity = generateProfileIdentity(scores, "user-7");
+  const avatar: AvatarVisual = { animalId: "ajolotito", colorId: "ennea-6", mark: "sp" };
+  const identity = generateProfileIdentity(scores, "user-7", avatar);
 
   it("fills every field of the public identity", () => {
     expect(Object.keys(identity).sort()).toEqual([
@@ -270,38 +137,30 @@ describe("generateProfileIdentity", () => {
       "colorHex",
       "colorId",
       "colorNombre",
+      "mark",
       "narrative",
     ]);
-    for (const value of Object.values(identity)) {
-      expect(typeof value).toBe("string");
-      expect(value.length).toBeGreaterThan(0);
-    }
     expect(identity.colorHex).toMatch(HEX_PATTERN);
     expect(identity.alias).toMatch(ALIAS_SUFFIX_PATTERN);
+    expect(identity.mark).toBe("sp");
   });
 
-  it("reuses the animal, color, narrative and alias builders", () => {
-    expect(identity.animalId).toBe(selectAnimal(scores).id);
-    expect(identity.animalDiminutivo).toBe(selectAnimal(scores).diminutivo_es);
-    expect(identity.colorId).toBe(selectColor(scores, "user-7").id);
-    expect(identity.colorNombre).toBe(selectColor(scores, "user-7").nombre);
-    expect(identity.narrative).toBe(
-      generateProfileNarrative(
-        selectAnimal(scores),
-        selectColor(scores, "user-7"),
-        getTopDimensions(scores, 3),
-      ),
-    );
-    expect(
-      identity.alias.startsWith(
-        `${selectAnimal(scores).diminutivo_es} ${selectColor(scores, "user-7").nombre.toLowerCase()} · `,
-      ),
-    ).toBe(true);
+  it("uses the avatar spec for animal and colour and builds the narrative from them", () => {
+    expect(identity.animalId).toBe(AXOLOTL.id);
+    expect(identity.animalDiminutivo).toBe(AXOLOTL.diminutivo_es);
+    expect(identity.colorId).toBe(EMERALD.id);
+    expect(identity.colorNombre).toBe(EMERALD.nombre);
+    expect(identity.narrative).toBe(generateProfileNarrative(AXOLOTL, EMERALD, getTopDimensions(scores, 3)));
+    expect(identity.alias.startsWith(`${AXOLOTL.diminutivo_es} ${EMERALD.nombre.toLowerCase()} · `)).toBe(true);
   });
 
   it("is deterministic and never leaks the user id", () => {
-    expect(generateProfileIdentity(scores, "user-7")).toEqual(identity);
+    expect(generateProfileIdentity(scores, "user-7", avatar)).toEqual(identity);
     expect(JSON.stringify(identity)).not.toContain("user-7");
+  });
+
+  it("rejects an avatar outside the catalogue instead of inventing one", () => {
+    expect(() => generateProfileIdentity(scores, "user-7", { ...avatar, colorId: "verde-esmeralda" })).toThrow();
   });
 });
 

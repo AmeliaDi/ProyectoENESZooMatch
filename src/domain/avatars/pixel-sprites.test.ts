@@ -14,6 +14,7 @@ import {
   ALL_FAMILIES,
   ALL_FRAMES,
   BLUSH_COLOR,
+  EMBLEM_COLOR,
   EYE_COLOR,
   GRID_SIZE,
   HALF_WIDTH,
@@ -36,8 +37,10 @@ import {
 const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
 /** Colour ids used throughout the suite; both exist in the catalogue. */
-const PRIMARY_COLOR = "verde-esmeralda";
-const SECONDARY_COLOR = "rosa-pastel";
+const PRIMARY_COLOR = "ennea-6";
+const SECONDARY_COLOR = "ennea-2-w3";
+/** Base + shadow + highlight + eyes + blush + Enneagram emblem tone. */
+const MAX_PALETTE = 6;
 
 const FRAMES: readonly AnimationFrame[] = ALL_FRAMES;
 
@@ -87,7 +90,7 @@ function expectValidSprite(sprite: SpriteData, animalId: string): void {
   expect(sprite.animalId, `animalId echo for ${animalId}`).toBe(animalId);
   expect(sprite.grid, `grid for ${animalId}`).toHaveLength(GRID_SIZE);
   expect(sprite.palette.length, `palette size for ${animalId}`).toBeGreaterThan(0);
-  expect(sprite.palette.length, `palette size for ${animalId}`).toBeLessThanOrEqual(5);
+  expect(sprite.palette.length, `palette size for ${animalId}`).toBeLessThanOrEqual(MAX_PALETTE);
   expect(ALL_FAMILIES, `family for ${animalId}`).toContain(sprite.family);
 }
 
@@ -247,11 +250,11 @@ describe("horizontal symmetry", () => {
 // ─── 5 & 6. Palette ───────────────────────────────────────────────────────────
 
 describe("palette", () => {
-  it("never exceeds five entries", () => {
+  it("never exceeds six entries (five tones + the emblem)", () => {
     for (const animalId of ALL_IDS) {
       for (const colorId of getAllColorIds()) {
         const { palette } = getSprite(animalId, colorId);
-        expect(palette.length, `${animalId}/${colorId}`).toBeLessThanOrEqual(5);
+        expect(palette.length, `${animalId}/${colorId}`).toBeLessThanOrEqual(MAX_PALETTE);
       }
     }
   });
@@ -274,7 +277,8 @@ describe("palette", () => {
       expect(base, `${color.id} base`).toBe(color.hex);
       expect(eyes, `${color.id} eyes`).toBe(EYE_COLOR);
       expect(blush, `${color.id} blush`).toBe(BLUSH_COLOR);
-      expect(palette, `${color.id} palette`).toHaveLength(5);
+      expect(palette, `${color.id} palette`).toHaveLength(MAX_PALETTE);
+      expect(palette[5], `${color.id} emblem`).toBe(EMBLEM_COLOR);
 
       const channel = (hex: string, offset: number): number =>
         parseInt(hex.slice(1 + offset * 2, 3 + offset * 2), 16);
@@ -644,14 +648,14 @@ describe("family assignment", () => {
 describe("colour handling", () => {
   it("supports every catalogue colour id", () => {
     const colorIds = getAllColorIds();
-    expect(colorIds).toHaveLength(55);
+    expect(colorIds).toHaveLength(28);
     expect(colorIds).toContain(PRIMARY_COLOR);
     expect(colorIds).toEqual(CATALOG_COLORS.map((color) => color.id));
 
     for (const colorId of colorIds) {
       const sprite = getSprite("buhito", colorId);
       expectValidSprite(sprite, "buhito");
-      expect(sprite.palette).toHaveLength(5);
+      expect(sprite.palette).toHaveLength(MAX_PALETTE);
       expect(sprite.palette[0]).toBe(
         CATALOG_COLORS.find((color) => color.id === colorId)?.hex,
       );
@@ -660,7 +664,7 @@ describe("colour handling", () => {
   });
 
   it("supports colour names as aliases for catalogue ids", () => {
-    const byName = getSprite("tigrito", "Verde Esmeralda");
+    const byName = getSprite("tigrito", "Verde Bosque");
     expect(byName.palette[0]).toBe(getSprite("tigrito", PRIMARY_COLOR).palette[0]);
   });
 
@@ -700,7 +704,7 @@ describe("texture", () => {
 
   /** The catalogue's matte reference colour — textures are measured against it. */
   function matteColor(): CatalogColor {
-    const matte = CATALOG_COLORS.find((color) => color.textura === "mate");
+    const matte = CATALOG_COLORS.find((color) => color.id === "ennea-2" && color.textura === "mate");
     if (!matte) throw new Error("the catalogue must contain a matte colour");
     return matte;
   }
@@ -708,7 +712,8 @@ describe("texture", () => {
   it("alters at most four pixels relative to the same sprite with a matte colour", () => {
     const matte = matteColor();
 
-    for (const color of CATALOG_COLORS) {
+    // Same emblem on both sides: only the texture strokes may differ.
+    for (const color of CATALOG_COLORS.filter((c) => c.id.startsWith("ennea-2"))) {
       for (const animalId of ["gatito", "ajolotito", "abejita", "tiburoncito"]) {
         const plain = toneRoles(getSprite(animalId, matte.id));
         const textured = toneRoles(getSprite(animalId, color.id));

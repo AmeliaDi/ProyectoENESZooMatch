@@ -296,6 +296,8 @@ export interface ProfileIdentity {
   colorId: string;
   colorNombre: string;
   colorHex: string;
+  /** Optional Enneagram subtype mark drawn on the sprite (`null` = none). */
+  mark: "sp" | "so" | "sx" | null;
   alias: string;
   narrative: string;
 }

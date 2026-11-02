@@ -3,6 +3,7 @@
  * tests use in-memory fakes. Adapters must not throw: every expected failure
  * comes back as a `Result`.
  */
+import type { SubtypeMark } from "@/domain/avatars/avatar-spec";
 import type { GlobalMatch } from "@/domain/matching";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import type { Result } from "@/domain/shared";
@@ -43,6 +44,7 @@ export interface OwnProfile {
   amistadVector: number[] | null;
   animal: { id: string; diminutivo_es: string; categoria_fauna: string } | null;
   color: { id: string; nombre: string; hex: string } | null;
+  mark: SubtypeMark | null;
 }
 
 export interface CounterpartProfile {
@@ -53,17 +55,21 @@ export interface CounterpartProfile {
   amistadVector: number[] | null;
   animalId: string | null;
   colorId: string | null;
-  colorHex: string | null;
+  mark: SubtypeMark | null;
+  /** Opt-in disclosure of the wing tone and subtype mark to third parties. */
+  showAvatarDetail: boolean;
 }
 
 export interface PrivacyState {
   paused: boolean;
+  showAvatarDetail: boolean;
 }
 
 export interface ProfileRepository {
   isQuizCompleted(userId: string): Promise<Result<boolean, StorageError>>;
   privacyState(userId: string): Promise<Result<PrivacyState, StorageError>>;
   setPaused(userId: string, paused: boolean): Promise<Result<void, StorageError>>;
+  setShowAvatarDetail(userId: string, show: boolean): Promise<Result<void, StorageError>>;
   /** Deletes the auth user; every participant row cascades from it. */
   deleteAccount(userId: string): Promise<Result<void, StorageError>>;
   saveQuizResult(record: QuizResultRecord): Promise<Result<void, StorageError>>;

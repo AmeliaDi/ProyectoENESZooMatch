@@ -1,4 +1,4 @@
-import { deleteMyData, getPrivacyState, setProfilePaused } from "@/application/privacy";
+import { deleteMyData, getPrivacyState, setProfilePaused, setShowAvatarDetail } from "@/application/privacy";
 import { parseJsonBody } from "@/application/validation/common";
 import { privacyUpdateSchema } from "@/application/validation/quiz";
 import { privacyContext } from "@/infrastructure/composition.server";
@@ -20,7 +20,12 @@ async function handlePatch(request: Request) {
   if (!context.ok) return errorResponse(context.error);
   const parsed = privacyUpdateSchema.safeParse(await parseJsonBody(request));
   if (!parsed.success) return errorResponse("request.invalid");
-  const result = await setProfilePaused(context.value.userId, parsed.data.paused, context.value.deps);
+  const { userId, deps } = context.value;
+  if ("showAvatarDetail" in parsed.data) {
+    const shown = await setShowAvatarDetail(userId, parsed.data.showAvatarDetail, deps);
+    return shown.ok ? jsonResponse({ showAvatarDetail: parsed.data.showAvatarDetail }) : errorResponse(shown.error);
+  }
+  const result = await setProfilePaused(userId, parsed.data.paused, deps);
   return result.ok ? jsonResponse(result.value) : errorResponse(result.error);
 }
 

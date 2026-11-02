@@ -23,7 +23,7 @@
 
 import { GRID_SIZE, getSpriteFrame, type AnimationFrame } from "@/domain/avatars/pixel-sprites";
 
-import type { SpriteFrameName } from "./types";
+import type { SpriteFrameName, SpriteMark } from "./types";
 
 /** Sheet column order. Index === frame column. */
 export const SHEET_FRAMES: readonly SpriteFrameName[] = [
@@ -41,8 +41,8 @@ export const MAX_CACHED_SHEETS = 400;
 
 const sheetCache = new Map<string, string>();
 
-function cacheKey(animalId: string, colorId: string): string {
-  return `${animalId}\u0000${colorId}`;
+function cacheKey(animalId: string, colorId: string, mark: SpriteMark | null): string {
+  return `${animalId}\u0000${colorId}\u0000${mark ?? ""}`;
 }
 
 /** Column index (0-3) of a frame name inside the sheet. */
@@ -83,10 +83,10 @@ function gridToRects(grid: readonly (readonly string[])[], offsetX: number): str
  * Builds the raw SVG markup of the four-frame sheet. Exported for tests and
  * for the (optional) dev gallery; production code should use `spriteSheetUrl`.
  */
-export function buildSpriteSheetSvg(animalId: string, colorId: string): string {
+export function buildSpriteSheetSvg(animalId: string, colorId: string, mark: SpriteMark | null = null): string {
   let body = "";
   SHEET_FRAMES.forEach((frame, column) => {
-    const sprite = getSpriteFrame(animalId, colorId, toAnimationFrame(frame));
+    const sprite = getSpriteFrame(animalId, colorId, toAnimationFrame(frame), mark);
     body += gridToRects(sprite.grid, column * GRID_SIZE);
   });
   return (
@@ -100,12 +100,12 @@ export function buildSpriteSheetSvg(animalId: string, colorId: string): string {
  * Building it costs ~0.1 ms after the sprite registry is warm; the URL is then
  * decoded once by the browser and reused by every node sharing that pair.
  */
-export function spriteSheetUrl(animalId: string, colorId: string): string {
-  const key = cacheKey(animalId, colorId);
+export function spriteSheetUrl(animalId: string, colorId: string, mark: SpriteMark | null = null): string {
+  const key = cacheKey(animalId, colorId, mark);
   const cached = sheetCache.get(key);
   if (cached !== undefined) return cached;
   const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-    buildSpriteSheetSvg(animalId, colorId),
+    buildSpriteSheetSvg(animalId, colorId, mark),
   )}`;
   if (sheetCache.size >= MAX_CACHED_SHEETS) sheetCache.clear();
   sheetCache.set(key, url);
@@ -123,6 +123,8 @@ export function clearSpriteSheetCache(): void {
  * estrellas…" placeholder) so the first `getSpriteFrame` — which builds the
  * whole lazy catalogue, ~180 ms — never lands inside a paint.
  */
-export function warmSpriteSheets(pairs: readonly { animalId: string; colorId: string }[]): void {
-  for (const pair of pairs) spriteSheetUrl(pair.animalId, pair.colorId);
+export function warmSpriteSheets(
+  pairs: readonly { animalId: string; colorId: string; mark?: SpriteMark | null | undefined }[],
+): void {
+  for (const pair of pairs) spriteSheetUrl(pair.animalId, pair.colorId, pair.mark ?? null);
 }

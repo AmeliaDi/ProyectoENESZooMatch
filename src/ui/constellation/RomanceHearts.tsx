@@ -10,6 +10,7 @@
 import { HEART_COLOR } from "@/domain/avatars/pixel-sprites";
 
 import { PixelAnimal } from "./PixelAnimal";
+import type { SpriteMark } from "./types";
 
 const HEART_CELLS: ReadonlyArray<readonly [number, number]> = [
   [1, 0],
@@ -119,8 +120,10 @@ export function SharedHeart({ size = 18, animated = true }: { size?: number; ani
 interface RomanceDuoProps {
   selfAnimalId: string;
   selfColorId: string;
+  selfMark?: SpriteMark | null | undefined;
   matchAnimalId: string;
   matchColorId: string;
+  matchMark?: SpriteMark | null | undefined;
   size?: number;
   animated?: boolean;
 }
@@ -133,8 +136,10 @@ interface RomanceDuoProps {
 export function RomanceDuo({
   selfAnimalId,
   selfColorId,
+  selfMark = null,
   matchAnimalId,
   matchColorId,
+  matchMark = null,
   size = 54,
   animated = true,
 }: RomanceDuoProps) {
@@ -147,6 +152,7 @@ export function RomanceDuo({
       <PixelAnimal
         animalId={selfAnimalId}
         colorId={selfColorId}
+        mark={selfMark}
         size={size}
         happy
         animated={animated}
@@ -156,6 +162,7 @@ export function RomanceDuo({
         <PixelAnimal
           animalId={matchAnimalId}
           colorId={matchColorId}
+          mark={matchMark}
           size={size}
           happy
           animated={animated}

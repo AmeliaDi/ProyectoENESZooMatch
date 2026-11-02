@@ -241,9 +241,9 @@ function ConstellationCanvasImpl({
       cameraRef.current = createCamera(width, height, cfg.camera);
     }
     warmSpriteSheets([
-      { animalId: me.animalId, colorId: me.colorId },
+      { animalId: me.animalId, colorId: me.colorId, mark: me.mark ?? null },
       { animalId: GHOST_ANIMAL_ID, colorId: GHOST_COLOR_ID },
-      ...matches.map((m) => ({ animalId: m.animalId, colorId: m.colorId })),
+      ...matches.map((m) => ({ animalId: m.animalId, colorId: m.colorId, mark: m.mark ?? null })),
     ]);
     setStructure(structureFromWorld(world, meta, track));
     wakeLoopRef.current();

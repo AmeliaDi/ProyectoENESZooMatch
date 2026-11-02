@@ -1,10 +1,10 @@
 {
   "metadatos": {
-    "version": "1.2",
+    "version": "1.3",
     "generado": "2026-10-25T00:00:00Z",
     "total_animales": 103,
-    "total_colores": 55,
-    "total_combinaciones": 5665,
+    "total_colores": 28,
+    "total_combinaciones": 2884,
     "script": "scripts/generar_catalogo.py"
   },
   "animales": [
@@ -6809,388 +6809,199 @@
   ],
   "colores": [
     {
-      "id": "verde-esmeralda",
-      "nombre": "Verde esmeralda",
-      "hex": "#50C878",
-      "textura": "cristalina",
-      "temperatura": "frio"
-    },
-    {
-      "id": "rosa-pastel",
-      "nombre": "Rosa pastel",
-      "hex": "#FFB6C1",
-      "textura": "sedosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "negro-obsidiana",
-      "nombre": "Negro obsidiana",
-      "hex": "#0B1304",
-      "textura": "mate",
-      "temperatura": "neutro"
-    },
-    {
-      "id": "azul-zafiro",
-      "nombre": "Azul zafiro",
-      "hex": "#0F52BA",
-      "textura": "cristalina",
-      "temperatura": "frio"
-    },
-    {
-      "id": "rojo-rubi",
-      "nombre": "Rojo rubí",
-      "hex": "#E0115F",
-      "textura": "cristalina",
-      "temperatura": "calido"
-    },
-    {
-      "id": "morado-amatista",
-      "nombre": "Morado amatista",
-      "hex": "#9966CC",
-      "textura": "cristalina",
-      "temperatura": "frio"
-    },
-    {
-      "id": "naranja-ambar",
-      "nombre": "Naranja ámbar",
-      "hex": "#FFBF00",
-      "textura": "luminosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "amarillo-topacio",
-      "nombre": "Amarillo topacio",
-      "hex": "#FFC87C",
-      "textura": "luminosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "blanco-perla",
-      "nombre": "Blanco perla",
-      "hex": "#F5F5F5",
-      "textura": "sedosa",
-      "temperatura": "neutro"
-    },
-    {
-      "id": "gris-plata",
-      "nombre": "Gris plata",
-      "hex": "#C0C0C0",
-      "textura": "metalica",
-      "temperatura": "frio"
-    },
-    {
-      "id": "dorado-miel",
-      "nombre": "Dorado miel",
-      "hex": "#EB9605",
-      "textura": "metalica",
-      "temperatura": "calido"
-    },
-    {
-      "id": "plateado-lunar",
-      "nombre": "Plateado lunar",
-      "hex": "#D6D6D6",
-      "textura": "metalica",
-      "temperatura": "frio"
-    },
-    {
-      "id": "turquesa-oceano",
-      "nombre": "Turquesa océano",
-      "hex": "#40E0D0",
-      "textura": "acuosa",
-      "temperatura": "frio"
-    },
-    {
-      "id": "coral-sunset",
-      "nombre": "Coral sunset",
-      "hex": "#FF7F50",
-      "textura": "sedosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "lavanda-suave",
-      "nombre": "Lavanda suave",
-      "hex": "#E6E6FA",
-      "textura": "aterciopelada",
-      "temperatura": "frio"
-    },
-    {
-      "id": "lila-nebulosa",
-      "nombre": "Lila nebulosa",
-      "hex": "#C8A2C8",
-      "textura": "aterciopelada",
-      "temperatura": "frio"
-    },
-    {
-      "id": "indigo-profundo",
-      "nombre": "Índigo profundo",
-      "hex": "#4B0082",
-      "textura": "aterciopelada",
-      "temperatura": "frio"
-    },
-    {
-      "id": "violeta-cosmos",
-      "nombre": "Violeta cosmos",
-      "hex": "#7F00FF",
-      "textura": "luminosa",
-      "temperatura": "frio"
-    },
-    {
-      "id": "magenta-vibrante",
-      "nombre": "Magenta vibrante",
-      "hex": "#FF00FF",
-      "textura": "luminosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "fucsia-tropical",
-      "nombre": "Fucsia tropical",
-      "hex": "#FF77A9",
-      "textura": "sedosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "cereza-intenso",
-      "nombre": "Cereza intenso",
-      "hex": "#DE3163",
-      "textura": "aterciopelada",
-      "temperatura": "calido"
-    },
-    {
-      "id": "vino-tinto",
-      "nombre": "Vino tinto",
-      "hex": "#722F37",
-      "textura": "aterciopelada",
-      "temperatura": "calido"
-    },
-    {
-      "id": "terracota-calida",
-      "nombre": "Terracota cálida",
-      "hex": "#E2725B",
-      "textura": "terrosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "arena-dorada",
-      "nombre": "Arena dorada",
-      "hex": "#C2B280",
-      "textura": "terrosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "marfil-antiguo",
-      "nombre": "Marfil antiguo",
-      "hex": "#FFFFF0",
-      "textura": "sedosa",
-      "temperatura": "neutro"
-    },
-    {
-      "id": "jade-misterioso",
-      "nombre": "Jade misterioso",
-      "hex": "#00A86B",
-      "textura": "cristalina",
-      "temperatura": "frio"
-    },
-    {
-      "id": "esmeralda-bosque",
-      "nombre": "Esmeralda bosque",
-      "hex": "#046307",
+      "id": "ennea-1",
+      "nombre": "Azul cobalto",
+      "hex": "#3775CD",
       "textura": "mate",
       "temperatura": "frio"
     },
     {
-      "id": "zafiro-medianoche",
-      "nombre": "Zafiro medianoche",
-      "hex": "#191970",
-      "textura": "cristalina",
+      "id": "ennea-1-w9",
+      "nombre": "Azul cobalto profundo",
+      "hex": "#2C71A2",
+      "textura": "mate",
       "temperatura": "frio"
     },
     {
-      "id": "rubi-pasion",
-      "nombre": "Rubí pasión",
-      "hex": "#9B111E",
-      "textura": "cristalina",
+      "id": "ennea-1-w2",
+      "nombre": "Azul cobalto claro",
+      "hex": "#597AD6",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-2",
+      "nombre": "Rosa orquídea",
+      "hex": "#CE3A89",
+      "textura": "mate",
       "temperatura": "calido"
     },
     {
-      "id": "ambar-solar",
-      "nombre": "Ámbar solar",
-      "hex": "#FF7E00",
-      "textura": "luminosa",
+      "id": "ennea-2-w1",
+      "nombre": "Rosa orquídea profundo",
+      "hex": "#BD2F91",
+      "textura": "mate",
       "temperatura": "calido"
     },
     {
-      "id": "citrino-brillante",
-      "nombre": "Citrino brillante",
-      "hex": "#E4D00A",
-      "textura": "cristalina",
+      "id": "ennea-2-w3",
+      "nombre": "Rosa orquídea claro",
+      "hex": "#D44D87",
+      "textura": "mate",
       "temperatura": "calido"
     },
     {
-      "id": "perla-iridiscente",
-      "nombre": "Perla iridiscente",
-      "hex": "#FDEEF4",
-      "textura": "sedosa",
-      "temperatura": "neutro"
+      "id": "ennea-3",
+      "nombre": "Oro viejo",
+      "hex": "#8F7214",
+      "textura": "mate",
+      "temperatura": "calido"
     },
     {
-      "id": "opalo-multicolor",
-      "nombre": "Ópalo multicolor",
-      "hex": "#A8C3BC",
-      "textura": "cristalina",
-      "temperatura": "neutro"
+      "id": "ennea-3-w2",
+      "nombre": "Oro viejo profundo",
+      "hex": "#8D6515",
+      "textura": "mate",
+      "temperatura": "calido"
     },
     {
-      "id": "onix-profundo",
-      "nombre": "Ónix profundo",
-      "hex": "#353839",
+      "id": "ennea-3-w4",
+      "nombre": "Oro viejo claro",
+      "hex": "#AD721B",
+      "textura": "mate",
+      "temperatura": "calido"
+    },
+    {
+      "id": "ennea-4",
+      "nombre": "Violeta amatista",
+      "hex": "#9D56C7",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-4-w3",
+      "nombre": "Violeta amatista profundo",
+      "hex": "#A53CBF",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-4-w5",
+      "nombre": "Violeta amatista claro",
+      "hex": "#9B67CD",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-5",
+      "nombre": "Turquesa marino",
+      "hex": "#24818F",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-5-w4",
+      "nombre": "Turquesa marino profundo",
+      "hex": "#257590",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-5-w6",
+      "nombre": "Turquesa marino claro",
+      "hex": "#268B92",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-6",
+      "nombre": "Verde bosque",
+      "hex": "#338547",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-6-w5",
+      "nombre": "Verde bosque profundo",
+      "hex": "#2D7A46",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-6-w7",
+      "nombre": "Verde bosque claro",
+      "hex": "#34903D",
+      "textura": "mate",
+      "temperatura": "frio"
+    },
+    {
+      "id": "ennea-7",
+      "nombre": "Naranja mandarina",
+      "hex": "#C05722",
+      "textura": "mate",
+      "temperatura": "calido"
+    },
+    {
+      "id": "ennea-7-w6",
+      "nombre": "Naranja mandarina profundo",
+      "hex": "#9E5C1E",
+      "textura": "mate",
+      "temperatura": "calido"
+    },
+    {
+      "id": "ennea-7-w8",
+      "nombre": "Naranja mandarina claro",
+      "hex": "#D35926",
+      "textura": "mate",
+      "temperatura": "calido"
+    },
+    {
+      "id": "ennea-8",
+      "nombre": "Rojo carmín",
+      "hex": "#D63B4B",
+      "textura": "mate",
+      "temperatura": "calido"
+    },
+    {
+      "id": "ennea-8-w7",
+      "nombre": "Rojo carmín profundo",
+      "hex": "#CE2B36",
+      "textura": "mate",
+      "temperatura": "calido"
+    },
+    {
+      "id": "ennea-8-w9",
+      "nombre": "Rojo carmín claro",
+      "hex": "#D65350",
+      "textura": "mate",
+      "temperatura": "calido"
+    },
+    {
+      "id": "ennea-9",
+      "nombre": "Verde olivo",
+      "hex": "#657E44",
       "textura": "mate",
       "temperatura": "neutro"
     },
     {
-      "id": "cuarzo-rosa",
-      "nombre": "Cuarzo rosa",
-      "hex": "#F7CAC9",
-      "textura": "cristalina",
-      "temperatura": "calido"
-    },
-    {
-      "id": "aguamarina",
-      "nombre": "Aguamarina",
-      "hex": "#7FFFD4",
-      "textura": "acuosa",
-      "temperatura": "frio"
-    },
-    {
-      "id": "cian-electrico",
-      "nombre": "Cian eléctrico",
-      "hex": "#00FFFF",
-      "textura": "luminosa",
-      "temperatura": "frio"
-    },
-    {
-      "id": "chartreuse-luminoso",
-      "nombre": "Chartreuse luminoso",
-      "hex": "#7FFF00",
-      "textura": "luminosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "bermellon-fuego",
-      "nombre": "Bermellón fuego",
-      "hex": "#E34234",
-      "textura": "luminosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "carmesi-noble",
-      "nombre": "Carmesí noble",
-      "hex": "#DC143C",
-      "textura": "aterciopelada",
-      "temperatura": "calido"
-    },
-    {
-      "id": "malva-delicado",
-      "nombre": "Malva delicado",
-      "hex": "#E0B0FF",
-      "textura": "sedosa",
-      "temperatura": "frio"
-    },
-    {
-      "id": "salvia-serena",
-      "nombre": "Salvia serena",
-      "hex": "#BCB88A",
+      "id": "ennea-9-w8",
+      "nombre": "Verde olivo profundo",
+      "hex": "#62733A",
       "textura": "mate",
       "temperatura": "neutro"
     },
     {
-      "id": "musgo-profundo",
-      "nombre": "Musgo profundo",
-      "hex": "#8A9A5B",
-      "textura": "terrosa",
-      "temperatura": "frio"
-    },
-    {
-      "id": "oliva-dorado",
-      "nombre": "Oliva dorado",
-      "hex": "#808000",
-      "textura": "terrosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "canela-calida",
-      "nombre": "Canela cálida",
-      "hex": "#D2691E",
-      "textura": "terrosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "chocolate-rico",
-      "nombre": "Chocolate rico",
-      "hex": "#7B3F00",
-      "textura": "terrosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "cafe-suave",
-      "nombre": "Café suave",
-      "hex": "#C4A484",
-      "textura": "terrosa",
-      "temperatura": "calido"
-    },
-    {
-      "id": "bronce-antiguo",
-      "nombre": "Bronce antiguo",
-      "hex": "#CD7F32",
-      "textura": "metalica",
-      "temperatura": "calido"
-    },
-    {
-      "id": "cobre-brillante",
-      "nombre": "Cobre brillante",
-      "hex": "#B87333",
-      "textura": "metalica",
-      "temperatura": "calido"
-    },
-    {
-      "id": "oro-rosa",
-      "nombre": "Oro rosa",
-      "hex": "#B76E79",
-      "textura": "metalica",
-      "temperatura": "calido"
-    },
-    {
-      "id": "titanio-oscuro",
-      "nombre": "Titanio oscuro",
-      "hex": "#878681",
-      "textura": "metalica",
-      "temperatura": "frio"
-    },
-    {
-      "id": "acero-azul",
-      "nombre": "Acero azul",
-      "hex": "#4682B4",
-      "textura": "metalica",
-      "temperatura": "frio"
-    },
-    {
-      "id": "platino-frio",
-      "nombre": "Platino frío",
-      "hex": "#E5E4E2",
-      "textura": "metalica",
-      "temperatura": "frio"
-    },
-    {
-      "id": "iridio-raro",
-      "nombre": "Iridio raro",
-      "hex": "#5C5B57",
-      "textura": "metalica",
+      "id": "ennea-9-w1",
+      "nombre": "Verde olivo claro",
+      "hex": "#628A46",
+      "textura": "mate",
       "temperatura": "neutro"
     },
     {
-      "id": "tungsteno-noble",
-      "nombre": "Tungsteno noble",
-      "hex": "#4A4A4A",
-      "textura": "metalica",
+      "id": "ennea-neblina",
+      "nombre": "Gris neblina",
+      "hex": "#77728C",
+      "textura": "mate",
       "temperatura": "neutro"
     }
   ]

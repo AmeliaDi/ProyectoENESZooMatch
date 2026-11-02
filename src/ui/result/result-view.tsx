@@ -134,7 +134,7 @@ export function PublicResultView() {
         <header className="zm-result__me">
           {self ? (
             <span className="zm-result__sprite" aria-hidden="true">
-              <PixelAnimal animalId={self.animalId} colorId={self.colorId} size={48} />
+              <PixelAnimal animalId={self.animalId} colorId={self.colorId} mark={self.mark} size={48} />
             </span>
           ) : null}
           <div>
@@ -186,7 +186,7 @@ export function PublicResultView() {
           <EmptyState
             title={result.fewPeople ? "Somos pocxs todavía" : "Tu cielo está tranquilo"}
             body={emptyMessage}
-            art={self ? <PixelAnimal animalId={self.animalId} colorId={self.colorId} size={72} /> : undefined}
+            art={self ? <PixelAnimal animalId={self.animalId} colorId={self.colorId} mark={self.mark} size={72} /> : undefined}
           />
         ) : (
           <section

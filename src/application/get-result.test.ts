@@ -22,7 +22,8 @@ const OWN: OwnProfile = {
   romanceVector: Array<number>(ROMANCE_VECTOR_LENGTH).fill(0.6),
   amistadVector: Array<number>(FRIENDSHIP_VECTOR_LENGTH).fill(0.6),
   animal: { id: "zorrito", diminutivo_es: "zorrito", categoria_fauna: "mamifero" },
-  color: { id: "ambar", nombre: "Ámbar", hex: "#FFBF00" },
+  color: { id: "ennea-7", nombre: "Naranja mandarina", hex: "#C05722" },
+  mark: "sx",
 };
 
 const COUNTERPART: CounterpartProfile = {
@@ -32,8 +33,9 @@ const COUNTERPART: CounterpartProfile = {
   romanceVector: Array<number>(ROMANCE_VECTOR_LENGTH).fill(0.65),
   amistadVector: Array<number>(FRIENDSHIP_VECTOR_LENGTH).fill(0.65),
   animalId: "pulpito",
-  colorId: "azul-abisal",
-  colorHex: "#123456",
+  colorId: "ennea-4-w5",
+  mark: "so",
+  showAvatarDetail: false,
 };
 
 const MATCH: StoredMatch = {
@@ -107,7 +109,30 @@ describe("getResult", () => {
     store.counterparts = [{ ...COUNTERPART, amistadVector: [0.5] }];
     const degraded = await getResult(VIEWER, wire(store));
     expect(degraded.ok && degraded.value.matches.amistad[0]?.explanation).toBeNull();
-    expect(degraded.ok && degraded.value.matches.amistad[0]?.color_hex).toBe("#123456");
+    expect(degraded.ok && degraded.value.matches.amistad[0]?.color_hex).toBe("#9D56C7");
+  });
+
+  it("hides the counterpart's wing tone and subtype mark unless they opted in", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    store.stored = [MATCH];
+    store.counterparts = [COUNTERPART];
+    const hidden = await getResult(VIEWER, wire(store));
+    if (!hidden.ok) throw new Error("expected ok");
+    expect(hidden.value.matches.amistad[0]).toMatchObject({ color_id: "ennea-4", mark: null, color: "Violeta amatista" });
+    expect(JSON.stringify(hidden.value)).not.toContain("ennea-4-w5");
+
+    store.counterparts = [{ ...COUNTERPART, showAvatarDetail: true }];
+    const shown = await getResult(VIEWER, wire(store));
+    if (!shown.ok) throw new Error("expected ok");
+    expect(shown.value.matches.amistad[0]).toMatchObject({ color_id: "ennea-4-w5", mark: "so" });
+  });
+
+  it("always shows the viewer their own full avatar", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    const result = await getResult(VIEWER, wire(store));
+    expect(result.ok && result.value.mark).toBe("sx");
   });
 
   it("splits matches by track", async () => {

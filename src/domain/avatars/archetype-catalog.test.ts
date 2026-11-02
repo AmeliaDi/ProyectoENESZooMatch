@@ -166,7 +166,7 @@ describe("archetype catalogue", () => {
     expect(catalog.metadatos.total_combinaciones).toBe(
       animals.length * catalog.colores.length,
     );
-    expect(catalog.metadatos.version).toBe("1.2");
+    expect(catalog.metadatos.version).toBe("1.3");
   });
 
   it("has one seed row per animal", () => {

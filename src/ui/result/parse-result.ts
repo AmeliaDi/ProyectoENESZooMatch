@@ -3,7 +3,7 @@
  * malformed entries are dropped, badge labels come from a local map and the
  * badge icon is the dimension's category key (rendered as a pixel icon).
  */
-import type { ChemistrySummary, MatchExplanation } from "@/contracts/result";
+import type { ChemistrySummary, MatchExplanation, SpriteMark } from "@/contracts/result";
 import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
 import type { CompatibilityBadge } from "@/types/microtest";
 
@@ -18,6 +18,7 @@ export interface ResultMatch {
   color: string;
   color_id?: string | null;
   color_hex?: string | null;
+  mark?: SpriteMark | null;
   mbti_code?: string | null;
   similarity: number;
   chemistry: ChemistrySummary | null;
@@ -30,6 +31,7 @@ export interface PublicResult {
   alias: string;
   animal: { id: string; diminutivo_es: string; categoria_fauna: string };
   color: { id: string; nombre: string; hex: string };
+  mark: SpriteMark | null;
   narrative: string;
   mbti_code: string | null;
   matches: { romance: ResultMatch[]; amistad: ResultMatch[] };
@@ -171,6 +173,7 @@ function parseMatchEntry(raw: unknown): ResultMatch | null {
     color: optionalString(raw.color) ?? "",
     color_id: optionalString(raw.color_id),
     color_hex: optionalString(raw.color_hex),
+    mark: parseMark(raw.mark),
     mbti_code: optionalString(raw.mbti_code),
     similarity: raw.similarity,
     chemistry: parseChemistry(raw.chemistry) ?? explanation?.chemistry ?? null,
@@ -178,6 +181,10 @@ function parseMatchEntry(raw: unknown): ResultMatch | null {
     narrative: optionalString(raw.narrative) ?? "",
     explanation,
   };
+}
+
+function parseMark(raw: unknown): SpriteMark | null {
+  return raw === "sp" || raw === "so" || raw === "sx" ? raw : null;
 }
 
 function parseMatchList(raw: unknown): ResultMatch[] {
@@ -222,6 +229,7 @@ export function parsePublicResult(raw: unknown): PublicResult | null {
     alias: raw.alias,
     animal,
     color,
+    mark: parseMark(raw.mark),
     narrative: raw.narrative,
     mbti_code: optionalString(raw.mbti_code),
     matches: {

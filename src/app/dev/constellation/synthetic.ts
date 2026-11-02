@@ -44,10 +44,10 @@ const COLOR_HEX = new Map<string, string>(COLORS.map((c) => [c.id, c.hex]));
 export const DEV_SELF: ConstellationSelfInput = {
   id: "dev-self",
   animalId: "ajolotito",
-  colorId: "verde-esmeralda",
-  colorHex: COLOR_HEX.get("verde-esmeralda") ?? "#50C878",
+  colorId: "ennea-6",
+  colorHex: COLOR_HEX.get("ennea-6") ?? "#338547",
   animalName: "Ajolotito",
-  colorName: "verde esmeralda",
+  colorName: "verde bosque",
   alias: "tú (dev)",
   mbtiCode: null,
 };

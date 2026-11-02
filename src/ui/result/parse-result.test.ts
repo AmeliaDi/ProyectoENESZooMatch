@@ -25,10 +25,10 @@ function makeMatch(overrides: Record<string, unknown> = {}): Record<string, unkn
 
 function makePayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    alias: "ajolotito verde esmeralda · 4K2P",
+    alias: "ajolotito verde bosque · 4K2P",
     animal: { id: "ajolotito", diminutivo_es: "ajolotito", categoria_fauna: "anfibio" },
-    color: { id: "verde-esmeralda", nombre: "verde esmeralda", hex: "#50C878" },
-    narrative: "Eres un ajolotito verde esmeralda con una capacidad infinita de regenerar.",
+    color: { id: "ennea-6", nombre: "verde bosque", hex: "#338547" },
+    narrative: "Eres un ajolotito verde bosque con una capacidad infinita de regenerar.",
     mbti_code: "ENFJ",
     matches: { romance: [makeMatch()], amistad: [] },
     no_match_message: NO_MATCH_MESSAGE,
@@ -85,18 +85,19 @@ describe("parsePublicResult", () => {
       "animal",
       "color",
       "fewPeople",
+      "mark",
       "matches",
       "mbti_code",
       "narrative",
       "no_match_message",
     ]);
-    expect(result.alias).toBe("ajolotito verde esmeralda · 4K2P");
+    expect(result.alias).toBe("ajolotito verde bosque · 4K2P");
     expect(result.animal).toEqual({
       id: "ajolotito",
       diminutivo_es: "ajolotito",
       categoria_fauna: "anfibio",
     });
-    expect(result.color).toEqual({ id: "verde-esmeralda", nombre: "verde esmeralda", hex: "#50C878" });
+    expect(result.color).toEqual({ id: "ennea-6", nombre: "verde bosque", hex: "#338547" });
     expect(result.mbti_code).toBe("ENFJ");
     expect(result.matches.romance).toHaveLength(1);
     expect(result.matches.amistad).toHaveLength(0);
@@ -121,7 +122,7 @@ describe("parsePublicResult", () => {
     }) as PublicResult | null;
 
     expect(parsed?.animal.id).toBe("ajolotito");
-    expect(parsed?.color.hex).toBe("#50C878");
+    expect(parsed?.color.hex).toBe("#338547");
   });
 
   it("rejects payloads that are not objects", () => {
@@ -155,16 +156,16 @@ describe("parsePublicResult", () => {
 
   it("rejects colours whose hex is not a six-digit value", () => {
     const base = makePayload();
-    for (const hex of ["#50C87", "#50C8789", "50C878", "#GGGGGG", "", null]) {
+    for (const hex of ["#33854", "#3385479", "338547", "#GGGGGG", "", null]) {
       expect(
-        parsePublicResult({ ...base, color: { id: "verde-esmeralda", nombre: "verde esmeralda", hex } }),
+        parsePublicResult({ ...base, color: { id: "ennea-6", nombre: "verde bosque", hex } }),
         `hex ${String(hex)}`,
       ).toBeNull();
     }
     expect(
       parsePublicResult({
         ...base,
-        color: { id: "verde-esmeralda", nombre: "verde esmeralda", hex: "#50c878" },
+        color: { id: "ennea-6", nombre: "verde bosque", hex: "#338547" },
       }),
     ).not.toBeNull();
   });

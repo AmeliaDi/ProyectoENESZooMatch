@@ -142,12 +142,16 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | 2. Capas | Cerrada | `docs/CAPAS_EVIDENCIA.md`, ADR-015 |
 | 3. Test modular | Cerrada | `docs/TEST.md`, `docs/MEDICION.md`, `docs/DECISION_MODELO_RASGOS.md`, ADR-016, `scripts/psychometrics/` |
 | 4. Matching | Cerrada | `docs/MATCHING.md`, `docs/MATCHING_RESULTADOS.md`, ADR-017, `scripts/matching/` |
-| 5. Avatares | Siguiente | — |
+| 5. Avatares | Cerrada | `docs/AVATARES.md`, ADR-018, `scripts/avatars/`, `/dev/avatars` |
+| 6. Validación y preregistro | Siguiente | — |
 
 Despliegue (2026-11-01): `zooenes.vercel.app` usa solo el proyecto Supabase
 `uchrlfvhaiisoyndwprf`, Node 24 y variables manuales; `POST /api/enter` con
 una matrícula nueva responde 200. Detalle en `DESPLIEGUE.md`. Falta Upstash
 (rate limit en fail-open).
+
+Para revisar la capa de avatares (privacidad, cobertura y contraste):
+`npm run data:avatars` y `node scripts/avatars/run.mjs --tables`.
 
 Para recalibrar los umbrales del matching (tras cambiar pesos, categorías o
 parámetros psicométricos): `npm run data:matching` (unos 135 s, determinista).

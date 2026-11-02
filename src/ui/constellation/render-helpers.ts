@@ -44,7 +44,7 @@ export const ROMANCE_SPRITE_THRESHOLD = 0.75;
 
 /** Ghost sprites use these registered catalogue ids. */
 export const GHOST_ANIMAL_ID = "estrellita";
-export const GHOST_COLOR_ID = "plateado-lunar";
+export const GHOST_COLOR_ID = "ennea-neblina";
 
 /** Pixel dash of constellation lines (on/off, world units). */
 export const LINE_DASH: readonly [number, number] = [4, 3];
@@ -103,7 +103,7 @@ export function trackNoun(track: MatchTrack): string {
 
 /**
  * Accessible name for a real match node, exactly in the documented shape:
- * `"Ajolotito rosa mexicano, 87 % de afinidad estimada en romance"`.
+ * `"Ajolotito rosa orquídea, 87 % de afinidad estimada en romance"`.
  */
 export function matchAriaLabel(
   animalName: string,

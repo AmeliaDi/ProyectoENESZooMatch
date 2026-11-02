@@ -87,6 +87,10 @@ CREATE TABLE public.profiles (
   alias TEXT UNIQUE,
   animal_id TEXT REFERENCES public.animals(id),
   color_id TEXT REFERENCES public.colors(id),
+  -- Enneagram subtype mark on the sprite (identity layer, docs/AVATARES.md).
+  avatar_mark TEXT CHECK (avatar_mark IS NULL OR avatar_mark IN ('sp', 'so', 'sx')),
+  -- Opt-in: third parties see the wing tone and subtype mark only when true.
+  show_avatar_detail BOOLEAN NOT NULL DEFAULT false,
   narrative TEXT,
   orientacion_sexual TEXT[] NOT NULL DEFAULT '{}',
   identidad_genero TEXT[] NOT NULL DEFAULT '{}',
@@ -316,7 +320,8 @@ CREATE FUNCTION public.submit_quiz_result(
   p_color_id TEXT,
   p_narrative TEXT,
   p_alias TEXT,
-  p_latent_profile JSONB
+  p_latent_profile JSONB,
+  p_avatar_mark TEXT
 )
 RETURNS void
 LANGUAGE plpgsql
@@ -346,6 +351,7 @@ BEGIN
     alias = p_alias,
     animal_id = p_animal_id,
     color_id = p_color_id,
+    avatar_mark = p_avatar_mark,
     narrative = p_narrative,
     orientacion_sexual = ARRAY(SELECT jsonb_array_elements_text(COALESCE(p_hard_filters -> 'orientacion_sexual', '[]'))),
     identidad_genero = ARRAY(SELECT jsonb_array_elements_text(COALESCE(p_hard_filters -> 'identidad_genero', '[]'))),
@@ -660,7 +666,7 @@ REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA private FROM PUBLIC, anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION
-  public.submit_quiz_result(UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, JSONB),
+  public.submit_quiz_result(UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT),
   public.get_pool_version(),
   public.replace_matches(JSONB, TEXT),
   public.get_user_matches(UUID),

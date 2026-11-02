@@ -58,10 +58,14 @@ describe("submitQuiz", () => {
       "color",
       "colorName",
       "enneagram",
+      "mark",
       "mbtiCode",
       "narrative",
     ]);
-    expect(result.value.profile.enneagram.code).toMatch(/^[1-9]w[1-9]$/);
+    // A clear readout shows type (+ wing when it is distinguishable); an
+    // ambiguous one never forces a type.
+    expect(result.value.profile.enneagram.code).toMatch(/^([1-9](w[1-9])?|—)$/);
+    expect(result.value.profile.color).toMatch(/^ennea-/);
     expect(store.results.get(USER_A)?.answers).toHaveLength(QUIZ_ITEMS.length);
   });
 

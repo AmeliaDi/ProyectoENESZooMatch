@@ -31,7 +31,7 @@ export function Reveal({
   profile: QuizSubmittedDto["profile"];
   onContinue: () => void;
 }) {
-  const sprite = useMemo(() => getSpriteFrame(profile.animal, profile.color, "happy"), [profile]);
+  const sprite = useMemo(() => getSpriteFrame(profile.animal, profile.color, "happy", profile.mark), [profile]);
   const [skipped, setSkipped] = useState(false);
   const headingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -69,13 +69,16 @@ export function Reveal({
         </h1>
         <p className="zm-reveal__kind">
           {profile.animalName} {profile.colorName} · {profile.mbtiCode} ·{" "}
-          {profile.enneagram.code}, {profile.enneagram.arquetipo.toLowerCase()}
+          {profile.enneagram.code === "—"
+            ? profile.enneagram.arquetipo.toLowerCase()
+            : `${profile.enneagram.code}, ${profile.enneagram.arquetipo.toLowerCase()}`}
         </p>
         <p className="zm-reveal__seen">
           <strong>Cómo te vemos.</strong> {firstSentences(profile.narrative, 2)}
         </p>
         <p className="zm-reveal__note">
-          El tipo y el ala son una lectura amable de tus respuestas, no una etiqueta fija.
+          Tu silueta sale de tu MBTI; tu color y el emblema del pecho, de tu eneagrama. Es una lectura amable de
+          tus respuestas, no una etiqueta fija.
         </p>
       </div>
 

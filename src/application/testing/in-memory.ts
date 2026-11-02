@@ -29,6 +29,7 @@ export class MemoryStore {
   readonly results = new Map<string, QuizResultRecord>();
   readonly inclusiveModes = new Map<string, string>();
   readonly paused = new Set<string>();
+  readonly showDetail = new Set<string>();
   matches: GlobalMatch[] = [];
   readonly notifications: Array<NotificationRecord & { userId: string }> = [];
   readonly notified: string[] = [];
@@ -54,7 +55,13 @@ const failed = err<StorageError>("storage.failed");
 export function memoryProfiles(store: MemoryStore): ProfileRepository {
   return {
     isQuizCompleted: async (userId) => ok(store.results.has(userId)),
-    privacyState: async (userId) => ok({ paused: store.paused.has(userId) }),
+    privacyState: async (userId) => ok({ paused: store.paused.has(userId), showAvatarDetail: store.showDetail.has(userId) }),
+    async setShowAvatarDetail(userId, show) {
+      if (store.faults.save) return failed;
+      if (show) store.showDetail.add(userId);
+      else store.showDetail.delete(userId);
+      return ok(undefined);
+    },
     async setPaused(userId, paused) {
       if (store.faults.save) return failed;
       if (paused) store.paused.add(userId);

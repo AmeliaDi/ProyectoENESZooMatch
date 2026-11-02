@@ -10,6 +10,9 @@ import type {
 
 export type { AffinityBreakdown, ChemistrySummary, MatchExplanation } from "@/domain/explainability/explainability";
 
+/** Enneagram subtype instinct drawn as a small sprite mark. */
+export type SpriteMark = "sp" | "so" | "sx";
+
 export interface QuizSubmittedDto {
   ok: true;
   recomputePending: boolean;
@@ -17,6 +20,8 @@ export interface QuizSubmittedDto {
     alias: string;
     animal: string;
     color: string;
+    /** Enneagram subtype mark on the sprite (own profile; `null` = none). */
+    mark: SpriteMark | null;
     narrative: string;
     /** Display names for the reveal (own profile only). */
     animalName: string;
@@ -35,6 +40,8 @@ export interface MatchEntryDto {
   color: string;
   color_id: string | null;
   color_hex: string | null;
+  /** Subtype mark, only when the counterpart opted in to show avatar detail. */
+  mark: SpriteMark | null;
   mbti_code: string | null;
   similarity: number;
   /** Always present, even when the full explanation could not be built. */
@@ -48,6 +55,7 @@ export interface ResultDto {
   alias: string;
   animal: { id: string; diminutivo_es: string; categoria_fauna: string } | null;
   color: { id: string; nombre: string; hex: string } | null;
+  mark: SpriteMark | null;
   narrative: string;
   mbti_code: string | null;
   matches: { romance: MatchEntryDto[]; amistad: MatchEntryDto[] };

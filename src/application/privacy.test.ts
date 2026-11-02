@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ROMANCE_VECTOR_LENGTH, FRIENDSHIP_VECTOR_LENGTH } from "@/types/microtest";
 import type { ScoredProfile } from "@/types/microtest";
 
-import { deleteMyData, getPrivacyState, setProfilePaused } from "./privacy";
+import { deleteMyData, getPrivacyState, setProfilePaused, setShowAvatarDetail } from "./privacy";
 import { MemoryStore, instantScheduler, memoryMatches, memoryProfiles } from "./testing/in-memory";
 
 function profile(): ScoredProfile {
@@ -23,7 +23,7 @@ function setup() {
   for (const userId of ["a", "b"]) {
     store.results.set(userId, { userId, answers: [], scored: profile(), identity: {
       animalId: "x", animalDiminutivo: "x", colorId: "y", colorNombre: "y", colorHex: "#000000",
-      alias: userId, narrative: "",
+      mark: null, alias: userId, narrative: "",
     } });
   }
   const deps = {
@@ -40,7 +40,7 @@ describe("privacy use cases", () => {
     const result = await setProfilePaused("a", true, deps);
     expect(result).toEqual({ ok: true, value: { paused: true, recomputePending: false } });
     expect(store.pool().map((p) => p.userId)).toEqual(["b"]);
-    expect(await getPrivacyState("a", deps)).toEqual({ ok: true, value: { paused: true } });
+    expect(await getPrivacyState("a", deps)).toEqual({ ok: true, value: { paused: true, showAvatarDetail: false } });
   });
 
   it("resumes: rejoins the pool", async () => {
@@ -55,6 +55,14 @@ describe("privacy use cases", () => {
     const result = await deleteMyData("a", deps);
     expect(result).toEqual({ ok: true, value: { recomputePending: false } });
     expect(store.results.has("a")).toBe(false);
+  });
+
+  it("toggles the avatar detail opt-in without touching the pool", async () => {
+    const { store, deps } = setup();
+    const version = store.version;
+    expect(await setShowAvatarDetail("a", true, deps)).toEqual({ ok: true, value: undefined });
+    expect(await getPrivacyState("a", deps)).toEqual({ ok: true, value: { paused: false, showAvatarDetail: true } });
+    expect(store.version).toBe(version);
   });
 
   it("surfaces storage failures without recomputing", async () => {

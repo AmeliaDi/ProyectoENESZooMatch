@@ -317,6 +317,33 @@ y no exige compatibilidad en todas las áreas.
 
 ---
 
+## ADR-018 · Avatares desde MBTI y Eneagrama, con detalle opcional
+
+**Contexto.** Fase 5 del afinado. El animal se elegía por el coseno de Big
+Five y el color, por umbrales culturales sin respaldo. Además, 30 de los 55
+colores no llegaban a 3:1 en alguno de los dos modos.
+
+**Decisión.** Detalle en `docs/AVATARES.md`.
+- **Silueta = MBTI.** Grupos de especies por temperamento y afinidad del
+  catálogo (`assign.mjs`). Dentro del grupo, la claridad media |2Φ(θ)−1|
+  elige la especie, con cortes en cuantiles sintéticos.
+- **Color = Eneagrama.** Paleta de 28 tonos a luminancia fija, ≥ 3:1 en los dos
+  cielos. El ala se muestra como tono (profundo o claro), el tipo como emblema
+  del pecho (redundante con el color) y el subtipo como marca, solo si su SE es
+  bajo. Con entropía alta: gris neblina y aura neutra.
+- **Privacidad.** Por defecto, terceras personas no ven el ala ni la marca
+  (`publicVisual`, aplicado en el servidor). Hay opt-in en Ajustes
+  (`profiles.show_avatar_detail`).
+- Se eliminan `selectAnimal` y `selectColor` (Big Five y umbrales mágicos).
+
+**Consecuencias.**
+- El catálogo de colores pasa de 55 a 28 (v1.3).
+- `submit_quiz_result` recibe `p_avatar_mark`.
+- La base se resetea (0 perfiles).
+- La paleta del sprite puede tener 6 tonos (se suma el emblema).
+
+---
+
 ## Pendientes conocidos (no decididos aún)
 
 - **Alias:** hoy es determinista con sufijo de 4 caracteres en base 36. Una colisión
@@ -328,5 +355,8 @@ y no exige compatibilidad en todas las áreas.
   Una asignación estable con tope estricto queda como opción (Gale–Shapley).
 - **Rate limit:** sin Upstash, el modo es *fail-open* (con cabecera `X-RateLimit-Policy:
   fail-open`). Para el evento, configurarlo es obligatorio (ver `DESPLIEGUE.md`).
-- **Coherencia MBTI–Eneagrama:** 6 combinaciones del catálogo son poco plausibles. Se
-  revisan con el rebalanceo de animales del Prompt 3.
+- **Coherencia MBTI–Eneagrama:** resuelta por diseño en ADR-018. Especie y color
+  salen de ejes independientes del perfil latente, así que no hay combinaciones
+  «imposibles» que el catálogo tenga que vetar.
+- **26 especies sin grupo MBTI:** siguen en el catálogo (galería y fantasmas).
+  Ampliar los grupos exige especies con afinidad < 0.80.

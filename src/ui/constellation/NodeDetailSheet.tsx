@@ -45,13 +45,15 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
                 <RomanceDuo
                   selfAnimalId={self.animalId}
                   selfColorId={self.colorId}
+                  selfMark={self.mark}
                   matchAnimalId={node.animalId}
                   matchColorId={node.colorId}
+                  matchMark={node.mark}
                   size={42}
                   animated={!reducedMotion}
                 />
               ) : (
-                <PixelAnimal animalId={node.animalId} colorId={node.colorId} happy size={64} animated={!reducedMotion} />
+                <PixelAnimal animalId={node.animalId} colorId={node.colorId} mark={node.mark} happy size={64} animated={!reducedMotion} />
               )}
             </div>
             <div>

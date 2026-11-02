@@ -42,6 +42,7 @@ function resolveFrame(
 function PixelAnimalImpl({
   animalId,
   colorId,
+  mark = null,
   frame,
   romance = false,
   happy = false,
@@ -54,20 +55,20 @@ function PixelAnimalImpl({
 }: PixelAnimalProps) {
   // The SVG sheet paints immediately; the PNG raster replaces it once ready.
   const [raster, setRaster] = useState<{ key: string; url: string } | null>(null);
-  const sheetKey = `${animalId}|${colorId}`;
-  const url = raster?.key === sheetKey ? raster.url : cachedSheetUrl(animalId, colorId);
+  const sheetKey = `${animalId}|${colorId}|${mark ?? ""}`;
+  const url = raster?.key === sheetKey ? raster.url : cachedSheetUrl(animalId, colorId, mark);
   const pinned = resolveFrame(frame, romance, happy, animated);
   const imageRef = useRef<SVGImageElement | null>(null);
 
   useEffect(() => {
     let alive = true;
-    void rasterSheetUrl(animalId, colorId).then((next) => {
-      if (alive) setRaster({ key: `${animalId}|${colorId}`, url: next });
+    void rasterSheetUrl(animalId, colorId, mark).then((next) => {
+      if (alive) setRaster({ key: `${animalId}|${colorId}|${mark ?? ""}`, url: next });
     });
     return () => {
       alive = false;
     };
-  }, [animalId, colorId]);
+  }, [animalId, colorId, mark]);
 
   useEffect(() => {
     const element = imageRef.current;

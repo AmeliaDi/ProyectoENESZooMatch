@@ -52,7 +52,7 @@ function makeMatch(id: string, similarity: number, track: "romance" | "amistad")
   return {
     id,
     animalId: "lobito",
-    colorId: "azul-zafiro",
+    colorId: "ennea-1",
     colorHex: "#3b6fd4",
     animalName: "Lobito",
     colorName: "azul zafiro",
@@ -80,7 +80,7 @@ describe("render tunables", () => {
 
   it("points ghosts at catalogue ids the sprite engine actually knows", () => {
     expect(GHOST_ANIMAL_ID).toBe("estrellita");
-    expect(GHOST_COLOR_ID).toBe("plateado-lunar");
+    expect(GHOST_COLOR_ID).toBe("ennea-neblina");
   });
 });
 

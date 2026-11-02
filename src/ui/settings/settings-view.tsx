@@ -22,7 +22,10 @@ import { useNotificationsPaused } from "@/ui/shared/notification-provider";
 import { writeNotificationsPaused } from "@/ui/shared/notification-grouping";
 import { ThemeSelector } from "@/ui/shared/theme-selector";
 
-type Account = { state: "loading" } | { state: "guest" } | { state: "ready"; paused: boolean };
+type Account =
+  | { state: "loading" }
+  | { state: "guest" }
+  | { state: "ready"; paused: boolean; showAvatarDetail: boolean };
 
 /** One-shot flag read by the entry scene to confirm the deletion. */
 export const DELETED_FLAG = "zoomatch:data-deleted";
@@ -36,8 +39,12 @@ function useAccount() {
     fetch("/api/privacy", { cache: "no-store" })
       .then(async (res) => {
         if (!active) return;
-        const body = (await res.json().catch(() => null)) as { paused?: unknown } | null;
-        setAccount(res.ok && typeof body?.paused === "boolean" ? { state: "ready", paused: body.paused } : { state: "guest" });
+        const body = (await res.json().catch(() => null)) as { paused?: unknown; showAvatarDetail?: unknown } | null;
+        setAccount(
+          res.ok && typeof body?.paused === "boolean"
+            ? { state: "ready", paused: body.paused, showAvatarDetail: body.showAvatarDetail === true }
+            : { state: "guest" },
+        );
       })
       .catch(() => active && setAccount({ state: "guest" }));
     return () => {
@@ -51,7 +58,7 @@ export function SettingsView() {
   const router = useRouter();
   const [account, setAccount] = useAccount();
   const notificationsPaused = useNotificationsPaused();
-  const [busy, setBusy] = useState<"pause" | "delete" | null>(null);
+  const [busy, setBusy] = useState<"pause" | "detail" | "delete" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
@@ -67,8 +74,27 @@ export function SettingsView() {
     }).catch(() => null);
     setBusy(null);
     if (res?.ok) {
-      setAccount({ state: "ready", paused: next });
+      setAccount({ ...account, paused: next });
       setMessage(next ? "Tu perfil está en pausa: nadie te ve y no apareces en cielos ajenos." : "Tu perfil vuelve a brillar.");
+    } else {
+      setMessage("No pudimos guardar el cambio. Intenta de nuevo en un momento.");
+    }
+  }
+
+  async function toggleDetail() {
+    if (account.state !== "ready") return;
+    setBusy("detail");
+    setMessage(null);
+    const next = !account.showAvatarDetail;
+    const res = await fetch("/api/privacy", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ showAvatarDetail: next }),
+    }).catch(() => null);
+    setBusy(null);
+    if (res?.ok) {
+      setAccount({ ...account, showAvatarDetail: next });
+      setMessage(next ? "Ahora otras personas ven el tono de tu ala y tu marca." : "Otras personas solo ven tu animalito y tu color base.");
     } else {
       setMessage("No pudimos guardar el cambio. Intenta de nuevo en un momento.");
     }
@@ -138,6 +164,25 @@ export function SettingsView() {
                 </p>
                 <Button variant="secondary" icon="pause" busy={busy === "pause"} disabled={busy !== null} onClick={() => void togglePause()}>
                   {account.paused ? "Reactivar mi perfil" : "Pausar mi perfil"}
+                </Button>
+              </div>
+              <div className="zm-setting">
+                <p className="zm-setting__label">
+                  {account.showAvatarDetail ? "Detalle de tu animalito visible" : "Detalle de tu animalito oculto"}
+                </p>
+                <p className="zm-detail__muted">
+                  Siempre se ve tu animalito y tu color base. El tono de tu ala y la marca de tu subtipo solo los ven
+                  otras personas si lo activas: con pocas personas en el campus, cada detalle extra te hace más
+                  reconocible.
+                </p>
+                <Button
+                  variant="secondary"
+                  aria-pressed={account.showAvatarDetail}
+                  busy={busy === "detail"}
+                  disabled={busy !== null}
+                  onClick={() => void toggleDetail()}
+                >
+                  {account.showAvatarDetail ? "Ocultar el detalle" : "Mostrar el detalle"}
                 </Button>
               </div>
               <div className="zm-setting">

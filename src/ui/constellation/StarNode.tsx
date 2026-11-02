@@ -87,6 +87,7 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, showTag, reducedMo
           <PixelAnimal
             animalId={node.animalId}
             colorId={node.colorId}
+            mark={node.mark}
             size={node.displaySize}
             x={-node.displaySize / 2}
             y={-node.displaySize / 2}

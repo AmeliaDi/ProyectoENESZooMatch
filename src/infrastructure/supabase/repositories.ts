@@ -119,6 +119,7 @@ function toOwnProfile(row: Record<string, unknown>): OwnProfile {
     amistadVector: (row.amistad_vector as number[] | null) ?? null,
     animal: animal as OwnProfile["animal"],
     color: color as OwnProfile["color"],
+    mark: toMark(row.avatar_mark),
   };
 }
 
@@ -131,8 +132,13 @@ function toCounterpart(row: Record<string, unknown>): CounterpartProfile {
     amistadVector: (row.amistad_vector as number[] | null) ?? null,
     animalId: (row.animal_id as string | null) ?? null,
     colorId: (row.color_id as string | null) ?? null,
-    colorHex: (firstJoined(row.colors)?.hex as string | null) ?? null,
+    mark: toMark(row.avatar_mark),
+    showAvatarDetail: row.show_avatar_detail === true,
   };
+}
+
+function toMark(value: unknown): "sp" | "so" | "sx" | null {
+  return value === "sp" || value === "so" || value === "sx" ? value : null;
 }
 
 /**
@@ -151,10 +157,17 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
 
     async privacyState(userId) {
       const res = await attempt(() =>
-        admin.from(TABLE.profiles).select("paused_at").eq("user_id", userId).maybeSingle(),
+        admin.from(TABLE.profiles).select("paused_at, show_avatar_detail").eq("user_id", userId).maybeSingle(),
       );
       if (!res || res.error) return failed;
-      return ok({ paused: Boolean(res.data?.paused_at) });
+      return ok({ paused: Boolean(res.data?.paused_at), showAvatarDetail: res.data?.show_avatar_detail === true });
+    },
+
+    async setShowAvatarDetail(userId, show) {
+      const res = await attempt(() =>
+        admin.from(TABLE.profiles).update({ show_avatar_detail: show }).eq("user_id", userId),
+      );
+      return res && !res.error ? ok(undefined) : failed;
     },
 
     async setPaused(userId, paused) {
@@ -187,6 +200,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
           p_narrative: identity.narrative,
           p_alias: identity.alias,
           p_latent_profile: scored.latent,
+          p_avatar_mark: identity.mark,
         }),
       );
       return res && !res.error ? ok(undefined) : failed;
@@ -236,7 +250,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
         admin
           .from(TABLE.profiles)
           .select(
-            "alias, narrative, mbti_code, dimension_scores, romance_vector, amistad_vector, animals(id, diminutivo_es, categoria_fauna), colors(id, nombre, hex)",
+            "alias, narrative, mbti_code, dimension_scores, romance_vector, amistad_vector, avatar_mark, animals(id, diminutivo_es, categoria_fauna), colors(id, nombre, hex)",
           )
           .eq("user_id", userId)
           .maybeSingle(),
@@ -250,7 +264,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
         admin
           .from(TABLE.profiles)
           .select(
-            "user_id, dimension_scores, mbti_code, romance_vector, amistad_vector, animal_id, color_id, colors(id, nombre, hex)",
+            "user_id, dimension_scores, mbti_code, romance_vector, amistad_vector, animal_id, color_id, avatar_mark, show_avatar_detail",
           )
           .in("user_id", [...userIds]),
       );

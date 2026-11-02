@@ -56,7 +56,7 @@ function makeMatch(id: string, similarity: number, track: "romance" | "amistad")
   return {
     id,
     animalId: "lobito",
-    colorId: "azul-zafiro",
+    colorId: "ennea-1",
     colorHex: "#3b6fd4",
     animalName: "Lobito",
     colorName: "azul zafiro",
@@ -262,17 +262,17 @@ describe("sprite sheet", () => {
 
   it("returns a memoised data URL", () => {
     clearSpriteSheetCache();
-    const first = spriteSheetUrl("lobito", "azul-zafiro");
+    const first = spriteSheetUrl("lobito", "ennea-1");
     expect(first.startsWith("data:image/svg+xml;charset=utf-8,")).toBe(true);
-    expect(spriteSheetUrl("lobito", "azul-zafiro")).toBe(first);
+    expect(spriteSheetUrl("lobito", "ennea-1")).toBe(first);
   });
 
   it("distinguishes animals and colours", () => {
-    expect(spriteSheetUrl("lobito", "azul-zafiro")).not.toBe(
+    expect(spriteSheetUrl("lobito", "ennea-1")).not.toBe(
       spriteSheetUrl("lobito", "rosa-pastel"),
     );
-    expect(spriteSheetUrl("lobito", "azul-zafiro")).not.toBe(
-      spriteSheetUrl("gatito", "azul-zafiro"),
+    expect(spriteSheetUrl("lobito", "ennea-1")).not.toBe(
+      spriteSheetUrl("gatito", "ennea-1"),
     );
   });
 

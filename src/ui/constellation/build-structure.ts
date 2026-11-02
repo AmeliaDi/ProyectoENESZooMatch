@@ -46,6 +46,7 @@ export function buildNodeMeta(
   meta.set(me.id, {
     animalId: me.animalId,
     colorId: me.colorId,
+    mark: me.mark ?? null,
     colorHex: me.colorHex,
     animalName: me.animalName,
     colorName: me.colorName,
@@ -56,6 +57,7 @@ export function buildNodeMeta(
     meta.set(match.id, {
       animalId: match.animalId,
       colorId: match.colorId,
+      mark: match.mark ?? null,
       colorHex: match.colorHex,
       animalName: match.animalName,
       colorName: match.colorName,
@@ -70,6 +72,7 @@ export function buildNodeMeta(
 export const GHOST_META: NodeMeta = {
   animalId: GHOST_ANIMAL_ID,
   colorId: GHOST_COLOR_ID,
+  mark: null,
   colorHex: "#c9d4ff",
   animalName: CONSTELLATION_COPY.ghostDecorative,
   colorName: "",
@@ -124,6 +127,7 @@ export function structureFromWorld(
       isLeaving: body.leaving,
       animalId: info.animalId,
       colorId: info.colorId,
+      mark: info.mark,
       colorHex: info.colorHex,
       alias: info.alias,
       ariaLabel,

@@ -7,7 +7,7 @@
 -- so it can be run multiple times safely.
 --
 -- Data sources:
---   Animals & Colors: data/arquetipos.json (103 animals, 55 colors)
+--   Animals & Colors: data/arquetipos.json (103 animals, 28 colors)
 --   Quiz Items:       data/microtest.json (173 items)
 
 BEGIN;
@@ -124,64 +124,37 @@ ON CONFLICT (id) DO UPDATE SET
   categoria_fauna = EXCLUDED.categoria_fauna,
   personality_affinity = EXCLUDED.personality_affinity;
 
--- ─── 2. Seed Colors (55 entries) ──────────────────────────────
+-- ─── 2. Seed Colors (28 entries: Enneagram palette, scripts/avatars/palette.mjs) ───
 
 INSERT INTO public.colors (id, nombre, hex, textura, temperatura) VALUES
-  ('verde-esmeralda', 'Verde esmeralda', '#50C878', 'cristalina', 'frio'),
-  ('rosa-pastel', 'Rosa pastel', '#FFB6C1', 'sedosa', 'calido'),
-  ('negro-obsidiana', 'Negro obsidiana', '#0B1304', 'mate', 'neutro'),
-  ('azul-zafiro', 'Azul zafiro', '#0F52BA', 'cristalina', 'frio'),
-  ('rojo-rubi', 'Rojo rubí', '#E0115F', 'cristalina', 'calido'),
-  ('morado-amatista', 'Morado amatista', '#9966CC', 'cristalina', 'frio'),
-  ('naranja-ambar', 'Naranja ámbar', '#FFBF00', 'luminosa', 'calido'),
-  ('amarillo-topacio', 'Amarillo topacio', '#FFC87C', 'luminosa', 'calido'),
-  ('blanco-perla', 'Blanco perla', '#F5F5F5', 'sedosa', 'neutro'),
-  ('gris-plata', 'Gris plata', '#C0C0C0', 'metalica', 'frio'),
-  ('dorado-miel', 'Dorado miel', '#EB9605', 'metalica', 'calido'),
-  ('plateado-lunar', 'Plateado lunar', '#D6D6D6', 'metalica', 'frio'),
-  ('turquesa-oceano', 'Turquesa océano', '#40E0D0', 'acuosa', 'frio'),
-  ('coral-sunset', 'Coral sunset', '#FF7F50', 'sedosa', 'calido'),
-  ('lavanda-suave', 'Lavanda suave', '#E6E6FA', 'aterciopelada', 'frio'),
-  ('lila-nebulosa', 'Lila nebulosa', '#C8A2C8', 'aterciopelada', 'frio'),
-  ('indigo-profundo', 'Índigo profundo', '#4B0082', 'aterciopelada', 'frio'),
-  ('violeta-cosmos', 'Violeta cosmos', '#7F00FF', 'luminosa', 'frio'),
-  ('magenta-vibrante', 'Magenta vibrante', '#FF00FF', 'luminosa', 'calido'),
-  ('fucsia-tropical', 'Fucsia tropical', '#FF77A9', 'sedosa', 'calido'),
-  ('cereza-intenso', 'Cereza intenso', '#DE3163', 'aterciopelada', 'calido'),
-  ('vino-tinto', 'Vino tinto', '#722F37', 'aterciopelada', 'calido'),
-  ('terracota-calida', 'Terracota cálida', '#E2725B', 'terrosa', 'calido'),
-  ('arena-dorada', 'Arena dorada', '#C2B280', 'terrosa', 'calido'),
-  ('marfil-antiguo', 'Marfil antiguo', '#FFFFF0', 'sedosa', 'neutro'),
-  ('jade-misterioso', 'Jade misterioso', '#00A86B', 'cristalina', 'frio'),
-  ('esmeralda-bosque', 'Esmeralda bosque', '#046307', 'mate', 'frio'),
-  ('zafiro-medianoche', 'Zafiro medianoche', '#191970', 'cristalina', 'frio'),
-  ('rubi-pasion', 'Rubí pasión', '#9B111E', 'cristalina', 'calido'),
-  ('ambar-solar', 'Ámbar solar', '#FF7E00', 'luminosa', 'calido'),
-  ('citrino-brillante', 'Citrino brillante', '#E4D00A', 'cristalina', 'calido'),
-  ('perla-iridiscente', 'Perla iridiscente', '#FDEEF4', 'sedosa', 'neutro'),
-  ('opalo-multicolor', 'Ópalo multicolor', '#A8C3BC', 'cristalina', 'neutro'),
-  ('onix-profundo', 'Ónix profundo', '#353839', 'mate', 'neutro'),
-  ('cuarzo-rosa', 'Cuarzo rosa', '#F7CAC9', 'cristalina', 'calido'),
-  ('aguamarina', 'Aguamarina', '#7FFFD4', 'acuosa', 'frio'),
-  ('cian-electrico', 'Cian eléctrico', '#00FFFF', 'luminosa', 'frio'),
-  ('chartreuse-luminoso', 'Chartreuse luminoso', '#7FFF00', 'luminosa', 'calido'),
-  ('bermellon-fuego', 'Bermellón fuego', '#E34234', 'luminosa', 'calido'),
-  ('carmesi-noble', 'Carmesí noble', '#DC143C', 'aterciopelada', 'calido'),
-  ('malva-delicado', 'Malva delicado', '#E0B0FF', 'sedosa', 'frio'),
-  ('salvia-serena', 'Salvia serena', '#BCB88A', 'mate', 'neutro'),
-  ('musgo-profundo', 'Musgo profundo', '#8A9A5B', 'terrosa', 'frio'),
-  ('oliva-dorado', 'Oliva dorado', '#808000', 'terrosa', 'calido'),
-  ('canela-calida', 'Canela cálida', '#D2691E', 'terrosa', 'calido'),
-  ('chocolate-rico', 'Chocolate rico', '#7B3F00', 'terrosa', 'calido'),
-  ('cafe-suave', 'Café suave', '#C4A484', 'terrosa', 'calido'),
-  ('bronce-antiguo', 'Bronce antiguo', '#CD7F32', 'metalica', 'calido'),
-  ('cobre-brillante', 'Cobre brillante', '#B87333', 'metalica', 'calido'),
-  ('oro-rosa', 'Oro rosa', '#B76E79', 'metalica', 'calido'),
-  ('titanio-oscuro', 'Titanio oscuro', '#878681', 'metalica', 'frio'),
-  ('acero-azul', 'Acero azul', '#4682B4', 'metalica', 'frio'),
-  ('platino-frio', 'Platino frío', '#E5E4E2', 'metalica', 'frio'),
-  ('iridio-raro', 'Iridio raro', '#5C5B57', 'metalica', 'neutro'),
-  ('tungsteno-noble', 'Tungsteno noble', '#4A4A4A', 'metalica', 'neutro')
+  ('ennea-1', 'Azul cobalto', '#3775CD', 'mate', 'frio'),
+  ('ennea-1-w9', 'Azul cobalto profundo', '#2C71A2', 'mate', 'frio'),
+  ('ennea-1-w2', 'Azul cobalto claro', '#597AD6', 'mate', 'frio'),
+  ('ennea-2', 'Rosa orquídea', '#CE3A89', 'mate', 'calido'),
+  ('ennea-2-w1', 'Rosa orquídea profundo', '#BD2F91', 'mate', 'calido'),
+  ('ennea-2-w3', 'Rosa orquídea claro', '#D44D87', 'mate', 'calido'),
+  ('ennea-3', 'Oro viejo', '#8F7214', 'mate', 'calido'),
+  ('ennea-3-w2', 'Oro viejo profundo', '#8D6515', 'mate', 'calido'),
+  ('ennea-3-w4', 'Oro viejo claro', '#AD721B', 'mate', 'calido'),
+  ('ennea-4', 'Violeta amatista', '#9D56C7', 'mate', 'frio'),
+  ('ennea-4-w3', 'Violeta amatista profundo', '#A53CBF', 'mate', 'frio'),
+  ('ennea-4-w5', 'Violeta amatista claro', '#9B67CD', 'mate', 'frio'),
+  ('ennea-5', 'Turquesa marino', '#24818F', 'mate', 'frio'),
+  ('ennea-5-w4', 'Turquesa marino profundo', '#257590', 'mate', 'frio'),
+  ('ennea-5-w6', 'Turquesa marino claro', '#268B92', 'mate', 'frio'),
+  ('ennea-6', 'Verde bosque', '#338547', 'mate', 'frio'),
+  ('ennea-6-w5', 'Verde bosque profundo', '#2D7A46', 'mate', 'frio'),
+  ('ennea-6-w7', 'Verde bosque claro', '#34903D', 'mate', 'frio'),
+  ('ennea-7', 'Naranja mandarina', '#C05722', 'mate', 'calido'),
+  ('ennea-7-w6', 'Naranja mandarina profundo', '#9E5C1E', 'mate', 'calido'),
+  ('ennea-7-w8', 'Naranja mandarina claro', '#D35926', 'mate', 'calido'),
+  ('ennea-8', 'Rojo carmín', '#D63B4B', 'mate', 'calido'),
+  ('ennea-8-w7', 'Rojo carmín profundo', '#CE2B36', 'mate', 'calido'),
+  ('ennea-8-w9', 'Rojo carmín claro', '#D65350', 'mate', 'calido'),
+  ('ennea-9', 'Verde olivo', '#657E44', 'mate', 'neutro'),
+  ('ennea-9-w8', 'Verde olivo profundo', '#62733A', 'mate', 'neutro'),
+  ('ennea-9-w1', 'Verde olivo claro', '#628A46', 'mate', 'neutro'),
+  ('ennea-neblina', 'Gris neblina', '#77728C', 'mate', 'neutro')
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   hex = EXCLUDED.hex,
@@ -383,6 +356,6 @@ COMMIT;
 -- ============================================================
 -- Seed complete. Summary:
 --   103 animals inserted/updated
---   55 colors inserted/updated
+--   28 colors inserted/updated
 --   173 quiz items inserted/updated
 -- ============================================================

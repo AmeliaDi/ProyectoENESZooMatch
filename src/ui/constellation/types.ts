@@ -35,13 +35,15 @@ export interface ConstellationNodeInput {
   id: string;
   /** Catalogue animal id, e.g. `"ajolotito"` — feeds `getSpriteFrame`. */
   animalId: string;
-  /** Catalogue colour id, e.g. `"rosa_mexicano"` — feeds `getSpriteFrame`. */
+  /** Catalogue colour id, e.g. `"ennea-2"` — feeds `getSpriteFrame`. */
   colorId: string;
+  /** Enneagram subtype mark; absent/`null` draws none. */
+  mark?: SpriteMark | null | undefined;
   /** Display hex (`#rrggbb`) for halos, rings and connection lines. */
   colorHex: string;
   /** es-MX animal diminutive in display case, e.g. `"Ajolotito"`. */
   animalName: string;
-  /** es-MX colour name in lowercase, e.g. `"rosa mexicano"`. */
+  /** es-MX colour name in lowercase, e.g. `"rosa orquídea"`. */
   colorName: string;
   /** Public display name (never the matrícula). */
   alias: string;
@@ -207,6 +209,8 @@ export interface NodeDetailSheetProps {
 export interface PixelAnimalProps {
   animalId: string;
   colorId: string;
+  /** Enneagram subtype mark (own sprite, or a counterpart who opted in). */
+  mark?: SpriteMark | null | undefined;
   /** Explicit frame override. When set, every other frame flag is ignored. */
   frame?: SpriteFrameName;
   /** Show the celebrating frame (active connection, hover or focus). */
@@ -234,6 +238,9 @@ export interface PixelAnimalProps {
   className?: string;
 }
 
+/** Enneagram subtype instinct drawn as a small sprite mark. */
+export type SpriteMark = "sp" | "so" | "sx";
+
 /** The four frames the sprite engine can produce. */
 export type SpriteFrameName = "idle_1" | "idle_2" | "happy" | "romance_pulse";
 
@@ -245,6 +252,7 @@ export type SpriteFrameName = "idle_1" | "idle_2" | "happy" | "romance_pulse";
  */
 export interface RenderNode {
   id: string;
+  mark: SpriteMark | null;
   /** Physics/display radius in user units (from the layout engine). */
   radius: number;
   /** Sprite edge length in user units. */
@@ -310,6 +318,7 @@ export interface ConstellationStructure {
 export interface NodeMeta {
   animalId: string;
   colorId: string;
+  mark: SpriteMark | null;
   colorHex: string;
   animalName: string;
   colorName: string;

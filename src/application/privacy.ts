@@ -6,12 +6,22 @@ import { recomputeMatches, type RecomputeDeps } from "./recompute-matches";
 
 export interface PrivacyDeps extends RecomputeDeps {
   profiles: RecomputeDeps["profiles"] &
-    Pick<ProfileRepository, "privacyState" | "setPaused" | "deleteAccount">;
+    Pick<ProfileRepository, "privacyState" | "setPaused" | "setShowAvatarDetail" | "deleteAccount">;
 }
 
-export interface PrivacyOutcome extends PrivacyState {
+export interface PrivacyOutcome {
+  paused: boolean;
   /** `true` when the shared match set could not be republished yet. */
   recomputePending: boolean;
+}
+
+/** Visual-only preference: no recomputation, matches do not change. */
+export function setShowAvatarDetail(
+  userId: string,
+  show: boolean,
+  deps: Pick<PrivacyDeps, "profiles">,
+): Promise<Result<void, AppError>> {
+  return deps.profiles.setShowAvatarDetail(userId, show);
 }
 
 export function getPrivacyState(

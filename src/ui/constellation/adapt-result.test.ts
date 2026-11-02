@@ -26,9 +26,9 @@ function makeMatch(overrides: Partial<ResultMatch> = {}): ResultMatch {
     alias: "mantisita rosa · 9QW2",
     animal: "mantisita",
     animal_id: "mantisita",
-    color: "verde esmeralda",
-    color_id: "verde-esmeralda",
-    color_hex: "#50C878",
+    color: "verde bosque",
+    color_id: "ennea-6",
+    color_hex: "#338547",
     mbti_code: "ENFP",
     similarity: 0.87,
     chemistry: null,
@@ -50,9 +50,10 @@ function omitKeys(match: ResultMatch, ...keys: OptionalMatchKey[]): ResultMatch 
 
 function makeResult(overrides: Partial<PublicResult> = {}): PublicResult {
   return {
-    alias: "ajolotito verde esmeralda · 4K2P",
+    alias: "ajolotito verde bosque · 4K2P",
     animal: { id: "ajolotito", diminutivo_es: "ajolotito", categoria_fauna: "anfibio" },
-    color: { id: "verde-esmeralda", nombre: "Verde esmeralda", hex: "#50C878" },
+    color: { id: "ennea-6", nombre: "Verde bosque", hex: "#338547" },
+    mark: "sp",
     narrative: "Eres un ajolotito con una capacidad infinita de regenerar.",
     mbti_code: "ENFJ",
     matches: { romance: [makeMatch()], amistad: [] },
@@ -86,25 +87,25 @@ describe("resolveAnimalId", () => {
 
 describe("resolveColor", () => {
   it("accepts an exact catalogue id and keeps a valid payload hex", () => {
-    expect(resolveColor("verde-esmeralda", null, "#50C878")).toEqual({
-      colorId: "verde-esmeralda",
-      colorHex: "#50C878",
+    expect(resolveColor("ennea-6", null, "#338547")).toEqual({
+      colorId: "ennea-6",
+      colorHex: "#338547",
     });
   });
 
   it("resolves by nombre, case-insensitively", () => {
-    expect(resolveColor(null, "verde esmeralda", null)?.colorId).toBe("verde-esmeralda");
+    expect(resolveColor(null, "verde bosque", null)?.colorId).toBe("ennea-6");
   });
 
   it("falls back to the catalogue hex when the payload hex is invalid", () => {
-    const resolved = resolveColor("verde-esmeralda", null, "not-a-hex");
-    expect(resolved?.colorId).toBe("verde-esmeralda");
+    const resolved = resolveColor("ennea-6", null, "not-a-hex");
+    expect(resolved?.colorId).toBe("ennea-6");
     expect(resolved?.colorHex).toMatch(/^#[0-9A-Fa-f]{6}$/);
   });
 
   it("resolves by nearest hex when no id or name matches", () => {
-    // One unit off the catalogue green must still land on verde-esmeralda.
-    expect(resolveColor(null, null, "#50C879")?.colorId).toBe("verde-esmeralda");
+    // One unit off the catalogue forest green must still land on ennea-6.
+    expect(resolveColor(null, null, "#338548")?.colorId).toBe("ennea-6");
   });
 
   it("returns null when nothing is usable", () => {
@@ -121,9 +122,9 @@ describe("adaptResult", () => {
     const me = adapted!.me;
     expect(me.id).toBe(SELF_NODE_ID);
     expect(me.animalId).toBe("ajolotito");
-    expect(me.colorId).toBe("verde-esmeralda");
-    expect(me.colorHex).toBe("#50C878");
-    expect(me.alias).toBe("ajolotito verde esmeralda · 4K2P");
+    expect(me.colorId).toBe("ennea-6");
+    expect(me.colorHex).toBe("#338547");
+    expect(me.alias).toBe("ajolotito verde bosque · 4K2P");
     expect(me.mbtiCode).toBe("ENFJ");
     // The self node must not carry match-only fields.
     expect("similarity" in me).toBe(false);
@@ -138,7 +139,7 @@ describe("adaptResult", () => {
   it("capitalises the animal name and lowercases the colour name", () => {
     const me = adaptResult(makeResult())!.me;
     expect(me.animalName).toBe("Ajolotito");
-    expect(me.colorName).toBe("verde esmeralda");
+    expect(me.colorName).toBe("verde bosque");
   });
 
   it("maps a match with its real track, similarity, badges, explanation and opaque id", () => {
@@ -154,7 +155,7 @@ describe("adaptResult", () => {
     expect(match.track).toBe("romance");
     expect(match.similarity).toBeCloseTo(0.87, 12);
     expect(match.animalId).toBe("mantisita");
-    expect(match.colorId).toBe("verde-esmeralda");
+    expect(match.colorId).toBe("ennea-6");
     expect(match.badges).toEqual([BADGE]);
     expect(match.explanation).toBe(explanation);
     expect(match.mbtiCode).toBe("ENFP");
@@ -190,7 +191,7 @@ describe("adaptResult", () => {
     )!;
     expect(adapted.matches).toHaveLength(1);
     expect(adapted.matches[0]?.animalId).toBe("mantisita");
-    expect(adapted.matches[0]?.colorId).toBe("verde-esmeralda");
+    expect(adapted.matches[0]?.colorId).toBe("ennea-6");
   });
 
   it("resolves a colour by nearest hex when only a hex is supplied", () => {
@@ -198,13 +199,13 @@ describe("adaptResult", () => {
       makeResult({
         matches: {
           romance: [
-            omitKeys(makeMatch({ color: "", color_hex: "#50C879" }), "color_id"),
+            omitKeys(makeMatch({ color: "", color_hex: "#338548" }), "color_id"),
           ],
           amistad: [],
         },
       }),
     )!;
-    expect(adapted.matches[0]?.colorId).toBe("verde-esmeralda");
+    expect(adapted.matches[0]?.colorId).toBe("ennea-6");
   });
 
   it("skips a match whose animal cannot be resolved, keeping the rest", () => {

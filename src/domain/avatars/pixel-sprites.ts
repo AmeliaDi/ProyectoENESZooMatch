@@ -46,7 +46,9 @@
  */
 
 import { stringHash } from "@/domain/shared";
-import { CATALOG_ANIMALS as LOADED_ANIMALS, CATALOG_COLORS as LOADED_COLORS } from "@/config";
+import { AVATAR_CONFIG, CATALOG_ANIMALS as LOADED_ANIMALS, CATALOG_COLORS as LOADED_COLORS } from "@/config";
+import { emblemForColor, type SubtypeMark } from "./avatar-spec";
+import { EMBLEM_CHAR, stampEmblem } from "./emblems";
 import {
   deriveAnimalPsychometricProfile,
   type AnimalPsychometricSource,
@@ -76,6 +78,9 @@ export const SPARKLE_COLOR = "#FFFFFF";
 
 /** Heart accent used by the happy and romance frames. Deliberately outside the palette. */
 export const HEART_COLOR = "#FF6B6B";
+
+/** Enneagram emblem + subtype mark tone (`data/avatar-config.json`). */
+export const EMBLEM_COLOR = AVATAR_CONFIG.emblem_tone.valor;
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -2234,6 +2239,8 @@ function charToHex(cell: string, tones: Tones): string {
       return SPARKLE_COLOR;
     case "R":
       return HEART_COLOR;
+    case EMBLEM_CHAR:
+      return EMBLEM_COLOR;
     default:
       return "";
   }
@@ -2243,15 +2250,17 @@ function renderHexGrid(grid: CharGrid, tones: Tones): string[][] {
   return grid.map((row) => row.map((cell) => charToHex(cell, tones)));
 }
 
-function buildPalette(tones: Tones): string[] {
+function buildPalette(tones: Tones, emblem: boolean): string[] {
   // Keep the first four positions stable (base, shadow, highlight, eyes) and
-  // append the mandatory blush tone so existing consumers keep working.
+  // append the mandatory blush tone so existing consumers keep working; the
+  // Enneagram emblem tone comes sixth, only when the colour carries one.
   const ordered = [tones.base, tones.shadow, tones.highlight, tones.eyes, BLUSH_COLOR];
+  if (emblem) ordered.push(EMBLEM_COLOR);
   const unique: string[] = [];
   for (const entry of ordered) {
     if (!unique.includes(entry)) unique.push(entry);
   }
-  return unique.slice(0, 5);
+  return unique;
 }
 
 /** Half → texture → frame → mirror → tail. */
@@ -2259,6 +2268,7 @@ function buildCharGrid(
   animalId: string,
   resolved: ResolvedColor,
   frame: AnimationFrame,
+  mark: SubtypeMark | null,
 ): CharGrid {
   const pattern = registry().patterns.get(animalId);
   if (!pattern) {
@@ -2271,6 +2281,9 @@ function buildCharGrid(
   }
   const half = cloneHalf(pattern.half);
   applyTexture(half, resolved.textura, resolved.key);
+  // Emblem/mark repaint ≤ 7 filled half-cells and never the mask, so the
+  // silhouette distinctness (MIN_MASK_HALF_DISTANCE) still separates animals.
+  stampEmblem(half, emblemForColor(resolved.key), mark);
   applyFrameHalf(half, frame);
   clearOuterCorners(half);
   const grid = mirrorHalf(half);
@@ -2306,8 +2319,8 @@ export function getAllColorIds(): string[] {
  * Main entry point. Pure and deterministic: returns the 16×16 `idle_1` sprite
  * for the given animal + colour combination.
  */
-export function getSprite(animalId: string, colorId: string): SpriteData {
-  return getSpriteFrame(animalId, colorId, "idle_1");
+export function getSprite(animalId: string, colorId: string, mark: SubtypeMark | null = null): SpriteData {
+  return getSpriteFrame(animalId, colorId, "idle_1", mark);
 }
 
 /**
@@ -2319,14 +2332,15 @@ export function getSpriteFrame(
   animalId: string,
   colorId: string,
   frame: AnimationFrame,
+  mark: SubtypeMark | null = null,
 ): SpriteData {
   const resolved = resolveColorEntry(colorId, animalId);
   const tones = deriveTones(resolved.hex);
-  const grid = buildCharGrid(animalId, resolved, frame);
+  const grid = buildCharGrid(animalId, resolved, frame, mark);
 
   return {
     grid: renderHexGrid(grid, tones),
-    palette: buildPalette(tones),
+    palette: buildPalette(tones, emblemForColor(resolved.key) !== null || mark !== null),
     family: getAnimalFamily(animalId),
     animalId,
     colorId,

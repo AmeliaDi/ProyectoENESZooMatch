@@ -1,4 +1,5 @@
-import { EXPERIENCE } from "@/config";
+import { CATALOG_COLORS, EXPERIENCE } from "@/config";
+import { publicVisual } from "@/domain/avatars/avatar-spec";
 import {
   computeChemistrySummary,
   generateMatchExplanation,
@@ -18,6 +19,16 @@ import type {
   ProfileRepository,
   StoredMatch,
 } from "./ports";
+
+const COLOR_BY_ID = new Map(CATALOG_COLORS.map((c) => [c.id, c]));
+
+/** What the viewer may see of a counterpart's avatar (wing/mark only with opt-in). */
+function disclosed(other: CounterpartProfile | undefined) {
+  if (!other?.animalId || !other.colorId) return null;
+  const visual = publicVisual({ animalId: other.animalId, colorId: other.colorId, mark: other.mark }, other.showAvatarDetail);
+  const color = COLOR_BY_ID.get(visual.colorId);
+  return color ? { ...visual, colorName: color.nombre, colorHex: color.hex } : null;
+}
 
 /** Shown when the counterpart has no alias yet (should not happen after the quiz). */
 const FALLBACK_ALIAS = "alguien especial";
@@ -55,7 +66,7 @@ function explain(
       vectorB,
       match.track,
       match.otherAnimal ?? "",
-      match.otherColor ?? "",
+      disclosed(other)?.colorName ?? "",
       other?.mbtiCode ?? null,
       other?.dimensionScores ?? null,
       own.animal?.diminutivo_es ?? "",
@@ -80,16 +91,18 @@ function toEntry(
   digest: GetResultDeps["digest"],
 ): MatchEntryDto {
   const alias = match.otherAlias ?? FALLBACK_ALIAS;
+  const visual = disclosed(other);
   return {
     id: match.otherUser
       ? digest(`${viewerId}:${match.otherUser}`).slice(0, OPAQUE_ID_LENGTH)
       : null,
     alias,
     animal: match.otherAnimal ?? "",
-    animal_id: other?.animalId ?? null,
-    color: match.otherColor ?? "",
-    color_id: other?.colorId ?? null,
-    color_hex: other?.colorHex ?? null,
+    animal_id: visual?.animalId ?? null,
+    color: visual?.colorName ?? "",
+    color_id: visual?.colorId ?? null,
+    color_hex: visual?.colorHex ?? null,
+    mark: visual?.mark ?? null,
     mbti_code: other?.mbtiCode ?? null,
     similarity: match.similarity,
     chemistry: computeChemistrySummary(match.similarity, match.track),
@@ -129,6 +142,7 @@ export async function getResult(
     alias: profile.alias,
     animal: profile.animal,
     color: profile.color,
+    mark: profile.mark,
     narrative: profile.narrative,
     mbti_code: profile.mbtiCode,
     matches: { romance, amistad },

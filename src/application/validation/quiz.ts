@@ -92,7 +92,10 @@ export const quizSubmissionSchema = z
     }
   });
 
-export const privacyUpdateSchema = z.strictObject({ paused: z.boolean() });
+export const privacyUpdateSchema = z.union([
+  z.strictObject({ paused: z.boolean() }),
+  z.strictObject({ showAvatarDetail: z.boolean() }),
+]);
 
 export const notificationIdsSchema = z.object({
   ids: z.array(z.uuid()).min(1).max(50),
