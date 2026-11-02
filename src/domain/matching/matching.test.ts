@@ -7,7 +7,7 @@ import { ALL_DIMENSIONS, type QuizSubmission } from "@/types/microtest";
 import type { MatchingConfig } from "@/types/matching-config";
 
 import { computeAllMatches } from "./compute-matches";
-import { checkHardFilters, isRelationshipCompatible } from "./hard-filters";
+import { checkHardFilters, isRelationshipCompatible, romanceOptOut } from "./hard-filters";
 import { scoreQuiz } from "./score-quiz";
 import {
   FILTER_ITEMS,
@@ -104,6 +104,26 @@ describe("checkHardFilters", () => {
     const seeker = hardFilters({ orientacion_sexual: ["personas no binarias"] });
     for (const identity of ["no binarie", "género fluido", "agénero", "otra"]) {
       expect(checkHardFilters(seeker, hardFilters({ identidad_genero: [identity] })), identity).toBe(true);
+    }
+  });
+
+  it("flags the own opt-out exactly when no romance pair could ever pass", () => {
+    const everyone = ["mujeres", "hombres", "personas no binarias"];
+    const bonds = ["monogamia", "no_monogamia_etica", "sin_definir"];
+    const partners = ["mujer", "hombre", "no binarie"].flatMap((g) =>
+      bonds.map((b) => hardFilters({ orientacion_sexual: everyone, identidad_genero: [g], tipo_relacion_busca: [b] })),
+    );
+    const cases: Array<Parameters<typeof hardFilters>[0]> = [
+      { orientacion_sexual: ["prefiero no decir"] },
+      { tipo_relacion_busca: ["prefiero no decir"] },
+      { tipo_relacion_busca: ["solo_amistad"] },
+      { identidad_genero: ["prefiero no decir"] },
+      { tipo_relacion_busca: ["solo_amistad", "monogamia"] },
+    ];
+    for (const c of cases) {
+      const me = hardFilters({ orientacion_sexual: everyone, ...c });
+      const blocked = partners.every((other) => !checkHardFilters(me, other));
+      expect(romanceOptOut(me), JSON.stringify(c)).toBe(blocked);
     }
   });
 

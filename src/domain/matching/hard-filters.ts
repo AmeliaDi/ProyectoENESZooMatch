@@ -27,6 +27,21 @@ const ORIENTATION_TARGETS: Record<string, readonly string[]> = {
   "personas no binarias": ["no binarie", "género fluido", "agénero", "otra"],
 };
 
+/**
+ * True when a person's own declarations take them out of romance (ADR-016):
+ * "prefiero no decir" in orientation or bond type, or exactly `solo_amistad`.
+ * The quiz uses it to say so before submitting; nobody is surprised later.
+ */
+export function romanceOptOut(filters: Partial<HardFilters>): boolean {
+  const orientation = filters.orientacion_sexual ?? [];
+  const bond = filters.tipo_relacion_busca ?? [];
+  return (
+    orientation.includes(PREFER_NOT_TO_SAY) ||
+    bond.includes(PREFER_NOT_TO_SAY) ||
+    (bond.length === 1 && bond[0] === "solo_amistad")
+  );
+}
+
 function relationshipPairCompatible(x: string, y: string): boolean {
   if (x === y) return true;
   return (RELATIONSHIP_COMPATIBILITY[x]?.includes(y) ?? false) || (RELATIONSHIP_COMPATIBILITY[y]?.includes(x) ?? false);

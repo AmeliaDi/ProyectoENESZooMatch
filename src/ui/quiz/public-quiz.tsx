@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 
 import type { QuizSubmittedDto } from "@/contracts/result";
 import { CORE_ITEMS, EXPERIENCE, LIKERT_SCALE, isSkippableItem } from "@/config";
+import { romanceOptOut } from "@/domain/matching";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { ChoiceGroup } from "@/ui/kit/choice";
@@ -20,6 +21,7 @@ import { CATEGORY_LABELS, QUIZ_STORAGE_KEY, parseQuizDraft, type QuizDraft } fro
 import {
   buildSubmission,
   countAnswered,
+  draftFilters,
   isAnswered,
   optionLabel,
   presentationOrder,
@@ -169,6 +171,7 @@ export function PublicQuiz() {
   }
 
   const isSensitive = SENSITIVE.has(item.categoria);
+  const friendshipOnly = item.campo_perfil !== undefined && romanceOptOut(draftFilters(ITEMS, draft));
   const showSensitiveNote = index === FIRST_SENSITIVE;
   const showBreath = !isSensitive && index > 0 && index % breathEvery === 0;
   const options = (item.opciones ?? []).map((option) => ({
@@ -235,6 +238,12 @@ export function PublicQuiz() {
                 multiple
                 size="card"
               />
+              {friendshipOnly ? (
+                <p className="zm-box zm-quiz__note" role="status">
+                  Con esta elección solo participas en amistad: romance necesita saber con quién te interesa
+                  conectar y qué vínculo buscas. Si quieres, elige otra opción antes de terminar.
+                </p>
+              ) : null}
             </>
           )}
         </article>

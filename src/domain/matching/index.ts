@@ -1,5 +1,5 @@
 export { MATCHING_CONFIG, QUIZ_ITEMS as MICROTEST_ITEMS } from "@/config";
-export { attractedTo, checkHardFilters, isRelationshipCompatible } from "./hard-filters";
+export { attractedTo, checkHardFilters, isRelationshipCompatible, romanceOptOut } from "./hard-filters";
 export { scoreQuiz, type LatentScorer } from "./score-quiz";
 export { categorySimilarity, deadzoneSimilarity, distributionSimilarity, kernelSimilarity } from "./layers";
 export {

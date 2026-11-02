@@ -12,6 +12,15 @@ export interface FlowItem {
   opciones?: readonly string[] | undefined;
   /** Sensitive Likert item that accepts "prefiero no decir" (ADR-016). */
   skippable?: boolean | undefined;
+  /** Hard-filter field the multi-select answers (layer 0). */
+  campo_perfil?: string | undefined;
+}
+
+/** Draft answers keyed by hard-filter field (input of `romanceOptOut`). */
+export function draftFilters(items: readonly FlowItem[], draft: QuizDraft): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const item of items) if (item.campo_perfil) out[item.campo_perfil] = draft.filters[item.id] ?? [];
+  return out;
 }
 
 /**
