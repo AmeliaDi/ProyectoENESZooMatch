@@ -25,6 +25,10 @@ const ConstellationSection = dynamic(
   { ssr: false, loading: () => <LoadingState title="Acomodando las estrellas…" /> },
 );
 
+/** The top-K is fragile under noise (ADR-020): never present it as final. */
+export const RESULT_FINE_COPY =
+  "Afinidades estimadas con datos sintéticos: ordenan posibilidades, no son probabilidades. La lista puede cambiar cuando entra gente nueva o afinas tu perfil.";
+
 export const FEW_PEOPLE_COPY =
   "Todavía somos pocxs en el cielo. Cuando entre más gente, tu constelación puede crecer.";
 
@@ -205,7 +209,8 @@ export function PublicResultView() {
         )}
 
         <p className="zm-result__fine">
-          Afinidad estimada con el test, no destino. <Link href="/ajustes#como-se-calcula">Cómo se calcula</Link>
+          {RESULT_FINE_COPY} <Link href="/evidencia">Qué sabemos y qué no</Link> ·{" "}
+          <Link href="/perfil">Afinar mi perfil</Link>
         </p>
       </main>
     </AtlasShell>

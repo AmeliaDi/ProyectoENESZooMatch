@@ -18,7 +18,10 @@ import { CONSTELLATION_COPY } from "./constellation/types";
 import { MATRICULA_COPY } from "./entry/matricula-entry";
 import { ONBOARDING_PLATES } from "./entry/onboarding";
 import { revealOrder } from "./quiz/reveal-order";
-import { FEW_PEOPLE_COPY } from "./result/result-view";
+import { REFINE_COPY } from "./refine/refine-invite";
+import { EXPLANATION_COPY_UI } from "./result/explanation-blocks";
+import { FEW_PEOPLE_COPY, RESULT_FINE_COPY } from "./result/result-view";
+import { EVIDENCE_SUMMARY } from "@/config/evidence-summary";
 import { litStars } from "./result/why-bars";
 
 const FORBIDDEN = /perfect[oa]|destino|garantizad[oa]|alma[s]? gemela|100 ?% compatible|para siempre|media naranja/i;
@@ -38,6 +41,7 @@ const SCREEN_FILES = [
   resolve("src/app/globals.css"),
   resolve("src/app/screens.css"),
   resolve("src/app/card.css"),
+  resolve("src/app/refine.css"),
 ];
 
 describe("copy", () => {
@@ -45,6 +49,14 @@ describe("copy", () => {
     ...Object.values(MATRICULA_COPY),
     ...ONBOARDING_PLATES.flatMap((p) => [p.title, p.body]),
     FEW_PEOPLE_COPY,
+    RESULT_FINE_COPY,
+    ...Object.values(REFINE_COPY),
+    ...Object.values(EXPLANATION_COPY_UI),
+    EVIDENCE_SUMMARY.intro,
+    EVIDENCE_SUMMARY.closing,
+    ...EVIDENCE_SUMMARY.how,
+    ...EVIDENCE_SUMMARY.unknowns,
+    ...EVIDENCE_SUMMARY.layers.map((l) => l.text),
     ...Object.values(CONSTELLATION_COPY),
   ];
 

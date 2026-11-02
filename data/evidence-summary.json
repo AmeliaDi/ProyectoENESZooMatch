@@ -1,0 +1,57 @@
+{
+  "version": "evidence-summary-1",
+  "nota": "Resumen amable de docs/EVIDENCIA.md y docs/VALIDACION.md para la página /evidencia. Cada fila enlaza ids de evidencia (campo interno 'decision', no visible).",
+  "intro": "ZooMatch es un proyecto estadístico de estudiantes. Aquí contamos, sin tecnicismos, en qué se apoya cada parte y qué no sabemos todavía.",
+  "layers": [
+    {
+      "title": "Personalidad (HEXACO)",
+      "strength": "moderada",
+      "text": "Es el modelo de personalidad mejor estudiado que usamos. La gente suele preferir parejas parecidas, sobre todo en transparencia y curiosidad, pero parecerse explica poco de qué tan bien va una relación.",
+      "decision": ["EV-100", "EV-104", "EV-01"]
+    },
+    {
+      "title": "Valores y planes de vida",
+      "strength": "moderada",
+      "text": "Coincidir en lo que importa en la vida tiene efectos pequeños pero consistentes. Por eso una diferencia grande en planes centrales pesa más que una pequeña.",
+      "decision": ["EV-105", "EV-22", "EV-23"]
+    },
+    {
+      "title": "Gustos, rutinas e intereses",
+      "strength": "debil",
+      "text": "Ayudan sobre todo en amistad: compartir planes vuelve fácil verse. La evidencia de que prediga la calidad de un vínculo es débil.",
+      "decision": ["EV-113", "EV-111"]
+    },
+    {
+      "title": "Cercanía, conflicto y cariño",
+      "strength": "debil",
+      "text": "Cómo te vinculas importa mucho para ti, pero parecerse en esto casi no predice nada. Por eso pesa poco y lo usamos más para dar ideas de conversación.",
+      "decision": ["EV-107", "EV-108", "EV-110"]
+    },
+    {
+      "title": "MBTI y eneagrama",
+      "strength": "heuristica",
+      "text": "Tienen respaldo científico limitado. Les damos forma, color y aura a tu animalito y temas para platicar, pero casi no pesan en la afinidad.",
+      "decision": ["EV-30", "EV-32", "EV-40"]
+    }
+  ],
+  "strength_labels": {
+    "fuerte": "Evidencia fuerte",
+    "moderada": "Evidencia moderada",
+    "debil": "Evidencia débil",
+    "heuristica": "Uso narrativo"
+  },
+  "unknowns": [
+    "Si ZooMatch predice atracción, satisfacción o duración de una relación o amistad: todavía no hay un solo dato de resultados reales.",
+    "Si parecerse es la mejor forma de compatibilidad: la literatura dice que la similitud de personalidad explica poco y que la atracción de una pareja concreta es casi impredecible.",
+    "Si los pesos son los mejores posibles: son supuestos prudentes que se revisarán con datos.",
+    "Si el test funciona igual en estudiantes reales de la UNAM: la estructura del test se probó con datos sintéticos.",
+    "Qué significa un porcentaje en absoluto: el puntaje ordena posibilidades respecto a un umbral; no es una probabilidad."
+  ],
+  "how": [
+    "Tus respuestas estiman tu perfil por áreas, junto con qué tan segura es cada estimación.",
+    "Cada área se compara con la de otra persona; la afinidad necesita ir bien en todas las áreas centrales, no solo en promedio.",
+    "Solo se muestra una afinidad si supera un umbral calibrado para que pocas coincidencias sean fruto del azar.",
+    "La explicación de cada afinidad usa los mismos números del cálculo: los puntos de cada área suman la afinidad."
+  ],
+  "closing": "Esto es un proyecto estadístico, no una medida de tu valor. Tu cielo es tuyo, con o sin constelaciones."
+}

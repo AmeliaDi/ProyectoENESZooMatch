@@ -225,10 +225,19 @@ export function SettingsView() {
               romance y {pct(MATCHING_CONFIG.tracks.amistad.minimum_similarity_exclusive)} en amistad. Romance además
               respeta orientación, identidad y tipo de relación de ambas personas.
             </li>
-            <li>La confianza es “alta” solo si la afinidad supera el umbral con holgura y ningún área queda baja.</li>
+            <li>
+              “Lo que más conecta” muestra cuántos puntos aporta cada área: suman exactamente la afinidad. MBTI y
+              eneagrama aparecen aparte, como temas para platicar, con su peso real (muy pequeño).
+            </li>
+            <li>
+              La confianza es “alta” solo si la afinidad supera el umbral con holgura, ningún área central queda baja y
+              hay respuestas suficientes. Afinar tu perfil con más módulos reduce la incertidumbre.
+            </li>
           </ol>
           <p className="zm-detail__muted">
-            Es una estimación estadística sin validación con parejas reales: no predice relaciones y no mide tu valor.
+            El puntaje ordena posibilidades; no es una probabilidad. Está calibrado con datos sintéticos y sin
+            validación con parejas reales: no predice relaciones y no mide tu valor.{" "}
+            <Link href="/evidencia">Qué sabemos y qué no todavía</Link>
           </p>
         </Frame>
       </main>
