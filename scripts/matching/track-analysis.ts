@@ -19,7 +19,7 @@ const BETAS = [0, 2, 4, 6, 10, 20] as const;
 const BOOTSTRAP_REPS = 100;
 const MORRIS_TRAJECTORIES = 20;
 const MORRIS_PAIRS = 6000;
-const TRUE_MATCH_SHARE = 0.1;
+export const TRUE_MATCH_SHARE = 0.1;
 /** Achievable ceiling used to scale relative positions above the threshold. */
 export const REFERENCE_QUANTILE = 0.999;
 
