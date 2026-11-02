@@ -65,6 +65,8 @@ export const designTokensSchema = z
       ui: z.number().min(3),
       textHighContrast: z.number().min(7),
       uiHighContrast: z.number().min(3),
+      /** Stars may reach at most this share of the text-on-sky contrast, so they never compete with copy. */
+      starMaxShareOfText: z.number().gt(0).lt(1),
     }),
     modes: z.strictObject({
       night: mode, day: mode, "night-hc": mode, "day-hc": mode,

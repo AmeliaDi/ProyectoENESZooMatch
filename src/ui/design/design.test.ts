@@ -88,6 +88,16 @@ describe("design tokens", () => {
     }
     expect(failures).toEqual([]);
   });
+
+  it.each(THEME_MODES)("%s keeps stars visible but quieter than text", (mode) => {
+    const { colors, highContrast } = DESIGN_TOKENS.modes[mode];
+    const { contrast } = DESIGN_TOKENS;
+    const star = contrastRatio(colors.star, colors.sky);
+    const text = contrastRatio(colors.fg, colors.sky);
+    expect(star).toBeGreaterThanOrEqual(highContrast ? contrast.uiHighContrast : contrast.ui);
+    expect(star).toBeLessThanOrEqual(text * contrast.starMaxShareOfText);
+    expect(colors.star).not.toBe(colors.fg);
+  });
 });
 
 describe("contrast", () => {

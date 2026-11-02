@@ -511,6 +511,19 @@ Cuatro paletas diseñadas por separado, ninguna invertida:
 - **Noche y día de alto contraste** (`night-hc`, `day-hc`): mismas formas,
   razón ≥ 7 en texto y ≥ 4.5 en UI.
 
+**Estrellas y texto (ADR-019).** `star` ya no es igual a `fg`. Debe verse sobre
+`sky` (≥ 3:1), pero con a lo más el 50 % del contraste del texto. Así el fondo
+se queda atrás:
+
+| Modo | `star` | star/sky | fg/star |
+|---|---|---|---|
+| night | `#7E8BAA` | 5.22 | 2.80 |
+| day | `#8C7F66` | 3.29 | 4.04 |
+| night-hc | `#8A8A8A` | 6.08 | 3.45 |
+| day-hc | `#757575` | 4.61 | 4.56 |
+
+El texto suelto sobre el cielo lleva un contorno duro de 1 px lógico en `sky`.
+
 La elección se guarda por dispositivo (`localStorage: zoomatch:theme`). Un
 script inline la aplica antes del primer pintado, así que no hay destello del
 cielo equivocado. Si no hay elección guardada, se sigue `prefers-color-scheme`.

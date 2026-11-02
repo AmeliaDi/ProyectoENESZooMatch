@@ -16,7 +16,7 @@
   --zm-frame: #18233A;
   --zm-raised: #22305A;
   --zm-fg: #F2E8D5;
-  --zm-fg-muted: #A9B3C7;
+  --zm-fg-muted: #B9C2D4;
   --zm-gold: #E8B04A;
   --zm-on-gold: #101826;
   --zm-romance: #F08A7E;
@@ -29,9 +29,9 @@
   --zm-focus: #FFD27A;
   --zm-shadow: #05080F;
   --zm-grid: #3A4A6B;
-  --zm-star: #F2E8D5;
-  --zm-nebula-1: #22305A;
-  --zm-nebula-2: #2B2447;
+  --zm-star: #7E8BAA;
+  --zm-nebula-1: #1C2846;
+  --zm-nebula-2: #221E3A;
   --zm-scheme: dark;
 }
 /* end:night */
@@ -42,7 +42,7 @@
   --zm-frame: #FBF6EA;
   --zm-raised: #E9DDC2;
   --zm-fg: #1B2233;
-  --zm-fg-muted: #525A70;
+  --zm-fg-muted: #474E63;
   --zm-gold: #7A4F00;
   --zm-on-gold: #FBF6EA;
   --zm-romance: #A8342A;
@@ -55,9 +55,9 @@
   --zm-focus: #1B2233;
   --zm-shadow: #BFAF8C;
   --zm-grid: #C9BC9F;
-  --zm-star: #1B2233;
-  --zm-nebula-1: #E6D9BC;
-  --zm-nebula-2: #EADFC8;
+  --zm-star: #8C7F66;
+  --zm-nebula-1: #EADFC6;
+  --zm-nebula-2: #EEE4D0;
   --zm-scheme: light;
 }
 /* end:day */
@@ -81,7 +81,7 @@
   --zm-focus: #FFD27A;
   --zm-shadow: #3A3A3A;
   --zm-grid: #4D4D4D;
-  --zm-star: #FFFFFF;
+  --zm-star: #8A8A8A;
   --zm-nebula-1: #1C1C1C;
   --zm-nebula-2: #262626;
   --zm-scheme: dark;
@@ -107,7 +107,7 @@
   --zm-focus: #000000;
   --zm-shadow: #000000;
   --zm-grid: #BDBDBD;
-  --zm-star: #000000;
+  --zm-star: #757575;
   --zm-nebula-1: #EDEDED;
   --zm-nebula-2: #E3E3E3;
   --zm-scheme: light;
@@ -118,14 +118,14 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
     --zm-sky: #F3EAD7; --zm-frame: #FBF6EA; --zm-raised: #E9DDC2;
-    --zm-fg: #1B2233; --zm-fg-muted: #525A70;
+    --zm-fg: #1B2233; --zm-fg-muted: #474E63;
     --zm-gold: #7A4F00; --zm-on-gold: #FBF6EA;
     --zm-romance: #A8342A; --zm-on-romance: #FBF6EA;
     --zm-amistad: #1F6B57; --zm-on-amistad: #FBF6EA;
     --zm-danger: #A3201B; --zm-on-danger: #FBF6EA;
     --zm-rim: #6E6A8A; --zm-focus: #1B2233;
-    --zm-shadow: #BFAF8C; --zm-grid: #C9BC9F; --zm-star: #1B2233;
-    --zm-nebula-1: #E6D9BC; --zm-nebula-2: #EADFC8;
+    --zm-shadow: #BFAF8C; --zm-grid: #C9BC9F; --zm-star: #8C7F66;
+    --zm-nebula-1: #EADFC6; --zm-nebula-2: #EEE4D0;
     --zm-scheme: light;
   }
 }
@@ -196,6 +196,24 @@
   font-family: var(--font-read);
   font-size: 1rem;
   line-height: 1.5;
+}
+
+/*
+ * Copy that sits straight on the sky gets a hard 1-logical-pixel knock-out in
+ * the sky colour (zero blur), so no star ever touches a glyph. Inside framed
+ * surfaces the fill already isolates the text, so the knock-out is removed.
+ */
+.zm-shell__body,
+.zm-shell__head,
+.zm-shell__foot {
+  text-shadow:
+    var(--zm-px) 0 0 var(--zm-sky),
+    calc(var(--zm-px) * -1) 0 0 var(--zm-sky),
+    0 var(--zm-px) 0 var(--zm-sky),
+    0 calc(var(--zm-px) * -1) 0 var(--zm-sky);
+}
+.zm-box {
+  text-shadow: none;
 }
 
 .zm-pixel-type {
