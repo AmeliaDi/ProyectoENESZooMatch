@@ -344,6 +344,39 @@ colores no llegaban a 3:1 en alguno de los dos modos.
 
 ---
 
+## ADR-019 · «Tu carta»: tus resultados siempre a mano, y estrellas más quietas
+
+**Contexto.** La revelación se ve una sola vez. La usuaria quiere volver a ver
+su MBTI, HEXACO, Eneagrama, valores, virtudes y afinidades. Aparte, las
+estrellas del fondo tenían el mismo color que el texto (`fg/star` = 1.00), así
+que las letras se perdían.
+
+**Decisión (carta).** Nueva ruta `/perfil` con `GET /api/profile`, solo para la
+persona dueña. Por cada factor, con posterior N(θ̂, SE²) bajo prior N(0, 1):
+- posición Φ(θ̂) y banda Φ(θ̂ ± z·SE), con z = 1 (`supuesto_diseno`);
+- confianza por ρ = 1 − SE²: «clara» si ρ ≥ 0.55, «tentativa» si ρ ≥ 0.2 y
+  «abierta» si no. «Abierta» equivale a módulo sin responder, y se muestra el
+  prior, no un rasgo;
+- inclinación solo fuera de la banda media [0.35, 0.65];
+- virtudes: el polo configurado de una escala inclinada con |θ̂| > 0.5·SE,
+  ordenadas por |θ̂|/SE, máximo 4. Se celebra sin rankear: no se imprimen
+  percentiles.
+
+El DTO solo lleva lecturas redondeadas, nunca θ, SE, vectores ni respuestas.
+Honestidad-Humildad se nombra con lenguaje de valores.
+
+**Decisión (contraste).** El token `star` se separa de `fg`: queda visible
+sobre el cielo (≥ 3:1) pero con a lo más la mitad del contraste del texto
+(`contrast.starMaxShareOfText`). La nebulosa se oscurece en noche y se aclara
+en día, y los pares de texto también se miden contra `nebula-1/2`. El texto
+suelto sobre el cielo lleva un contorno duro de 1 px lógico en color `sky`,
+sin blur, para que ninguna estrella toque un glifo.
+
+**Consecuencias.** `OwnProfile` incluye `latent`. `avatarParams` y
+`enneagramLabel` pasan a `application/identity-readout.ts`.
+
+---
+
 ## Pendientes conocidos (no decididos aún)
 
 - **Alias:** hoy es determinista con sufijo de 4 caracteres en base 36. Una colisión

@@ -13,7 +13,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { MATCHING_CONFIG } from "@/config";
 import { buildAvatarSpec, publicVisual, type AvatarSpec } from "@/domain/avatars/avatar-spec";
 import { mulberry32 } from "@/domain/shared";
-import { avatarParams } from "@/application/submit-quiz";
+import { avatarParams } from "@/application/identity-readout";
 
 import { makePopulation } from "../matching/population";
 

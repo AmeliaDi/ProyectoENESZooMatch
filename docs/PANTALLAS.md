@@ -172,6 +172,23 @@ flowchart TD
 - **Estados:** "Revisando tu perfil…"; sin sesión, enlace a la entrada; error al
   guardar o borrar con mensaje amable ("nada se perdió").
 
+## 8b. Tu carta (`/perfil`, `src/ui/profile/profile-view.tsx`)
+
+- **Objetivo:** ver tus resultados cuando quieras, no solo en la revelación.
+- **Contenido:** sprite, alias, MBTI (con ejes en equilibrio) y Eneagrama;
+  hasta 4 virtudes; afinidades (conteo y top 3 por track); lecturas por
+  sección (HEXACO abierta; Big Five, MBTI, valores, relacional, afecto y
+  estilo plegadas en `<details>`).
+- **Cada escala:** una pista pixel de 24 celdas. La banda tenue es la duda, la
+  celda dorada es la estimación y la marca central es la mitad. El texto dice
+  hacia qué polo se inclina y con qué confianza, así que nada depende solo del
+  color.
+- **Estados:** carga («Desplegando tu carta…»); sin sesión → entrada; sin test
+  → cuestionario; error → reintentar.
+- **Anti-plantilla:** marcos de atlas con coordenadas AR, pistas de celdas en
+  lugar de barras de progreso redondeadas y sin porcentajes de rasgo (no
+  rankea).
+
 ## 9. Admin (`/admin`, `/admin/login`)
 
 - Mismo sistema visual, más sobrio: marcos de atlas, botones del kit y **barras

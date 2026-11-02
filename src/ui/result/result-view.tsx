@@ -79,6 +79,9 @@ export function PublicResultView() {
 
   const actions = (
     <>
+      <Link href="/perfil" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Tu carta" title="Tu carta">
+        <Icon name="personalidad" />
+      </Link>
       <Link href="/ajustes" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Ajustes y privacidad">
         <Icon name="settings" />
       </Link>

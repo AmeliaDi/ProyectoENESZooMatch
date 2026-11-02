@@ -1,14 +1,15 @@
-import { buildAvatarSpec, type AvatarParams, type AvatarSpec } from "@/domain/avatars/avatar-spec";
-import { MATCHING_CONFIG, MICROTEST_ITEMS, scoreQuiz, type GlobalMatch, type LatentScorer } from "@/domain/matching";
+import { buildAvatarSpec } from "@/domain/avatars/avatar-spec";
+import { MICROTEST_ITEMS, scoreQuiz, type GlobalMatch, type LatentScorer } from "@/domain/matching";
 import { generateProfileIdentity } from "@/domain/identity/profile-generator";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import { generateWelcomeMessage } from "@/domain/messages/notification-copy";
-import { enneagramProfileFromType, type EnneagramType } from "@/domain/psychometrics/psychometrics";
+
 import { err, ok, type Result } from "@/domain/shared";
 import type { QuizSubmission, ScoredProfile } from "@/types/microtest";
 
 import type { QuizSubmittedDto } from "./dto";
 import type { AppError } from "./errors";
+import { avatarParams, enneagramLabel } from "./identity-readout";
 import type { NotificationRepository, ProfileRepository, StoredAnswer } from "./ports";
 import { recomputeMatches, type RecomputeDeps } from "./recompute-matches";
 
@@ -41,23 +42,6 @@ function score(submission: QuizSubmission, latent: LatentScorer): ScoredProfile 
   }
 }
 
-/** Enneagram readout parameters live in matching-config (single source). */
-export function avatarParams(): AvatarParams {
-  const { scoring, categories } = MATCHING_CONFIG;
-  const temperature = categories.eneagrama.kind === "distribution" ? categories.eneagrama.temperature : 1;
-  return { temperature, ambiguityEntropy: scoring.enneagram_ambiguity_entropy };
-}
-
-/** Kind words for the reveal; an ambiguous readout never forces a type. */
-function enneagramLabel(spec: AvatarSpec): QuizSubmittedDto["profile"]["enneagram"] {
-  const { type, wing } = spec.enneagram;
-  if (type === null) return { code: "—", nombre: "En exploración", arquetipo: "Tu eneagrama aún no se define" };
-  const ring = type === 1 ? 9 : type - 1;
-  const profile = enneagramProfileFromType(type as EnneagramType, (wing ?? ring) as EnneagramType);
-  return wing === null
-    ? { code: String(type), nombre: profile.nombre, arquetipo: profile.nombre }
-    : { code: profile.code, nombre: profile.nombre, arquetipo: profile.arquetipo };
-}
 
 /** Users paired with `userId` in a freshly published match set. */
 function counterpartsOf(userId: string, pairs: readonly GlobalMatch[]): string[] {

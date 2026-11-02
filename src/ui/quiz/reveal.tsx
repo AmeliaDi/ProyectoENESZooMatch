@@ -6,6 +6,7 @@
  * moment; with reduced motion it is shown complete immediately.
  */
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import type { QuizSubmittedDto } from "@/contracts/result";
@@ -88,6 +89,9 @@ export function Reveal({
             Saltar animación
           </Button>
         ) : null}
+        <Link href="/perfil" className="zm-box zm-btn zm-btn--secondary">
+          Ver mi carta
+        </Link>
         <Button variant="primary" iconAfter="next" onClick={onContinue}>
           Ver mi constelación
         </Button>

@@ -158,6 +158,15 @@ export function SettingsView() {
           {account.state === "ready" ? (
             <div className="zm-settings__account">
               <div className="zm-setting">
+                <p className="zm-setting__label">Tu carta</p>
+                <p className="zm-detail__muted">
+                  Tus resultados completos, cuando quieras: HEXACO, MBTI, eneagrama, valores, virtudes y afinidades.
+                </p>
+                <Link href="/perfil" className="zm-box zm-btn zm-btn--secondary">
+                  Ver mi carta
+                </Link>
+              </div>
+              <div className="zm-setting">
                 <p className="zm-setting__label">{account.paused ? "Perfil en pausa" : "Perfil visible"}</p>
                 <p className="zm-detail__muted">
                   Pausar te saca del cálculo de afinidades sin borrar nada. Puedes volver cuando quieras.

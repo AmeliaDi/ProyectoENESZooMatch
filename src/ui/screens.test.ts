@@ -37,6 +37,7 @@ const SCREEN_FILES = [
   ...files(resolve("src/ui")).filter((f) => !/[\\/]dev[\\/]/.test(f)),
   resolve("src/app/globals.css"),
   resolve("src/app/screens.css"),
+  resolve("src/app/card.css"),
 ];
 
 describe("copy", () => {

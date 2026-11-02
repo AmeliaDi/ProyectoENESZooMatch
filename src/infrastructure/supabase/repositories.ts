@@ -65,6 +65,16 @@ function firstJoined(value: unknown): Record<string, unknown> | null {
 
 // ─── Profiles ────────────────────────────────────────────────────────────────
 
+const latentSchema = z
+  .object({
+    theta: z.record(z.string(), z.number()),
+    se: z.record(z.string(), z.number().nonnegative()),
+    quality: z.number().min(0).max(1),
+    answered: z.number().int().nonnegative(),
+  })
+  .nullable()
+  .catch(null);
+
 const poolRowSchema = z.object({
   user_id: z.string(),
   romance_vector: z.array(z.number()),
@@ -74,15 +84,7 @@ const poolRowSchema = z.object({
   identidad_genero: z.array(z.string()).nullable(),
   tipo_relacion_busca: z.array(z.string()).nullable(),
   mbti_code: z.string().nullable(),
-  latent_profile: z
-    .object({
-      theta: z.record(z.string(), z.number()),
-      se: z.record(z.string(), z.number().nonnegative()),
-      quality: z.number().min(0).max(1),
-      answered: z.number().int().nonnegative(),
-    })
-    .nullable()
-    .catch(null),
+  latent_profile: latentSchema,
 });
 
 /** A row without a latent profile keeps the population prior (θ = 0, SE = 1). */
@@ -120,6 +122,7 @@ function toOwnProfile(row: Record<string, unknown>): OwnProfile {
     animal: animal as OwnProfile["animal"],
     color: color as OwnProfile["color"],
     mark: toMark(row.avatar_mark),
+    latent: latentSchema.parse(row.latent_profile ?? null),
   };
 }
 
@@ -250,7 +253,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
         admin
           .from(TABLE.profiles)
           .select(
-            "alias, narrative, mbti_code, dimension_scores, romance_vector, amistad_vector, avatar_mark, animals(id, diminutivo_es, categoria_fauna), colors(id, nombre, hex)",
+            "alias, narrative, mbti_code, dimension_scores, romance_vector, amistad_vector, avatar_mark, latent_profile, animals(id, diminutivo_es, categoria_fauna), colors(id, nombre, hex)",
           )
           .eq("user_id", userId)
           .maybeSingle(),

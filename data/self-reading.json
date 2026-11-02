@@ -1,0 +1,150 @@
+{
+  "version": "carta-1",
+  "uncertainty": {
+    "intervalZ": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Banda θ ± 1·SE posterior (≈ 68 %), dibujada como rango tenue" },
+    "clearReliability": { "valor": 0.55, "etiqueta": "supuesto_diseno", "fuente": "1 − SE² ≥ 0.55: escalas multi-ítem del núcleo (SE ≈ 0.51–0.61 en simulación)" },
+    "tentativeReliability": { "valor": 0.15, "etiqueta": "supuesto_diseno", "fuente": "1 − SE² ≥ 0.15 (SE ≤ 0.92): escalas de 1–2 ítems (SE ≈ 0.82–0.89) quedan tentativas; el prior (SE = 1) queda abierta" },
+    "lowBand": { "valor": 0.35, "etiqueta": "supuesto_diseno", "fuente": "Φ(θ) < 0.35 → más cerca del polo bajo" },
+    "highBand": { "valor": 0.65, "etiqueta": "supuesto_diseno", "fuente": "Φ(θ) > 0.65 → más cerca del polo alto" },
+    "virtueMargin": { "valor": 0.5, "etiqueta": "supuesto_diseno", "fuente": "Virtud solo si θ en su polo supera 0.5·SE (no se celebra ruido)" }
+  },
+  "virtuesMax": 4,
+  "affinitiesTop": 3,
+  "sections": [
+    {
+      "id": "hexaco",
+      "title": "Tu núcleo",
+      "blurb": "Seis rasgos (modelo HEXACO). Son la base del cálculo de afinidad.",
+      "scales": [
+        { "factor": "hex_h", "label": "Honestidad-Humildad", "low": "Gusto por el reconocimiento y lo material", "high": "Transparencia y trato justo",
+          "virtues": { "high": { "title": "Trato justo", "text": "Valoras la transparencia y tratar a todxs con equidad." } } },
+        { "factor": "hex_e", "label": "Emocionalidad", "low": "Templanza ante el riesgo", "high": "Sensibilidad y lazos cercanos",
+          "virtues": { "high": { "title": "Corazón atento", "text": "Sientes con intensidad y cuidas los lazos con quien quieres." },
+                       "low": { "title": "Temple", "text": "Mantienes la cabeza fría cuando algo asusta." } } },
+        { "factor": "hex_x", "label": "Extraversión", "low": "Energía tranquila y reservada", "high": "Energía social y expresiva",
+          "virtues": { "high": { "title": "Chispa social", "text": "Le das vida a los grupos y te animas a convivir." },
+                       "low": { "title": "Calma propia", "text": "Disfrutas tus espacios tranquilos y escuchas con atención." } } },
+        { "factor": "hex_a", "label": "Amabilidad", "low": "Franqueza y firmeza", "high": "Paciencia y perdón",
+          "virtues": { "high": { "title": "Paciencia", "text": "Sueles perdonar y dar segundas oportunidades." },
+                       "low": { "title": "Franqueza", "text": "Dices lo que piensas y defiendes lo que importa." } } },
+        { "factor": "hex_c", "label": "Responsabilidad", "low": "Espontaneidad y flexibilidad", "high": "Orden y constancia",
+          "virtues": { "high": { "title": "Constancia", "text": "Planeas, cumples y cuidas los detalles." },
+                       "low": { "title": "Flexibilidad", "text": "Te adaptas sobre la marcha sin drama." } } },
+        { "factor": "hex_o", "label": "Apertura", "low": "Gusto por lo conocido", "high": "Curiosidad y creatividad",
+          "virtues": { "high": { "title": "Curiosidad", "text": "Te atraen las ideas nuevas, el arte y lo poco común." },
+                       "low": { "title": "Raíces firmes", "text": "Valoras lo probado y sabes lo que te funciona." } } }
+      ]
+    },
+    {
+      "id": "big_five",
+      "title": "Puente Big Five",
+      "blurb": "Cinco rasgos clásicos para comparar con la literatura. Pesan poco en el cálculo.",
+      "scales": [
+        { "factor": "bf_o", "label": "Apertura", "low": "Lo conocido", "high": "Lo nuevo" },
+        { "factor": "bf_c", "label": "Responsabilidad", "low": "Espontaneidad", "high": "Organización" },
+        { "factor": "bf_e", "label": "Extraversión", "low": "Reserva", "high": "Sociabilidad" },
+        { "factor": "bf_a", "label": "Amabilidad", "low": "Firmeza", "high": "Calidez" },
+        { "factor": "bf_n", "label": "Reacción al estrés", "low": "Calma ante la presión", "high": "Sensibilidad al estrés",
+          "virtues": { "low": { "title": "Serenidad", "text": "Conservas la calma cuando las cosas se complican." } } }
+      ]
+    },
+    {
+      "id": "mbti",
+      "title": "Tus cuatro ejes (MBTI)",
+      "blurb": "Preferencias continuas, no cajas. Definen tu animalito; casi no pesan en la afinidad.",
+      "scales": [
+        { "factor": "mbti_ei", "label": "Energía", "low": "Hacia afuera (E)", "high": "Hacia adentro (I)" },
+        { "factor": "mbti_sn", "label": "Información", "low": "Lo concreto (S)", "high": "Las posibilidades (N)" },
+        { "factor": "mbti_tf", "label": "Decisiones", "low": "Lógica y criterio (T)", "high": "Valores y personas (F)" },
+        { "factor": "mbti_jp", "label": "Estructura", "low": "Plan y orden (J)", "high": "Improvisación (P)" }
+      ]
+    },
+    {
+      "id": "valores",
+      "title": "Lo que te importa",
+      "blurb": "Valores y metas de vida. Una diferencia grande aquí pesa más que en gustos.",
+      "scales": [
+        { "factor": "val_autotrascendencia", "label": "Cuidado de lxs demás", "low": "Tu círculo cercano", "high": "El bienestar de todxs",
+          "virtues": { "high": { "title": "Generosidad", "text": "Te importa el bienestar incluso de quien no conoces." } } },
+        { "factor": "val_autopromocion", "label": "Logro e influencia", "low": "Logro discreto", "high": "Éxito visible",
+          "virtues": { "high": { "title": "Ambición sana", "text": "Te mueve crecer y dejar huella." } } },
+        { "factor": "val_apertura_cambio", "label": "Libertad y novedad", "low": "Estabilidad conocida", "high": "Tu propio camino",
+          "virtues": { "high": { "title": "Autonomía", "text": "Te animas a trazar tu propio camino." } } },
+        { "factor": "val_conservacion", "label": "Tradición y seguridad", "low": "Poco apego a la tradición", "high": "Respeto a tus raíces",
+          "virtues": { "high": { "title": "Lealtad", "text": "Cuidas las tradiciones y a tu comunidad." } } },
+        { "factor": "val_presente", "label": "Presente o futuro", "low": "Previsión para el futuro", "high": "Disfrutar el momento",
+          "virtues": { "high": { "title": "Gozo del presente", "text": "Sabes disfrutar el aquí y el ahora." },
+                       "low": { "title": "Previsión", "text": "Cuidas a tu yo del futuro." } } },
+        { "factor": "val_espiritualidad", "label": "Espiritualidad", "low": "Poco presente", "high": "Lugar importante" },
+        { "factor": "act_igualdad", "label": "Igualdad", "low": "Roles más tradicionales", "high": "Trato y tareas por igual",
+          "virtues": { "high": { "title": "Equidad", "text": "Crees en repartir tareas y decisiones por igual." } } },
+        { "factor": "act_compromiso_social", "label": "Compromiso social", "low": "Enfoque en lo personal", "high": "Causas colectivas",
+          "virtues": { "high": { "title": "Compromiso", "text": "Te interesa participar y convivir con la diversidad." } } },
+        { "factor": "meta_carrera", "label": "Carrera ahora", "low": "Otras prioridades", "high": "Tu carrera primero" },
+        { "factor": "meta_crianza", "label": "Criar algún día", "low": "Poco o nada", "high": "Sí, algún día" }
+      ]
+    },
+    {
+      "id": "relacional",
+      "title": "Cómo te vinculas",
+      "blurb": "Comunicación, conflicto, cercanía y espacio. Ningún polo es mejor que otro.",
+      "scales": [
+        { "factor": "rel_comunicacion", "label": "Decir lo que necesitas", "low": "Te lo guardas un poco", "high": "Lo dices con claridad",
+          "virtues": { "high": { "title": "Claridad", "text": "Pones en palabras lo que necesitas." } } },
+        { "factor": "rel_expresividad", "label": "Expresar cariño", "low": "Cariño discreto", "high": "Cariño en voz alta" },
+        { "factor": "rel_frecuencia", "label": "Contacto", "low": "Espaciado", "high": "A diario" },
+        { "factor": "rel_espacio", "label": "Tiempo para ti", "low": "Mucho tiempo compartido", "high": "Necesitas tu espacio" },
+        { "factor": "rel_autonomia", "label": "Autonomía en el vínculo", "low": "Decisiones compartidas", "high": "Cada quien su espacio" },
+        { "factor": "rel_exclusividad", "label": "Exclusividad", "low": "Vínculos abiertos", "high": "Vínculos exclusivos" },
+        { "factor": "rel_metas", "label": "Horizonte", "low": "Vivir el presente del vínculo", "high": "Vínculos de muchos años",
+          "virtues": { "high": { "title": "Constancia afectiva", "text": "Apuestas por vínculos que duren." } } },
+        { "factor": "con_inmediatez", "label": "Cuando algo molesta", "low": "Lo platicas después", "high": "Lo hablas en el momento" },
+        { "factor": "con_pausa", "label": "En una discusión", "low": "Sigues la plática", "high": "Necesitas un rato a solas" },
+        { "factor": "con_acuerdo", "label": "Buscar acuerdos", "low": "Defiendes tu postura", "high": "Que ambas partes ganen",
+          "virtues": { "high": { "title": "Mediación", "text": "Buscas acuerdos donde nadie pierda." } } },
+        { "factor": "con_reparacion", "label": "Reparar", "low": "Reparas a tu ritmo", "high": "Pides disculpas con facilidad",
+          "virtues": { "high": { "title": "Reparación", "text": "Sabes reconocer errores y reconstruir." } } },
+        { "factor": "apego_ansiedad", "label": "Certeza afectiva", "low": "Seguridad tranquila", "high": "Te ayuda confirmar el cariño" },
+        { "factor": "apego_evitacion", "label": "Cercanía emocional", "low": "Te abres con facilidad", "high": "Prefieres depender poco" }
+      ]
+    },
+    {
+      "id": "afecto",
+      "title": "Cómo das y recibes cariño",
+      "blurb": "Tus idiomas del cariño, de más a menos tuyos.",
+      "scales": [
+        { "factor": "afecto_palabras", "label": "Palabras y mensajes", "low": "Menos tu idioma", "high": "Muy tu idioma" },
+        { "factor": "afecto_tiempo", "label": "Tiempo de calidad", "low": "Menos tu idioma", "high": "Muy tu idioma" },
+        { "factor": "afecto_contacto", "label": "Abrazos y contacto", "low": "Menos tu idioma", "high": "Muy tu idioma" },
+        { "factor": "afecto_detalles", "label": "Detalles", "low": "Menos tu idioma", "high": "Muy tu idioma" },
+        { "factor": "afecto_servicio", "label": "Ayuda práctica", "low": "Menos tu idioma", "high": "Muy tu idioma" }
+      ]
+    },
+    {
+      "id": "estilo",
+      "title": "Tu vida diaria",
+      "blurb": "Gustos, rutinas e intereses. Pesan más en amistad que en romance.",
+      "scales": [
+        { "factor": "int_investigador", "label": "Investigar por curiosidad", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_artistico", "label": "Crear arte", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_realista", "label": "Aire libre y manos", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_emprendedor", "label": "Organizar proyectos", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_convencional", "label": "Orden y cuentas", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_actividad_fisica", "label": "Ejercicio y deporte", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_cultura", "label": "Conciertos y cultura", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_juegos", "label": "Juegos y videojuegos", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_comida", "label": "Cocinar y comer rico", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_animales", "label": "Convivir con animales", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_humor", "label": "Humor para acercarte", "low": "Poco", "high": "Mucho" },
+        { "factor": "int_fiesta", "label": "Salir de fiesta", "low": "Plan en casa", "high": "Fiesta" },
+        { "factor": "int_vida_nocturna", "label": "Horario", "low": "Planes de día", "high": "Planes de noche" },
+        { "factor": "soc_rutina", "label": "Rutina", "low": "Días variados", "high": "Días parecidos" },
+        { "factor": "soc_dinero", "label": "Dinero", "low": "Gasto libre", "high": "Gasto con control" },
+        { "factor": "soc_redes", "label": "Redes sociales", "low": "Compartes poco", "high": "Compartes seguido" },
+        { "factor": "soc_campus", "label": "Vida en el campus", "low": "Vas a lo tuyo", "high": "Te quedas a convivir" },
+        { "factor": "soc_familia", "label": "Familia en tus decisiones", "low": "Decides por tu cuenta", "high": "Decides en familia" },
+        { "factor": "soc_politica", "label": "Afinidad social en tu círculo", "low": "No es necesaria", "high": "Te importa mucho" }
+      ]
+    }
+  ]
+}

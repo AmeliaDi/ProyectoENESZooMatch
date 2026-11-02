@@ -7,6 +7,7 @@ import type { SubtypeMark } from "@/domain/avatars/avatar-spec";
 import type { GlobalMatch } from "@/domain/matching";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import type { Result } from "@/domain/shared";
+import type { LatentProfile } from "@/types/latent";
 import type { MatchTrack, ProfileIdentity, ScoredProfile } from "@/types/microtest";
 
 import type { AppError, StorageError } from "./errors";
@@ -45,6 +46,8 @@ export interface OwnProfile {
   animal: { id: string; diminutivo_es: string; categoria_fauna: string } | null;
   color: { id: string; nombre: string; hex: string } | null;
   mark: SubtypeMark | null;
+  /** Posterior θ̂/SE; owner-only input of "Tu carta", never serialized. */
+  latent: LatentProfile | null;
 }
 
 export interface CounterpartProfile {

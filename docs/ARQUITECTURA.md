@@ -310,3 +310,18 @@ Desviaciones respecto al plan:
 | `ui/` con `public-experience` | Se partió en `quiz/public-quiz`, `result/result-view` y `shared/chrome` | Era un archivo de 1 100 líneas con tres responsabilidades |
 
 Verificación en cada commit: `npm run check` (lint + typecheck + tests) y `next build`.
+
+### 7.1 «Tu carta» (`/perfil`, `GET /api/profile`)
+
+Los resultados propios, consultables en cualquier momento (ADR-019):
+
+```
+data/self-reading.json → config/self-reading.ts (Zod)
+  → domain/psychometrics/self-reading.ts (Φ(θ), banda, confianza, virtudes)
+  → application/get-profile.ts (+ identity-readout: MBTI, Eneagrama)
+  → app/api/profile/route.ts (withApiSecurity, solo la persona dueña)
+  → ui/profile/* (parser defensivo + lámina 06)
+```
+
+El DTO `contracts/profile.ts` no lleva θ, SE, vectores, respuestas ni filtros.
+Enlazada desde el resultado, Ajustes y la revelación.

@@ -24,6 +24,7 @@ const OWN: OwnProfile = {
   animal: { id: "zorrito", diminutivo_es: "zorrito", categoria_fauna: "mamifero" },
   color: { id: "ennea-7", nombre: "Naranja mandarina", hex: "#C05722" },
   mark: "sx",
+  latent: null,
 };
 
 const COUNTERPART: CounterpartProfile = {
