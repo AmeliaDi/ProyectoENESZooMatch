@@ -62,7 +62,9 @@ describe("distinguishability", () => {
     JSON.stringify(getSpriteFrame(animalId, colorId, "idle_1", mark).grid);
 
   it("never renders two (species, type, wing, mark) combinations identically", () => {
-    const animals = Object.values(AVATAR_CONFIG.species_pools.pools).map((pool) => pool[0]!);
+    // Every species, not just one per pool: a bespoke template can hide a mark
+    // cell (e.g. a transparent flank) and only that species would collide.
+    const animals = Object.values(AVATAR_CONFIG.species_pools.pools).flat();
     const marks = [null, "sp", "so", "sx"] as const;
     const seen = new Map<string, string>();
     for (const animalId of animals) {

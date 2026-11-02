@@ -624,6 +624,142 @@ const SPECIES_TEMPLATES: Readonly<Record<string, readonly string[]>> = {
     ".SSSSSSS", // foot rim
     "........",
   ],
+  // Swan, seen from the front while floating: small head, beak pointing down,
+  // long neck, arched wings raised on both sides and ripples instead of feet.
+  // The catalogue's `pico_dorado` detail lights the beak from row 8 down.
+  cisnecito: [
+    "........", // crown air (hearts float here)
+    "........",
+    "........",
+    "....BBBB", // head top
+    "...BBBBB", // head
+    "...BBBBB", // brow
+    "H..BEEBB", // wing tip + eyes (upper)
+    "HH.BEEBB", // wing + eyes (lower)
+    "HSS.BBBB", // wing + cheeks, beak base
+    "HSS...BB", // wing + chin, beak tip
+    ".HSS..BB", // raised wing + long neck (emblem rides here as a pendant)
+    ".HSS..BB", // raised wing + long neck
+    ".BHSS.BB", // raised wing + long neck
+    "..BHSSBB", // wings fold into the body
+    "..BBBBBB", // body afloat
+    ".S.SS.S.", // ripples
+  ],
+  // Flamingo: round head, beak bent down on the axis, fluffy body on two
+  // stilt legs.
+  flamenco: [
+    "........",
+    "........",
+    "........",
+    "....BBBB", // head top
+    "...BBBBB", // head
+    "...BBBBB", // brow
+    "...BEEBB", // eyes (upper)
+    "...BEEBB", // eyes (lower)
+    "....BBHH", // cheeks + beak base
+    ".....BSS", // bent beak, dark tip
+    "......BB", // neck
+    "..BBBBBB", // wings
+    ".BHHBBBB", // fluffy wing
+    "..BBBBBB", // body
+    "......S.", // stilt legs
+    "......S.", // stilt legs
+  ],
+  // Heron: crest plume, long straight beak, slim body on long legs.
+  garcita: [
+    "........",
+    "........",
+    ".....B..", // plume
+    "....BBBB", // head top
+    "...BBBBB", // head
+    "...BBBBB", // brow
+    "...BEEBB", // eyes (upper)
+    "...BEEBB", // eyes (lower)
+    "..BBBBHH", // cheeks + beak
+    "....BBHH", // long beak
+    "......HH", // long beak
+    "...BBBBB", // shoulders
+    "..SBBBBB", // folded wing
+    "...SBBBB", // body
+    "......S.", // long legs
+    "......S.", // long legs
+  ],
+  // Penguin: dark hood, light belly, flippers held out, little feet.
+  pinguino: [
+    "........",
+    "........",
+    "....BBBB", // crown
+    "...BBBBB", // hood
+    "..BBBBBB", // hood
+    "..BBBBBB", // brow
+    "..BBEEBB", // eyes (upper)
+    "..BBEEBB", // eyes (lower)
+    "..BBBBBS", // cheeks + beak
+    ".SBBHHHH", // flippers + belly
+    "SSBHHHHH", // flippers + belly
+    "SSBHHHHH", // flippers + belly
+    ".SBHHHHH", // belly
+    "..BHHHHH", // belly
+    "...BBBBB", // base
+    "...SS...", // feet
+  ],
+  // Turtle: head peeking over a plated shell, legs out to the sides.
+  tortuguita: [
+    "........",
+    "........",
+    "........",
+    "....BBBB", // head top
+    "...BBBBB", // head
+    "...BBBBB", // brow
+    "...BEEBB", // eyes (upper)
+    "...BEEBB", // eyes (lower)
+    "..BBBBBB", // cheeks
+    "..SSSSSS", // shell rim
+    ".SHHSHHH", // shell plates
+    "BSHHSHHH", // front legs + plates
+    ".SSSSSSS", // shell seam
+    "BSHHHSHH", // back legs + plates
+    ".SSSSSSS", // shell rim
+    "..B...B.", // feet
+  ],
+  // Giraffe: ossicones, small head on a long spotted neck, slim legs.
+  jirafita: [
+    "........",
+    "....S...", // ossicone knobs
+    "....B...", // ossicones
+    "..BBBBBB", // ears + head top
+    ".B.BBBBB", // ear
+    "...BBBBB", // brow
+    "...BEEBB", // eyes (upper)
+    "...BEEBB", // eyes (lower)
+    "..BBBBBB", // cheeks
+    "....BHHH", // muzzle
+    ".....BSB", // spotted neck
+    ".....SBB", // spotted neck
+    "....BBSB", // shoulders
+    "..BSBBBB", // spotted body
+    "..BBBBSB", // body
+    "..S...S.", // legs
+  ],
+  // Snake: head raised over its own coils; no feet.
+  serpientita: [
+    "........",
+    "........",
+    "........",
+    "...BBBBB", // head top
+    "..BBBBBB", // head
+    ".BBBBBBB", // brow
+    ".BBBEEBB", // eyes (upper)
+    ".BBBEEBB", // eyes (lower)
+    "..BBBBBB", // cheeks
+    "...BBBBB", // jaw
+    "....BBBB", // neck
+    "..SSSSSS", // top coil
+    ".BBBBBBB", // coil
+    "SSSSSSSS", // coil
+    "BBBBBBBB", // bottom coil
+    "........",
+  ],
   // Jellyfish: frilled bell and long trailing threads.
   medusita: [
     "........",

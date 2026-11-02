@@ -171,6 +171,31 @@ silueta de diferencia.
 | Glifos de emblema distintos | 10 de 10 |
 | Silueta igual entre colores (la máscara no cambia) | Verificado (test) |
 
+La prueba de distinguibilidad (`avatar-palette.test.ts`) recorre **las 77
+especies** de los pools, no una por pool: una silueta propia puede dejar sin
+relleno la celda donde cae la marca de subtipo, y solo esa especie chocaría.
+
+### Siluetas propias por especie (revisión de diseño, cierre)
+
+La plantilla de familia (`TEMPLATE_AVE`, etc.) es una cabeza redonda sobre un
+cuerpo; para especies cuyo rasgo reconocible es el **plano corporal** no se
+alcanzaba con ediciones pequeñas. Revisión de las 103 matrices en ASCII
+(`spriteToAscii`) y siluetas nuevas en `SPECIES_TEMPLATES`:
+
+| Especie | Problema (antes) | Silueta nueva |
+|---|---|---|
+| cisnecito | Ave genérica con cresta: «no sé qué es» | Cabeza pequeña, pico hacia abajo, cuello largo (el emblema cuelga como dije), alas levantadas en arco y ondas de agua en vez de patas |
+| flamenco | Cabeza ancha con cuernos y cuerpo de insecto | Pico curvo con punta oscura, cuello, cuerpo esponjoso y dos zancos |
+| garcita | Igual que el resto de las aves | Penacho, pico largo y recto, cuerpo delgado y patas largas |
+| pinguino | Igual que el resto de las aves | Capucha oscura, panza clara, aletas abiertas y patitas |
+| tortuguita | Cabeza y cuerpo de mamífero | Cabeza asomada sobre un caparazón de placas, patas a los lados |
+| jirafita | Cabeza ancha sin cuello | Osiconos, cabeza pequeña, cuello largo con manchas y patas finas |
+| serpientita | Cuerpo con cuatro patas | Cabeza erguida sobre anillos enrollados, sin patas |
+
+Todas conservan el contrato del motor: ojos 2×2 en filas 6–7, rubor,
+corazones en filas 0–2, simetría salvo la cola y esquinas vacías. Tras el
+cambio: 8 624 sprites, **8 624 distintos**.
+
 Población sintética (N = 1000, semilla de calibración, generador de
 `scripts/matching/population.ts`; valida el código, no el mundo real):
 
