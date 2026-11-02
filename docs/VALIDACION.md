@@ -1,7 +1,7 @@
 # Validación (Fase 6): lectura de resultados
 
 > Números: `docs/VALIDACION_RESULTADOS.md` (generado por `npm run data:validate`), con hash de
-> entradas `matching-config` 9775d4d6bcaee6b0 · `psychometric-params` d25ff00d96fc3820 ·
+> entradas `matching-config` 2a6c0cbee1e8d5f9 · `psychometric-params` d25ff00d96fc3820 ·
 > `self-reading` 347f4a593471fe97. Criterios: `docs/PREREGISTRO.md` (commit `877b702`, anterior
 > a esta corrida). **Datos sintéticos: validan el código y la sensibilidad, no el mundo real.**
 
@@ -22,7 +22,7 @@
 | H6a | Brier skill > 0 | cumple (0.089 / 0.019) | cumple (0.109 / 0.110) |
 | H6b | ECE ≤ 0.05 | cumple (0.019 / 0.032) | cumple (0.002 / 0.004) |
 | H6c | ρ por deciles ≥ 0.90 | cumple (similitud 0.988); **no cumple (ventana 0.515)** | cumple (1.000 / 1.000) |
-| H6b′ | Confianza alta > media | cumple: 39.1 % vs 31.8 % | cumple: 42.4 % vs 17.4 % |
+| H6b′ | Confianza alta > media | cumple: 39.1 % vs 31.8 % (margen); 40.7 % vs 34.5 % (producción, ADR-021, post hoc) | cumple: 42.4 % vs 17.4 % (margen); 42.2 % vs 39.0 % (producción) |
 | H7 | Capa 4 y extras ≈ 0 | equivalentes a 0 (IC dentro de ±0.005) | equivalentes a 0 |
 | H8 | Meta-análisis | no se agrega: ningún grupo llega a k ≥ 3 | — |
 

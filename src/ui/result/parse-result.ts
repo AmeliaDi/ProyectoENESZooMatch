@@ -152,11 +152,31 @@ function parseChemistry(raw: unknown): ChemistrySummary | null {
   return raw as unknown as ChemistrySummary;
 }
 
-/** Accepts an explanation only when the parts the UI renders are present. */
+function isContribution(raw: unknown): boolean {
+  return (
+    isRecord(raw) &&
+    typeof raw.category === "string" &&
+    typeof raw.label === "string" &&
+    typeof raw.percentage === "number" &&
+    typeof raw.points === "number" &&
+    typeof raw.phrase === "string"
+  );
+}
+
+function isTalk(raw: unknown): boolean {
+  return isRecord(raw) && typeof raw.points === "number" && typeof raw.intro === "string" && Array.isArray(raw.lines) && raw.lines.every((l) => typeof l === "string");
+}
+
+function isConfidence(raw: unknown): boolean {
+  return isRecord(raw) && (raw.level === "alta" || raw.level === "media") && typeof raw.label === "string" && typeof raw.reason === "string";
+}
+
+/** Accepts an explanation only when every part the UI renders is well-formed. */
 function parseExplanation(raw: unknown): MatchExplanation | null {
-  if (!isRecord(raw)) return null;
-  if (!parseChemistry(raw.chemistry) || !Array.isArray(raw.breakdown)) return null;
-  if (typeof raw.headline !== "string") return null;
+  if (!isRecord(raw) || !parseChemistry(raw.chemistry) || typeof raw.headline !== "string") return null;
+  if (!Array.isArray(raw.connects) || !raw.connects.every(isContribution)) return null;
+  if (typeof raw.otherPoints !== "number" || !isTalk(raw.talk) || !isConfidence(raw.confidence)) return null;
+  if (raw.tension !== null && !(isRecord(raw.tension) && typeof raw.tension.text === "string" && typeof raw.tension.title === "string")) return null;
   return raw as unknown as MatchExplanation;
 }
 

@@ -1,0 +1,165 @@
+{
+  "version": "explanation-copy-1",
+  "nota": "Copy del motor de explicabilidad por capas (ADR-021). Cada frase se elige con los mismos números del puntaje; nada aquí cambia el cálculo.",
+  "bands": {
+    "alta": { "valor": 0.55, "etiqueta": "supuesto_diseno", "fuente": "Similitud de categoría desde la que el copy habla de 'mucho en común' (≈ cuantil 0.75 de las categorías núcleo sobre el umbral)" },
+    "media": { "valor": 0.4, "etiqueta": "supuesto_diseno", "fuente": "Similitud de categoría desde la que el copy habla de 'bastante en común' (≈ mediana)" }
+  },
+  "chemistry": {
+    "noun": "afinidad estimada",
+    "levels": [
+      { "id": "afinidad_muy_alta", "min": 0.7, "label": "Afinidad muy alta" },
+      { "id": "quimica_excepcional", "min": 0.45, "label": "Química excepcional" },
+      { "id": "quimica_fuerte", "min": 0.25, "label": "Química fuerte" },
+      { "id": "buena_quimica", "min": 0.1, "label": "Buena química" },
+      { "id": "quimica_moderada", "min": 0, "label": "Química moderada" }
+    ]
+  },
+  "categories": {
+    "personalidad": {
+      "label": "Forma de ser",
+      "icon": "personalidad",
+      "phrases": {
+        "alta": "Su forma de ser se parece mucho: es fácil entenderse sin traducir.",
+        "media": "Comparten bastante en su forma de ser, con matices propios.",
+        "baja": "Su forma de ser tiene ritmos distintos; ahí hay mucho por descubrir."
+      }
+    },
+    "valores": {
+      "label": "Lo que les importa",
+      "icon": "valores_relacionales",
+      "phrases": {
+        "alta": "Les importan cosas muy parecidas en la vida.",
+        "media": "Coinciden en varias prioridades de vida.",
+        "baja": "Ordenan sus prioridades de forma distinta; vale la pena platicarlo."
+      }
+    },
+    "dealbreakers": {
+      "label": "Planes de vida",
+      "icon": "valores_relacionales",
+      "phrases": {
+        "alta": "Imaginan planes de vida que caben en el mismo mapa.",
+        "media": "Sus planes de vida se cruzan en lo importante.",
+        "baja": "Sus planes de vida apuntan a lugares distintos; conviene hablarlo pronto."
+      }
+    },
+    "relacional": {
+      "label": "Cómo quieren el vínculo",
+      "icon": "identidad",
+      "phrases": {
+        "alta": "Quieren el vínculo de forma muy parecida: espacio, ritmo y cercanía.",
+        "media": "Buscan un vínculo parecido, con algunos ajustes de ritmo.",
+        "baja": "Imaginan el vínculo con ritmos distintos; acordarlos es parte del juego."
+      }
+    },
+    "estilo": {
+      "label": "Gustos y rutinas",
+      "icon": "afinidad_cultural",
+      "phrases": {
+        "alta": "Sus gustos y rutinas se parecen: planes fáciles de armar.",
+        "media": "Tienen gustos en común y otros para enseñarse.",
+        "baja": "Sus gustos van por caminos distintos: buen pretexto para probar cosas nuevas."
+      }
+    },
+    "big_five": {
+      "label": "Rasgos de personalidad",
+      "icon": "personalidad",
+      "phrases": {
+        "alta": "Sus rasgos generales se parecen mucho.",
+        "media": "Sus rasgos generales coinciden en buena parte.",
+        "baja": "Sus rasgos generales son distintos."
+      }
+    },
+    "conflicto": {
+      "label": "Cómo resuelven desacuerdos",
+      "icon": "valores_relacionales",
+      "phrases": {
+        "alta": "Resuelven los desacuerdos con un estilo parecido.",
+        "media": "Su forma de resolver desacuerdos es compatible con algo de práctica.",
+        "baja": "Resuelven desacuerdos a ritmos distintos; nombrarlo ayuda."
+      }
+    },
+    "apego": {
+      "label": "Cercanía y espacio",
+      "icon": "intimidad_afecto",
+      "phrases": {
+        "alta": "Buscan una mezcla parecida de cercanía y espacio.",
+        "media": "Su balance entre cercanía y espacio es bastante compatible.",
+        "baja": "Necesitan cercanía y espacio en dosis distintas; decirlo en voz alta ayuda."
+      }
+    },
+    "afecto": {
+      "label": "Cómo dan cariño",
+      "icon": "intimidad_afecto",
+      "phrases": {
+        "alta": "Dan y reciben cariño de formas muy parecidas.",
+        "media": "Su forma de dar cariño coincide en varias cosas.",
+        "baja": "Expresan el cariño distinto; vale la pena decir qué necesita cada quien."
+      }
+    },
+    "mbti": {
+      "label": "Estilo para pensar",
+      "icon": "personalidad",
+      "phrases": {
+        "alta": "Piensan y deciden con estilos cercanos.",
+        "media": "Sus estilos para pensar se cruzan en varias cosas.",
+        "baja": "Piensan con estilos distintos, que pueden complementarse."
+      }
+    },
+    "eneagrama": {
+      "label": "Lo que les mueve",
+      "icon": "personalidad",
+      "phrases": {
+        "alta": "Les mueven cosas parecidas por dentro.",
+        "media": "Lo que les mueve se cruza en algunos puntos.",
+        "baja": "Les mueven cosas distintas por dentro."
+      }
+    }
+  },
+  "personality_factors": {
+    "hex_h": "Comparten transparencia y trato justo en común.",
+    "hex_e": "Viven las emociones con una sensibilidad parecida.",
+    "hex_x": "Tienen una energía social parecida.",
+    "hex_a": "Se parecen en paciencia y en cómo perdonan.",
+    "hex_c": "Organizan su día y sus pendientes de forma parecida.",
+    "hex_o": "Comparten curiosidad por ideas y cosas nuevas."
+  },
+  "tension": {
+    "sana": "Tensión sana",
+    "platicar": "Algo para platicar",
+    "texts": {
+      "personalidad": "Tienen ritmos de personalidad distintos; puede equilibrarse si lo platican.",
+      "valores": "Aquí ven algunas cosas distinto; conviene hablarlo con calma.",
+      "dealbreakers": "Sus planes de vida no coinciden del todo; mejor hablarlo pronto y sin presión.",
+      "relacional": "Imaginan el ritmo del vínculo de forma algo distinta; platíquenlo sin prisa.",
+      "estilo": "Sus gustos no coinciden tanto: buen pretexto para enseñarse cosas nuevas."
+    }
+  },
+  "confidence": {
+    "alta": { "label": "Confianza alta", "reason": "Supera con holgura el umbral, ninguna área queda baja y hay respuestas suficientes." },
+    "margin": { "label": "Confianza media", "reason": "Está cerca del umbral: es una afinidad posible, no contundente." },
+    "floor": { "label": "Confianza media", "reason": "Un área ({area}) queda por debajo del resto." },
+    "uncertainty": { "label": "Confianza media", "reason": "Aún hay pocas respuestas para afinar esta estimación; más módulos la vuelven más precisa." }
+  },
+  "talk": {
+    "intro": "Pesa {points} de {total} puntos de la afinidad: es más pretexto para conversar que causa.",
+    "enneagram": "A ti te mueve {self}; a la otra persona, {other}. Buen tema para una plática sin prisa.",
+    "enneagram_same": "A las dos personas les mueve {self}: pueden platicar de cómo lo vive cada quien.",
+    "motives": {
+      "1": "hacer las cosas bien",
+      "2": "cuidar a quien quiere",
+      "3": "lograr metas que importan",
+      "4": "vivir con autenticidad",
+      "5": "entender cómo funcionan las cosas",
+      "6": "tener apoyo y certeza",
+      "7": "vivir experiencias nuevas",
+      "8": "proteger a su gente",
+      "9": "la calma y la armonía"
+    },
+    "enneagram_open": "Lo que les mueve por dentro todavía está en exploración; quizá lo descubran platicando."
+  },
+  "headlines": {
+    "romance": "Lo que más les acerca: {area}.",
+    "amistad": "Lo que más conecta su amistad: {area}."
+  }
+}

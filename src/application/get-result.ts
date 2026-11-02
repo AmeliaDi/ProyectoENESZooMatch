@@ -1,24 +1,20 @@
 import { CATALOG_COLORS, EXPERIENCE } from "@/config";
-import { publicVisual } from "@/domain/avatars/avatar-spec";
+import { buildAvatarSpec, publicVisual } from "@/domain/avatars/avatar-spec";
 import {
   computeChemistrySummary,
-  generateMatchExplanation,
+  explainPair,
   type MatchExplanation,
-} from "@/domain/explainability/explainability";
+  type NarrativeSide,
+} from "@/domain/explainability";
+import { MATCHING_CONFIG, pairScore } from "@/domain/matching";
 import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
 import { err, ok, type Result } from "@/domain/shared";
-import type { MatchTrack } from "@/types/microtest";
-import { FRIENDSHIP_VECTOR_LENGTH, ROMANCE_VECTOR_LENGTH } from "@/types/microtest";
+import type { LatentProfile } from "@/types/latent";
 
 import type { MatchEntryDto, ResultDto } from "./dto";
 import type { AppError } from "./errors";
-import type {
-  CounterpartProfile,
-  MatchRepository,
-  OwnProfile,
-  ProfileRepository,
-  StoredMatch,
-} from "./ports";
+import { avatarParams } from "./identity-readout";
+import type { CounterpartProfile, MatchRepository, OwnProfile, ProfileRepository, StoredMatch } from "./ports";
 
 const COLOR_BY_ID = new Map(CATALOG_COLORS.map((c) => [c.id, c]));
 
@@ -41,46 +37,27 @@ export interface GetResultDeps {
   digest(input: string): string;
 }
 
-type VectorSource = Pick<OwnProfile, "romanceVector" | "amistadVector">;
-
-function trackVector(profile: VectorSource | undefined, track: MatchTrack): number[] | null {
-  if (!profile) return null;
-  const vector = track === "romance" ? profile.romanceVector : profile.amistadVector;
-  const expected = track === "romance" ? ROMANCE_VECTOR_LENGTH : FRIENDSHIP_VECTOR_LENGTH;
-  return Array.isArray(vector) && vector.length === expected ? vector : null;
+/** Main enneagram type only (already readable from the public colour family). */
+function narrativeSide(latent: LatentProfile, mbti: string | null): NarrativeSide {
+  return { enneagramType: buildAvatarSpec(latent, avatarParams()).enneagram.type, mbti };
 }
 
-/** Returns null when either vector is missing so the view degrades gracefully. */
-function explain(
-  match: StoredMatch,
-  own: OwnProfile,
-  other: CounterpartProfile | undefined,
-): MatchExplanation | null {
-  const vectorA = trackVector(own, match.track);
-  const vectorB = trackVector(other, match.track);
-  if (!vectorA || !vectorB) return null;
-  try {
-    return generateMatchExplanation(
-      match.similarity,
-      vectorA,
-      vectorB,
-      match.track,
-      match.otherAnimal ?? "",
-      disclosed(other)?.colorName ?? "",
-      other?.mbtiCode ?? null,
-      other?.dimensionScores ?? null,
-      own.animal?.diminutivo_es ?? "",
-      own.dimensionScores,
-      own.mbtiCode,
-    );
-  } catch {
-    return null;
-  }
-}
-
-function narrativeFor(track: MatchTrack, alias: string, similarity: number): string {
-  const heading = track === "romance" ? "Conexión romántica" : "Conexión de amistad";
-  return `${heading} del ${Math.round(similarity * 100)}% con ${alias}.`;
+/**
+ * Recomputes the pair score from both posteriors so every number in the
+ * explanation is the model's own. Returns null (view degrades gracefully)
+ * when a latent profile is missing.
+ */
+function explain(match: StoredMatch, own: OwnProfile, other: CounterpartProfile | undefined): MatchExplanation | null {
+  if (!own.latent || !other?.latent) return null;
+  const score = pairScore(own.latent, other.latent, MATCHING_CONFIG.tracks[match.track], MATCHING_CONFIG.categories);
+  return explainPair({
+    score,
+    track: match.track,
+    self: own.latent,
+    other: other.latent,
+    selfNarrative: narrativeSide(own.latent, own.mbtiCode),
+    otherNarrative: narrativeSide(other.latent, other.mbtiCode),
+  });
 }
 
 function toEntry(
@@ -93,9 +70,7 @@ function toEntry(
   const alias = match.otherAlias ?? FALLBACK_ALIAS;
   const visual = disclosed(other);
   return {
-    id: match.otherUser
-      ? digest(`${viewerId}:${match.otherUser}`).slice(0, OPAQUE_ID_LENGTH)
-      : null,
+    id: match.otherUser ? digest(`${viewerId}:${match.otherUser}`).slice(0, OPAQUE_ID_LENGTH) : null,
     alias,
     animal: match.otherAnimal ?? "",
     animal_id: visual?.animalId ?? null,
@@ -107,15 +82,11 @@ function toEntry(
     similarity: match.similarity,
     chemistry: computeChemistrySummary(match.similarity, match.track),
     badges: match.badges,
-    narrative: narrativeFor(match.track, alias, match.similarity),
     explanation: explain(match, own, other),
   };
 }
 
-export async function getResult(
-  viewerId: string,
-  deps: GetResultDeps,
-): Promise<Result<ResultDto, AppError>> {
+export async function getResult(viewerId: string, deps: GetResultDeps): Promise<Result<ResultDto, AppError>> {
   const [own, matches, active] = await Promise.all([
     deps.profiles.findOwn(viewerId),
     deps.matches.listFor(viewerId),

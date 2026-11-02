@@ -7,7 +7,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { FRIENDSHIP_VECTOR_LENGTH, ROMANCE_VECTOR_LENGTH } from "@/types/microtest";
+import { FRIENDSHIP_VECTOR_LENGTH, QUIZ_MODULE_IDS, ROMANCE_VECTOR_LENGTH } from "@/types/microtest";
 
 import { RPC, TABLE } from "./repositories";
 
@@ -44,6 +44,13 @@ describe("base migration", () => {
     expect(SQL).toContain(`cardinality(amistad_vector) = ${FRIENDSHIP_VECTOR_LENGTH}`);
     expect(SQL).toContain(`cardinality(p_romance_vector), 0) <> ${ROMANCE_VECTOR_LENGTH}`);
     expect(SQL).toContain(`cardinality(p_amistad_vector), 0) <> ${FRIENDSHIP_VECTOR_LENGTH}`);
+  });
+
+  it("accepts exactly the optional quiz modules in completed_modules", () => {
+    const list = SQL.match(/completed_modules <@ ARRAY\[([\s\S]*?)\]/)?.[1] ?? "";
+    const ids = [...list.matchAll(/'(\w+)'/g)].map((m) => m[1]);
+    expect(ids).toEqual(QUIZ_MODULE_IDS.filter((id) => id !== "nucleo"));
+    expect(PUBLIC_FUNCTIONS.get("submit_quiz_result")).toContain("p_completed_modules TEXT[]");
   });
 
   it("pins search_path on every function", () => {

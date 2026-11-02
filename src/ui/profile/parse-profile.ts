@@ -98,6 +98,9 @@ export function parseProfile(raw: unknown): ProfileDto | null {
     virtues,
     sections: raw.sections.map(parseSection).filter((s): s is SectionReadingDto => s !== null),
     openScales: { open: count(open.open), total: count(open.total) },
+    completedModules: Array.isArray(raw.completedModules)
+      ? raw.completedModules.filter((m): m is string => typeof m === "string")
+      : [],
     affinities: { romance: parseTrack(affinities.romance), amistad: parseTrack(affinities.amistad) },
   };
 }

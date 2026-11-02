@@ -115,7 +115,9 @@ export interface MatchingConfig {
   explainability: {
     /** Minimum relative position above the threshold for "confianza alta". */
     confidence_high_margin: number;
-    /** Category percentage under which a match is never "alta". */
+    /** Core-category similarity (%) under which a match is never "alta". */
     category_floor: number;
+    /** Mean posterior variance of the pair (track core factors) above which a match is never "alta". */
+    confidence_max_uncertainty: number;
   };
 }

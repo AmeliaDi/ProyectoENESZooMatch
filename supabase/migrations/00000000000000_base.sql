@@ -101,6 +101,12 @@ CREATE TABLE public.profiles (
   -- Latent posterior (theta, se, quality, answered): the only input of the
   -- compatibility score. Service-role only, never exposed to clients.
   latent_profile JSONB NOT NULL DEFAULT '{}' CHECK (jsonb_typeof(latent_profile) = 'object'),
+  -- Optional deepening modules completed (layers beyond the core). More
+  -- modules narrow the posterior; nothing is imputed (ADR-016, ADR-021).
+  completed_modules TEXT[] NOT NULL DEFAULT '{}' CHECK (completed_modules <@ ARRAY[
+    'hexaco_facetas', 'puente_big_five', 'valores', 'actitudes', 'intereses',
+    'estilo_vida', 'relacional', 'mbti', 'eneagrama', 'subtipo'
+  ]::TEXT[]),
   mbti_code CHAR(4) CHECK (mbti_code IS NULL OR mbti_code ~ '^[IE][NS][TF][JP]$'),
   inclusive_mode TEXT NOT NULL DEFAULT 'neutro_universal' CHECK (inclusive_mode IN (
     'femenino', 'masculino', 'neutro_e', 'neutro_universal'
@@ -321,7 +327,8 @@ CREATE FUNCTION public.submit_quiz_result(
   p_narrative TEXT,
   p_alias TEXT,
   p_latent_profile JSONB,
-  p_avatar_mark TEXT
+  p_avatar_mark TEXT,
+  p_completed_modules TEXT[]
 )
 RETURNS void
 LANGUAGE plpgsql
@@ -361,6 +368,7 @@ BEGIN
     dimension_scores = p_dimension_scores,
     mbti_code = p_mbti_code,
     latent_profile = p_latent_profile,
+    completed_modules = COALESCE(p_completed_modules, '{}'),
     quiz_completed_at = now()
   WHERE user_id = p_user_id;
 
@@ -666,7 +674,7 @@ REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA private FROM PUBLIC, anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION
-  public.submit_quiz_result(UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT),
+  public.submit_quiz_result(UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT[]),
   public.get_pool_version(),
   public.replace_matches(JSONB, TEXT),
   public.get_user_matches(UUID),

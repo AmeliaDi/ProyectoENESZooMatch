@@ -2,14 +2,13 @@
 
 import { useId, useState } from "react";
 
-import { EXPERIENCE } from "@/config";
 import { categoryIcon } from "@/ui/design/category-icons";
 import { Button } from "@/ui/kit/button";
 import { Chip, Frame } from "@/ui/kit/surfaces";
 import type { MatchTrack } from "@/types/microtest";
 
+import { EXPLANATION_COPY_UI, ExplanationBlocks } from "./explanation-blocks";
 import type { ResultMatch } from "./parse-result";
-import { WhyBars } from "./why-bars";
 
 const BADGES_SHOWN: Record<MatchTrack, number> = { romance: 5, amistad: 3 };
 
@@ -34,7 +33,7 @@ export function MatchCard({ match, track }: { match: ResultMatch; track: MatchTr
           <span>% afinidad estimada</span>
         </p>
       </div>
-      {explanation?.confidence ? (
+      {explanation ? (
         <Chip tone="gold" icon="confidence">
           {explanation.confidence.label}
         </Chip>
@@ -63,13 +62,9 @@ export function MatchCard({ match, track }: { match: ResultMatch; track: MatchTr
           </Button>
           <div id={detailId} hidden={!open} className="zm-match__detail">
             {explanation.headline ? <p className="zm-detail__headline">{explanation.headline}</p> : null}
-            <WhyBars entries={explanation.breakdown} max={EXPERIENCE.result.detailBreakdownMax} tone={track} />
-            {explanation.tension ? (
-              <p className="zm-detail__muted">
-                <strong>{explanation.tension.complementary ? "Tensión sana. " : "Algo para platicar. "}</strong>
-                {explanation.tension.text}
-              </p>
-            ) : null}
+            <p className="zm-detail__muted">{explanation.confidence.reason}</p>
+            <ExplanationBlocks explanation={explanation} track={track} idPrefix={detailId} />
+            <p className="zm-detail__fine">{EXPLANATION_COPY_UI.fine}</p>
           </div>
         </>
       ) : null}

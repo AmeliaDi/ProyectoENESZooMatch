@@ -21,7 +21,7 @@ function profile(): ScoredProfile {
 function setup() {
   const store = new MemoryStore();
   for (const userId of ["a", "b"]) {
-    store.results.set(userId, { userId, answers: [], scored: profile(), identity: {
+    store.results.set(userId, { userId, answers: [], completedModules: [], scored: profile(), identity: {
       animalId: "x", animalDiminutivo: "x", colorId: "y", colorNombre: "y", colorHex: "#000000",
       mark: null, alias: userId, narrative: "",
     } });

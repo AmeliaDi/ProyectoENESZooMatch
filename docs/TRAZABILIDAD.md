@@ -14,7 +14,7 @@ si cambian pesos, umbrales o parámetros.
 
 | Archivo | Hash registrado |
 |---|---|
-| data/matching-config.json | `9775d4d6bcaee6b0` |
+| data/matching-config.json | `2a6c0cbee1e8d5f9` |
 | data/psychometric-params.json | `d25ff00d96fc3820` |
 | data/self-reading.json | `347f4a593471fe97` |
 
@@ -40,7 +40,9 @@ si cambian pesos, umbrales o parámetros.
 | T-16 | Meta-análisis REML + Knapp-Hartung solo con k ≥ 3 comparables | EV-01, EV-03 | supuesto_diseno | τ² REML; IC con t_{k−1}·√(q_KH/Σw) | `scripts/literature/meta.py` | `scripts/validation/validation.test.ts` |
 | T-17 | Avatar desde MBTI (animal) y eneagrama (color) | EV-35, ADR-018 | supuesto_diseno | — | `src/domain/avatars/avatar-spec.ts` | `src/domain/avatars/avatar-spec.test.ts` |
 | T-18 | «Tu carta»: lecturas del perfil propio con incertidumbre | ADR-019 | supuesto_diseno | banda = θ̂ ± z·EE | `src/domain/psychometrics/self-reading.ts` | `src/domain/psychometrics/self-reading.test.ts` |
-| T-19 | Confianza «alta» solo con margen sobre el umbral y sin áreas bajas | ADR-017 | supuesto_diseno | rel = (s − t)/(ref − t) ≥ m | `src/domain/explainability/explainability.ts` | `src/domain/explainability/explainability.test.ts` |
+| T-19 | Confianza «alta» solo con margen, sin área núcleo bajo el piso y con incertidumbre posterior acotada | ADR-017, ADR-021 | estimado_sintetico | rel ≥ m ∧ min_c s_c ≥ piso ∧ ū² ≤ u_max | `src/domain/explainability/layered.ts` | `src/domain/explainability/layered.test.ts` |
+| T-20 | Explicación por capas con las contribuciones exactas del puntaje; MBTI/eneagrama solo como narrativa con su peso real | ADR-021, T-07 | supuesto_diseno | pts_c = 100·contribution_c; Σ pts = 100·total | `src/domain/explainability/layered.ts` | `src/application/get-result.test.ts` |
+| T-21 | Módulos opcionales: se fusionan con lo guardado y se re-puntúa; amistad sugiere intereses primero | ADR-016, ADR-020, ADR-021 | supuesto_diseno | — | `src/application/refine-profile.ts` | `src/application/refine-profile.test.ts` |
 
 ## Resultados que respaldan la matriz
 

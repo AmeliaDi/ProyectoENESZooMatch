@@ -8,7 +8,7 @@ import type { GlobalMatch } from "@/domain/matching";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import type { Result } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
-import type { MatchTrack, ProfileIdentity, ScoredProfile } from "@/types/microtest";
+import type { MatchTrack, ProfileIdentity, QuizModuleId, ScoredProfile } from "@/types/microtest";
 
 import type { AppError, StorageError } from "./errors";
 
@@ -29,6 +29,8 @@ export interface QuizResultRecord {
   answers: readonly StoredAnswer[];
   scored: ScoredProfile;
   identity: ProfileIdentity;
+  /** Optional modules whose non-sensitive items are all answered. */
+  completedModules: readonly QuizModuleId[];
 }
 
 export interface PoolProfile {
@@ -40,22 +42,19 @@ export interface OwnProfile {
   alias: string;
   narrative: string;
   mbtiCode: string | null;
-  dimensionScores: Record<string, number> | null;
-  romanceVector: number[] | null;
-  amistadVector: number[] | null;
   animal: { id: string; diminutivo_es: string; categoria_fauna: string } | null;
   color: { id: string; nombre: string; hex: string } | null;
   mark: SubtypeMark | null;
-  /** Posterior θ̂/SE; owner-only input of "Tu carta", never serialized. */
+  /** Posterior θ̂/SE: input of "Tu carta" and of the explanation, never serialized. */
   latent: LatentProfile | null;
+  completedModules: readonly QuizModuleId[];
 }
 
 export interface CounterpartProfile {
   userId: string;
-  dimensionScores: Record<string, number> | null;
   mbtiCode: string | null;
-  romanceVector: number[] | null;
-  amistadVector: number[] | null;
+  /** Server-only: lets the explanation recompute the exact pair score. */
+  latent: LatentProfile | null;
   animalId: string | null;
   colorId: string | null;
   mark: SubtypeMark | null;
@@ -83,6 +82,8 @@ export interface ProfileRepository {
   /** Best-effort size of the active pool; `null` when unknown. Never exposed raw. */
   countActive(): Promise<number | null>;
   findOwn(userId: string): Promise<Result<OwnProfile | null, StorageError>>;
+  /** Own stored answers (server-only: used to merge a refinement module). */
+  loadAnswers(userId: string): Promise<Result<StoredAnswer[], StorageError>>;
   /** Best-effort: missing counterparts simply produce no explanation. */
   findCounterparts(userIds: readonly string[]): Promise<CounterpartProfile[]>;
 }

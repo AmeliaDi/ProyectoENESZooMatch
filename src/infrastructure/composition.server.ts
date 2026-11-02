@@ -9,6 +9,7 @@ import type { GetResultDeps } from "@/application/get-result";
 import type { PrivacyDeps } from "@/application/privacy";
 import type { AdminRepository, NotificationRepository, Scheduler } from "@/application/ports";
 import type { RecomputeDeps } from "@/application/recompute-matches";
+import type { RefineDeps } from "@/application/refine-profile";
 import type { SubmitQuizDeps } from "@/application/submit-quiz";
 import { err, ok, type Result } from "@/domain/shared";
 
@@ -43,6 +44,11 @@ async function authenticated() {
 export async function quizContext(): Promise<
   Result<{ userId: string; deps: SubmitQuizDeps }, Failure>
 > {
+  return refineContext();
+}
+
+/** A refinement re-scores and republishes exactly like the full test. */
+export async function refineContext(): Promise<Result<{ userId: string; deps: RefineDeps }, Failure>> {
   const auth = await authenticated();
   if (!auth.ok) return auth;
   const admin = createAdminClient();
@@ -58,6 +64,7 @@ export async function quizContext(): Promise<
     },
   });
 }
+
 
 export async function resultContext(): Promise<
   Result<{ userId: string; deps: GetResultDeps }, Failure>

@@ -43,18 +43,23 @@ function meanNormalized(weights: Readonly<Record<string, number>>): Array<[strin
  * r² = h² / w_f. `low_side` inflates μ by (1 + η·max(0, −min(θa, θb))).
  */
 export function kernelSimilarity(cfg: KernelCategory, a: LatentProfile, b: LatentProfile): number {
+  let log = 0;
+  for (const [, term] of kernelFactorLogs(cfg, a, b)) log += term;
+  return Math.exp(log);
+}
+
+/** Per-factor log terms; `exp(Σ)` is exactly `kernelSimilarity`. */
+export function kernelFactorLogs(cfg: KernelCategory, a: LatentProfile, b: LatentProfile): Array<[string, number]> {
   const factors = meanNormalized(cfg.factors);
   const h2 = cfg.bandwidth_per_sqrt_dim ** 2 * factors.length;
-  let log = 0;
-  for (const [factor, w] of factors) {
+  return factors.map(([factor, w]) => {
     const { mean, variance } = gap(a, b, factor);
     const eta = cfg.low_side?.[factor] ?? 0;
     const low = Math.min(a.theta[factor] ?? 0, b.theta[factor] ?? 0);
     const mu = mean * (1 + eta * Math.max(0, -low));
     const r2 = h2 / w;
-    log += 0.5 * Math.log(r2 / (r2 + variance)) - (0.5 * mu * mu) / (r2 + variance);
-  }
-  return Math.exp(log);
+    return [factor, 0.5 * Math.log(r2 / (r2 + variance)) - (0.5 * mu * mu) / (r2 + variance)];
+  });
 }
 
 const DEADZONE_NODES = 21;

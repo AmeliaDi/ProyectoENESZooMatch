@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { SELF_READING } from "@/config/self-reading";
-import { FRIENDSHIP_VECTOR_LENGTH, ROMANCE_VECTOR_LENGTH } from "@/types/microtest";
+
 
 
 import { getProfile, type GetProfileDeps } from "./get-profile";
@@ -15,9 +15,6 @@ const OWN: OwnProfile = {
   alias: "zorrito ámbar",
   narrative: "Una narrativa",
   mbtiCode: "INFP",
-  dimensionScores: {},
-  romanceVector: Array<number>(ROMANCE_VECTOR_LENGTH).fill(0.6),
-  amistadVector: Array<number>(FRIENDSHIP_VECTOR_LENGTH).fill(0.6),
   animal: { id: "zorrito", diminutivo_es: "zorrito", categoria_fauna: "mamifero" },
   color: { id: "ennea-7", nombre: "Naranja mandarina", hex: "#C05722" },
   mark: "sx",
@@ -27,6 +24,7 @@ const OWN: OwnProfile = {
     quality: 0.9,
     answered: 60,
   },
+  completedModules: [],
 };
 
 const match = (similarity: number, i: number): StoredMatch => ({

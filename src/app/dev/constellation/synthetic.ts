@@ -13,15 +13,12 @@ import type {
   ConstellationMatchInput,
   ConstellationSelfInput,
 } from "@/ui/constellation";
-import { generateMatchExplanation } from "@/domain/matching";
+import { explainPair } from "@/domain/explainability";
+import { MATCHING_CONFIG, pairScore } from "@/domain/matching";
 import { getAllAnimalIds, getAllColorIds } from "@/domain/avatars/pixel-sprites";
-import { projectAnimalDimensions } from "@/domain/psychometrics/psychometrics";
 import type { ArchetypeAnimal } from "@/types/archetype";
-import {
-  FRIENDSHIP_VECTOR_DIMENSIONS,
-  ROMANCE_VECTOR_DIMENSIONS,
-  type MatchTrack,
-} from "@/types/microtest";
+import type { LatentProfile } from "@/types/latent";
+import type { MatchTrack } from "@/types/microtest";
 
 interface CatalogColor {
   id: string;
@@ -30,9 +27,6 @@ interface CatalogColor {
 }
 
 const ANIMALS: readonly ArchetypeAnimal[] = CATALOG_ANIMALS;
-const ANIMAL_BY_ID = new Map<string, ArchetypeAnimal>(
-  ANIMALS.map((animal) => [animal.id, animal]),
-);
 const COLORS: readonly CatalogColor[] = CATALOG_COLORS;
 
 const ANIMAL_IDS = getAllAnimalIds();
@@ -52,15 +46,24 @@ export const DEV_SELF: ConstellationSelfInput = {
   mbtiCode: null,
 };
 
-const SELF_ANIMAL = ANIMAL_BY_ID.get(DEV_SELF.animalId) ?? ANIMALS[0]!;
-const SELF_PROJECTION = projectAnimalDimensions(SELF_ANIMAL);
-const SELF_SCORES = SELF_PROJECTION.scores as Record<string, number>;
+const FACTORS = [
+  ...new Set(Object.values(MATCHING_CONFIG.categories).flatMap((c) => Object.keys(c.factors))),
+].sort();
+/** Posterior SD of the synthetic profiles (≈ a full-bank respondent). */
+const SYNTHETIC_SE = 0.68;
 
-function trackVector(scores: Record<string, number>, track: MatchTrack): number[] {
-  const dimensions =
-    track === "romance" ? ROMANCE_VECTOR_DIMENSIONS : FRIENDSHIP_VECTOR_DIMENSIONS;
-  return dimensions.map((dimension) => scores[dimension] ?? 0.5);
+/** Deterministic synthetic posterior: θ uniform in [-1.5, 1.5], fixed SE. */
+function syntheticLatent(rand: () => number): LatentProfile {
+  const theta: Record<string, number> = {};
+  const se: Record<string, number> = {};
+  for (const f of FACTORS) {
+    theta[f] = (rand() * 2 - 1) * 1.5;
+    se[f] = SYNTHETIC_SE;
+  }
+  return { theta, se, quality: 1, answered: 0 };
 }
+
+const SELF_LATENT = syntheticLatent(mulberry32(2604));
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -117,22 +120,18 @@ export function generateSyntheticMatches({
     const animalName = ANIMAL_NAME.get(animalId) ?? animalId;
     const colorName = (COLOR_NAME.get(colorId) ?? colorId).toLowerCase();
     const roundedSimilarity = Math.round(similarity * 1000) / 1000;
-    const animal = ANIMAL_BY_ID.get(animalId)!;
-    const projection = projectAnimalDimensions(animal);
-    const matchScores = projection.scores as Record<string, number>;
-    const explanation = generateMatchExplanation(
-      roundedSimilarity,
-      trackVector(SELF_SCORES, track),
-      trackVector(matchScores, track),
+    // The explanation comes from the real engine on synthetic posteriors; the
+    // node distance keeps the panel's similarity control (layout testing).
+    const other = syntheticLatent(rand);
+    const score = pairScore(SELF_LATENT, other, MATCHING_CONFIG.tracks[track], MATCHING_CONFIG.categories);
+    const explanation = explainPair({
+      score,
       track,
-      animalName,
-      colorName,
-      projection.mbti,
-      matchScores,
-      SELF_ANIMAL.diminutivo_es,
-      SELF_SCORES,
-      SELF_PROJECTION.mbti,
-    );
+      self: SELF_LATENT,
+      other,
+      selfNarrative: { enneagramType: 6, mbti: "INFP" },
+      otherNarrative: { enneagramType: 1 + (index % 9), mbti: null },
+    });
     matches.push({
       id: `dev-${seed}-${index}`,
       animalId,

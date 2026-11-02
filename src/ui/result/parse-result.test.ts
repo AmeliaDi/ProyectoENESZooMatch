@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { explainPair } from "@/domain/explainability";
+import { MATCHING_CONFIG, pairScore } from "@/domain/matching";
+
 import {
   NO_MATCH_MESSAGE,
   parsePublicResult,
@@ -7,7 +10,24 @@ import {
   type ResultMatch,
 } from "./parse-result";
 
-// ─── Fixtures ─────────────────────────────────────────────────────────────────
+// ─── Fixtures ────────────────────────────────────────────────────────────────────────────────
+
+const FACTORS = [...new Set(Object.values(MATCHING_CONFIG.categories).flatMap((c) => Object.keys(c.factors)))];
+const latent = (shift: number) => ({
+  theta: Object.fromEntries(FACTORS.map((f, i) => [f, ((i * 7) % 5) / 5 - 0.4 + shift])),
+  se: Object.fromEntries(FACTORS.map((f) => [f, 0.6])),
+  quality: 1,
+  answered: 60,
+});
+/** A real server explanation, so the parser is tested against the true DTO. */
+const REAL_EXPLANATION = explainPair({
+  score: pairScore(latent(0), latent(0.3), MATCHING_CONFIG.tracks.romance, MATCHING_CONFIG.categories),
+  track: "romance",
+  self: latent(0),
+  other: latent(0.3),
+  selfNarrative: { enneagramType: 2, mbti: "ENFJ" },
+  otherNarrative: { enneagramType: 5, mbti: "INTP" },
+});
 
 const MAX_BODY_LENGTH = 280;
 
@@ -305,16 +325,21 @@ describe("parsePublicResult · server-computed chemistry", () => {
   });
 
   it("falls back to the explanation's chemistry when the top-level one is missing", () => {
-    const explanation = { chemistry: CHEMISTRY, breakdown: [], headline: "Hola" };
+    const explanation = { ...REAL_EXPLANATION, chemistry: CHEMISTRY };
     expect(firstRomance({ explanation }).chemistry).toEqual(CHEMISTRY);
+  });
+
+  it("accepts exactly what the server builds (DTO contract)", () => {
+    const wire = JSON.parse(JSON.stringify(REAL_EXPLANATION));
+    expect(firstRomance({ explanation: wire }).explanation).toEqual(wire);
   });
 
   it("rejects explanations missing the fields the UI renders", () => {
     expect(firstRomance({ explanation: { headline: "x" } }).explanation).toBeNull();
-    expect(
-      firstRomance({ explanation: { chemistry: CHEMISTRY, breakdown: "no", headline: "x" } })
-        .explanation,
-    ).toBeNull();
+    expect(firstRomance({ explanation: { ...REAL_EXPLANATION, connects: "no" } }).explanation).toBeNull();
+    expect(firstRomance({ explanation: { ...REAL_EXPLANATION, connects: [{ category: "x" }] } }).explanation).toBeNull();
+    expect(firstRomance({ explanation: { ...REAL_EXPLANATION, talk: null } }).explanation).toBeNull();
+    expect(firstRomance({ explanation: { ...REAL_EXPLANATION, confidence: { level: "baja" } } }).explanation).toBeNull();
   });
 
   it("never forwards unknown fields such as vectors", () => {

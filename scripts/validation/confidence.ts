@@ -1,15 +1,14 @@
 /**
  * H6b: does "confianza alta" mark more true matches than "media"?
- * Production (`computeMatchConfidence`) requires BOTH a margin above the
- * threshold (relative position ≥ confidence_high_margin, computed exactly as
- * here) AND every breakdown area ≥ category_floor. The production breakdown
- * still comes from the inherited descriptive vectors, which the synthetic
- * generator does not produce, so the floor is evaluated on the latent core
- * categories instead (declared deviation in docs/PREREGISTRO.md).
+ * Since ADR-021 production confidence is computed on the SAME latent pair
+ * score this script uses (`computeMatchConfidence`: margin over the
+ * threshold, core-category floor and pair posterior uncertainty), so the
+ * main row is the production rule itself. The margin-only row is kept as the
+ * preregistered reference.
  */
 import { MATCHING_CONFIG } from "@/config";
+import { computeChemistrySummary, computeMatchConfidence, pairUncertainty } from "@/domain/explainability";
 import { aggregatePair } from "@/domain/matching";
-import type { MatchCategoryId } from "@/types/matching-config";
 import type { MatchTrack } from "@/types/microtest";
 
 import { select } from "../matching/analysis";
@@ -25,17 +24,16 @@ export interface ConfidenceRow {
 
 export function confidenceCheck(world: World, track: MatchTrack): ConfidenceRow[] {
   const v = world.views[track];
-  const { confidence_high_margin: margin, category_floor: floor } = MATCHING_CONFIG.explainability;
   const threshold = v.cfg.minimum_similarity_exclusive;
-  const span = Math.max(1e-9, v.cfg.reference_high - threshold);
-  const core = Object.keys(v.cfg.core) as MatchCategoryId[];
   const chosen = [...select(world.people, v.pairs, v.scores, threshold, v.cfg.max_matches).selected];
   const labels = v.labels.similitud!;
 
-  const marginOk = (k: number) => Math.min(1, Math.max(0, (v.scores[k]! - threshold) / span)) >= margin;
-  const floorOk = (k: number) => {
-    const s = aggregatePair(v.pairs[k]!.sims, v.cfg);
-    return s.categories.filter((c) => core.includes(c.id)).every((c) => Math.round(c.similarity * 100) >= floor);
+  const chemistry = (k: number) => computeChemistrySummary(v.scores[k]!, track);
+  const marginOk = (k: number) => chemistry(k).relativePosition >= MATCHING_CONFIG.explainability.confidence_high_margin;
+  const production = (k: number) => {
+    const pair = v.pairs[k]!;
+    const uncertainty = pairUncertainty(world.people[pair.i]!.latent, world.people[pair.j]!.latent, track);
+    return computeMatchConfidence(chemistry(k), aggregatePair(pair.sims, v.cfg), uncertainty).level === "alta";
   };
   const row = (rule: string, high: (k: number) => boolean): ConfidenceRow => {
     const alta = chosen.filter(high);
@@ -43,8 +41,5 @@ export function confidenceCheck(world: World, track: MatchTrack): ConfidenceRow[
     const rate = (xs: number[]) => (xs.length ? xs.filter((k) => labels[k]).length / xs.length : Number.NaN);
     return { rule, alta: alta.length, media: media.length, rateAlta: rate(alta), rateMedia: rate(media) };
   };
-  return [
-    row("solo margen (idéntico a producción)", marginOk),
-    row("margen + piso en categorías latentes", (k) => marginOk(k) && floorOk(k)),
-  ];
+  return [row("solo margen (referencia preregistrada)", marginOk), row("producción: margen + piso + incertidumbre", production)];
 }

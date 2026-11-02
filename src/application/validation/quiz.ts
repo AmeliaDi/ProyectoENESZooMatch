@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { QUIZ_ITEMS, isSkippableItem } from "@/config";
+import { QUIZ_MODULE_IDS, type QuizModuleId } from "@/types/microtest";
 import { inclusiveModeSchema } from "./common";
 
 /**
@@ -90,6 +91,28 @@ export const quizSubmissionSchema = z
         }
       }
     }
+  });
+
+const OPTIONAL_MODULE_IDS = QUIZ_MODULE_IDS.filter((id) => id !== "nucleo") as [QuizModuleId, ...QuizModuleId[]];
+
+/**
+ * One optional module at a time. Every non-sensitive item of the module is
+ * required (a module is either answered or not); sensitive ones may be skipped.
+ */
+export const refineSubmissionSchema = z
+  .strictObject({
+    module: z.enum(OPTIONAL_MODULE_IDS),
+    likert: z.array(likertAnswerSchema).min(1).max(LIKERT_ITEM_IDS.length),
+  })
+  .superRefine((data, ctx) => {
+    const seen = checkIds(data.likert.map((a) => a.itemId), "likert_5", ctx);
+    for (const id of seen) {
+      if (itemById.get(id)?.modulo !== data.module) ctx.addIssue({ code: "custom", message: `Item ${id} is not in ${data.module}` });
+    }
+    const required = QUIZ_ITEMS.filter(
+      (item) => item.modulo === data.module && item.tipo_respuesta === "likert_5" && !isSkippableItem(item),
+    ).map((item) => item.id);
+    checkRequired(seen, required, ctx);
   });
 
 export const privacyUpdateSchema = z.union([

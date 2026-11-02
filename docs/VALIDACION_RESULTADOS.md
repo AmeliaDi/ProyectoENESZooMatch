@@ -4,7 +4,7 @@
 > **Datos sintéticos: validan el código y la sensibilidad, no el mundo real.**
 
 - Semilla 1515870810; 600 perfiles; 268 con banco completo.
-- Hash SHA-256 (16 hex, LF) de entradas: `matching-config` 9775d4d6bcaee6b0, `psychometric-params` d25ff00d96fc3820, `self-reading` 347f4a593471fe97.
+- Hash SHA-256 (16 hex, LF) de entradas: `matching-config` 2a6c0cbee1e8d5f9, `psychometric-params` d25ff00d96fc3820, `self-reading` 347f4a593471fe97.
 
 ## H1 · Modelo contra línea base (AUC, bootstrap pareado por persona, B = 200)
 
@@ -181,10 +181,10 @@ Curva de fiabilidad (romance, similitud; bins de igual frecuencia):
 
 | Track | Regla | n alta | n media | Match verdadero (alta) | Match verdadero (media) | Veredicto |
 |---|---|---|---|---|---|---|
-| romance | solo margen (idéntico a producción) | 616 | 220 | 39.1 % | 31.8 % | **cumple** |
-| romance | margen + piso en categorías latentes | 0 | 836 | — | 37.2 % | **no cumple** |
-| amistad | solo margen (idéntico a producción) | 2335 | 86 | 42.4 % | 17.4 % | **cumple** |
-| amistad | margen + piso en categorías latentes | 0 | 2421 | — | 41.5 % | **no cumple** |
+| romance | solo margen (referencia preregistrada) | 616 | 220 | 39.1 % | 31.8 % | **cumple** |
+| romance | producción: margen + piso + incertidumbre | 364 | 472 | 40.7 % | 34.5 % | **cumple** |
+| amistad | solo margen (referencia preregistrada) | 2335 | 86 | 42.4 % | 17.4 % | **cumple** |
+| amistad | producción: margen + piso + incertidumbre | 1900 | 521 | 42.2 % | 39.0 % | **cumple** |
 
 ## H7 · Ablación por capa (exploratoria; BH q = 0.10)
 

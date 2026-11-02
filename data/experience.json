@@ -21,6 +21,13 @@
     "cellStepMs": 6,
     "seed": 4051
   },
+  "refine": {
+    "draftKey": "zoomatch:refine-draft",
+    "order": {
+      "amistad": ["intereses", "estilo_vida", "valores", "relacional", "hexaco_facetas", "actitudes", "puente_big_five", "mbti", "eneagrama", "subtipo"],
+      "romance": ["relacional", "valores", "hexaco_facetas", "intereses", "estilo_vida", "actitudes", "puente_big_five", "mbti", "eneagrama", "subtipo"]
+    }
+  },
   "result": {
     "minimumLoadingMs": 1200,
     "timeoutMs": 9000,

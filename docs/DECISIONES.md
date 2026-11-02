@@ -404,6 +404,64 @@ intereses en amistad (H4c). Nada de esto cambia pesos ni umbrales en la Fase 6.
 
 ---
 
+## ADR-021 · Explicación por capas, confianza con incertidumbre y módulos para afinar (Fase 7)
+
+**Contexto.** La explicación de cada match salía de vectores descriptivos heredados
+(`romance_vector`/`amistad_vector`), no del puntaje latente: mostraba números que el
+modelo no calcula, y con el piso de 60 % nadie llegaba a «confianza alta» (ADR-020).
+
+**Decisión.**
+- El servidor **recalcula** `pairScore` con ambas posteriores al servir `/api/result`
+  (`application/get-result.ts`). La explicación (`domain/explainability/layered.ts`) usa
+  la descomposición exacta de `aggregatePair`: los puntos de cada área suman la afinidad.
+  No se guardan contribuciones en la base: así nunca quedan desfasadas de la config.
+- **Lo que más conecta**: capas 1–3 (HEXACO, valores, planes, vínculo, estilo; extras de
+  conflicto/apego/afecto si aportan), ordenadas por contribución real. La nota de
+  personalidad nombra el factor HEXACO con mayor término del núcleo; Honestidad-Humildad
+  solo se nombra si ambas posteriores están en o sobre la media, y siempre como «transparencia
+  y trato justo en común».
+- **Lo que podrían platicar**: MBTI y eneagrama, con su peso real impreso (≤ 2 puntos) y
+  frases de motivación (nunca etiquetas de tipo de la otra persona: solo el tipo principal,
+  que ya es visible en la familia de color; el ala sigue protegida por ADR-018).
+- **Tensión**: argmin de las categorías núcleo.
+- **Confianza** (`computeMatchConfidence`): alta ⇔ margen ≥ 0.25 ∧ mín núcleo ≥ 36 % ∧
+  varianza posterior media del par ≤ 0.60. El piso 36 ≈ cuantil 0.10 de la mínima
+  núcleo sobre el umbral; 0.60 separa «solo núcleo» (≈ 0.70) de «banco completo» (≈ 0.47).
+  Exploración (N = 360, misma semilla que la validación):
+
+  | Track | Regla | n alta | % verdadero alta | n media | % verdadero media |
+  |---|---|---|---|---|---|
+  | romance | solo margen | 286 | 43.0 | 131 | 26.7 |
+  | romance | margen + piso 36 | 266 | 42.9 | 151 | 29.1 |
+  | romance | margen + piso 36 + incert. 0.60 | 176 | 44.9 | 241 | 32.8 |
+  | amistad | solo margen | 1317 | 39.6 | 84 | 17.9 |
+  | amistad | margen + piso 36 + incert. 0.60 | 1072 | 39.2 | 329 | 35.3 |
+
+  La incertidumbre no mejora la separación con la etiqueta «similitud» (circular); se
+  conserva porque la confianza debe reflejar *cuánta información* hay, y porque da un
+  motivo honesto para afinar. Es un ajuste **post hoc** (desviación en `PREREGISTRO.md`).
+- **Módulos para afinar**: `POST /api/quiz/refine` recibe un módulo opcional completo, lo
+  fusiona con las respuestas guardadas (sin imputar) y re-publica por el mismo camino que el
+  test. `profiles.completed_modules` registra los módulos completos. El orden sugerido vive
+  en `data/experience.json`; amistad empieza por intereses (H4c).
+- El copy del resultado dice que la lista puede cambiar (top-K frágil) y que el puntaje no
+  es una probabilidad. Nueva página `/evidencia` (fuerza de evidencia por capa y «qué no
+  sabemos todavía»), desde `data/evidence-summary.json`.
+- Se elimina `domain/explainability/explainability.ts` (≈ 1 700 líneas de narrativa sobre
+  vectores descriptivos). Se conservan la banda de química (`chemistry.ts`) y las dinámicas
+  cognitivas MBTI (`mbti-dynamics.ts`) como narrativa.
+
+**Consecuencias.**
+- El DTO de match ya no trae `narrative` ni el desglose descriptivo; trae `connects`,
+  `talk`, `tension` y `confidence`. Ningún θ, EE, vector ni respuesta sale del servidor
+  (test en `get-result.test.ts`).
+- `findCounterparts` lee `latent_profile` de las contrapartes (solo service role).
+- Los vectores descriptivos siguen en la base porque alias y narrativa propia los usan; ya
+  no influyen en ningún número que vea otra persona.
+- Afinar puede cambiar el animalito (se vuelve más específico): se avisa en la invitación.
+
+---
+
 ## Pendientes conocidos (no decididos aún)
 
 - **Alias:** hoy es determinista con sufijo de 4 caracteres en base 36. Una colisión

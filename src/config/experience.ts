@@ -1,9 +1,17 @@
 import { z } from "zod";
 
+import { QUIZ_MODULE_IDS, type QuizModuleId } from "@/types/microtest";
+
 import raw from "../../data/experience.json";
 import { loadConfig } from "./load";
 
 const positiveInt = z.number().int().positive();
+
+const OPTIONAL_MODULES = QUIZ_MODULE_IDS.filter((id) => id !== "nucleo") as [QuizModuleId, ...QuizModuleId[]];
+/** A permutation of every optional module. */
+const moduleOrder = z
+  .array(z.enum(OPTIONAL_MODULES))
+  .refine((order) => new Set(order).size === OPTIONAL_MODULES.length && order.length === OPTIONAL_MODULES.length, "every optional module exactly once");
 
 /**
  * Pacing and presentation parameters of the public flow (quiz, reveal,
@@ -36,12 +44,21 @@ export const experienceSchema = z.strictObject({
     cellStepMs: positiveInt,
     seed: z.number().int(),
   }),
+  /**
+   * "¿Quieres afinar tu perfil?": suggested module order per track. Friendship
+   * starts with interests (ADR-020: with only the core, friendship ρ = 0.785).
+   */
+  refine: z.strictObject({
+    draftKey: z.string().min(1),
+    order: z.strictObject({ amistad: moduleOrder, romance: moduleOrder }),
+  }),
   result: z.strictObject({
     /** Floor for the loading state so it never flashes. */
     minimumLoadingMs: z.number().int().nonnegative(),
     timeoutMs: positiveInt,
     /** Below this many active profiles the empty state says "somos pocxs". */
     fewPeopleThreshold: positiveInt,
+    /** Areas listed under "lo que más conecta" (the rest are summed). */
     detailBreakdownMax: positiveInt,
   }),
   notifications: z.strictObject({

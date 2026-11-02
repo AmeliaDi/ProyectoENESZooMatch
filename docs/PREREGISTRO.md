@@ -118,3 +118,11 @@ Se diseña aquí y su análisis se preregistra **antes** de recolectar datos. De
   antes de ver resultados.
 - **2026-11-02 · Nombres.** En `docs/VALIDACION.md`, el ECE (H6 b) y la confianza (H6b) se
   distinguen como H6b y H6b′. No cambia ningún criterio.
+- **2026-11-03 · H6b′ tras ADR-021 (fase 7).** La regla de producción cambió *a raíz* del
+  resultado de la fase 6 (nadie llegaba a «alta» con el piso heredado). Ahora producción y
+  validación usan la misma función (`computeMatchConfidence` sobre el puntaje latente): margen +
+  piso en categorías núcleo (36 %) + incertidumbre posterior del par (≤ 0.60). El piso y el techo
+  de incertidumbre se eligieron con una población exploratoria distinta (N = 360, semillas de
+  `buildWorld`) mirando la separación alta/media: **es un ajuste post hoc** y la fila de
+  producción de H6b′ debe leerse como exploratoria, no confirmatoria. La fila «solo margen» se
+  conserva como referencia preregistrada.

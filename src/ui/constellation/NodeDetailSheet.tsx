@@ -11,12 +11,11 @@
 
 import { useMemo } from "react";
 
-import { EXPERIENCE } from "@/config";
 import { categoryIcon } from "@/ui/design/category-icons";
 import { Chip } from "@/ui/kit/surfaces";
 import { Dialog } from "@/ui/kit/dialog";
 import { Icon } from "@/ui/kit/icon";
-import { WhyBars } from "@/ui/result/why-bars";
+import { EXPLANATION_COPY_UI, ExplanationBlocks } from "@/ui/result/explanation-blocks";
 
 import { PixelAnimal } from "./PixelAnimal";
 import { RomanceDuo } from "./RomanceHearts";
@@ -27,13 +26,8 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
   const badges = useMemo(() => (node ? sliceBadges(node.badges, track) : []), [node, track]);
   const explanation = node?.explanation ?? null;
   const confidence = explanation?.confidence ?? null;
-  const tension = explanation?.tension ?? null;
   const duo = track === "romance" && (node?.chemistry?.percentage ?? 0) >= 70;
   const identity = node ? `${node.animalName} ${node.colorName}`.trim() : "";
-  const rationale =
-    track === "romance"
-      ? explanation?.porQuePosibleRomance ?? explanation?.porQueFunciona
-      : explanation?.porQueBuenaAmistad ?? explanation?.porQueFunciona;
 
   return (
     <Dialog open={node !== null} onClose={onClose} title={node?.alias ?? ""} kind="sheet" closeLabel={CONSTELLATION_COPY.closeSheet}>
@@ -75,26 +69,7 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
 
           {explanation?.headline ? <p className="zm-detail__headline">{explanation.headline}</p> : null}
 
-          {explanation && explanation.breakdown.length > 0 ? (
-            <section aria-labelledby="detail-why">
-              <h3 id="detail-why" className="zm-detail__h">
-                Por qué conectan
-              </h3>
-              {rationale ? <p className="zm-detail__muted">{rationale}</p> : null}
-              <WhyBars entries={explanation.breakdown} max={EXPERIENCE.result.detailBreakdownMax} tone={track} />
-            </section>
-          ) : null}
-
-          {tension ? (
-            <section aria-labelledby="detail-tension" className="zm-box zm-box--flat zm-detail__tension">
-              <h3 id="detail-tension" className="zm-detail__h">
-                <Icon name="tension" filled /> {tension.complementary ? "Tensión sana" : "Algo para platicar"}
-              </h3>
-              <p>
-                {tension.text} <span className="zm-detail__muted">({tension.categoryLabel}: {tension.percentage} %)</span>
-              </p>
-            </section>
-          ) : null}
+          {explanation ? <ExplanationBlocks explanation={explanation} track={track} idPrefix="detail" /> : null}
 
           {badges.length > 0 ? (
             <section aria-labelledby="detail-badges">
@@ -113,14 +88,6 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
             </section>
           ) : null}
 
-          {explanation?.dinamicaCotidiana ? (
-            <section aria-labelledby="detail-daily">
-              <h3 id="detail-daily" className="zm-detail__h">
-                {CONSTELLATION_COPY.sheetDailyTitle}
-              </h3>
-              <p className="zm-detail__muted">{explanation.dinamicaCotidiana}</p>
-            </section>
-          ) : null}
 
           <section aria-labelledby="detail-contact" className="zm-box zm-box--flat zm-detail__contact">
             <h3 id="detail-contact" className="zm-detail__h">
@@ -132,7 +99,7 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
             </p>
           </section>
 
-          <p className="zm-detail__fine">Afinidad estimada a partir del test, no una predicción.</p>
+          <p className="zm-detail__fine">{EXPLANATION_COPY_UI.fine}</p>
         </div>
       ) : null}
     </Dialog>

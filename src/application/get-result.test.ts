@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
 import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
-import { FRIENDSHIP_VECTOR_LENGTH, ROMANCE_VECTOR_LENGTH } from "@/types/microtest";
+import { MATCHING_CONFIG, pairScore } from "@/domain/matching";
+import type { LatentProfile } from "@/types/latent";
 
 import { getResult, type GetResultDeps } from "./get-result";
 import type { CounterpartProfile, OwnProfile, StoredMatch } from "./ports";
@@ -12,27 +13,33 @@ import { MemoryStore, memoryMatches, memoryProfiles } from "./testing/in-memory"
 const VIEWER = "00000000-0000-4000-8000-00000000000a";
 const OTHER = "00000000-0000-4000-8000-00000000000b";
 
+/** Posteriors with distinctive values so a leak would be detectable in the JSON. */
+function latent(shift: number): LatentProfile {
+  const factors = [...new Set(Object.values(MATCHING_CONFIG.categories).flatMap((c) => Object.keys(c.factors)))];
+  const theta = Object.fromEntries(factors.map((f, i) => [f, 0.123456 + shift + ((i * 37) % 11) / 10 - 0.5]));
+  const se = Object.fromEntries(factors.map((f) => [f, 0.654321]));
+  return { theta, se, quality: 1, answered: 60 };
+}
+const OWN_LATENT = latent(0);
+const OTHER_LATENT = latent(0.2);
+
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 
 const OWN: OwnProfile = {
   alias: "zorrito ámbar",
   narrative: "Una narrativa",
   mbtiCode: "INFP",
-  dimensionScores: {},
-  romanceVector: Array<number>(ROMANCE_VECTOR_LENGTH).fill(0.6),
-  amistadVector: Array<number>(FRIENDSHIP_VECTOR_LENGTH).fill(0.6),
   animal: { id: "zorrito", diminutivo_es: "zorrito", categoria_fauna: "mamifero" },
   color: { id: "ennea-7", nombre: "Naranja mandarina", hex: "#C05722" },
   mark: "sx",
-  latent: null,
+  latent: OWN_LATENT,
+  completedModules: [],
 };
 
 const COUNTERPART: CounterpartProfile = {
   userId: OTHER,
-  dimensionScores: {},
   mbtiCode: "ENFP",
-  romanceVector: Array<number>(ROMANCE_VECTOR_LENGTH).fill(0.65),
-  amistadVector: Array<number>(FRIENDSHIP_VECTOR_LENGTH).fill(0.65),
+  latent: OTHER_LATENT,
   animalId: "pulpito",
   colorId: "ennea-4-w5",
   mark: "so",
@@ -99,7 +106,7 @@ describe("getResult", () => {
     expect(other.value.matches.amistad[0]?.id).not.toBe(handle);
   });
 
-  it("builds an explanation when both vectors are valid and degrades otherwise", async () => {
+  it("builds an explanation when both posteriors exist and degrades otherwise", async () => {
     const store = new MemoryStore();
     store.own = OWN;
     store.stored = [MATCH];
@@ -107,7 +114,7 @@ describe("getResult", () => {
     const full = await getResult(VIEWER, wire(store));
     expect(full.ok && full.value.matches.amistad[0]?.explanation).not.toBeNull();
 
-    store.counterparts = [{ ...COUNTERPART, amistadVector: [0.5] }];
+    store.counterparts = [{ ...COUNTERPART, latent: null }];
     const degraded = await getResult(VIEWER, wire(store));
     expect(degraded.ok && degraded.value.matches.amistad[0]?.explanation).toBeNull();
     expect(degraded.ok && degraded.value.matches.amistad[0]?.color_hex).toBe("#9D56C7");
@@ -144,8 +151,40 @@ describe("getResult", () => {
     if (!result.ok) throw new Error("expected ok");
     expect(result.value.matches.romance).toHaveLength(1);
     expect(result.value.matches.amistad).toHaveLength(1);
-    expect(result.value.matches.romance[0]?.narrative).toBe(
-      "Conexión romántica del 91% con pulpito azul.",
-    );
+    expect(result.value.matches.romance[0]?.similarity).toBe(0.91);
+  });
+
+  it("explains with the model's own numbers: points sum to the recomputed score", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    store.stored = [MATCH, { ...MATCH, track: "romance" }];
+    store.counterparts = [COUNTERPART];
+    const result = await getResult(VIEWER, wire(store));
+    if (!result.ok) throw new Error("expected ok");
+    for (const track of ["romance", "amistad"] as const) {
+      const explanation = result.value.matches[track][0]?.explanation;
+      if (!explanation) throw new Error("expected explanation");
+      const score = pairScore(OWN_LATENT, OTHER_LATENT, MATCHING_CONFIG.tracks[track], MATCHING_CONFIG.categories);
+      const byId = new Map(score.categories.map((c) => [c.id, c]));
+      for (const c of explanation.connects) {
+        expect(c.points).toBeCloseTo(byId.get(c.category)!.contribution * 100, 1);
+        expect(c.percentage).toBe(Math.round(byId.get(c.category)!.similarity * 100));
+      }
+      const identity = score.categories.filter((c) => c.id === "mbti" || c.id === "eneagrama");
+      expect(explanation.talk.points).toBeCloseTo(identity.reduce((s, c) => s + c.contribution, 0) * 100, 1);
+      expect(explanation.connects.map((c) => c.category)).not.toContain("mbti");
+    }
+  });
+
+  it("never serializes posteriors, vectors or answers", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    store.stored = [MATCH];
+    store.counterparts = [COUNTERPART];
+    const result = await getResult(VIEWER, wire(store));
+    const json = JSON.stringify(result);
+    for (const leak of ["theta", '"se"', "0.654321", "0.123456", "latent", "vector", "answers"]) {
+      expect(json).not.toContain(leak);
+    }
   });
 });

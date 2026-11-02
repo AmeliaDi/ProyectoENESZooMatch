@@ -155,6 +155,7 @@
   },
   "explainability": {
     "confidence_high_margin": { "valor": 0.25, "etiqueta": "supuesto_diseno", "fuente": "Posición relativa mínima sobre el umbral para confianza alta" },
-    "category_floor": { "valor": 60, "etiqueta": "supuesto_diseno", "fuente": "Ningún área bajo 60 % para confianza alta" }
+    "category_floor": { "valor": 36, "etiqueta": "estimado_sintetico", "fuente": "≈ cuantil 0.10 de la similitud mínima entre categorías núcleo latentes de los pares sobre el umbral (docs/VALIDACION_RESULTADOS.md, H6b; ADR-021)" },
+    "confidence_max_uncertainty": { "valor": 0.6, "etiqueta": "estimado_sintetico", "fuente": "Varianza posterior media del par en los factores núcleo del track: solo núcleo ≈ 0.70, banco completo ≈ 0.47; alta exige que al menos una persona haya afinado (ADR-021)" }
   }
 }

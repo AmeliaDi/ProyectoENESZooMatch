@@ -47,6 +47,8 @@ export interface ProfileDto {
   sections: SectionReadingDto[];
   /** How many scales are still at the population prior (unanswered modules). */
   openScales: { open: number; total: number };
+  /** Optional modules already completed (ids only; never the answers). */
+  completedModules: string[];
   affinities: {
     romance: { count: number; top: AffinitySummaryDto[] };
     amistad: { count: number; top: AffinitySummaryDto[] };

@@ -183,6 +183,7 @@ export const matchingConfigSchema = z
     explainability: z.strictObject({
       confidence_high_margin: annotated(unit),
       category_floor: annotated(z.number().int().min(0).max(100)),
+      confidence_max_uncertainty: annotated(positive),
     }),
   })
   .superRefine((config, ctx) => {

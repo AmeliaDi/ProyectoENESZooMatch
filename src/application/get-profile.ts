@@ -74,6 +74,7 @@ export async function getProfile(viewerId: string, deps: GetProfileDeps): Promis
     virtues: readVirtues(latent).map(({ title, text }) => ({ title, text })),
     sections: sections.map((s) => ({ ...s, scales: s.scales.map((x) => ({ ...x, range: [x.range[0], x.range[1]] })) })),
     openScales: openScaleCount(sections),
+    completedModules: [...profile.completedModules],
     affinities: { romance: affinities(matches.value, "romance"), amistad: affinities(matches.value, "amistad") },
   });
 }

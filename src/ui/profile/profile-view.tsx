@@ -16,6 +16,8 @@ import { Icon } from "@/ui/kit/icon";
 import { ErrorState, LoadingState } from "@/ui/kit/states";
 import { Chip, Frame } from "@/ui/kit/surfaces";
 
+import { RefineInvite } from "@/ui/refine/refine-invite";
+
 import { parseProfile } from "./parse-profile";
 import { ProfileSections } from "./profile-sections";
 
@@ -197,6 +199,10 @@ export function ProfileView() {
         <Hero profile={profile} />
         <Virtues profile={profile} />
         <Affinities profile={profile} />
+        <RefineInvite
+          track={profile.affinities.romance.count > 0 ? "romance" : "amistad"}
+          completed={profile.completedModules}
+        />
         <ProfileSections profile={profile} />
         <p className="zm-result__fine">
           Solo tú ves esta carta. Son estimaciones del test con su margen de duda, no etiquetas ni una medida de tu

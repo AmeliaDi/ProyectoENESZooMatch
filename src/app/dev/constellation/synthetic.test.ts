@@ -64,15 +64,10 @@ describe("generateSyntheticMatches", () => {
       expect(match.similarity).toBeGreaterThanOrEqual(0);
       expect(match.similarity).toBeLessThanOrEqual(1);
       expect(match.explanation).not.toBeNull();
-      expect(match.explanation?.psychometrics?.match.enneagram.code).toMatch(
-        /^[1-9]w[1-9]$/,
-      );
-      expect(
-        match.explanation?.psychometrics?.compatibility.overall,
-      ).toBeGreaterThanOrEqual(0);
-      expect(
-        match.explanation?.psychometrics?.compatibility.overall,
-      ).toBeLessThanOrEqual(1);
+      const explanation = match.explanation!;
+      const points = [...explanation.connects.map((c) => c.points), explanation.talk.points];
+      expect(points.every((p) => p >= 0)).toBe(true);
+      expect(explanation.talk.lines.length).toBeGreaterThan(0);
     });
   });
 });

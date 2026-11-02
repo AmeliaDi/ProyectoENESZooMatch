@@ -27,6 +27,7 @@ const PROFILE: ProfileDto = {
   virtues: [{ title: "Trato justo", text: "Te importa la transparencia." }],
   sections: [{ id: "hexaco", title: "HEXACO", blurb: "Tu núcleo.", scales: [SCALE] }],
   openScales: { open: 0, total: 1 },
+  completedModules: [],
   affinities: {
     romance: { count: 0, top: [] },
     amistad: { count: 1, top: [{ alias: "pulpito azul", animal: "pulpito", percent: 87 }] },

@@ -5,7 +5,8 @@ import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import { generateWelcomeMessage } from "@/domain/messages/notification-copy";
 
 import { err, ok, type Result } from "@/domain/shared";
-import type { QuizSubmission, ScoredProfile } from "@/types/microtest";
+import { completedModules } from "@/domain/psychometrics/modules";
+import { QUIZ_MODULE_IDS, type QuizModuleId, type QuizSubmission, type ScoredProfile } from "@/types/microtest";
 
 import type { QuizSubmittedDto } from "./dto";
 import type { AppError } from "./errors";
@@ -34,7 +35,14 @@ function flattenAnswers(submission: QuizSubmission): StoredAnswer[] {
   ];
 }
 
-function score(submission: QuizSubmission, latent: LatentScorer): ScoredProfile | null {
+const OPTIONAL_MODULES = QUIZ_MODULE_IDS.filter((id) => id !== "nucleo");
+
+export function completedOf(answers: readonly StoredAnswer[]): QuizModuleId[] {
+  const ids = new Set(answers.flatMap((a) => (a.value !== undefined ? [a.itemId] : [])));
+  return completedModules(MICROTEST_ITEMS, OPTIONAL_MODULES, ids);
+}
+
+export function score(submission: QuizSubmission, latent: LatentScorer): ScoredProfile | null {
   try {
     return scoreQuiz(submission, MICROTEST_ITEMS, latent);
   } catch {
@@ -83,11 +91,13 @@ export async function submitQuiz(
   const completed = await deps.profiles.isQuizCompleted(input.userId);
   const isFirstSubmission = completed.ok && !completed.value;
 
+  const answers = flattenAnswers(input.submission);
   const saved = await deps.profiles.saveQuizResult({
     userId: input.userId,
-    answers: flattenAnswers(input.submission),
+    answers,
     scored,
     identity,
+    completedModules: completedOf(answers),
   });
   if (!saved.ok) return saved;
 

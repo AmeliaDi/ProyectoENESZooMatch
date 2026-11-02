@@ -3,12 +3,16 @@
  * and the client (which parses them). Nothing here may carry raw rows,
  * vectors, answers, matrícula hashes or counterpart user ids.
  */
-import type {
-  ChemistrySummary,
-  MatchExplanation,
-} from "@/domain/explainability/explainability";
+import type { ChemistrySummary, MatchExplanation } from "@/domain/explainability";
 
-export type { AffinityBreakdown, ChemistrySummary, MatchExplanation } from "@/domain/explainability/explainability";
+export type {
+  ChemistrySummary,
+  HealthyTension,
+  LayerContribution,
+  MatchConfidence,
+  MatchExplanation,
+  TalkTopics,
+} from "@/domain/explainability";
 
 /** Enneagram subtype instinct drawn as a small sprite mark. */
 export type SpriteMark = "sp" | "so" | "sx";
@@ -47,7 +51,7 @@ export interface MatchEntryDto {
   /** Always present, even when the full explanation could not be built. */
   chemistry: ChemistrySummary;
   badges: Array<{ dimension: string; affinity: number }>;
-  narrative: string;
+  /** Layered explanation built from the exact pair score (ADR-021). */
   explanation: MatchExplanation | null;
 }
 
