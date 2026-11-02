@@ -1,0 +1,29 @@
+{
+  "version": "meta-1",
+  "nota": "Reglas del meta-análisis (docs/PREREGISTRO.md H8). Solo extracciones aprobadas; se agrega un grupo solo con k ≥ min_studies y la misma familia de constructo, de resultado y métrica convertible a r.",
+  "min_studies": { "valor": 3, "etiqueta": "supuesto_diseno", "fuente": "PREREGISTRO H8: con k < 3 no hay τ² estimable de forma útil" },
+  "convertible_metrics": {
+    "r": "r",
+    "pearson": "r",
+    "ρ": "r",
+    "rho": "r",
+    "spearman": "r",
+    "cohen's d": "d",
+    "d": "d"
+  },
+  "requires_human_population": true,
+  "construct_families": {
+    "personalidad_diferencia": "personality|trait|extraversion|big five|hexaco",
+    "valores_actitudes": "value|political|attitude|moral",
+    "apego": "attachment",
+    "comunicacion_conflicto": "conflict|demand|withdraw|communication|coping",
+    "intereses": "interest|hobby|riasec"
+  },
+  "outcome_families": {
+    "satisfaccion_relacional": "relationship (satisfaction|quality)|marital satisfaction",
+    "cercania_amistad": "proximity|friendship|closeness",
+    "atraccion": "attraction|desire",
+    "similitud_percibida": "perceived similarity|moral attitudes|personality traits"
+  },
+  "non_human_markers": "birds|species|primate|chimpanzee|macaque|monkey|dyadic proximity index"
+}
