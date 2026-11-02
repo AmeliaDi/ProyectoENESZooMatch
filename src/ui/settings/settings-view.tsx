@@ -156,13 +156,18 @@ export function SettingsView() {
 
         <Frame title="Cómo se calcula" coord="AR 11h" id="como-se-calcula">
           <ol className="zm-settings__steps">
-            <li>Tus respuestas se convierten en puntajes de 0 a 1 por dimensión (personalidad, gustos, valores, afecto).</li>
             <li>
-              Se compara tu perfil con el de cada persona, dando más peso a lo que la evidencia respalda (Big Five y
-              valores) y menos a MBTI y eneagrama.
+              Tus respuestas estiman tu perfil por áreas (personalidad HEXACO, valores, estilo de vida, forma de
+              relacionarte) junto con qué tan segura es cada estimación. Si contestas menos, el perfil se vuelve más
+              prudente; nunca se inventan respuestas.
             </li>
             <li>
-              Solo aparece una afinidad si supera el umbral: {pct(MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive)} en
+              Se compara tu perfil con el de cada persona área por área. Cuenta sobre todo lo que la evidencia respalda
+              (personalidad y valores); MBTI y eneagrama dan forma a tu animalito y casi no pesan en el puntaje.
+            </li>
+            <li>
+              Una afinidad necesita ir bien en todas las áreas centrales, no solo en promedio. Solo aparece si supera
+              un umbral calibrado para que pocas coincidencias sean fruto del azar: {pct(MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive)} en
               romance y {pct(MATCHING_CONFIG.tracks.amistad.minimum_similarity_exclusive)} en amistad. Romance además
               respeta orientación, identidad y tipo de relación de ambas personas.
             </li>

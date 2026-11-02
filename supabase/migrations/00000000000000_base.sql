@@ -94,6 +94,9 @@ CREATE TABLE public.profiles (
   romance_vector DOUBLE PRECISION[] NOT NULL DEFAULT '{}',
   amistad_vector DOUBLE PRECISION[] NOT NULL DEFAULT '{}',
   dimension_scores JSONB NOT NULL DEFAULT '{}',
+  -- Latent posterior (theta, se, quality, answered): the only input of the
+  -- compatibility score. Service-role only, never exposed to clients.
+  latent_profile JSONB NOT NULL DEFAULT '{}' CHECK (jsonb_typeof(latent_profile) = 'object'),
   mbti_code CHAR(4) CHECK (mbti_code IS NULL OR mbti_code ~ '^[IE][NS][TF][JP]$'),
   inclusive_mode TEXT NOT NULL DEFAULT 'neutro_universal' CHECK (inclusive_mode IN (
     'femenino', 'masculino', 'neutro_e', 'neutro_universal'
@@ -312,7 +315,8 @@ CREATE FUNCTION public.submit_quiz_result(
   p_animal_id TEXT,
   p_color_id TEXT,
   p_narrative TEXT,
-  p_alias TEXT
+  p_alias TEXT,
+  p_latent_profile JSONB
 )
 RETURNS void
 LANGUAGE plpgsql
@@ -333,6 +337,10 @@ BEGIN
   IF jsonb_typeof(p_answers) IS DISTINCT FROM 'array' THEN
     RAISE EXCEPTION 'Answers must be a JSON array' USING ERRCODE = '22023';
   END IF;
+  IF jsonb_typeof(p_latent_profile -> 'theta') IS DISTINCT FROM 'object'
+     OR jsonb_typeof(p_latent_profile -> 'se') IS DISTINCT FROM 'object' THEN
+    RAISE EXCEPTION 'Latent profile must carry theta and se objects' USING ERRCODE = '22023';
+  END IF;
 
   UPDATE public.profiles SET
     alias = p_alias,
@@ -346,6 +354,7 @@ BEGIN
     amistad_vector = p_amistad_vector,
     dimension_scores = p_dimension_scores,
     mbti_code = p_mbti_code,
+    latent_profile = p_latent_profile,
     quiz_completed_at = now()
   WHERE user_id = p_user_id;
 
@@ -651,7 +660,7 @@ REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA private FROM PUBLIC, anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION
-  public.submit_quiz_result(UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, TEXT),
+  public.submit_quiz_result(UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, JSONB),
   public.get_pool_version(),
   public.replace_matches(JSONB, TEXT),
   public.get_user_matches(UUID),

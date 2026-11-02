@@ -2,6 +2,7 @@
  * ZooMatch — Multidimensional questionnaire type definitions
  * Supports dual-track matching (romance + friendship) with hard filters
  */
+import type { LatentProfile } from "./latent";
 
 // ─── Categories ───────────────────────────────────────────────────────────────
 export type Category =
@@ -166,12 +167,15 @@ export interface HardFilters {
 }
 
 export interface ScoredProfile {
+  /** Descriptive [0, 1] summaries (identity + explanation breakdown). */
   rawScores: DimensionScores;
   normalizedScores: DimensionScores;
   mbtiCode: string;
   hardFilters: HardFilters;
   romanceVector: number[];
   friendshipVector: number[];
+  /** Latent posterior: the only input of the compatibility score. Server-only. */
+  latent: LatentProfile;
 }
 
 // ─── Matching results ─────────────────────────────────────────────────────────
@@ -271,65 +275,6 @@ export const ALL_DIMENSIONS: Dimension[] = [
 export const ROMANCE_VECTOR_LENGTH = ROMANCE_VECTOR_DIMENSIONS.length; // 26
 export const FRIENDSHIP_VECTOR_LENGTH = FRIENDSHIP_VECTOR_DIMENSIONS.length; // 16
 
-// ─── Utility types ────────────────────────────────────────────────────────────
-
-// Category weights for weighted cosine similarity
-export interface CategoryWeights {
-  personalidad: number;
-  afinidad_cultural: number;
-  intimidad_afecto: number;
-  valores_relacionales: number;
-  identidad?: number;
-}
-
-export interface RomanceSelectivityConfig {
-  intimacy_alignment_floor: number;
-  intimacy_penalty_weight: number;
-  /** Maximum tolerated distance in conflict-management style, δc. */
-  conflict_tolerance: number;
-  /** Quadratic penalty rate λ for distances beyond δc. */
-  conflict_penalty_lambda: number;
-}
-
-// Matching configuration
-export interface TrackConfig {
-  minimum_similarity_exclusive: number;
-  centering: number;
-  max_matches: number;
-  /** Expected share of users with at least one match on this track. */
-  target_coverage_percentile: number;
-  /** Hard upper bound on the share of pairs above the threshold. */
-  maximum_pair_tail?: number;
-  /** Hard upper bound on the share of users who receive a match. */
-  maximum_user_coverage?: number;
-  dimensions: string[];
-  hard_filters: HardFilterField[];
-  weights: CategoryWeights;
-  /** Romance-only alignment penalties. */
-  selectivity?: RomanceSelectivityConfig;
-}
-
-export interface MatchingConfig {
-  version: string;
-  /** Convex mix of the base Hilbert similarity and Φ_psico ∈ [0, 1]. */
-  psychometric_mix: number;
-  tracks: {
-    romance: TrackConfig;
-    amistad: TrackConfig;
-  };
-  calibration: {
-    method: string;
-    target_coverage: number;
-    max_users: number;
-  };
-  /** Design assumptions for the qualitative confidence shown with a match. */
-  explainability: {
-    /** Minimum relative position above the threshold for "confianza alta". */
-    confidence_high_margin: number;
-    /** Category percentage under which a match is never "alta". */
-    category_floor: number;
-  };
-}
 
 // Notification types
 export type NotificationType = "match_romance" | "match_amistad" | "no_match" | "welcome";

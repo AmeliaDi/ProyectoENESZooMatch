@@ -193,6 +193,11 @@ const TRACK_THRESHOLDS: Record<MatchTrack, number> = {
   romance: MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive,
   amistad: MATCHING_CONFIG.tracks.amistad.minimum_similarity_exclusive,
 };
+/** Achievable ceiling of the expected-similarity score (calibrated, < 1). */
+const TRACK_CEILINGS: Record<MatchTrack, number> = {
+  romance: MATCHING_CONFIG.tracks.romance.reference_high,
+  amistad: MATCHING_CONFIG.tracks.amistad.reference_high,
+};
 
 /** Fixed display order for categories (only those present in a track appear). */
 const CATEGORY_DISPLAY_ORDER: readonly AffinityCategory[] = [
@@ -1313,7 +1318,7 @@ export function computeChemistrySummary(similarity: number, track: MatchTrack): 
   const percentage = Math.round(normalized * 100);
   const noun = track === "romance" ? "Compatibilidad" : "Química Amistosa";
   const threshold = TRACK_THRESHOLDS[track];
-  const span = Math.max(1e-9, 1 - threshold);
+  const span = Math.max(1e-9, TRACK_CEILINGS[track] - threshold);
   const relativePosition = clamp01((normalized - threshold) / span);
 
   let level: ChemistryLevel;

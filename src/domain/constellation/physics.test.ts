@@ -16,6 +16,7 @@ import {
   easeCamera,
   estimatePairSimilarity,
   estimateVelocity,
+  getTrackCeiling,
   getTrackThreshold,
   gradientNoise1D,
   grab,
@@ -40,12 +41,14 @@ import {
 const ROMANCE = getTrackThreshold("romance");
 const AMISTAD = getTrackThreshold("amistad");
 
+/** Similarities spread between the threshold and the calibrated ceiling, like real scores. */
 function randomMatches(count: number, seed: number, track: "romance" | "amistad" = "amistad"): SceneMatch[] {
   const rand = mulberry32(seed);
   const threshold = track === "romance" ? ROMANCE : AMISTAD;
+  const span = getTrackCeiling(track) - threshold;
   return Array.from({ length: count }, (_, i) => ({
     id: `m${String(i).padStart(3, "0")}`,
-    similarity: threshold + 0.005 + rand() * (0.995 - threshold),
+    similarity: threshold + span * (0.01 + 0.98 * rand()),
     track,
   }));
 }
@@ -124,8 +127,20 @@ describe("similarityToDistance", () => {
     }
   });
 
-  it("reads thresholds from the matching config", () => {
+  it("reads thresholds and ceilings from the matching config", () => {
+    // Romance is calibrated at a stricter null quantile (α = 0.05 vs 0.15).
     expect(ROMANCE).toBeGreaterThan(AMISTAD);
+    for (const track of ["romance", "amistad"] as const) {
+      expect(getTrackCeiling(track)).toBeGreaterThan(getTrackThreshold(track));
+    }
+  });
+
+  it("uses the whole orbit range between the threshold and the calibrated ceiling", () => {
+    const ceiling = getTrackCeiling("amistad");
+    const near = similarityToDistance(ceiling, AMISTAD, 800, 600, PHYSICS, ceiling)!;
+    const far = similarityToDistance(AMISTAD + 1e-6, AMISTAD, 800, 600, PHYSICS, ceiling)!;
+    expect(near).toBeCloseTo(PHYSICS.orbit.minRadius, 6);
+    expect(far).toBeGreaterThan(near);
   });
 });
 
@@ -185,7 +200,9 @@ describe("groups", () => {
 
   it("finds a mutually compatible clique and scores it by its weakest pair", () => {
     const matches = ["a", "b", "c", "d"].map((id) => ({ id, similarity: 0.9, track: "amistad" as const }));
-    const table: Record<string, number> = { "a|b": 0.9, "a|c": 0.85, "b|c": 0.8, "a|d": 0.5, "b|d": 0.5, "c|d": 0.5 };
+    // d pairs sit below the threshold, so d never joins the clique.
+    const below = AMISTAD - 0.1;
+    const table: Record<string, number> = { "a|b": 0.9, "a|c": 0.85, "b|c": 0.8, "a|d": below, "b|d": below, "c|d": below };
     const pair = (x: SceneMatch, y: SceneMatch): number => table[[x.id, y.id].sort().join("|")] ?? 0;
     const groups = detectGroups(matches, AMISTAD, pair, cfg);
     expect(groups).toEqual([{ ids: ["a", "b", "c"], score: 0.8 }]);

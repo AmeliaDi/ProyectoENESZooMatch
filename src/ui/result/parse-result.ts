@@ -38,6 +38,19 @@ export interface PublicResult {
 }
 
 const DIMENSION_LABELS: Record<string, string> = {
+  // Match categories (layered model): what the badges carry now.
+  personalidad: "Forma de ser",
+  valores: "Lo que les importa",
+  dealbreakers: "Planes de vida",
+  relacional: "Cómo quieren el vínculo",
+  estilo: "Gustos y rutinas",
+  conflicto: "Cómo resuelven desacuerdos",
+  apego: "Cercanía y espacio",
+  afecto: "Cómo dan cariño",
+  mbti: "Estilo para pensar",
+  eneagrama: "Lo que les mueve",
+  big_five: "Rasgos de personalidad",
+  // Descriptive dimensions (kept for stored badges and the breakdown).
   personalidad_apertura: "Curiosidad",
   personalidad_responsabilidad: "Responsabilidad",
   personalidad_extraversion: "Energía social",
@@ -70,6 +83,21 @@ const DIMENSION_LABELS: Record<string, string> = {
   valores_respeto_diversidad: "Respeto a la diversidad",
 };
 
+/** Icon key per match category (exact id). */
+const CATEGORY_ICON_KEY: Record<string, string> = {
+  personalidad: "personalidad",
+  big_five: "personalidad",
+  mbti: "personalidad",
+  eneagrama: "personalidad",
+  valores: "valores_relacionales",
+  dealbreakers: "valores_relacionales",
+  relacional: "identidad",
+  conflicto: "valores_relacionales",
+  apego: "intimidad_afecto",
+  afecto: "intimidad_afecto",
+  estilo: "afinidad_cultural",
+};
+
 const CATEGORY_BY_PREFIX: ReadonlyArray<readonly [string, string]> = [
   ["personalidad_", "personalidad"],
   ["mbti_", "personalidad"],
@@ -80,7 +108,11 @@ const CATEGORY_BY_PREFIX: ReadonlyArray<readonly [string, string]> = [
 ];
 
 function categoryOf(dimension: string): string {
-  return CATEGORY_BY_PREFIX.find(([prefix]) => dimension.startsWith(prefix))?.[1] ?? "general";
+  return (
+    CATEGORY_ICON_KEY[dimension] ??
+    CATEGORY_BY_PREFIX.find(([prefix]) => dimension.startsWith(prefix))?.[1] ??
+    "general"
+  );
 }
 
 const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;

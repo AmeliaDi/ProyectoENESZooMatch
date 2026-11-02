@@ -1,99 +1,160 @@
 {
-  "version": "1.3",
-  "psychometric_mix": 0.15,
-  "tracks": {
-    "romance": {
-      "minimum_similarity_exclusive": 0.78,
-      "centering": 0.5,
-      "max_matches": 3,
-      "dimensions": [
-        "personalidad_apertura",
-        "personalidad_responsabilidad",
-        "personalidad_extraversion",
-        "personalidad_amabilidad",
-        "personalidad_estabilidad_emocional",
-        "identidad_exclusividad",
-        "identidad_comunicacion_afectiva",
-        "cultural_musica_exploracion",
-        "cultural_estetica_visual",
-        "cultural_hobbies_creativos",
-        "cultural_vida_universitaria",
-        "cultural_humor",
-        "intimidad_palabras_afirmacion",
-        "intimidad_tiempo_calidad",
-        "intimidad_regalos_detalle",
-        "intimidad_contacto_fisico",
-        "intimidad_actos_servicio",
-        "intimidad_apertura_emocional",
-        "intimidad_comunicacion_deseos",
-        "intimidad_limites_respeto",
-        "valores_empatia",
-        "valores_confianza",
-        "valores_gestion_conflicto",
-        "valores_igualdad_genero",
-        "valores_corresponsabilidad",
-        "valores_respeto_diversidad"
-      ],
-      "hard_filters": [
-        "orientacion_sexual",
-        "identidad_genero",
-        "tipo_relacion_busca"
-      ],
-      "weights": {
-        "personalidad": 0.25,
-        "identidad": 0.05,
-        "afinidad_cultural": 0.2,
-        "intimidad_afecto": 0.25,
-        "valores_relacionales": 0.25
-      },
-      "target_coverage_percentile": 0.06,
-      "maximum_pair_tail": 0.06,
-      "maximum_user_coverage": 0.06,
-      "selectivity": {
-        "intimacy_alignment_floor": 0.6,
-        "intimacy_penalty_weight": 0.45,
-        "conflict_tolerance": 0.35,
-        "conflict_penalty_lambda": 4.0
-      }
+  "version": "2.0",
+  "nota": "Modelo por capas (docs/MATCHING.md). Cada constante: {valor, etiqueta, fuente}. Sin validez predictiva demostrada: los pesos son priors débiles o supuestos de diseño.",
+  "scoring": {
+    "quadrature_nodes": { "valor": 41, "etiqueta": "supuesto_diseno", "fuente": "Precisión numérica de la verificación EAP (error < 1e-6 en momentos normales)" },
+    "mbti_ambiguity_se": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Eje ambiguo si |θ| < 1·SE posterior (ADR-017)" },
+    "enneagram_ambiguity_entropy": { "valor": 0.85, "etiqueta": "supuesto_diseno", "fuente": "Entropía normalizada H/log 9 sobre la que no se fuerza un tipo (ADR-017)" }
+  },
+  "quality": {
+    "lz_ok": { "valor": -2.0, "etiqueta": "supuesto_diseno", "fuente": "Drasgow, Levine & Williams (1985): lz ~ N(0,1) bajo el modelo; < −2 es atípico [VERIFICAR]" },
+    "lz_floor": { "valor": -4.0, "etiqueta": "supuesto_diseno", "fuente": "Rampa lineal hasta el mínimo" },
+    "longstring_ok": { "valor": 8, "etiqueta": "supuesto_diseno", "fuente": "Racha de respuestas idénticas tolerada (Curran, 2016, recomienda umbral por instrumento) [VERIFICAR]" },
+    "longstring_max": { "valor": 20, "etiqueta": "supuesto_diseno", "fuente": "Racha a partir de la cual la calidad llega al mínimo" },
+    "sd_ok": { "valor": 0.6, "etiqueta": "supuesto_diseno", "fuente": "Varianza intra-persona mínima sin penalización (escala 1–5)" },
+    "minimum": { "valor": 0.35, "etiqueta": "supuesto_diseno", "fuente": "La calidad nunca anula un perfil: solo templa su verosimilitud" }
+  },
+  "categories": {
+    "personalidad": {
+      "kind": "kernel",
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-101, EV-104 (Liu 2018: preferencia por similitud HEXACO, mayor en H y O; prior débil)",
+      "factors": { "hex_h": 1.3, "hex_e": 1.0, "hex_x": 1.0, "hex_a": 1.0, "hex_c": 1.0, "hex_o": 1.2 },
+      "bandwidth_per_sqrt_dim": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "h = √d: un par típico al azar queda a mitad del núcleo" },
+      "low_side": { "valores": { "hex_h": 0.5 }, "etiqueta": "prior_literatura", "fuente": "EV-104 (Liu 2018: se prefiere H-H alta en la pareja); magnitud η = 0.5 es supuesto de diseño" }
     },
-    "amistad": {
-      "minimum_similarity_exclusive": 0.65,
-      "centering": 0.5,
-      "max_matches": 5,
-      "dimensions": [
-        "personalidad_apertura",
-        "personalidad_responsabilidad",
-        "personalidad_extraversion",
-        "personalidad_amabilidad",
-        "personalidad_estabilidad_emocional",
-        "cultural_musica_exploracion",
-        "cultural_estetica_visual",
-        "cultural_hobbies_creativos",
-        "cultural_vida_universitaria",
-        "cultural_humor",
-        "valores_empatia",
-        "valores_confianza",
-        "valores_gestion_conflicto",
-        "valores_igualdad_genero",
-        "valores_corresponsabilidad",
-        "valores_respeto_diversidad"
-      ],
-      "hard_filters": [],
-      "weights": {
-        "personalidad": 0.4,
-        "afinidad_cultural": 0.35,
-        "valores_relacionales": 0.25
-      },
-      "target_coverage_percentile": 0.35
+    "valores": {
+      "kind": "kernel",
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-105 (Arránz Becker: similitud en valores y metas, efecto pequeño)",
+      "factors": { "val_apertura_cambio": 1.0, "val_autopromocion": 1.0, "val_autotrascendencia": 1.0, "val_conservacion": 1.0, "val_presente": 1.0, "act_compromiso_social": 1.0, "meta_carrera": 1.0 },
+      "bandwidth_per_sqrt_dim": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Igual que personalidad" }
+    },
+    "dealbreakers": {
+      "kind": "deadzone",
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas compartidas); forma no lineal: diferencias pequeñas toleradas, grandes hunden",
+      "factors": { "meta_crianza": 1.0, "val_espiritualidad": 1.0, "act_igualdad": 1.0 },
+      "tolerance": { "meta_crianza": 0.75, "val_espiritualidad": 0.75, "act_igualdad": 0.75 },
+      "scale": { "valor": 0.6, "etiqueta": "supuesto_diseno", "fuente": "Una brecha de 2 DE deja ≈ 0.1" },
+      "combine": "product"
+    },
+    "relacional": {
+      "kind": "deadzone",
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "factors": { "rel_exclusividad": 2.0, "rel_metas": 1.5, "rel_espacio": 1.0, "rel_frecuencia": 1.0, "rel_autonomia": 1.0, "rel_comunicacion": 1.0, "rel_expresividad": 1.0 },
+      "tolerance": { "rel_exclusividad": 0.5, "rel_metas": 0.5, "rel_espacio": 0.75, "rel_frecuencia": 0.75, "rel_autonomia": 0.75, "rel_comunicacion": 0.75, "rel_expresividad": 0.75 },
+      "scale": { "valor": 0.8, "etiqueta": "supuesto_diseno", "fuente": "Ventana más amplia que dealbreakers" },
+      "combine": "geometric"
+    },
+    "estilo": {
+      "kind": "kernel",
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada)",
+      "factors": { "int_realista": 1.0, "int_investigador": 1.0, "int_artistico": 1.0, "int_emprendedor": 1.0, "int_convencional": 1.0, "int_vida_nocturna": 1.0, "int_actividad_fisica": 1.0, "int_juegos": 1.0, "int_cultura": 1.0, "int_animales": 1.0, "int_comida": 1.0, "int_fiesta": 1.0, "soc_rutina": 1.0, "soc_redes": 1.0, "soc_dinero": 1.0, "soc_familia": 1.0, "soc_campus": 1.0, "soc_politica": 1.0 },
+      "bandwidth_per_sqrt_dim": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Igual que personalidad" }
+    },
+    "big_five": {
+      "kind": "kernel",
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Capa puente: derivada de HEXACO por la correlación latente; peso 0 para no contar dos veces",
+      "factors": { "bf_e": 1.0, "bf_a": 1.0, "bf_c": 1.0, "bf_n": 1.0, "bf_o": 1.0 },
+      "bandwidth_per_sqrt_dim": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Igual que personalidad" }
+    },
+    "conflicto": {
+      "kind": "deadzone",
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-58: no hay un estilo de conflicto universal → ventana, nunca penalización",
+      "factors": { "con_inmediatez": 1.0, "con_pausa": 1.0, "con_acuerdo": 1.0, "con_reparacion": 1.0 },
+      "tolerance": { "con_inmediatez": 0.75, "con_pausa": 0.75, "con_acuerdo": 0.75, "con_reparacion": 0.75 },
+      "scale": { "valor": 0.8, "etiqueta": "supuesto_diseno", "fuente": "Ventana amplia" },
+      "combine": "geometric"
+    },
+    "apego": {
+      "kind": "deadzone",
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-54, EV-107: efectos actor; la similitud no predice → solo extra mínimo",
+      "factors": { "apego_ansiedad": 1.0, "apego_evitacion": 1.0 },
+      "tolerance": { "apego_ansiedad": 0.75, "apego_evitacion": 0.75 },
+      "scale": { "valor": 0.8, "etiqueta": "supuesto_diseno", "fuente": "Ventana amplia" },
+      "combine": "geometric"
+    },
+    "afecto": {
+      "kind": "deadzone",
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "factors": { "afecto_palabras": 1.0, "afecto_tiempo": 1.0, "afecto_contacto": 1.0, "afecto_detalles": 1.0, "afecto_servicio": 1.0 },
+      "tolerance": { "afecto_palabras": 0.75, "afecto_tiempo": 0.75, "afecto_contacto": 0.75, "afecto_detalles": 0.75, "afecto_servicio": 0.75 },
+      "scale": { "valor": 0.8, "etiqueta": "supuesto_diseno", "fuente": "Ventana amplia" },
+      "combine": "geometric"
+    },
+    "mbti": {
+      "kind": "kernel",
+      "etiqueta": "prior_literatura",
+      "fuente": "Pittenger 1993; McCrae & Costa 1989: validez limitada → identidad visual y narrativa",
+      "factors": { "mbti_ei": 1.0, "mbti_sn": 1.0, "mbti_tf": 1.0, "mbti_jp": 1.0 },
+      "bandwidth_per_sqrt_dim": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Igual que personalidad" }
+    },
+    "eneagrama": {
+      "kind": "distribution",
+      "etiqueta": "prior_literatura",
+      "fuente": "Hook et al. 2021: evidencia psicométrica limitada → identidad visual y narrativa",
+      "factors": { "ennea_1": 1, "ennea_2": 1, "ennea_3": 1, "ennea_4": 1, "ennea_5": 1, "ennea_6": 1, "ennea_7": 1, "ennea_8": 1, "ennea_9": 1 },
+      "temperature": { "valor": 0.5, "etiqueta": "supuesto_diseno", "fuente": "Softmax sobre θ̂ del eneagrama" },
+      "neutral": { "valor": 0.5, "etiqueta": "supuesto_diseno", "fuente": "Valor al que se contrae una comparación sin información (entropía máxima)" }
     }
   },
+  "tail_groups": {
+    "extras": ["conflicto", "apego", "afecto"],
+    "extras_max_total": { "valor": 0.05, "etiqueta": "supuesto_diseno", "fuente": "Aprobado: extras CON/APE/LAM ≤ 0.05, sin piso ni dealbreaker" },
+    "identity": ["mbti", "eneagrama"],
+    "identity_max_total": { "valor": 0.02, "etiqueta": "supuesto_diseno", "fuente": "Capa 4: peso mínimo, papel de identidad y narrativa" }
+  },
   "calibration": {
-    "method": "bisection",
-    "target_coverage": 0.06,
-    "max_users": 300
+    "seed": { "valor": 1515870810, "etiqueta": "supuesto_diseno", "fuente": "Semilla fija (0x5A5A5A5A)" },
+    "population": { "valor": 600, "etiqueta": "supuesto_diseno", "fuente": "Perfiles sintéticos para la nula por permutación" },
+    "null_pairs": { "valor": 60000, "etiqueta": "supuesto_diseno", "fuente": "Pares nulos muestreados por track" }
+  },
+  "group": {
+    "beta": { "valor": 12, "etiqueta": "supuesto_diseno", "fuente": "Soft-min de pares: un grupo vale casi lo que su par más débil" }
+  },
+  "badges": {
+    "per_track": {
+      "romance": { "valor": 5, "etiqueta": "supuesto_diseno", "fuente": "Top 5 romance" },
+      "amistad": { "valor": 3, "etiqueta": "supuesto_diseno", "fuente": "Top 3 amistad" }
+    }
+  },
+  "tracks": {
+    "romance": {
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md",
+      "minimum_similarity_exclusive": { "valor": 0.5252, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.95 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
+      "null_alpha": { "valor": 0.05, "etiqueta": "supuesto_diseno", "fuente": "Tasa de falso match por par bajo la nula" },
+      "reference_high": { "valor": 0.5877, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
+      "max_matches": { "valor": 3, "etiqueta": "supuesto_diseno", "fuente": "Top-K por persona" },
+      "hard_filters": ["orientacion_sexual", "identidad_genero", "tipo_relacion_busca"],
+      "beta": { "valor": 6, "etiqueta": "supuesto_diseno", "fuente": "Estrictez del soft-min (comparativa en docs/MATCHING.md)" },
+      "core": { "personalidad": 0.35, "valores": 0.2, "dealbreakers": 0.2, "relacional": 0.15, "estilo": 0.1 },
+      "tail": { "conflicto": 0.02, "apego": 0.02, "afecto": 0.01, "mbti": 0.005, "eneagrama": 0.005, "big_five": 0 },
+      "floors": { "dealbreakers": 0.35, "valores": 0.25 }
+    },
+    "amistad": {
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Amistad: más estilo e intereses, sin filtros duros ni dealbreakers de pareja",
+      "minimum_similarity_exclusive": { "valor": 0.4643, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.85 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
+      "null_alpha": { "valor": 0.15, "etiqueta": "supuesto_diseno", "fuente": "Amistad menos estricta que romance" },
+      "reference_high": { "valor": 0.5524, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
+      "max_matches": { "valor": 5, "etiqueta": "supuesto_diseno", "fuente": "Top-K por persona" },
+      "hard_filters": [],
+      "beta": { "valor": 4, "etiqueta": "supuesto_diseno", "fuente": "Menos estricta que romance" },
+      "core": { "personalidad": 0.4, "valores": 0.25, "estilo": 0.35 },
+      "tail": { "mbti": 0.005, "eneagrama": 0.005, "big_five": 0 },
+      "floors": { "valores": 0.2 }
+    }
   },
   "explainability": {
-    "confidence_high_margin": 0.25,
-    "category_floor": 60
+    "confidence_high_margin": { "valor": 0.25, "etiqueta": "supuesto_diseno", "fuente": "Posición relativa mínima sobre el umbral para confianza alta" },
+    "category_floor": { "valor": 60, "etiqueta": "supuesto_diseno", "fuente": "Ningún área bajo 60 % para confianza alta" }
   }
 }

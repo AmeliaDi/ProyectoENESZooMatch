@@ -74,7 +74,19 @@ const poolRowSchema = z.object({
   identidad_genero: z.array(z.string()).nullable(),
   tipo_relacion_busca: z.array(z.string()).nullable(),
   mbti_code: z.string().nullable(),
+  latent_profile: z
+    .object({
+      theta: z.record(z.string(), z.number()),
+      se: z.record(z.string(), z.number().nonnegative()),
+      quality: z.number().min(0).max(1),
+      answered: z.number().int().nonnegative(),
+    })
+    .nullable()
+    .catch(null),
 });
+
+/** A row without a latent profile keeps the population prior (θ = 0, SE = 1). */
+const priorLatent = () => ({ theta: {}, se: {}, quality: 1, answered: 0 });
 
 function toScoredProfile(row: z.infer<typeof poolRowSchema>): ScoredProfile {
   const scores = Object.fromEntries(
@@ -91,6 +103,7 @@ function toScoredProfile(row: z.infer<typeof poolRowSchema>): ScoredProfile {
     },
     romanceVector: row.romance_vector,
     friendshipVector: row.amistad_vector,
+    latent: row.latent_profile ?? priorLatent(),
   };
 }
 
@@ -173,6 +186,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
           p_color_id: identity.colorId,
           p_narrative: identity.narrative,
           p_alias: identity.alias,
+          p_latent_profile: scored.latent,
         }),
       );
       return res && !res.error ? ok(undefined) : failed;
@@ -191,7 +205,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
           admin
             .from(TABLE.profiles)
             .select(
-              "user_id, romance_vector, amistad_vector, dimension_scores, orientacion_sexual, identidad_genero, tipo_relacion_busca, mbti_code",
+              "user_id, romance_vector, amistad_vector, dimension_scores, orientacion_sexual, identidad_genero, tipo_relacion_busca, mbti_code, latent_profile",
             )
             .not("quiz_completed_at", "is", null)
             .is("paused_at", null)

@@ -12,6 +12,7 @@ import type { RecomputeDeps } from "@/application/recompute-matches";
 import type { SubmitQuizDeps } from "@/application/submit-quiz";
 import { err, ok, type Result } from "@/domain/shared";
 
+import { serverLatentScorer } from "./latent-scorer.server";
 import { createAdminClient } from "./supabase/admin.server";
 import {
   supabaseAdminRepository,
@@ -53,6 +54,7 @@ export async function quizContext(): Promise<
       matches: supabaseMatchRepository(admin),
       notifications: supabaseNotificationRepository(admin, auth.value.session),
       scheduler: systemScheduler,
+      latentScorer: serverLatentScorer,
     },
   });
 }

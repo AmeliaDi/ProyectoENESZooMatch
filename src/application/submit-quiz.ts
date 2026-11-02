@@ -1,9 +1,9 @@
-import type { GlobalMatch } from "@/domain/matching";
-import { MICROTEST_ITEMS, scoreQuiz } from "@/domain/matching";
+import { MATCHING_CONFIG, MICROTEST_ITEMS, scoreQuiz, type GlobalMatch, type LatentScorer } from "@/domain/matching";
 import { generateProfileIdentity } from "@/domain/identity/profile-generator";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import { generateWelcomeMessage } from "@/domain/messages/notification-copy";
-import { enneagramProfileFor } from "@/domain/psychometrics/psychometrics";
+import { enneagramFromLatent } from "@/domain/psychometrics/derived";
+import { enneagramProfileFromType, type EnneagramType } from "@/domain/psychometrics/psychometrics";
 import { err, ok, type Result } from "@/domain/shared";
 import type { QuizSubmission, ScoredProfile } from "@/types/microtest";
 
@@ -22,6 +22,8 @@ export interface SubmitQuizDeps extends RecomputeDeps {
   profiles: RecomputeDeps["profiles"] &
     Pick<ProfileRepository, "isQuizCompleted" | "saveQuizResult" | "setInclusiveMode">;
   notifications: Pick<NotificationRepository, "notifyMatches" | "insertWelcome">;
+  /** Bayesian GRM scorer (built server-side from the measurement parameters). */
+  latentScorer: LatentScorer;
 }
 
 function flattenAnswers(submission: QuizSubmission): StoredAnswer[] {
@@ -31,9 +33,9 @@ function flattenAnswers(submission: QuizSubmission): StoredAnswer[] {
   ];
 }
 
-function score(submission: QuizSubmission): ScoredProfile | null {
+function score(submission: QuizSubmission, latent: LatentScorer): ScoredProfile | null {
   try {
-    return scoreQuiz(submission, MICROTEST_ITEMS);
+    return scoreQuiz(submission, MICROTEST_ITEMS, latent);
   } catch {
     return null;
   }
@@ -71,7 +73,7 @@ export async function submitQuiz(
   input: SubmitQuizInput,
   deps: SubmitQuizDeps,
 ): Promise<Result<QuizSubmittedDto, AppError>> {
-  const scored = score(input.submission);
+  const scored = score(input.submission, deps.latentScorer);
   if (!scored) return err("request.invalid");
 
   const identity = generateProfileIdentity(scored.normalizedScores, input.userId);
@@ -100,7 +102,10 @@ export async function submitQuiz(
     });
   }
 
-  const enneagram = enneagramProfileFor(scored.normalizedScores);
+  const { scoring, categories } = MATCHING_CONFIG;
+  const temperature = categories.eneagrama.kind === "distribution" ? categories.eneagrama.temperature : 1;
+  const readout = enneagramFromLatent(scored.latent, temperature, scoring.enneagram_ambiguity_entropy);
+  const enneagram = enneagramProfileFromType(readout.type as EnneagramType, readout.wing as EnneagramType);
   return ok({
     ok: true,
     recomputePending: !recomputed.ok,

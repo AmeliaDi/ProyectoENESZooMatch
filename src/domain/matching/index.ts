@@ -1,30 +1,25 @@
+export { MATCHING_CONFIG, QUIZ_ITEMS as MICROTEST_ITEMS } from "@/config";
+export { attractedTo, checkHardFilters, isRelationshipCompatible } from "./hard-filters";
+export { scoreQuiz, type LatentScorer } from "./score-quiz";
+export { categorySimilarity, deadzoneSimilarity, distributionSimilarity, kernelSimilarity } from "./layers";
 export {
-  MATCHING_CONFIG,
-  MICROTEST_ITEMS,
-  MIN_QUANTILE_SAMPLE,
-  attractedTo,
-  applyPsychometricMix,
-  applyRomanceSelectivity,
-  capCandidateGraphByCoverage,
-  checkHardFilters,
+  aggregatePair,
+  categorySimilarities,
+  pairScore,
+  trackCategoryIds,
+  type CategoryScore,
+  type CategorySimilarities,
+  type PairScore,
+} from "./pair-score";
+export {
+  TRACKS,
+  badgesFromScore,
   computeAllMatches,
-  computeTrackCentroid,
-  cosineSimilarity,
-  trackDimensionWeights,
-
-  generateBadges,
-  isRelationshipCompatible,
-  scoreQuiz,
-  trackSimilarity,
-  weightedTrackSimilarity,
-} from "./engine";
-export type { GlobalMatch } from "./engine";
-export {
-  getAmistadThreshold,
-  getMatchingConfig,
-
-  getRomanceThreshold,
-} from "./config";
+  type GlobalMatch,
+  type MatchBadge,
+  type PoolEntry,
+} from "./compute-matches";
+export { getAmistadThreshold, getMatchingConfig, getRomanceThreshold } from "./config";
 export {
   buildMatchNarrative,
   cognitiveComplementarity,

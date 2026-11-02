@@ -221,7 +221,7 @@ function enneagramDistances(
   return distances;
 }
 
-function enneagramProfileFromType(
+export function enneagramProfileFromType(
   type: EnneagramType,
   wing: EnneagramType,
 ): EnneagramProfile {

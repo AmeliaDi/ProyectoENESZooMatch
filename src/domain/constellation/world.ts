@@ -11,7 +11,7 @@
 import type { PhysicsConfig } from "@/config";
 
 import { driftSeedFor, type DriftSeed } from "./noise";
-import { affinityAboveThreshold } from "./scene";
+import { affinityAboveThreshold, getTrackCeiling } from "./scene";
 import { createPairGrid, type PairGrid } from "./spatial-hash";
 import type { BodyKind, LinkKind, MatchTrack, Scene, Vec2 } from "./types";
 
@@ -122,12 +122,13 @@ function linkFromScene(
   link: Scene["links"][number],
   index: ReadonlyMap<string, number>,
   threshold: number,
+  ceiling: number,
   cfg: PhysicsConfig,
 ): Link | null {
   const a = index.get(link.a);
   const b = index.get(link.b);
   if (a === undefined || b === undefined) return null;
-  const t = affinityAboveThreshold(link.similarity, threshold) ?? 0;
+  const t = affinityAboveThreshold(link.similarity, threshold, ceiling) ?? 0;
   const stiffness = cfg.edges.stiffnessMin + t * (cfg.edges.stiffnessMax - cfg.edges.stiffnessMin);
   // Spokes pull one free mass against the pinned observer (μ = 1); pairs act
   // on the relative coordinate of two unit masses (μ = ½).
@@ -218,7 +219,7 @@ export function createWorld(scene: Scene, cfg: PhysicsConfig, entrance: Entrance
 
 function attachScene(world: World, scene: Scene, cfg: PhysicsConfig): void {
   world.links = scene.links.flatMap((link) => {
-    const built = linkFromScene(link, world.index, scene.threshold, cfg);
+    const built = linkFromScene(link, world.index, scene.threshold, getTrackCeiling(scene.track), cfg);
     return built ? [built] : [];
   });
   world.groups = scene.groups.map((group) => ({

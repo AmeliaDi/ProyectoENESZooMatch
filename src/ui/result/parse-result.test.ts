@@ -250,6 +250,20 @@ describe("parsePublicResult", () => {
     ]);
   });
 
+  it("labels every match category of the layered model with a friendly name and a known icon", () => {
+    const categories = ["personalidad", "valores", "dealbreakers", "relacional", "estilo", "conflicto", "apego", "afecto", "mbti", "eneagrama", "big_five"];
+    const parsed = parsePublicResult(
+      makePayload({
+        matches: { romance: [makeMatch({ badges: categories.map((dimension) => ({ dimension, affinity: 0.7 })) })], amistad: [] },
+      }),
+    ) as PublicResult;
+    for (const badge of parsed.matches.romance[0]?.badges ?? []) {
+      expect(badge.label).not.toContain("_");
+      expect(badge.label).not.toBe(badge.dimension);
+      expect(badge.icon).not.toBe("general");
+    }
+  });
+
   it("keeps every badge affinity inside [0, 1] for well-formed payloads", () => {
     const parsed = parsePublicResult(makePayload()) as PublicResult;
 

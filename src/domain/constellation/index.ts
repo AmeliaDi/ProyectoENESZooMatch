@@ -16,6 +16,7 @@ export {
   affinityAboveThreshold,
   buildScene,
   contactDistance,
+  getTrackCeiling,
   getTrackThreshold,
   linkKey,
   similarityToDistance,

@@ -37,10 +37,22 @@ export function linkKey(a: string, b: string): string {
   return a < b ? `${a}::${b}` : `${b}::${a}`;
 }
 
-/** Affinity above the threshold, normalised to [0, 1]. `null` if not a match. */
-export function affinityAboveThreshold(similarity: number, threshold: number): number | null {
+/**
+ * Achievable ceiling of a track's score (calibrated `reference_high`). The
+ * score is an expected similarity under uncertainty, so 1 is never reached.
+ */
+export function getTrackCeiling(track: MatchTrack): number {
+  return MATCHING_CONFIG.tracks[track].reference_high;
+}
+
+/**
+ * Affinity above the threshold, normalised to [0, 1] against `ceiling`
+ * (falls back to 1 when an overridden threshold sits above the ceiling).
+ * `null` if not a match.
+ */
+export function affinityAboveThreshold(similarity: number, threshold: number, ceiling = 1): number | null {
   if (!(similarity > threshold)) return null;
-  const span = 1 - threshold;
+  const span = (ceiling > threshold ? ceiling : 1) - threshold;
   return span <= 0 ? 1 : Math.min(1, (similarity - threshold) / span);
 }
 
@@ -56,8 +68,9 @@ export function similarityToDistance(
   width: number,
   height: number,
   cfg: PhysicsConfig,
+  ceiling = 1,
 ): number | null {
-  const t = affinityAboveThreshold(similarity, threshold);
+  const t = affinityAboveThreshold(similarity, threshold, ceiling);
   if (t === null) return null;
   const minDim = Math.min(width, height);
   const fit = Math.max(0, minDim / 2 - cfg.bounds.padding);
@@ -399,7 +412,7 @@ export function buildScene(
 
   const radiusOf = new Map<string, number>();
   for (const match of matches) {
-    radiusOf.set(match.id, similarityToDistance(match.similarity, threshold, width, height, cfg) ?? 0);
+    radiusOf.set(match.id, similarityToDistance(match.similarity, threshold, width, height, cfg, getTrackCeiling(track)) ?? 0);
   }
   const radii = groupRadii(groups, radiusOf);
   const angles = assignAngles(matches, groups, track, centre, previous);

@@ -14,6 +14,7 @@ function profile(): ScoredProfile {
     hardFilters: { orientacion_sexual: [], identidad_genero: [], tipo_relacion_busca: [] },
     romanceVector: Array.from({ length: ROMANCE_VECTOR_LENGTH }, () => 0.5),
     friendshipVector: Array.from({ length: FRIENDSHIP_VECTOR_LENGTH }, () => 0.5),
+    latent: { theta: {}, se: {}, quality: 1, answered: 0 },
   };
 }
 

@@ -15,8 +15,8 @@ import type { MatchTrack } from "@/types/microtest";
 const config = getMatchingConfig();
 
 function similarityAt(track: MatchTrack, relative: number): number {
-  const threshold = config.tracks[track].minimum_similarity_exclusive;
-  return threshold + relative * (1 - threshold) + 1e-9;
+  const { minimum_similarity_exclusive: threshold, reference_high: ceiling } = config.tracks[track];
+  return threshold + relative * (ceiling - threshold) + 1e-9;
 }
 
 describe("computeChemistrySummary", () => {
@@ -45,10 +45,11 @@ describe("computeChemistrySummary", () => {
   );
 
   it("keeps the raw percentage and exposes the threshold used for the band", () => {
-    const summary = computeChemistrySummary(0.86, "romance");
+    const similarity = similarityAt("romance", 0.3);
+    const summary = computeChemistrySummary(similarity, "romance");
 
-    expect(summary.percentage).toBe(86);
-    expect(summary.displayText).toBe("86% de Compatibilidad");
+    expect(summary.percentage).toBe(Math.round(similarity * 100));
+    expect(summary.displayText).toBe(`${summary.percentage}% de Compatibilidad`);
     expect(summary.levelLabel).toBe("Química fuerte");
     expect(summary.threshold).toBe(config.tracks.romance.minimum_similarity_exclusive);
     expect(summary.relativePosition).toBeGreaterThan(0);

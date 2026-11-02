@@ -277,14 +277,55 @@ respuestas. Los perfiles guardados con el banco viejo deben rehacer el test.
 
 ---
 
+## ADR-017 · Matching por capas sobre el perfil latente
+
+**Contexto.** Fase 4 del afinado. El motor anterior usaba el coseno centrado
+sobre promedios en [0, 1], una mezcla psicométrica y penalizaciones ad hoc. Esa
+combinación no usa la incertidumbre, cuenta dos veces los rasgos correlacionados
+y no exige compatibilidad en todas las áreas.
+
+**Decisión.** Detalle en `docs/MATCHING.md`.
+- **Puntaje latente bayesiano** (GRM de ojiva normal, prior N(0, R), MAP y
+  Laplace, calidad lz/longstring/SD). Se guarda en `profiles.latent_profile`, que
+  es solo para el servidor. Es la única entrada del puntaje.
+- **Similitud esperada** bajo ambas posteriores:
+  - núcleo gaussiano en las áreas de similitud;
+  - ventana de tolerancia en dealbreakers y estilo relacional;
+  - Bhattacharyya contraído por entropía en el Eneagrama.
+- **Soft-min ponderado** (β = 6 en romance, 4 en amistad) con pisos en
+  dealbreakers y valores, y **cola mínima**: extras ≤ 0.05 y capa 4 ≤ 0.02, nunca
+  con piso. La ablación confirma que sin capa 4 el orden no cambia (ρ = 1.000).
+- **Umbral = cuantil 1 − α de una nula por permutación** (α = .05 en romance y
+  .15 en amistad), escrito por `npm run data:matching`.
+- **`reference_high`** (cuantil .999 real) escala las bandas y las órbitas: la
+  similitud esperada nunca llega a 1.
+- **Insignias = categorías con mayor contribución exacta.** Ya no son las
+  dimensiones con menor brecha.
+- Se eliminan `engine.ts`, el coseno ponderado, `psychometric_mix`, la
+  selectividad de romance, el tope de cobertura del 6 % y
+  `generate-synthetic-profiles.ts`.
+
+**Consecuencias.**
+- El RPC `submit_quiz_result` recibe `p_latent_profile` y la base se reseteó
+  (0 perfiles).
+- Los porcentajes mostrados bajan (un máximo típico de 0.55–0.60) porque son
+  similitudes esperadas con incertidumbre. Las bandas de química y la confianza
+  se calculan relativas al umbral y al techo, no a 1.
+- La estabilidad ante ±1 Likert es alta en el orden (ρ ≈ .94–.96), pero los
+  conjuntos publicados cambian a la mitad (Jaccard ≈ .5): la frontera del top-K es
+  ruidosa. Esto se declara y no se esconde.
+
+---
+
 ## Pendientes conocidos (no decididos aún)
 
 - **Alias:** hoy es determinista con sufijo de 4 caracteres en base 36. Una colisión
   provocaría que el envío falle siempre (`UNIQUE`). Se reemplaza en el Prompt 2 por un
   alias derivado de HMAC con resolución determinista de colisiones.
 - **Tope de matches:** el motor recorta a 3 (romance) y 5 (amistad) por persona, pero
-  la unión de los top-K de ambos lados puede dejar a alguien con más. Se resolverá
-  con el matching del Prompt 2.
+  la unión de los top-K de ambos lados puede dejar a alguien con más. Se mantiene
+  con el modelo por capas: así nadie pierde un match que la otra persona sí eligió.
+  Una asignación estable con tope estricto queda como opción (Gale–Shapley).
 - **Rate limit:** sin Upstash, el modo es *fail-open* (con cabecera `X-RateLimit-Policy:
   fail-open`). Para el evento, configurarlo es obligatorio (ver `DESPLIEGUE.md`).
 - **Coherencia MBTI–Eneagrama:** 6 combinaciones del catálogo son poco plausibles. Se

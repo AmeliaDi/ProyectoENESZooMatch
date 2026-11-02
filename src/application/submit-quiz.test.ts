@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { QUIZ_ITEMS } from "@/config";
+import { MATCHING_CONFIG, QUIZ_ITEMS } from "@/config";
+import { PSYCHOMETRIC_PARAMS } from "@/config/psychometric-params";
+import { buildMeasurementModel, scoreLatent } from "@/domain/psychometrics/latent";
 import type { LikertValue, QuizSubmission } from "@/types/microtest";
 
 import { submitQuiz, type SubmitQuizDeps } from "./submit-quiz";
@@ -12,6 +14,7 @@ import {
   memoryProfiles,
 } from "./testing/in-memory";
 
+const MODEL = buildMeasurementModel(PSYCHOMETRIC_PARAMS);
 const USER_A = "00000000-0000-4000-8000-00000000000a";
 const USER_B = "00000000-0000-4000-8000-00000000000b";
 
@@ -34,6 +37,7 @@ function wire(store: MemoryStore): SubmitQuizDeps {
     matches: memoryMatches(store),
     notifications: memoryNotifications(store),
     scheduler: instantScheduler,
+    latentScorer: (responses) => scoreLatent(MODEL, responses, MATCHING_CONFIG.quality),
   };
 }
 
