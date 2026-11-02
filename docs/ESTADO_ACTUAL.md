@@ -145,6 +145,7 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | 5. Avatares | Cerrada | `docs/AVATARES.md`, ADR-018, `scripts/avatars/`, `/dev/avatars` |
 | 6. Validación y preregistro | Cerrada | `docs/PREREGISTRO.md`, `docs/VALIDACION.md`, `docs/VALIDACION_RESULTADOS.md`, `docs/TRAZABILIDAD.md`, `docs/META_ANALISIS.md`, ADR-020, `scripts/validation/` |
 | 7. Producto | Cerrada | ADR-021, `src/domain/explainability/layered.ts`, `src/application/refine-profile.ts`, `/afinar`, `/evidencia`, `data/explanation-copy.json`, `data/evidence-summary.json` |
+| Cierre: QA y revisión de sprites | Cerrada | `docs/QA.md`, `scripts/qa/`, `docs/AVATARES.md` §5 (siluetas propias) |
 
 Cambio de base aplicado en Supabase el 2026-11-02 (aditivo, sin tocar datos):
 columna `profiles.completed_modules` y parámetro `p_completed_modules` en
