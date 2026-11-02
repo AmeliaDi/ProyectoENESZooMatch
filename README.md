@@ -54,8 +54,10 @@ Reglas clave:
 - `data/arquetipos.json`: 103 animales × 55 colores.
 - `data/enneagram*.json`: prototipos del Eneagrama.
 
-Para cambiar umbrales o pesos se edita el JSON, no el código; `npm run data:validate` lo
-comprueba. El modelo y su calibración se describen en [`docs/SCORING.md`](./docs/SCORING.md).
+Para cambiar umbrales o pesos se edita el JSON, no el código; `npm run data:schemas` lo
+comprueba (y `docs/TRAZABILIDAD.md` exige actualizar el hash registrado). El modelo y su
+calibración se describen en [`docs/SCORING.md`](./docs/SCORING.md); la validación, en
+[`docs/VALIDACION.md`](./docs/VALIDACION.md).
 
 ## Base de datos
 
@@ -87,7 +89,10 @@ npm run dev             # http://localhost:3000
 | `npm run secrets:check` | busca claves (Firecrawl, Supabase, JWT…) en archivos rastreados y logs; `npm run hooks:install` activa el hook de pre-commit |
 | `npm run data:literature` | crawler de literatura: *dry-run* por defecto; `-- --run` gasta créditos de Firecrawl dentro de los topes (ver `docs/LITERATURA.md`) |
 | `npm run lint` / `typecheck` / `test` | por separado |
-| `npm run data:validate` | valida `data/*.json`, el catálogo y el contrato SQL ↔ TypeScript |
+| `npm run data:schemas` | valida `data/*.json`, el catálogo, el contrato SQL ↔ TypeScript y la trazabilidad (segundos) |
+| `npm run data:validate` | `data:schemas` + la validación sintética preregistrada (≈ 7 min) → `docs/VALIDACION_RESULTADOS.md` |
+| `npm run data:matching` | recalibra umbrales con la nula por permutación → `docs/MATCHING_RESULTADOS.md` |
+| `npm run data:meta` | meta-análisis de extracciones aprobadas (Python, `.venv-psy`) → `docs/META_ANALISIS.md` |
 | `npm run db:reset` | reinicia la base local con la migración base y la semilla |
 | `npm run db:apply` | aplica migración + semilla a un proyecto Supabase remoto vacío vía Management API (`SUPABASE_ACCESS_TOKEN` en `.env.local`); `-- --status` cuenta filas |
 | `npm run build` | build de producción |

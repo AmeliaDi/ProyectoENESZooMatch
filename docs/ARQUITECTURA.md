@@ -261,8 +261,8 @@ módulos: reescribirlos dos veces sería trabajo perdido.
   6 reglas.
 - Vitest: `include` añade `src/**/*.test.tsx` (para tests de componentes del Prompt 3 haría
   falta `@testing-library/react` + `jsdom`: se justificará entonces).
-- Scripts: `check` = `lint && typecheck && test`; `data:validate` = carga de `config/` en
-  Node; `db:reset` = `supabase db reset` (requiere CLI).
+- Scripts: `check` = `lint && typecheck && test`; `data:schemas` = carga de `config/` en
+  Node; `data:validate` = esquemas + validación sintética preregistrada (`scripts/validation/`); `db:reset` = `supabase db reset` (requiere CLI).
 - Docs: `README.md` como entrada; `docs/ARQUITECTURA.md`, `docs/DECISIONES.md` (ADR);
   `AUDIT.md`, `SCORING.md`, `CONTEXTO_PROYECTO.md` se consolidan en `docs/`.
 
@@ -306,7 +306,7 @@ Desviaciones respecto al plan:
 | Partir archivos > 300 líneas en el paso 4 | Se movieron sin reescribir | El Prompt 2 reescribe matching y explicabilidad, y el Prompt 3 reescribe avatares y constelación; partirlos ahora sería trabajo perdido |
 | `get_my_matches` con la sesión del usuario | `get_user_matches(p_user_id)` solo para el *service role* | Las tablas de participantes quedan invisibles para los clientes; no se exponen ids de otras personas |
 | Verificar el grupo de perfiles por conteo | Contador `pool_state.revision` mantenido por trigger | El conteo no detectaba reenvíos (ADR-006) |
-| `data:validate` cargando `config/` desde Node | Corre con Vitest los tests de `config`, del catálogo y del contrato SQL | Node no resuelve el alias `@/` ni los imports de JSON sin el *bundler* |
+| `data:schemas` (antes `data:validate`) cargando `config/` desde Node | Corre con Vitest los tests de `config`, del catálogo y del contrato SQL | Node no resuelve el alias `@/` ni los imports de JSON sin el *bundler* |
 | `ui/` con `public-experience` | Se partió en `quiz/public-quiz`, `result/result-view` y `shared/chrome` | Era un archivo de 1 100 líneas con tres responsabilidades |
 
 Verificación en cada commit: `npm run check` (lint + typecheck + tests) y `next build`.

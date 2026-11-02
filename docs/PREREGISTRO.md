@@ -111,4 +111,10 @@ Se diseña aquí y su análisis se preregistra **antes** de recolectar datos. De
 
 ## Desviaciones
 
-(ninguna al registrar)
+- **2026-11-02 · H6b (confianza).** El piso por área de producción se calcula sobre el desglose
+  descriptivo heredado, que el generador sintético no produce. Se reportan dos reglas: «solo
+  margen» (idéntica a la de producción en lo que el generador sí tiene) y «margen + piso sobre
+  categorías latentes». El veredicto se toma de la primera. Se decidió al escribir el código y
+  antes de ver resultados.
+- **2026-11-02 · Nombres.** En `docs/VALIDACION.md`, el ECE (H6 b) y la confianza (H6b) se
+  distinguen como H6b y H6b′. No cambia ningún criterio.

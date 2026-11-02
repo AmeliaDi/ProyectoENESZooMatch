@@ -377,6 +377,33 @@ sin blur, para que ninguna estrella toque un glifo.
 
 ---
 
+## ADR-020 · Validación preregistrada, trazabilidad con hash y aviso de «solo amistad»
+
+**Contexto.** La Fase 6 pide validar con rigor sin ajustar criterios a la vista de los
+resultados, y que ningún parámetro cambie sin dejar rastro. La subpoblación
+`prefiere_no_decir` tiene 0 % de cobertura en romance.
+
+**Decisión.**
+- `docs/PREREGISTRO.md` se publica en un commit propio *antes* de correr
+  `scripts/validation/`. Las desviaciones se añaden con fecha y nunca se reescriben.
+- Las pruebas primarias se corrigen con Holm y las exploratorias con BH. El bootstrap
+  siempre es por persona, porque los pares que comparten persona no son independientes.
+- `docs/TRAZABILIDAD.md` registra el hash (LF) de `matching-config`,
+  `psychometric-params` y `self-reading`; `src/config/traceability.test.ts` falla si
+  no coinciden o si la matriz cita EV, ADR, archivos o tests inexistentes.
+- El 0 % de `prefiere_no_decir` en romance se **acepta**, porque es consecuencia de
+  ADR-016 y no se infiere nada. A cambio, el test lo avisa en el momento de elegir
+  (`romanceOptOut` en `domain/matching/hard-filters.ts`).
+- `data:validate` corre los esquemas y la validación completa (≈ 7 min); `data:schemas` es
+  la parte rápida.
+- El meta-análisis no agrega nada con k < 3 comparables. Hoy no hay ningún grupo así.
+
+**Consecuencias.** Quedan para la Fase 7: el piso de confianza sobre categorías latentes,
+la fragilidad del top-K (Jaccard ≈ 0.5) en el copy, y ofrecer primero el módulo de
+intereses en amistad (H4c). Nada de esto cambia pesos ni umbrales en la Fase 6.
+
+---
+
 ## Pendientes conocidos (no decididos aún)
 
 - **Alias:** hoy es determinista con sufijo de 4 caracteres en base 36. Una colisión

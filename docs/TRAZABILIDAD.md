@@ -1,0 +1,50 @@
+# Trazabilidad: decisión → evidencia → ecuación → código → test
+
+Cada fila enlaza una decisión del modelo con su respaldo (`EV-xx` en `docs/EVIDENCIA.md`, ADR en
+`docs/DECISIONES.md`), la ecuación que la implementa, el archivo y el test que la protege.
+`src/config/traceability.test.ts` verifica que los EV, archivos y tests citados existan y que los
+hashes registrados abajo coincidan con los datos.
+
+## Hashes registrados de las entradas del modelo
+
+SHA-256 de los primeros 16 hex, con los fines de línea normalizados a LF. Si cambias uno de estos
+archivos, el test falla hasta que actualices el hash aquí **y** revises qué filas de la tabla
+afecta el cambio. Regenera también `docs/MATCHING_RESULTADOS.md` y `docs/VALIDACION_RESULTADOS.md`
+si cambian pesos, umbrales o parámetros.
+
+| Archivo | Hash registrado |
+|---|---|
+| data/matching-config.json | `9775d4d6bcaee6b0` |
+| data/psychometric-params.json | `d25ff00d96fc3820` |
+| data/self-reading.json | `347f4a593471fe97` |
+
+## Matriz
+
+| Id | Decisión | Evidencia | Etiqueta | Ecuación | Código | Test |
+|---|---|---|---|---|---|---|
+| T-01 | HEXACO es el núcleo del puntaje | EV-100, EV-101, EV-103, ADR-014 | prior_literatura | — | `data/matching-config.json` (categoría `personalidad`) | `src/domain/matching/layers.test.ts` |
+| T-02 | Rasgo latente por EAP/Laplace bajo GRM con prior multivariado; los módulos ausentes amplían el EE, nunca se imputan | EV-74, EV-75, ADR-016 | estimado_sintetico | θ̂ = argmax log p(x\|θ) + log N(θ; 0, R); Σ̂ = H⁻¹ | `src/domain/psychometrics/latent.ts` | `src/domain/psychometrics/latent.test.ts` |
+| T-03 | Calidad de respuesta (ℓz, longstring, DE intra-persona) templa la verosimilitud | EV-76, EV-77 | supuesto_diseno | q ∈ [q_min, 1] multiplica log p(x\|θ) | `src/domain/psychometrics/latent.ts` | `src/domain/psychometrics/latent.test.ts` |
+| T-04 | Similitud por núcleo gaussiano esperado bajo ambas posteriores (no premia la incertidumbre) | EV-90, EV-91 | supuesto_diseno | E[k] = Π r/√(r²+s²)·exp(−½μ²/(r²+s²)) | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
+| T-05 | Penalización asimétrica en Honestidad-Humildad baja | EV-104 | prior_literatura | μ ← μ·(1 + η·max(0, −min θ)) | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
+| T-06 | Dealbreakers y metas de relación con ventana de tolerancia (producto) | EV-105, EV-58 | supuesto_diseno | g(δ) = exp(−½(max(0,\|δ\|−tol)/scale)²) | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
+| T-07 | Agregación estricta por soft-min con pisos y cola mínima; descomposición exacta en contribuciones | EV-27, ADR-017 | supuesto_diseno | S = −(1/β) log Σ w e^{−βs}; total = (1−Στ)·F·S + Σ τ s | `src/domain/matching/pair-score.ts` | `src/domain/matching/layers.test.ts` |
+| T-08 | MBTI y eneagrama: peso ≤ 0.02 (identidad visual y narrativa) | EV-30, EV-31, EV-32, ADR-015 | prior_literatura | Σ τ_capa4 ≤ 0.02 (Zod) | `src/config/matching.ts` | `src/config/config.test.ts` |
+| T-09 | Apego, conflicto y afecto solo como extras (≤ 0.05, sin piso) | EV-54, EV-58, EV-107, ADR-015 | prior_literatura | Σ τ_extras ≤ 0.05 (Zod) | `src/config/matching.ts` | `src/config/config.test.ts` |
+| T-10 | Big Five con peso 0 (redundante con HEXACO) | EV-101, ADR-015 | estimado_sintetico | r latente > 0.70 ⇒ fuera del puntaje | `data/matching-config.json` | `src/config/config.test.ts` |
+| T-11 | Eneagrama comparado por traslape de Bhattacharyya contraído por entropía | EV-91, ADR-017 | supuesto_diseno | s = n + (1−Hₐ)(1−H_b)(BC − n) | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
+| T-12 | Umbral = cuantil (1−α) de la nula por permutación | EV-94 | estimado_sintetico | t = Q_{1−α}(S_nula) | `scripts/matching/analysis.ts` | `src/domain/matching/matching.test.ts` |
+| T-13 | Filtros duros con elegibilidad mutua; «prefiero no decir» en FIL1/FIL3 ⇒ solo amistad | ADR-016 | supuesto_diseno | 1[G_B∈O_A]·1[G_A∈O_B]·K(A,B) | `src/domain/matching/hard-filters.ts` | `src/domain/matching/matching.test.ts` |
+| T-14 | Sensibilidad de pesos por Morris | EV-93 | estimado_sintetico | μ*, σ de efectos elementales | `scripts/matching/metrics.ts` | `src/domain/math/math.test.ts` |
+| T-15 | Validación preregistrada: Holm (primarias) y BH (exploratorias) | EV-94 | supuesto_diseno | p_Holm, q_BH | `scripts/validation/stats.ts` | `scripts/validation/validation.test.ts` |
+| T-16 | Meta-análisis REML + Knapp-Hartung solo con k ≥ 3 comparables | EV-01, EV-03 | supuesto_diseno | τ² REML; IC con t_{k−1}·√(q_KH/Σw) | `scripts/literature/meta.py` | `scripts/validation/validation.test.ts` |
+| T-17 | Avatar desde MBTI (animal) y eneagrama (color) | EV-35, ADR-018 | supuesto_diseno | — | `src/domain/avatars/avatar-spec.ts` | `src/domain/avatars/avatar-spec.test.ts` |
+| T-18 | «Tu carta»: lecturas del perfil propio con incertidumbre | ADR-019 | supuesto_diseno | banda = θ̂ ± z·EE | `src/domain/psychometrics/self-reading.ts` | `src/domain/psychometrics/self-reading.test.ts` |
+| T-19 | Confianza «alta» solo con margen sobre el umbral y sin áreas bajas | ADR-017 | supuesto_diseno | rel = (s − t)/(ref − t) ≥ m | `src/domain/explainability/explainability.ts` | `src/domain/explainability/explainability.test.ts` |
+
+## Resultados que respaldan la matriz
+
+- Calibración y sensibilidad: `docs/MATCHING_RESULTADOS.md`.
+- Medición (AFC, ω, GRM, DIF): `docs/MEDICION.md`.
+- Validación preregistrada: `docs/PREREGISTRO.md` → `docs/VALIDACION_RESULTADOS.md` → lectura en `docs/VALIDACION.md`.
+- Meta-análisis: `docs/META_ANALISIS.md` (no agrega nada: k < 3 en todo grupo).

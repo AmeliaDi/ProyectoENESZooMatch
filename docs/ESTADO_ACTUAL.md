@@ -143,7 +143,8 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | 3. Test modular | Cerrada | `docs/TEST.md`, `docs/MEDICION.md`, `docs/DECISION_MODELO_RASGOS.md`, ADR-016, `scripts/psychometrics/` |
 | 4. Matching | Cerrada | `docs/MATCHING.md`, `docs/MATCHING_RESULTADOS.md`, ADR-017, `scripts/matching/` |
 | 5. Avatares | Cerrada | `docs/AVATARES.md`, ADR-018, `scripts/avatars/`, `/dev/avatars` |
-| 6. Validación y preregistro | Siguiente | — |
+| 6. Validación y preregistro | Cerrada | `docs/PREREGISTRO.md`, `docs/VALIDACION.md`, `docs/VALIDACION_RESULTADOS.md`, `docs/TRAZABILIDAD.md`, `docs/META_ANALISIS.md`, ADR-020, `scripts/validation/` |
+| 7. Producto | Siguiente | — |
 
 Despliegue (2026-11-01): `zooenes.vercel.app` usa solo el proyecto Supabase
 `uchrlfvhaiisoyndwprf`, Node 24 y variables manuales; `POST /api/enter` con
