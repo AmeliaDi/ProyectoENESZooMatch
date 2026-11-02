@@ -4,7 +4,7 @@
 > **Datos sintéticos: validan el código y la sensibilidad, no el mundo real.**
 
 - Semilla 1515870810; 600 perfiles; 268 con banco completo.
-- Hash SHA-256 (16 hex, LF) de entradas: `matching-config` 2a6c0cbee1e8d5f9, `psychometric-params` d25ff00d96fc3820, `self-reading` 347f4a593471fe97.
+- Hash SHA-256 (16 hex, LF) de entradas: `matching-config` 2d0c61300e6d2460, `psychometric-params` d25ff00d96fc3820, `self-reading` 347f4a593471fe97.
 
 ## H1 · Modelo contra línea base (AUC, bootstrap pareado por persona, B = 200)
 
@@ -21,13 +21,13 @@
 
 | Track | Subpoblación | N | Cobertura | IC 95 % | Veredicto |
 |---|---|---|---|---|---|
-| romance | mujer_hombres | 75 | 82.7 % | [72.6 %, 89.6 %] | **cumple** |
-| romance | hombre_mujeres | 75 | 89.3 % | [80.3 %, 94.5 %] | **cumple** |
-| romance | mujer_mujeres | 75 | 85.3 % | [75.6 %, 91.6 %] | **cumple** |
-| romance | hombre_hombres | 75 | 76.0 % | [65.2 %, 84.2 %] | **cumple** |
-| romance | nobinarie_todes | 75 | 88.0 % | [78.7 %, 93.6 %] | **cumple** |
-| romance | bi_mujer | 75 | 90.7 % | [82.0 %, 95.4 %] | **cumple** |
-| romance | solo_nucleo | 75 | 93.3 % | [85.3 %, 97.1 %] | **cumple** |
+| romance | mujer_hombres | 75 | 73.3 % | [62.4 %, 82.0 %] | **cumple** |
+| romance | hombre_mujeres | 75 | 78.7 % | [68.1 %, 86.4 %] | **cumple** |
+| romance | mujer_mujeres | 75 | 80.0 % | [69.6 %, 87.5 %] | **cumple** |
+| romance | hombre_hombres | 75 | 62.7 % | [51.4 %, 72.7 %] | **cumple** |
+| romance | nobinarie_todes | 75 | 72.0 % | [61.0 %, 80.9 %] | **cumple** |
+| romance | bi_mujer | 75 | 84.0 % | [74.1 %, 90.6 %] | **cumple** |
+| romance | solo_nucleo | 75 | 81.3 % | [71.1 %, 88.5 %] | **cumple** |
 | romance | prefiere_no_decir | 75 | 0.0 % | [0.0 %, 4.9 %] | excluida por diseño (§4) |
 | amistad | mujer_hombres | 75 | 100.0 % | [95.1 %, 100.0 %] | **cumple** |
 | amistad | hombre_mujeres | 75 | 100.0 % | [95.1 %, 100.0 %] | **cumple** |
@@ -42,7 +42,7 @@
 
 | Track | Spearman de puntajes | H3 | Jaccard del top-K | H3s |
 |---|---|---|---|---|
-| romance | 0.936 | **cumple** | 0.531 | **cumple** |
+| romance | 0.936 | **cumple** | 0.535 | **cumple** |
 | amistad | 0.964 | **cumple** | 0.493 | **no cumple** |
 
 ## H4 · Solo núcleo contra banco completo (268 personas con banco completo)
@@ -181,8 +181,8 @@ Curva de fiabilidad (romance, similitud; bins de igual frecuencia):
 
 | Track | Regla | n alta | n media | Match verdadero (alta) | Match verdadero (media) | Veredicto |
 |---|---|---|---|---|---|---|
-| romance | solo margen (referencia preregistrada) | 616 | 220 | 39.1 % | 31.8 % | **cumple** |
-| romance | producción: margen + piso + incertidumbre | 364 | 472 | 40.7 % | 34.5 % | **cumple** |
+| romance | solo margen (referencia preregistrada) | 461 | 203 | 41.4 % | 34.5 % | **cumple** |
+| romance | producción: margen + piso + incertidumbre | 271 | 393 | 43.5 % | 36.4 % | **cumple** |
 | amistad | solo margen (referencia preregistrada) | 2335 | 86 | 42.4 % | 17.4 % | **cumple** |
 | amistad | producción: margen + piso + incertidumbre | 1900 | 521 | 42.2 % | 39.0 % | **cumple** |
 

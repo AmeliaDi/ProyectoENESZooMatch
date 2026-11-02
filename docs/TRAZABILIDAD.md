@@ -14,7 +14,7 @@ si cambian pesos, umbrales o parámetros.
 
 | Archivo | Hash registrado |
 |---|---|
-| data/matching-config.json | `2a6c0cbee1e8d5f9` |
+| data/matching-config.json | `2d0c61300e6d2460` |
 | data/psychometric-params.json | `d25ff00d96fc3820` |
 | data/self-reading.json | `347f4a593471fe97` |
 

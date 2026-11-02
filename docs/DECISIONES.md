@@ -478,3 +478,26 @@ modelo no calcula, y con el piso de 60 % nadie llegaba a «confianza alta» (ADR
   «imposibles» que el catálogo tenga que vetar.
 - **26 especies sin grupo MBTI:** siguen en el catálogo (galería y fantasmas).
   Ampliar los grupos exige especies con afinidad < 0.80.
+
+## ADR-022 · Romance un poco más exigente
+
+**Contexto.** Con perfiles reales en producción, el romance se sentía demasiado fácil de
+alcanzar. El umbral era el cuantil 0.95 de la nula por permutación (5 % de falso match).
+
+**Decisión.** `tracks.romance.null_alpha` baja de 0.05 a 0.03. El umbral sigue siendo un
+cuantil de la nula, recalibrado con `npm run data:matching` (misma semilla). Ningún peso,
+piso ni β cambia; amistad queda igual.
+
+| Métrica (sintética, N = 600) | Antes (α = .05) | Ahora (α = .03) |
+|---|---|---|
+| Umbral | 0.5252 | 0.5374 |
+| Pares elegibles sobre el umbral | 6.0 % | 3.7 % |
+| Cobertura de personas | 75.7 % | 66.5 % |
+| Subgrupo con menor cobertura | 76.0 % | 62.7 % (hombre_hombres) |
+| Precisión «confianza alta» (producción) | 40.7 % | 43.5 % |
+
+**Consecuencias.** Todas las hipótesis preregistradas de `docs/VALIDACION_RESULTADOS.md`
+siguen cumpliéndose, incluida la equidad por subgrupo. No se fue a α = .01: la cobertura
+caería a ≈ 45 %. Los matches guardados se recalculan con el umbral nuevo en la siguiente
+recalculación global (alguien envía el test, pausa o borra su perfil, o `POST
+/api/admin/recompute`).

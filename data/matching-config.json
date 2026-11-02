@@ -129,8 +129,8 @@
     "romance": {
       "etiqueta": "supuesto_diseno",
       "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md",
-      "minimum_similarity_exclusive": { "valor": 0.5252, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.95 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
-      "null_alpha": { "valor": 0.05, "etiqueta": "supuesto_diseno", "fuente": "Tasa de falso match por par bajo la nula" },
+      "minimum_similarity_exclusive": { "valor": 0.5374, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.97 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
+      "null_alpha": { "valor": 0.03, "etiqueta": "supuesto_diseno", "fuente": "Tasa de falso match por par bajo la nula; bajada de 0.05 a 0.03 para un romance más exigente (ADR-022)" },
       "reference_high": { "valor": 0.5877, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
       "max_matches": { "valor": 3, "etiqueta": "supuesto_diseno", "fuente": "Top-K por persona" },
       "hard_filters": ["orientacion_sexual", "identidad_genero", "tipo_relacion_busca"],
