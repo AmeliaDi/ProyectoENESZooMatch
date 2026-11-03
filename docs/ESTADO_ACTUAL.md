@@ -176,6 +176,7 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | Sonido, háptica, 404 y easter egg | Cerrada | ADR-033, `src/ui/feedback/` |
 | Cierre de pendientes (Φ, alias, avisos, docs) | Cerrada (2026-11-04) | ADR-034, migración `20261105000000_alias_collision.sql` (aplicada) |
 | Dorado por pista y física de cielos llenos | Cerrada | ADR-031, `docs/FISICA.md` |
+| Ráfaga concurrente (H-02) y verificación `[VERIFICAR]` | Cerrada (2026-11-03) | `docs/QA.md` §4.3, `docs/EVIDENCIA.md` §6 (quedan 3 sin fuente accesible) |
 
 **Pendiente solo manual** (no automatizable aquí, ver `docs/QA.md` §5): teléfono real de gama
 media, TalkBack/VoiceOver y panel admin con sesión.

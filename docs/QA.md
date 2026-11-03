@@ -135,6 +135,29 @@ HSS...BHHB...SSH
 | Colisión de alias en la base real (bloque revertido, `.qa/alias-probe.mjs`) | 1.ª persona `… · ZZZZ`; 2.ª `… · ZZZZ-D8F`; al rehacer conserva `-D8F`. Perfiles antes y después: 71 |
 | LCP / CLS | `/resultado` 876 ms / 0.000; `/chats` 876 ms / 0.006 |
 
+## 4.3 Ráfaga concurrente y evidencia (2026-11-03, `c8b1eef`, AUDIT H-02)
+
+Prueba contra producción con las 10 matrículas falsas `426144890…9`
+(`.qa/burst.mjs`, fuera del repo). Cada ola envía 10 `POST /api/quiz` a la vez;
+cada envío recalcula todas las afinidades. Al final, `DELETE /api/privacy` para todas.
+
+| Corrida | Envíos | Concurrencia | Códigos | p50 / p95 / máx. | Coherencia |
+|---|---|---|---|---|---|
+| 1 | 30 (3 olas) | 10 | 30 × 200 | 3 972 / 4 910 / 4 964 ms | — (el script leía mal el DTO) |
+| 2 | 20 (2 olas) | 10 | 20 × 200 | 3 752 / 4 789 / 4 789 ms | 10/10 perfiles con resultado; 10 alias únicos; matches QA↔QA presentes en ambos tracks |
+| **Total** | **50** | 10 | **50 × 200, 0 × 503** | — | Base después: 71 perfiles, 0 usuarios de Auth sin perfil, 0 matches huérfanos |
+
+Límites: solo hay 10 identidades falsas, así que la concurrencia máxima fue 10, no 50.
+Sin Upstash (H-01), el limitador por IP está en bypass; la prueba mide la base y el
+recálculo, no el limitador. Con 10 simultáneos no hubo `match.pool_unstable`. Con
+cientos en el mismo minuto, la latencia crecería con el pool, porque cada envío
+recalcula todo.
+
+**Verificación de literatura (`docs/EVIDENCIA.md` §6):** 7 de 10 pendientes resueltos
+con Europe PMC, OpenAlex, Open Library y Firecrawl (5 créditos). Siguen `[VERIFICAR]`:
+el origen de la muestra de Gonzaga 2010, las licencias de BFI y PVQ (sin impacto: no
+se usan sus ítems) y los originales de Bhattacharyya 1943 y Mahalanobis 1936.
+
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
 
 - **Chat en dos teléfonos reales**: el flujo se probó por API y con tests de componentes;
