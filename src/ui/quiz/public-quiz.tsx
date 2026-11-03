@@ -8,6 +8,8 @@ import type { QuizSubmittedDto } from "@/contracts/result";
 import { CORE_ITEMS, EXPERIENCE, LIKERT_SCALE, isSkippableItem } from "@/config";
 import { romanceOptOut } from "@/domain/matching";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
+import { dropUnownedDeviceDrafts } from "@/ui/shared/device-drafts";
+import { ExitButton } from "@/ui/shared/exit-button";
 import { Button } from "@/ui/kit/button";
 import { ChoiceGroup } from "@/ui/kit/choice";
 import { Likert } from "@/ui/kit/likert";
@@ -72,6 +74,7 @@ export function PublicQuiz() {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
+      dropUnownedDeviceDrafts();
       const stored = parseQuizDraft(window.localStorage.getItem(QUIZ_STORAGE_KEY));
       setDraft(stored);
       setIndex(resumeIndex(ITEMS, stored));
@@ -181,7 +184,7 @@ export function PublicQuiz() {
   }));
 
   return (
-    <AtlasShell plate="Lámina 02 · test">
+    <AtlasShell plate="Lámina 02 · test" actions={<ExitButton />}>
       <main className="zm-quiz">
         <div className="zm-quiz__progress">
           <ConstellationProgress total={TOTAL} answered={answered} current={index} />

@@ -1,22 +1,38 @@
-import { availabilityRequestSchema, parseJsonBody } from "@/application/validation/common";
+import { enterRequestSchema, parseJsonBody } from "@/application/validation/common";
+import { clientAddress } from "@/infrastructure/auth/access-guard.server";
 import { enterWithMatricula } from "@/infrastructure/auth/matricula-session.server";
 import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
 import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 async function handlePost(request: Request) {
-  const parsed = availabilityRequestSchema.safeParse(await parseJsonBody(request));
+  const parsed = enterRequestSchema.safeParse(await parseJsonBody(request));
   if (!parsed.success) return errorResponse("request.invalid");
 
-  const result = await enterWithMatricula(parsed.data.matricula);
-  if (!result.ok) {
-    return errorResponse(
-      result.reason === "misconfigured" ? "service.misconfigured" : "service.unavailable",
-    );
+  const result = await enterWithMatricula({
+    matricula: parsed.data.matricula,
+    accessKey: parsed.data.accessKey,
+    address: clientAddress(request.headers),
+  });
+  if (result.ok) {
+    return jsonResponse({ ok: true, redirect: result.redirect, draftOwner: result.draftOwner });
   }
 
-  return jsonResponse({ ok: true, redirect: result.redirect });
+  switch (result.reason) {
+    case "invalid_key":
+      return errorResponse("auth.invalid_credentials");
+    case "locked": {
+      const response = errorResponse("auth.locked");
+      response.headers.set("Retry-After", String(result.retryAfter));
+      return response;
+    }
+    case "misconfigured":
+      return errorResponse("service.misconfigured");
+    default:
+      return errorResponse("service.unavailable");
+  }
 }
 
 const methods = ["POST"] as const;

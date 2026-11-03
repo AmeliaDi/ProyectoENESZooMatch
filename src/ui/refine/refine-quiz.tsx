@@ -20,6 +20,7 @@ import { ErrorState } from "@/ui/kit/states";
 import { LoadingFrame, RECOMPUTE_PENDING_KEY } from "@/ui/shared/chrome";
 
 import type { QuizDraft } from "../quiz/quiz-draft";
+import { dropUnownedDeviceDrafts } from "../shared/device-drafts";
 import { countAnswered, isAnswered, optionLabel, resumeIndex, toggleSkip } from "../quiz/quiz-flow";
 import { MODULE_INFO, draftKey, moduleItems, parseModuleDraft, refinePayload } from "./refine-flow";
 
@@ -43,6 +44,7 @@ export function RefineQuiz({ module }: { module: QuizModuleId }) {
 
   useEffect(() => {
     queueMicrotask(() => {
+      dropUnownedDeviceDrafts();
       const stored = parseModuleDraft(window.localStorage.getItem(draftKey(module)), items);
       setDraft(stored);
       setIndex(resumeIndex(items, stored));

@@ -34,9 +34,11 @@ Scripts reproducibles:
 
 **39/39 OK** (las mismas 39 en local).
 
-> Por diseño, cualquier identificador alfanumérico de 4 a 32 caracteres
-> entra: no hay padrón de matrículas, así que el servidor no puede validar
-> que exista. Solo se rechaza lo que no puede ser una matrícula.
+> No hay padrón de matrículas: cualquier matrícula de exactamente 9 dígitos
+> puede registrarse, pero desde ADR-023 la cuenta se protege con una clave
+> personal fijada en la primera entrada, y el guardia de Postgres frena la
+> enumeración. `qa-api.mjs` prueba formatos inválidos, clave incorrecta (401),
+> cierre de la sesión previa tras un fallo y `/api/exit`.
 
 ## 2. UI: 9 pantallas × 2 vistas × 2 modos (local, dev)
 

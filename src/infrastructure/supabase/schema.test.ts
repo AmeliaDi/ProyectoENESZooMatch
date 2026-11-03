@@ -69,6 +69,16 @@ describe("base migration", () => {
     expect(SQL).not.toMatch(/auth\.jwt\(\) ->> 'role' !=/);
   });
 
+  it("keeps the entry guard service-only and the key hash private (ADR-023)", () => {
+    for (const name of ["access_guard_hit", "access_guard_peek", "access_guard_clear"]) {
+      expect(PUBLIC_FUNCTIONS.get(name), name).toContain("PERFORM private.assert_service_role();");
+      expect(PUBLIC_FUNCTIONS.get(name), name).toContain("SECURITY DEFINER");
+    }
+    expect(SQL).toContain("CREATE TABLE private.access_guard");
+    expect(SQL).toMatch(/access_key_hash TEXT CHECK/);
+    expect(SQL).not.toMatch(/GRANT[^;]*access_guard[^;]*TO (anon|authenticated)/);
+  });
+
   it("never grants participant tables or service RPCs to API roles", () => {
     expect(SQL).toContain("REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC, anon, authenticated;");
     expect(SQL).toContain("REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;");

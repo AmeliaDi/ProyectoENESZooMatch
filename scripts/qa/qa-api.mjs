@@ -17,9 +17,10 @@ const row = (check, got, ok) => rows.push(`| ${check} | ${got} | ${ok ? "OK" : "
 const post = (path, body, cookie) =>
   fetch(BASE + path, { method: "POST", headers: { "content-type": "application/json", origin: BASE, ...(cookie ? { cookie } : {}) }, body: JSON.stringify(body) });
 
-async function enter(m) {
-  const r = await post("/api/enter", { matricula: m });
-  return { status: r.status, cookie: r.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ") };
+const KEY = "qa-clave-" + Date.now().toString(36);
+async function enter(m, accessKey = KEY, cookie) {
+  const r = await post("/api/enter", { matricula: m, accessKey }, cookie);
+  return { status: r.status, cookie: r.headers.getSetCookie().map((c) => c.split(";")[0]).join("; "), setCookie: r.headers.getSetCookie() };
 }
 
 for (const p of ["/", "/cuestionario", "/resultado", "/perfil", "/ajustes", "/afinar?modulo=intereses", "/evidencia", "/admin/login"]) {
@@ -36,19 +37,31 @@ for (const [p, m] of [["/api/profile", "GET"], ["/api/result", "GET"], ["/api/pr
   const r = await fetch(BASE + p, { method: m });
   row(`${m} ${p} sin sesión`, r.status, r.status === 401 || r.status === 403);
 }
-// Por diseño se acepta cualquier identificador alfanumérico de 4–32 (no hay padrón).
-for (const bad of ["12", "ab", "!!!!!", ""]) {
+// ADR-023: exactamente 9 dígitos, sin normalización permisiva, y clave obligatoria.
+for (const bad of ["12", "ab", "!!!!!", "", "AB1234", "42614489A", "4261-44891", "4261448911", "４２６１４４８９１"]) {
   const r = await enter(bad);
   row(`enter matrícula inválida «${bad}»`, r.status, r.status === 400);
 }
-const xo = await fetch(BASE + "/api/enter", { method: "POST", headers: { "content-type": "application/json", origin: "https://evil.example" }, body: JSON.stringify({ matricula: "426144890" }) });
+const noKey = await post("/api/enter", { matricula: "426144891" });
+row("enter sin clave", noKey.status, noKey.status === 400);
+const shortKey = await enter("426144891", "12345");
+row("enter con clave corta", shortKey.status, shortKey.status === 400);
+const xo = await fetch(BASE + "/api/enter", { method: "POST", headers: { "content-type": "application/json", origin: "https://evil.example" }, body: JSON.stringify({ matricula: "426144890", accessKey: KEY }) });
 row("enter con Origin ajeno", xo.status, xo.status === 403);
 
 const a = await enter("426144891");
 const b = await enter("426144892");
 row("enter matrícula nueva (falsa)", `${a.status}/${b.status}`, a.status === 200 && b.status === 200);
 const again = await enter("426144891");
-row("enter misma matrícula de nuevo", again.status, again.status === 200);
+row("enter misma matrícula y clave", again.status, again.status === 200);
+// Uses the throwaway `again` session: a failed entry signs the device out.
+const wrong = await enter("426144891", KEY + "-otra", again.cookie);
+row("enter matrícula ajena con otra clave", wrong.status, wrong.status === 401);
+const cleared = wrong.setCookie.some((c) => /sb-[^=]+-auth-token[^=]*=;|Max-Age=0/i.test(c));
+row("clave incorrecta cierra la sesión previa del dispositivo", cleared ? "sí" : "no", cleared);
+const third = await enter("426144892");
+const exit = await post("/api/exit", {}, third.cookie);
+row("POST /api/exit", exit.status, exit.status === 200);
 const incomplete = await post("/api/quiz", { likert: likert(1).slice(0, 10), filters }, a.cookie);
 row("quiz incompleto", incomplete.status, incomplete.status === 400);
 for (const s of [a, b]) {

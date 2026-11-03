@@ -84,6 +84,9 @@ CREATE TABLE public.user_roles (
 CREATE TABLE public.profiles (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   matricula_hash TEXT NOT NULL UNIQUE CHECK (matricula_hash ~ '^[0-9a-f]{64}$'),
+  -- scrypt hash of the personal key (ADR-023). NULL only until the first
+  -- entry after the key was introduced. Service-role only, never in a DTO.
+  access_key_hash TEXT CHECK (access_key_hash IS NULL OR access_key_hash ~ '^scrypt\$'),
   alias TEXT UNIQUE,
   animal_id TEXT REFERENCES public.animals(id),
   color_id TEXT REFERENCES public.colors(id),
@@ -668,6 +671,112 @@ BEGIN
 END;
 $$;
 
+-- ─── Entry guard (ADR-023) ──────────────────────────────────────────────────
+-- Throttles entry attempts per network address and wrong keys per account.
+-- Subjects are HMAC digests computed by the server: no raw IP or matrícula is
+-- ever stored. Rows expire on their own; stale ones are swept on each hit.
+CREATE TABLE private.access_guard (
+  kind TEXT NOT NULL CHECK (kind IN ('address_attempt', 'address_failure', 'account_failure')),
+  subject TEXT NOT NULL CHECK (subject ~ '^[0-9a-f]{64}$'),
+  window_started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  hits INTEGER NOT NULL DEFAULT 0 CHECK (hits >= 0),
+  locked_until TIMESTAMPTZ,
+  PRIMARY KEY (kind, subject)
+);
+
+-- Counts one hit and returns the seconds the subject stays locked (0 = allowed).
+-- While locked, hits are not counted, so a lock never extends itself.
+CREATE FUNCTION public.access_guard_hit(
+  p_kind TEXT,
+  p_subject TEXT,
+  p_limit INTEGER,
+  p_window_seconds INTEGER,
+  p_lock_seconds INTEGER
+)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_row private.access_guard%ROWTYPE;
+BEGIN
+  PERFORM private.assert_service_role();
+  IF p_limit < 1 OR p_window_seconds < 1 OR p_lock_seconds < 1 THEN
+    RAISE EXCEPTION 'Invalid guard policy' USING ERRCODE = '22023';
+  END IF;
+
+  DELETE FROM private.access_guard
+  WHERE window_started_at < now() - interval '1 day'
+    AND (locked_until IS NULL OR locked_until < now());
+
+  INSERT INTO private.access_guard AS g (kind, subject, hits)
+  VALUES (p_kind, p_subject, 1)
+  ON CONFLICT (kind, subject) DO UPDATE SET
+    hits = CASE
+      WHEN g.locked_until IS NOT NULL AND g.locked_until > now() THEN g.hits
+      WHEN g.window_started_at < now() - make_interval(secs => p_window_seconds) THEN 1
+      ELSE g.hits + 1
+    END,
+    window_started_at = CASE
+      WHEN g.locked_until IS NOT NULL AND g.locked_until > now() THEN g.window_started_at
+      WHEN g.window_started_at < now() - make_interval(secs => p_window_seconds) THEN now()
+      ELSE g.window_started_at
+    END
+  RETURNING * INTO v_row;
+
+  IF v_row.locked_until IS NOT NULL AND v_row.locked_until > now() THEN
+    RETURN ceil(extract(epoch FROM v_row.locked_until - now()))::INTEGER;
+  END IF;
+
+  IF v_row.hits > p_limit THEN
+    UPDATE private.access_guard
+    SET locked_until = now() + make_interval(secs => p_lock_seconds), hits = 0, window_started_at = now()
+    WHERE kind = p_kind AND subject = p_subject;
+    RETURN p_lock_seconds;
+  END IF;
+
+  RETURN 0;
+END;
+$$;
+
+-- Seconds the subject is still locked, without counting a hit.
+CREATE FUNCTION public.access_guard_peek(p_kind TEXT, p_subject TEXT)
+RETURNS INTEGER
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_until TIMESTAMPTZ;
+BEGIN
+  PERFORM private.assert_service_role();
+  SELECT locked_until INTO v_until
+  FROM private.access_guard
+  WHERE kind = p_kind AND subject = p_subject;
+  IF v_until IS NULL OR v_until <= now() THEN
+    RETURN 0;
+  END IF;
+  RETURN ceil(extract(epoch FROM v_until - now()))::INTEGER;
+END;
+$$;
+
+-- Forgets a subject's failures after a correct key.
+CREATE FUNCTION public.access_guard_clear(p_kind TEXT, p_subject TEXT)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  PERFORM private.assert_service_role();
+  DELETE FROM private.access_guard
+  WHERE kind = p_kind AND subject = p_subject
+    AND (locked_until IS NULL OR locked_until <= now());
+END;
+$$;
+
 -- ─── Function privileges ────────────────────────────────────────────────────
 
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;
@@ -678,7 +787,10 @@ GRANT EXECUTE ON FUNCTION
   public.get_pool_version(),
   public.replace_matches(JSONB, TEXT),
   public.get_user_matches(UUID),
-  public.notify_matches(UUID)
+  public.notify_matches(UUID),
+  public.access_guard_hit(TEXT, TEXT, INTEGER, INTEGER, INTEGER),
+  public.access_guard_peek(TEXT, TEXT),
+  public.access_guard_clear(TEXT, TEXT)
 TO service_role;
 
 GRANT EXECUTE ON FUNCTION

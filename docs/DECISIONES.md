@@ -501,3 +501,44 @@ siguen cumpliéndose, incluida la equidad por subgrupo. No se fue a α = .01: la
 caería a ≈ 45 %. Los matches guardados se recalculan con el umbral nuevo en la siguiente
 recalculación global (alguien envía el test, pausa o borra su perfil, o `POST
 /api/admin/recompute`).
+
+## ADR-023 · Matrícula estricta, clave personal y freno a la enumeración
+
+**Contexto.** Reportaron que alguien escribió su matrícula y vio el perfil de otra persona.
+La auditoría de la base no encontró cuentas cruzadas: cada `matricula_hash` corresponde a un
+único usuario y cada perfil tiene su correo derivado del hash. Las causas eran de diseño:
+
+1. La matrícula era la única credencial: quien teclea la de otra persona entra a su cuenta.
+2. Se aceptaban 4–32 caracteres alfanuméricos y se quitaban espacios, `-` y `_` (un error de
+   tecleo podía caer en otra cuenta existente).
+3. En producción no hay Upstash, así que el rate limit era *fail-open*: enumerar no tenía freno.
+4. En un dispositivo compartido no había «Salir»; si `/api/enter` fallaba, la sesión anterior
+   seguía viva, y los borradores del test en `localStorage` no tenían dueño.
+
+**Decisión.**
+- **Matrícula:** exactamente 9 dígitos ASCII (`data/access-config.json`). Solo se perdona el
+  espacio alrededor; nada se «corrige». Mismo criterio en cliente y servidor.
+- **Clave personal** (6–64 caracteres): la primera entrada la fija; las siguientes la exigen.
+  Se guarda como scrypt (N = 2¹⁵, r = 8, p = 1, sal de 16 B) en `profiles.access_key_hash`,
+  que nunca se selecciona fuera del flujo de entrada ni llega a un DTO. Error genérico
+  («la matrícula o la clave no coinciden»): no revela si la matrícula existe.
+- **Perfiles anteriores** (sin clave): la siguiente entrada fija la clave (*trust on first use*),
+  con una actualización condicional `WHERE access_key_hash IS NULL` para que dos primeras
+  entradas simultáneas no se pisen.
+- **Guardia en Postgres** (`private.access_guard` + RPC solo para `service_role`): por dirección
+  de red 60 intentos/10 min y 15 fallos/15 min; por cuenta 5 claves erróneas/15 min. Los sujetos
+  son HMAC con el secreto del servidor (no se guarda IP ni matrícula). Si el guardia falla, la
+  entrada falla cerrada. Los límites por dirección son holgados porque el Wi-Fi del campus
+  comparte IP pública.
+- **Dispositivo:** `/api/enter` cierra la sesión previa *antes* de autenticar, así que un intento
+  fallido nunca deja la cuenta anterior abierta. Botón público «Salir» (`/api/exit`) en test,
+  resultado, carta y ajustes. Los borradores quedan ligados a una etiqueta opaca por cuenta
+  (HMAC del id, no reversible); si entra otra persona se borran, y los borradores sin dueño
+  (de antes de este cambio) se descartan.
+
+**Consecuencias.** Quien conozca la matrícula de alguien ya no puede entrar sin su clave.
+Riesgo residual del TOFU: si una tercera persona entra primero a un perfil antiguo, fija la
+clave ella. Mitigación: avisar a quienes ya hicieron el test que entren pronto; ante un
+reclamo, el admin puede poner `access_key_hash = NULL` para ese perfil y la dueña la vuelve a
+fijar. Olvidar la clave tiene el mismo remedio manual (no hay correo para recuperarla, por
+diseño anónimo). Upstash sigue siendo opcional para el límite genérico por ruta.

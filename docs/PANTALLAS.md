@@ -32,8 +32,11 @@ flowchart TD
   determinista y testeada.
 - **Estados:**
   - vacío: campo con pista de privacidad;
-  - inválido: "Usa solo letras y números (de 4 a 32)" (la matrícula es
-    alfanumérica);
+  - inválido: "Escribe tu matrícula completa: 9 números, sin letras ni guiones"
+    (el campo solo admite dígitos);
+  - clave: la primera vez queda fijada; después, si no coincide, "La matrícula o
+    la clave no coinciden" (no revela si la matrícula existe); tras varios
+    intentos, aviso de espera (ADR-023);
   - enviando: botón ocupado con la estrella que parpadea;
   - error: "El cielo no responde ahora";
   - éxito: redirige a `/cuestionario` o `/resultado`;

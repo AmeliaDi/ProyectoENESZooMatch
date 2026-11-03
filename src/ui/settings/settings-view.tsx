@@ -16,6 +16,7 @@ import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { Dialog } from "@/ui/kit/dialog";
 import { Icon } from "@/ui/kit/icon";
+import { ExitButton } from "@/ui/shared/exit-button";
 import { Frame } from "@/ui/kit/surfaces";
 import { InclusiveModeSelector } from "@/ui/shared/inclusive-mode-selector";
 import { useNotificationsPaused } from "@/ui/shared/notification-provider";
@@ -123,9 +124,12 @@ export function SettingsView() {
     <AtlasShell
       plate="Lámina 05 · ajustes"
       actions={
-        <Link href="/resultado" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Volver a mi cielo">
-          <Icon name="back" />
-        </Link>
+        <>
+          <Link href="/resultado" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Volver a mi cielo">
+            <Icon name="back" />
+          </Link>
+          <ExitButton />
+        </>
       }
     >
       <main className="zm-settings">

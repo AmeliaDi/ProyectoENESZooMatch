@@ -1,16 +1,39 @@
 import { z } from "zod";
 
-/** Canonical matrícula normalization (uppercase, no separators). */
-export function normalizeMatricula(value: string): string {
-  return value.normalize("NFKC").trim().toUpperCase().replace(/[\s_-]+/g, "");
-}
+import { ACCESS_CONFIG } from "@/config";
+
+/**
+ * UNAM matrícula: exactly nine ASCII digits. Only surrounding whitespace is
+ * forgiven; anything else (letters, separators, full-width digits) is
+ * rejected instead of being "fixed", so two different inputs can never land on
+ * the same account (ADR-023).
+ */
+export const MATRICULA_PATTERN = new RegExp(`^[0-9]{${ACCESS_CONFIG.matricula.digits}}$`);
 
 export const matriculaSchema = z
   .string()
-  .min(1)
-  .max(64)
-  .transform(normalizeMatricula)
-  .pipe(z.string().regex(/^[A-Z0-9]{4,32}$/));
+  .max(32)
+  .transform((value) => value.trim())
+  .pipe(z.string().regex(MATRICULA_PATTERN));
+
+export const ACCESS_KEY_MIN = ACCESS_CONFIG.accessKey.minLength;
+export const ACCESS_KEY_MAX = ACCESS_CONFIG.accessKey.maxLength;
+
+/**
+ * Personal key chosen on first entry. NFC so the same accented phrase typed on
+ * two keyboards hashes identically; control characters are rejected.
+ */
+export const accessKeySchema = z
+  .string()
+  .max(ACCESS_KEY_MAX * 4)
+  .transform((value) => value.normalize("NFC"))
+  .pipe(
+    z
+      .string()
+      .min(ACCESS_KEY_MIN)
+      .max(ACCESS_KEY_MAX)
+      .regex(/^[^\p{Cc}]+$/u),
+  );
 
 export const inclusiveModeSchema = z.enum([
   "femenino",
@@ -19,8 +42,9 @@ export const inclusiveModeSchema = z.enum([
   "neutro_universal",
 ]);
 
-export const availabilityRequestSchema = z.object({
+export const enterRequestSchema = z.strictObject({
   matricula: matriculaSchema,
+  accessKey: accessKeySchema,
   inclusiveMode: inclusiveModeSchema.optional(),
 });
 

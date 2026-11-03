@@ -1,9 +1,7 @@
 "use client";
 
-import type { Route } from "next";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
@@ -13,26 +11,31 @@ import { useInclusiveMode } from "@/ui/shared/inclusive-mode-selector";
 import { DELETED_FLAG } from "@/ui/settings/settings-view";
 
 import { DawnSky } from "./dawn-sky";
-import { isPublicMatriculaValid, normalizePublicMatricula } from "./matricula";
+import {
+  ACCESS_KEY_LIMITS,
+  MATRICULA_DIGITS,
+  isAccessKeyValid,
+  isPublicMatriculaValid,
+  normalizePublicMatricula,
+  sanitizeMatriculaInput,
+} from "./matricula";
+import { type EntryFailure, useEntry } from "./use-entry";
 
 export const MATRICULA_COPY = {
   promise: "Un test anónimo para descubrir con quién del campus podrías hacer constelación.",
   hint: "Nunca se guarda ni se muestra: solo un resumen cifrado que no se puede revertir.",
-  invalid: "Usa solo letras y números (de 4 a 32).",
+  invalid: `Escribe tu matrícula completa: ${MATRICULA_DIGITS} números, sin letras ni guiones.`,
+  keyHint: `La primera vez, la clave que escribas queda como tuya (de ${ACCESS_KEY_LIMITS.minLength} a ${ACCESS_KEY_LIMITS.maxLength} caracteres). Después la necesitarás para volver.`,
+  keyInvalid: `Tu clave necesita de ${ACCESS_KEY_LIMITS.minLength} a ${ACCESS_KEY_LIMITS.maxLength} caracteres.`,
+  wrongKey: "La matrícula o la clave no coinciden. Revisa e intenta de nuevo.",
+  locked: "Hubo varios intentos seguidos. Por cuidado, espera unos minutos antes de volver a intentar.",
   unavailable: "El cielo no responde ahora. Intenta de nuevo en un momento.",
   misconfigured: "El observatorio aún no está listo: falta configurar el servicio.",
+  sharedDevice: "¿Dispositivo compartido? Usa «Salir» al terminar.",
 } as const;
 
-export function MatriculaEntry() {
-  const router = useRouter();
-  const inclusiveMode = useInclusiveMode();
-  const [matricula, setMatricula] = useState("");
-  const [touched, setTouched] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [failed, setFailed] = useState<null | "unavailable" | "misconfigured">(null);
-  const submittingRef = useRef(false);
+function useDeletedNotice(): boolean {
   const [deleted, setDeleted] = useState(false);
-
   // One-shot confirmation after "Borrar mis datos"; read after mount so the
   // server render stays identical.
   useEffect(() => {
@@ -52,42 +55,31 @@ export function MatriculaEntry() {
       cancelled = true;
     };
   }, []);
+  return deleted;
+}
 
-  const normalized = normalizePublicMatricula(matricula);
-  const valid = isPublicMatriculaValid(matricula);
-  const error = failed
-    ? MATRICULA_COPY[failed]
-    : touched && matricula && !valid
-      ? MATRICULA_COPY.invalid
-      : null;
+function fieldErrors(failed: EntryFailure | null, touched: boolean, matricula: string, accessKey: string) {
+  if (failed) return { matricula: null, key: MATRICULA_COPY[failed] };
+  return {
+    matricula: touched && !isPublicMatriculaValid(matricula) ? MATRICULA_COPY.invalid : null,
+    key: touched && !isAccessKeyValid(accessKey) ? MATRICULA_COPY.keyInvalid : null,
+  };
+}
 
-  async function enter(event: FormEvent<HTMLFormElement>) {
+export function MatriculaEntry() {
+  const inclusiveMode = useInclusiveMode();
+  const deleted = useDeletedNotice();
+  const { enter, submitting, failed, clearFailure } = useEntry(inclusiveMode);
+  const [matricula, setMatricula] = useState("");
+  const [accessKey, setAccessKey] = useState("");
+  const [touched, setTouched] = useState(false);
+  const errors = fieldErrors(failed, touched, matricula, accessKey);
+
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setTouched(true);
-    if (!valid || submittingRef.current) return;
-    submittingRef.current = true;
-    setSubmitting(true);
-    setFailed(null);
-    try {
-      const response = await fetch("/api/enter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matricula: normalized, inclusiveMode }),
-      });
-      const body = (await response.json().catch(() => null)) as
-        | { ok?: boolean; redirect?: string; code?: string }
-        | null;
-      if (response.ok && body?.ok && typeof body.redirect === "string") {
-        router.replace(body.redirect as Route);
-        return;
-      }
-      setFailed(body?.code === "service.misconfigured" ? "misconfigured" : "unavailable");
-    } catch {
-      setFailed("unavailable");
-    } finally {
-      submittingRef.current = false;
-      setSubmitting(false);
-    }
+    if (!isPublicMatriculaValid(matricula) || !isAccessKeyValid(accessKey)) return;
+    void enter(normalizePublicMatricula(matricula), accessKey);
   }
 
   return (
@@ -112,24 +104,40 @@ export function MatriculaEntry() {
           <p className="zm-entry__promise">{MATRICULA_COPY.promise}</p>
         </section>
 
-        <form className="zm-box zm-box--frame zm-entry__form" onSubmit={enter} noValidate>
+        <form className="zm-box zm-box--frame zm-entry__form" onSubmit={submit} noValidate>
           <Field
             label="Matrícula"
             hint={MATRICULA_COPY.hint}
-            error={error}
+            error={errors.matricula}
             name="matricula"
             value={matricula}
             onChange={(event) => {
-              setMatricula(event.target.value.toUpperCase());
-              if (failed) setFailed(null);
+              setMatricula(sanitizeMatriculaInput(event.target.value));
+              if (failed) clearFailure();
             }}
-            onBlur={() => setTouched(true)}
-            autoComplete="off"
-            autoCapitalize="characters"
+            autoComplete="username"
             spellCheck={false}
-            inputMode="text"
-            maxLength={64}
-            placeholder="AB1234"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={MATRICULA_DIGITS}
+            placeholder={"0".repeat(MATRICULA_DIGITS)}
+            required
+          />
+          <Field
+            label="Clave personal"
+            hint={MATRICULA_COPY.keyHint}
+            error={errors.key}
+            name="accessKey"
+            type="password"
+            value={accessKey}
+            onChange={(event) => {
+              setAccessKey(event.target.value);
+              if (failed) clearFailure();
+            }}
+            autoComplete="current-password"
+            spellCheck={false}
+            maxLength={ACCESS_KEY_LIMITS.maxLength}
+            required
           />
           <ul className="zm-entry__facts">
             <li>
@@ -137,6 +145,9 @@ export function MatriculaEntry() {
             </li>
             <li>
               <Icon name="quiz" filled /> Si ya entraste, retomas donde te quedaste.
+            </li>
+            <li>
+              <Icon name="logout" filled /> {MATRICULA_COPY.sharedDevice}
             </li>
           </ul>
           <Button type="submit" variant="primary" iconAfter="next" busy={submitting} disabled={submitting}>

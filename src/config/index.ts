@@ -3,6 +3,8 @@
  * JSON with Zod at load time and exports frozen objects; nothing else in
  * `src/` may import from `data/` directly.
  */
+export { ACCESS_CONFIG } from "./access";
+export type { AccessConfig } from "./access";
 export { AVATAR_CONFIG } from "./avatars";
 export type { AvatarConfig } from "./avatars";
 export { CATALOG, CATALOG_ANIMALS, CATALOG_COLORS, MBTI_CODES } from "./catalog";

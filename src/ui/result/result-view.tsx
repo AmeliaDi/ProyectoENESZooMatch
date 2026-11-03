@@ -14,6 +14,7 @@ import { Tabs } from "@/ui/kit/tabs";
 import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
 import { adaptResult } from "@/ui/constellation/adapt-result";
 import { type ApiError, RECOMPUTE_PENDING_KEY } from "@/ui/shared/chrome";
+import { ExitButton } from "@/ui/shared/exit-button";
 
 import { MatchCard } from "./match-card";
 import { parsePublicResult, type PublicResult } from "./parse-result";
@@ -89,6 +90,7 @@ export function PublicResultView() {
       <Link href="/ajustes" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Ajustes y privacidad">
         <Icon name="settings" />
       </Link>
+      <ExitButton />
     </>
   );
 

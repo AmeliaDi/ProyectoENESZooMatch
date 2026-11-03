@@ -54,7 +54,8 @@ amiga que sabe estadística: cálida, sin exagerar y sin mentir.
 | Vacío (sin match) | "Aún no llega ese ser especial a la base de datos, pero tranquilx, tu vibra es única y esto es solo un proyecto de estadística, no una medida de tu inmenso valor <3" |
 | Vacío (pocas personas) | "Todavía somos pocxs en el cielo. Cuando entre más gente, tu constelación puede crecer." |
 | Error de red | Título: "Se nubló la conexión" · Cuerpo: "No pudimos cargar tu constelación. Intenta de nuevo en un momento." |
-| Error de matrícula | "Usa solo letras y números (de 4 a 32)." (la matrícula es alfanumérica) |
+| Error de matrícula | "Escribe tu matrícula completa: 9 números, sin letras ni guiones." |
+| Clave incorrecta | "La matrícula o la clave no coinciden. Revisa e intenta de nuevo." (nunca dice cuál) |
 | Pista de matrícula | "Nunca se guarda ni se muestra: solo un resumen cifrado que no se puede revertir." |
 | Afinidad | "87 % de afinidad estimada" + confianza "alta" o "media" |
 | Tooltip de afinidad | "Afinidad estimada, no destino." |

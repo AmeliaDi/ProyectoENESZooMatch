@@ -8,6 +8,7 @@ export type AppError =
   | "auth.unauthorized"
   | "auth.forbidden"
   | "auth.invalid_credentials"
+  | "auth.locked"
   | "service.unavailable"
   | "service.misconfigured"
   | "quiz.not_completed"
