@@ -35,7 +35,9 @@
     "stiffness": 260,
     "softMargin": 10,
     "dampingRatio": 0.7,
-    "projectionIterations": 24
+    "projectionIterations": 24,
+    "crowdBodies": 60,
+    "crowdIterations": 10
   },
   "gravity": { "strength": 0.5 },
   "group": {

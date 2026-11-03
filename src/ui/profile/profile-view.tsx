@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import type { ProfileDto } from "@/contracts/profile";
 import { EXPERIENCE } from "@/config";
 import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
-import { RADIANT_AFFINITY_PERCENT } from "@/ui/constellation/render-helpers";
+import { isRadiantPercent } from "@/ui/constellation/render-helpers";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { Icon } from "@/ui/kit/icon";
@@ -151,7 +151,7 @@ function Affinities({ profile }: { profile: ProfileDto }) {
                   <li key={m.alias}>
                     <span>{m.alias}</span>
                     <span className="zm-card__pct">
-                      <PixelNumber value={`${m.percent} %`} size="sm" gold={m.percent >= RADIANT_AFFINITY_PERCENT} />
+                      <PixelNumber value={`${m.percent} %`} size="sm" gold={isRadiantPercent(m.percent, t.key)} />
                     </span>
                   </li>
                 ))}

@@ -20,6 +20,7 @@ import {
   GHOST_ANIMAL_ID,
   GHOST_COLOR_ID,
   GHOST_OPACITY,
+  RADIANT_AFFINITY_PERCENT,
   SPRITE_SIZE_FACTOR,
   nodeOpacity,
 } from "./render-helpers";
@@ -169,14 +170,18 @@ describe("structureFromWorld", () => {
     }
   });
 
-  it("turns only ≥ 95 % matches golden, with golden spokes", () => {
-    for (const node of structure.nodes) {
-      const expected = !node.isSelf && !node.isGhost && Math.round(meta.get(node.id)!.similarity * 100) >= 95;
-      expect(node.radiant, node.id).toBe(expected);
+  it("turns only matches at the romance gold percent golden, with golden spokes", () => {
+    const gold = RADIANT_AFFINITY_PERCENT.romance / 100;
+    const realistic = [0.5, 0.56, gold - 0.006, gold - 0.004, gold + 0.01].map((s, i) => makeMatch(`g${i}`, s, "romance"));
+    const goldMeta = buildNodeMeta(SELF, realistic);
+    const goldStructure = structureFromWorld(settledWorld(realistic, "romance"), goldMeta, "romance");
+    for (const node of goldStructure.nodes) {
+      const percent = Math.round((goldMeta.get(node.id)?.similarity ?? 0) * 100);
+      expect(node.radiant, node.id).toBe(!node.isSelf && !node.isGhost && percent >= RADIANT_AFFINITY_PERCENT.romance);
     }
-    const radiant = new Set(structure.nodes.filter((n) => n.radiant).map((n) => n.id));
-    expect([...radiant].sort()).toEqual(["r10", "r11", "r9"]); // r9 = 0.948 reads «95%»
-    for (const edge of structure.edges) {
+    const radiant = new Set(goldStructure.nodes.filter((n) => n.radiant).map((n) => n.id));
+    expect([...radiant].sort()).toEqual(["g3", "g4"]); // g3 reads exactly the threshold once rounded
+    for (const edge of goldStructure.edges) {
       const touches = radiant.has(edge.source) || radiant.has(edge.target);
       expect(edge.radiant).toBe(edge.kind === "spoke" && touches);
     }

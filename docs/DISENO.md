@@ -593,11 +593,11 @@ Fase 3 y después se borran los tokens viejos.
 | `--zm-text-outline` | `shadow` | `frame` | `sky` | `sky` | Contorno de 1 px lógico de los títulos |
 | `glow-suave` | `rim`, 6 px, 0.34 | `rim`, 6 px, 0.28 | 0 | 0 | Halo de los matches (3 escalones Bayer por afinidad) |
 | `glow-foco` | oro-500, 10 px, 0.5 | oro-300, 10 px, 0.46 | 0 | 0 | Tu nodo (respira) |
-| `glow-hito` | oro-400, 12 px, 0.56 | oro-300, 12 px, 0.52 | 0 | 0 | Match ≥ 95 % |
+| `glow-hito` | oro-400, 12 px, 0.56 | oro-300, 12 px, 0.52 | 0 | 0 | Match en el umbral dorado (romance ≥ 63 %, amistad ≥ 61 %; ADR-031) |
 
-**Regla del dorado.** Solo es dorado: tu nodo, el match top o ≥ 95 % (ADR-025), la
+**Regla del dorado.** Solo es dorado: tu nodo, el match top o el umbral dorado por pista (ADR-025, ADR-031), la
 línea y el destello al unirse, los badges (`Chip tone="gold"`), las cifras clave
-(el % ≥ 95 en el atlas pixel) y el foco de teclado. También se conserva la estrella
+(el % en el umbral en el atlas pixel) y el foco de teclado. También se conserva la estrella
 actual del progreso. Todo lo demás (títulos, botón primario, tab elegida, chips de
 confianza, Likert, carga, virtudes, resúmenes, bordes de narrativa, selección de
 texto) usa `fg`, `fg-muted` o `rim`. Los estados se distinguen por forma, no solo por

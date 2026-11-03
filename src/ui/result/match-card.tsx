@@ -32,7 +32,7 @@ export function MatchCard({ match, track }: { match: ResultMatch; track: MatchTr
         </div>
         <p className="zm-match__affinity" aria-label={`${percent} % de afinidad estimada`}>
           <strong>
-            <PixelNumber value={`${percent}`} size="lg" gold={isRadiantAffinity(match.similarity)} />
+            <PixelNumber value={`${percent}`} size="lg" gold={isRadiantAffinity(match.similarity, track)} />
           </strong>
           <span>% afinidad estimada</span>
         </p>

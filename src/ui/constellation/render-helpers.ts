@@ -7,6 +7,7 @@
  * opacities, sprite sizes and es-MX copy.
  */
 
+import { EXPERIENCE } from "@/config";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 
 import { CONSTELLATION_COPY } from "./types";
@@ -53,15 +54,19 @@ export const BADGE_LIMITS: Record<MatchTrack, number> = {
  */
 export const ROMANCE_SPRITE_THRESHOLD = 0.75;
 
-/** Shown affinity (rounded %) from which a match star turns golden. */
-export const RADIANT_AFFINITY_PERCENT = 95;
+/** Shown affinity (rounded %) from which a match star turns golden, per track (ADR-031). */
+export const RADIANT_AFFINITY_PERCENT: Readonly<Record<MatchTrack, number>> = EXPERIENCE.result.radiantPercent;
 
 /**
- * Decided on the rounded percent the person reads, so a star labelled «95%»
- * always glows and one labelled «94%» never does.
+ * Decided on the rounded percent the person reads, so a star labelled with
+ * the threshold always glows and one a point below never does.
  */
-export function isRadiantAffinity(similarity: number): boolean {
-  return Number(formatAffinityPercent(similarity)) >= RADIANT_AFFINITY_PERCENT;
+export function isRadiantAffinity(similarity: number, track: MatchTrack): boolean {
+  return isRadiantPercent(Number(formatAffinityPercent(similarity)), track);
+}
+
+export function isRadiantPercent(percent: number, track: MatchTrack): boolean {
+  return percent >= RADIANT_AFFINITY_PERCENT[track];
 }
 
 /** Ghost sprites use these registered catalogue ids. */

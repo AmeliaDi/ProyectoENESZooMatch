@@ -59,7 +59,7 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
               <p className="zm-detail__identity">{identity}</p>
               <p className="zm-detail__affinity">
                 <strong>
-                  <PixelNumber value={`${formatAffinityPercent(node.similarity)} %`} size="md" gold={isRadiantAffinity(node.similarity)} />
+                  <PixelNumber value={`${formatAffinityPercent(node.similarity)} %`} size="md" gold={isRadiantAffinity(node.similarity, track)} />
                 </strong>{" "}
                 de afinidad estimada
               </p>

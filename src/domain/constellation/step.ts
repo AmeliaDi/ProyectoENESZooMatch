@@ -251,10 +251,16 @@ function integrate(world: World, cfg: PhysicsConfig, dt: number): void {
  * Position projection: enforces the separation theorem for every solid pair
  * and makes each corrected contact perfectly inelastic along the normal.
  */
+export function projectionIterations(bodyCount: number, cfg: PhysicsConfig): number {
+  const { crowdBodies, crowdIterations, projectionIterations: full } = cfg.collision;
+  return bodyCount > crowdBodies ? Math.min(full, crowdIterations) : full;
+}
+
 export function projectContacts(world: World, cfg: PhysicsConfig): void {
   const { bodies } = world;
   const cell = maxInteraction(world, cfg);
-  for (let iteration = 0; iteration < cfg.collision.projectionIterations; iteration++) {
+  const iterations = projectionIterations(bodies.length, cfg);
+  for (let iteration = 0; iteration < iterations; iteration++) {
     const n = loadGrid(world);
     let moved = false;
     forEachNearPair(world.grid, n, cell, (i, j) => {

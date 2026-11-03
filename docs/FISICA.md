@@ -168,6 +168,12 @@ con la física en reposo y solo la deriva.
 Motor aislado en Node (sin pintar), 1200×800, 2 pasos + cuadro: 12 estrellas p50 0.11 ms;
 24 estrellas p50 0.15 ms / p95 0.29 ms; 100 estrellas p50 0.63 ms / p95 4.0 ms.
 
+**Cielos llenos (ADR-031, 2026-11-04).** Con más de `collision.crowdBodies` = 60 cuerpos la
+proyección baja de 24 a `crowdIterations` = 10 iteraciones (8 dejaba sprites tocándose
+−0.8 px a mitad del vuelo). Perfil móvil 390×844, paso medio: 100 estrellas 2.74 → 1.24 ms
+(32.8 → 14.9 % de 16.7 ms); 120 estrellas 3.39 → 1.52 ms (40.7 → 18.3 %). Hasta 60 cuerpos
+nada cambia.
+
 **Lectura honesta.**
 
 - Hasta 24 estrellas (el tope real del producto) la física cuesta < 0.3 ms por cuadro y

@@ -11,6 +11,7 @@ import {
   BADGE_LIMITS,
   affinityLabelY,
   isRadiantAffinity,
+  RADIANT_AFFINITY_PERCENT,
   GHOST_ANIMAL_ID,
   GHOST_COLOR_ID,
   GHOST_OPACITY,
@@ -364,11 +365,18 @@ describe("affinityLabelY", () => {
 });
 
 describe("isRadiantAffinity", () => {
-  it("glows exactly when the shown percent reaches 95", () => {
-    expect(isRadiantAffinity(0.9449)).toBe(false);
-    expect(isRadiantAffinity(0.945)).toBe(true);
-    expect(isRadiantAffinity(0.97)).toBe(true);
-    expect(isRadiantAffinity(1)).toBe(true);
-    expect(isRadiantAffinity(0.5)).toBe(false);
+  it("glows exactly when the shown percent reaches the track threshold", () => {
+    for (const track of ["romance", "amistad"] as const) {
+      const percent = RADIANT_AFFINITY_PERCENT[track];
+      expect(isRadiantAffinity((percent - 0.51) / 100, track)).toBe(false);
+      expect(isRadiantAffinity((percent - 0.5) / 100, track)).toBe(true);
+      expect(isRadiantAffinity(1, track)).toBe(true);
+      expect(isRadiantAffinity(0.3, track)).toBe(false);
+    }
+  });
+
+  it("keeps gold rare: romance asks more than amistad and neither is near 100", () => {
+    expect(RADIANT_AFFINITY_PERCENT.romance).toBeGreaterThanOrEqual(RADIANT_AFFINITY_PERCENT.amistad);
+    expect(RADIANT_AFFINITY_PERCENT.romance).toBeLessThan(90);
   });
 });

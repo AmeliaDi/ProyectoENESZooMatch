@@ -132,7 +132,7 @@ export function structureFromWorld(
       colorHex: info.colorHex,
       alias: info.alias,
       affinityLabel: isGhost || isSelf ? null : `${formatAffinityPercent(body.similarity)}%`,
-      radiant: !isGhost && !isSelf && !body.leaving && isRadiantAffinity(body.similarity),
+      radiant: !isGhost && !isSelf && !body.leaving && isRadiantAffinity(body.similarity, track),
       glowLevel: isGhost || isSelf ? 0 : glowLevel(body.similarity, world.threshold),
       ariaLabel,
       opacity: isGhost ? GHOST_OPACITY : isSelf ? 1 : nodeOpacity(body.similarity, world.threshold),

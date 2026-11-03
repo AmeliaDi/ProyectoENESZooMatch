@@ -60,6 +60,14 @@ export const physicsSchema = z
       softMargin: positive,
       dampingRatio: z.number().min(0).max(2),
       projectionIterations: positiveInt,
+      /**
+       * Crowded skies (ADR-031): above `crowdBodies` solid bodies the
+       * projection uses `crowdIterations`; the soft contact force keeps
+       * resolving the rest, so overlaps fade over a few frames instead of
+       * costing every step on mid-range phones.
+       */
+      crowdBodies: positiveInt,
+      crowdIterations: positiveInt,
     }),
     gravity: z.strictObject({ strength: nonNegative }),
     group: z.strictObject({
