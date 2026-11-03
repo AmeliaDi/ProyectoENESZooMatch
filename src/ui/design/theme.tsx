@@ -8,7 +8,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-import { THEME_MODES, type ThemeMode } from "@/config";
+import { THEME_MODES, type ThemeMode } from "@/config/theme-modes";
 
 export const THEME_STORAGE_KEY = "zoomatch:theme";
 const THEME_EVENT = "zoomatch:theme-change";

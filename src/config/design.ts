@@ -24,8 +24,7 @@ export type ColorRole = (typeof COLOR_ROLES)[number];
 export const GLOW_TIERS = ["suave", "foco", "hito"] as const;
 export type GlowTier = (typeof GLOW_TIERS)[number];
 
-export const THEME_MODES = ["night", "day", "night-hc", "day-hc"] as const;
-export type ThemeMode = (typeof THEME_MODES)[number];
+export { THEME_MODES, type ThemeMode } from "./theme-modes";
 
 const hex = z.string().regex(HEX, "colors must be uppercase #RRGGBB");
 const role = z.enum(COLOR_ROLES);

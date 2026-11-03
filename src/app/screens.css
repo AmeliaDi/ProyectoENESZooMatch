@@ -324,9 +324,9 @@
   display: flex;
   gap: calc(var(--zm-px) * 2);
 }
-.zm-canvas__tag { pointer-events: none; fill: var(--zm-fg); font-family: var(--font-pixel); stroke: var(--zm-sky); stroke-width: 3px; stroke-linejoin: miter; paint-order: stroke; }
+.zm-canvas__tag { pointer-events: none; fill: var(--zm-fg); font-family: var(--font-pixel); stroke: var(--zm-sky); stroke-width: calc(var(--zm-px) * 2); stroke-linejoin: miter; paint-order: stroke; }
 /* % label: Atkinson tabular (ADR-028), sky knock-out stroke, never below its opacity floor. */
-.zm-canvas__affinity { pointer-events: none; fill: var(--zm-fg); font-family: var(--font-read); font-weight: 700; font-variant-numeric: tabular-nums; stroke: var(--zm-sky); stroke-width: 3px; stroke-linejoin: miter; paint-order: stroke; }
+.zm-canvas__affinity { pointer-events: none; fill: var(--zm-fg); font-family: var(--font-read); font-weight: 700; font-variant-numeric: tabular-nums; stroke: var(--zm-sky); stroke-width: calc(var(--zm-px) * 2); stroke-linejoin: miter; paint-order: stroke; }
 /* Radiant (≥ 95 %) stars: glow-hito dither, stepped corona and static pixel sparkles; never blur. */
 .zm-canvas__radiant { color: var(--zm-gold); }
 .zm-canvas__radiant-corona { fill: none; stroke: currentColor; }

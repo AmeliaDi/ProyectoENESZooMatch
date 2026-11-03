@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 
-import { THEME_MODES, type ThemeMode } from "@/config";
+import { THEME_MODES, type ThemeMode } from "@/config/theme-modes";
 import { useThemeMode } from "@/ui/design/theme";
 import { ChoiceGroup, type ChoiceOption } from "@/ui/kit/choice";
 

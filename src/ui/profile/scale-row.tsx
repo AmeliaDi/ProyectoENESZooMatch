@@ -1,6 +1,6 @@
 /**
  * One reading as a pixel track between two poles: faint cells = uncertainty
- * band, the gold cell = estimate. No percentiles are printed (celebrate, do
+ * band, the bright cell = estimate. No percentiles are printed (celebrate, do
  * not rank); the text says which pole it leans to and how sure we are, so
  * nothing depends on colour alone.
  */
