@@ -16,6 +16,22 @@ const moduleOrder = z
   .array(z.enum(OPTIONAL_MODULES))
   .refine((order) => new Set(order).size === OPTIONAL_MODULES.length && order.length === OPTIONAL_MODULES.length, "every optional module exactly once");
 
+/** One synthesized "chip": a short, quiet square/triangle blip with a pitch glide. */
+const chipTone = z
+  .strictObject({
+    wave: z.enum(["square", "triangle"]),
+    startHz: z.number().min(100).max(4000),
+    endHz: z.number().min(100).max(4000),
+    durationMs: z.number().int().min(10).max(250),
+    attackMs: z.number().int().positive(),
+    /** Linear gain; capped low on purpose (it is a hint, not an alert). */
+    volume: z.number().positive().max(0.2),
+  })
+  .refine((tone) => tone.attackMs < tone.durationMs, "attack shorter than the whole chip");
+
+/** `navigator.vibrate` pattern: on/off milliseconds, short by design. */
+const vibrationPattern = z.array(z.number().int().min(1).max(200)).min(1).max(5);
+
 /**
  * Pacing and presentation parameters of the public flow (quiz, reveal,
  * result, notifications). Kept out of components so nothing is a magic number.
@@ -63,6 +79,15 @@ export const experienceSchema = z.strictObject({
     fewPeopleThreshold: positiveInt,
     /** Areas listed under "lo que más conecta" (the rest are summed). */
     detailBreakdownMax: positiveInt,
+    /**
+     * Shown (rounded) percent from which a match turns golden, per track
+     * (ADR-031): near the p99 of real affinities, so gold stays rare but
+     * reachable. Re-derive with the distribution query when the pool grows.
+     */
+    radiantPercent: z.strictObject({
+      romance: z.number().int().min(1).max(100),
+      amistad: z.number().int().min(1).max(100),
+    }),
   }),
   notifications: z.strictObject({
     pollMs: z.number().int().min(5000),
@@ -92,6 +117,24 @@ export const experienceSchema = z.strictObject({
     highlightPadPx: gridPx,
     /** Side of the square highlighted at the canvas centre when your node is not found. */
     selfFallbackPx: gridPx,
+  }),
+  /**
+   * Optional sound and vibration (both off by default, stored per device).
+   * One event never fires more than once per `throttleMs`.
+   */
+  feedback: z.strictObject({
+    storageKey: z.string().regex(/:v\d+$/, "versioned key, e.g. zoomatch:feedback:v1"),
+    throttleMs: positiveInt,
+    sounds: z.strictObject({ answer: chipTone, join: chipTone }),
+    vibration: z.strictObject({ answer: vibrationPattern, join: vibrationPattern }),
+  }),
+  /** Illustrated 404: the lost little animal and its discreet easter egg. */
+  notFound: z.strictObject({
+    animalId: z.string().min(1),
+    colorId: z.string().min(1),
+    artPx: gridPx,
+    /** Taps on the lost animal before it says hello. */
+    easterEggTaps: z.number().int().min(3).max(12),
   }),
 });
 

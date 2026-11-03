@@ -12,6 +12,7 @@ import { dropUnownedDeviceDrafts } from "@/ui/shared/device-drafts";
 import { ExitButton } from "@/ui/shared/exit-button";
 import { Button } from "@/ui/kit/button";
 import { ChoiceGroup } from "@/ui/kit/choice";
+import { emitFeedback } from "@/ui/feedback/feedback";
 import { Likert } from "@/ui/kit/likert";
 import { ConstellationProgress } from "@/ui/kit/progress";
 import { ErrorState } from "@/ui/kit/states";
@@ -97,6 +98,7 @@ export function PublicQuiz() {
 
   function chooseLikert(value: number) {
     if (!isLikertValue(value)) return;
+    if (draft.likert[item.id] !== value) emitFeedback("answer");
     setError(null);
     setDraft((prev) => ({
       ...prev,

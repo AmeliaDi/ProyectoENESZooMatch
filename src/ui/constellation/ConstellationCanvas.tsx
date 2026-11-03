@@ -54,6 +54,7 @@ import {
 } from "@/domain/constellation";
 import { mulberry32 } from "@/domain/shared";
 
+import { emitFeedback } from "@/ui/feedback/feedback";
 import { Button, IconButton } from "@/ui/kit/button";
 
 import { buildNodeMeta, structureFromWorld, toSceneMatches } from "./build-structure";
@@ -192,6 +193,8 @@ function ConstellationCanvasImpl({
   const gestureRef = useRef<Gesture>({ pointers: new Map(), distance: 0, midX: 0, midY: 0 });
   const builtKeyRef = useRef<string | null>(null);
   const wakeLoopRef = useRef<() => void>(() => undefined);
+  /** Armed by a node grab, disarmed when the sky falls asleep again. */
+  const joinArmedRef = useRef(false);
   const onMetricsRef = useRef(onMetrics);
 
   const [structure, setStructure] = useState<ConstellationStructure | null>(null);
@@ -336,6 +339,9 @@ function ConstellationCanvasImpl({
     const next = new Set(frame.stars.filter((s) => s.happy).map((s) => s.id));
     const current = targets.current.happy;
     if (next.size === current.size && [...next].every((id) => current.has(id))) return;
+    // A star turning happy = a bond that just joined. Only chime for unions the
+    // person caused (drag/throw), never for the sky settling on its own.
+    if (joinArmedRef.current && [...next].some((id) => !current.has(id))) emitFeedback("join");
     targets.current.happy = next;
     setHappyIds(next);
   }, []);
@@ -391,6 +397,7 @@ function ConstellationCanvasImpl({
       const started = performance.now();
       const result = advance(world, seconds, cfg);
       const spent = performance.now() - started;
+      if (world.asleep && !dragRef.current) joinArmedRef.current = false;
       if (wasAsleep && !cameraMoving && frameCount % cfg.ambient.idleFrameDivider !== 0) return;
 
       const frame = buildFrame(world, cfg, { alpha: result.alpha, still: false });
@@ -539,6 +546,7 @@ function ConstellationCanvasImpl({
       if (body.kind === "self") return;
       event.stopPropagation();
       svgRef.current?.setPointerCapture(event.pointerId);
+      joinArmedRef.current = true;
       const trail = createTrail();
       pushSample(trail, { t: performance.now(), x: point.x, y: point.y });
       dragRef.current = {

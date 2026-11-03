@@ -18,6 +18,7 @@ import { Dialog } from "@/ui/kit/dialog";
 import { Icon } from "@/ui/kit/icon";
 import { ExitButton } from "@/ui/shared/exit-button";
 import { Frame } from "@/ui/kit/surfaces";
+import { FeedbackToggles } from "@/ui/feedback/feedback-toggles";
 import { InclusiveModeSelector } from "@/ui/shared/inclusive-mode-selector";
 import { useNotificationsPaused } from "@/ui/shared/notification-provider";
 import { writeNotificationsPaused } from "@/ui/shared/notification-grouping";
@@ -152,7 +153,7 @@ export function SettingsView() {
               {notificationsPaused ? "Reanudar avisos" : "Pausar avisos"}
             </Button>
           </div>
-          <p className="zm-detail__muted">Sonido y vibración vienen apagados; podrás activarlos aquí más adelante.</p>
+          <FeedbackToggles />
         </Frame>
 
         <Frame title="Tu perfil" coord="AR 07h">

@@ -32,7 +32,8 @@
     "minimumLoadingMs": 1200,
     "timeoutMs": 9000,
     "fewPeopleThreshold": 12,
-    "detailBreakdownMax": 5
+    "detailBreakdownMax": 5,
+    "radiantPercent": { "romance": 63, "amistad": 61 }
   },
   "notifications": {
     "pollMs": 30000,
@@ -51,5 +52,23 @@
     "dragSteps": 6,
     "highlightPadPx": 8,
     "selfFallbackPx": 64
+  },
+  "feedback": {
+    "storageKey": "zoomatch:feedback:v1",
+    "throttleMs": 120,
+    "sounds": {
+      "answer": { "wave": "square", "startHz": 880, "endHz": 1175, "durationMs": 45, "attackMs": 3, "volume": 0.035 },
+      "join": { "wave": "triangle", "startHz": 660, "endHz": 1320, "durationMs": 90, "attackMs": 5, "volume": 0.05 }
+    },
+    "vibration": {
+      "answer": [8],
+      "join": [10, 40, 10]
+    }
+  },
+  "notFound": {
+    "animalId": "ajolotito",
+    "colorId": "ennea-9",
+    "artPx": 72,
+    "easterEggTaps": 5
   }
 }

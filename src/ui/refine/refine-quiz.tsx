@@ -11,6 +11,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { EXPERIENCE, LIKERT_SCALE } from "@/config";
 import type { QuizModuleId } from "@/types/microtest";
+import { emitFeedback } from "@/ui/feedback/feedback";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { ChoiceGroup } from "@/ui/kit/choice";
@@ -106,6 +107,7 @@ export function RefineQuiz({ module }: { module: QuizModuleId }) {
             value={draft.likert[item.id] ?? null}
             onChange={(v) => {
               if (!isLikert(v)) return;
+              if (draft.likert[item.id] !== v) emitFeedback("answer");
               setDraft((p) => ({ ...p, likert: { ...p.likert, [item.id]: v }, skipped: p.skipped.filter((id) => id !== item.id) }));
             }}
           />
