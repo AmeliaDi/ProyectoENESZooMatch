@@ -143,6 +143,7 @@
 }
 .zm-entry__promise { margin: 0; color: var(--zm-fg-muted); font-size: 1.125rem; text-wrap: pretty; }
 .zm-entry__form { display: grid; gap: calc(var(--zm-px) * 8); padding: calc(var(--zm-px) * 14) calc(var(--zm-px) * 10) calc(var(--zm-px) * 10); width: min(100%, 26rem); }
+.zm-entry__intro { margin: 0; color: var(--zm-fg); font-size: 0.9375rem; text-wrap: pretty; }
 .zm-entry__facts { display: grid; gap: calc(var(--zm-px) * 3); margin: 0; padding: 0; list-style: none; color: var(--zm-fg-muted); font-size: 0.875rem; }
 .zm-entry__facts li { display: flex; gap: calc(var(--zm-px) * 4); align-items: center; }
 .zm-entry__facts .zm-icon { color: var(--zm-amistad); }

@@ -7,7 +7,6 @@ export type AppError =
   | "request.invalid"
   | "auth.unauthorized"
   | "auth.forbidden"
-  | "auth.invalid_credentials"
   | "auth.locked"
   | "service.unavailable"
   | "service.misconfigured"

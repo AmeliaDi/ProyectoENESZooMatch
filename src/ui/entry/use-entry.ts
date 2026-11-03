@@ -7,7 +7,7 @@ import { useRef, useState } from "react";
 import { claimDeviceDrafts, clearDeviceDrafts } from "@/ui/shared/device-drafts";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 
-export type EntryFailure = "unavailable" | "misconfigured" | "wrongKey" | "locked";
+export type EntryFailure = "unavailable" | "misconfigured" | "locked";
 
 interface EnterBody {
   ok?: boolean;
@@ -17,7 +17,6 @@ interface EnterBody {
 }
 
 function failureFor(status: number, code: string | undefined): EntryFailure {
-  if (code === "auth.invalid_credentials") return "wrongKey";
   if (code === "auth.locked" || status === 429) return "locked";
   if (code === "service.misconfigured") return "misconfigured";
   return "unavailable";
@@ -30,7 +29,7 @@ export function useEntry(inclusiveMode: InclusiveMode) {
   const [failed, setFailed] = useState<EntryFailure | null>(null);
   const lock = useRef(false);
 
-  async function enter(matricula: string, accessKey: string) {
+  async function enter(matricula: string) {
     if (lock.current) return;
     lock.current = true;
     setSubmitting(true);
@@ -39,7 +38,7 @@ export function useEntry(inclusiveMode: InclusiveMode) {
       const response = await fetch("/api/enter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matricula, accessKey, inclusiveMode }),
+        body: JSON.stringify({ matricula, inclusiveMode }),
       });
       const body = (await response.json().catch(() => null)) as EnterBody | null;
       if (response.ok && body?.ok && typeof body.redirect === "string" && typeof body.draftOwner === "string") {

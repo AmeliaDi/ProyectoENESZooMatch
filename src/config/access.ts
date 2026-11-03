@@ -13,21 +13,16 @@ const guardRule = z.strictObject({
 });
 
 /**
- * Entry hardening (ADR-023): the matrícula only identifies, the personal key
- * authenticates, and a Postgres-backed guard throttles guessing per network
- * address and per account. Campus Wi-Fi shares one public address among many
- * students, so address limits are generous and account limits are tight.
+ * Entry rules (ADR-023, ADR-026): the matrícula (número de cuenta UNAM) is the
+ * only credential and must be exactly N digits; a Postgres-backed guard
+ * throttles entry attempts per network address. Campus Wi-Fi shares one public
+ * address among many students, so the limit is generous.
  */
 export const accessConfigSchema = z.strictObject({
   version: z.string().min(1),
   matricula: z.strictObject({ digits: z.number().int().min(6).max(12) }),
-  accessKey: z
-    .strictObject({ minLength: z.number().int().min(6), maxLength: z.number().int().max(128) })
-    .refine((k) => k.minLength < k.maxLength, "minLength must be below maxLength"),
   guard: z.strictObject({
     attemptsPerAddress: guardRule,
-    failuresPerAddress: guardRule,
-    failuresPerAccount: guardRule,
   }),
 });
 

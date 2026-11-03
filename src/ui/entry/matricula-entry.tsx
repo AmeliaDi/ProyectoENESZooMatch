@@ -12,9 +12,7 @@ import { DELETED_FLAG } from "@/ui/settings/settings-view";
 
 import { DawnSky } from "./dawn-sky";
 import {
-  ACCESS_KEY_LIMITS,
   MATRICULA_DIGITS,
-  isAccessKeyValid,
   isPublicMatriculaValid,
   normalizePublicMatricula,
   sanitizeMatriculaInput,
@@ -23,11 +21,11 @@ import { type EntryFailure, useEntry } from "./use-entry";
 
 export const MATRICULA_COPY = {
   promise: "Un test anónimo para descubrir con quién del campus podrías hacer constelación.",
-  hint: "Nunca se guarda ni se muestra: solo un resumen cifrado que no se puede revertir.",
-  invalid: `Escribe tu matrícula completa: ${MATRICULA_DIGITS} números, sin letras ni guiones.`,
-  keyHint: `La primera vez, la clave que escribas queda como tuya (de ${ACCESS_KEY_LIMITS.minLength} a ${ACCESS_KEY_LIMITS.maxLength} caracteres). Después la necesitarás para volver.`,
-  keyInvalid: `Tu clave necesita de ${ACCESS_KEY_LIMITS.minLength} a ${ACCESS_KEY_LIMITS.maxLength} caracteres.`,
-  wrongKey: "La matrícula o la clave no coinciden. Revisa e intenta de nuevo.",
+  label: "Matrícula (número de cuenta UNAM)",
+  intro: `Para entrar solo necesitas tu matrícula: tu número de cuenta UNAM de ${MATRICULA_DIGITS} dígitos, el que viene en tu credencial.`,
+  hint: "Es tu llave para volver. Nunca se guarda ni se muestra: solo un resumen cifrado que no se puede revertir.",
+  invalid: `Escribe tu número de cuenta completo: ${MATRICULA_DIGITS} números, sin letras ni guiones.`,
+  ownOnly: "Usa solo tu propia matrícula: con ella se abre tu perfil y nadie más debería usarla.",
   locked: "Hubo varios intentos seguidos. Por cuidado, espera unos minutos antes de volver a intentar.",
   unavailable: "El cielo no responde ahora. Intenta de nuevo en un momento.",
   misconfigured: "El observatorio aún no está listo: falta configurar el servicio.",
@@ -58,12 +56,9 @@ function useDeletedNotice(): boolean {
   return deleted;
 }
 
-function fieldErrors(failed: EntryFailure | null, touched: boolean, matricula: string, accessKey: string) {
-  if (failed) return { matricula: null, key: MATRICULA_COPY[failed] };
-  return {
-    matricula: touched && !isPublicMatriculaValid(matricula) ? MATRICULA_COPY.invalid : null,
-    key: touched && !isAccessKeyValid(accessKey) ? MATRICULA_COPY.keyInvalid : null,
-  };
+function fieldError(failed: EntryFailure | null, touched: boolean, matricula: string): string | null {
+  if (failed) return MATRICULA_COPY[failed];
+  return touched && !isPublicMatriculaValid(matricula) ? MATRICULA_COPY.invalid : null;
 }
 
 export function MatriculaEntry() {
@@ -71,15 +66,14 @@ export function MatriculaEntry() {
   const deleted = useDeletedNotice();
   const { enter, submitting, failed, clearFailure } = useEntry(inclusiveMode);
   const [matricula, setMatricula] = useState("");
-  const [accessKey, setAccessKey] = useState("");
   const [touched, setTouched] = useState(false);
-  const errors = fieldErrors(failed, touched, matricula, accessKey);
+  const error = fieldError(failed, touched, matricula);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setTouched(true);
-    if (!isPublicMatriculaValid(matricula) || !isAccessKeyValid(accessKey)) return;
-    void enter(normalizePublicMatricula(matricula), accessKey);
+    if (!isPublicMatriculaValid(matricula)) return;
+    void enter(normalizePublicMatricula(matricula));
   }
 
   return (
@@ -105,10 +99,11 @@ export function MatriculaEntry() {
         </section>
 
         <form className="zm-box zm-box--frame zm-entry__form" onSubmit={submit} noValidate>
+          <p className="zm-entry__intro">{MATRICULA_COPY.intro}</p>
           <Field
-            label="Matrícula"
+            label={MATRICULA_COPY.label}
             hint={MATRICULA_COPY.hint}
-            error={errors.matricula}
+            error={error}
             name="matricula"
             value={matricula}
             onChange={(event) => {
@@ -123,22 +118,6 @@ export function MatriculaEntry() {
             placeholder={"0".repeat(MATRICULA_DIGITS)}
             required
           />
-          <Field
-            label="Clave personal"
-            hint={MATRICULA_COPY.keyHint}
-            error={errors.key}
-            name="accessKey"
-            type="password"
-            value={accessKey}
-            onChange={(event) => {
-              setAccessKey(event.target.value);
-              if (failed) clearFailure();
-            }}
-            autoComplete="current-password"
-            spellCheck={false}
-            maxLength={ACCESS_KEY_LIMITS.maxLength}
-            required
-          />
           <ul className="zm-entry__facts">
             <li>
               <Icon name="privacy" filled /> Te ven solo como un alias de animalito.
@@ -148,6 +127,9 @@ export function MatriculaEntry() {
             </li>
             <li>
               <Icon name="logout" filled /> {MATRICULA_COPY.sharedDevice}
+            </li>
+            <li>
+              <Icon name="privacy" filled /> {MATRICULA_COPY.ownOnly}
             </li>
           </ul>
           <Button type="submit" variant="primary" iconAfter="next" busy={submitting} disabled={submitting}>

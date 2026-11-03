@@ -504,6 +504,8 @@ recalculación global (alguien envía el test, pausa o borra su perfil, o `POST
 
 ## ADR-023 · Matrícula estricta, clave personal y freno a la enumeración
 
+> **Parcialmente reemplazado por ADR-026:** la clave personal se retiró. Lo demás sigue vigente.
+
 **Contexto.** Reportaron que alguien escribió su matrícula y vio el perfil de otra persona.
 La auditoría de la base no encontró cuentas cruzadas: cada `matricula_hash` corresponde a un
 único usuario y cada perfil tiene su correo derivado del hash. Las causas eran de diseño:
@@ -570,3 +572,25 @@ para que «95%» siempre brille y «94%» nunca. Sin blur ni degradados; con
 
 **Consecuencias.** Es un énfasis visual, no un rango: no cambia el orden, el puntaje ni la
 explicación. Con el romance más estricto (ADR-022) debería ser poco frecuente.
+
+## ADR-026 · Se retira la clave personal
+
+**Contexto.** La clave de ADR-023 añadía fricción (olvidarla no tiene recuperación por diseño
+anónimo) y la usuaria prefirió una entrada solo con matrícula, claramente rotulada.
+
+**Decisión.** La matrícula (número de cuenta UNAM) es la única credencial. Se eliminan
+`profiles.access_key_hash`, el hash scrypt, las RPC `access_guard_peek`/`access_guard_clear`,
+los límites de fallos por cuenta y por dirección, y el error `auth.invalid_credentials`.
+`/api/enter` acepta un `strictObject` `{ matricula, inclusiveMode? }`: un campo extra
+(p. ej. `accessKey` de un bundle viejo) da 400. La pantalla de entrada rotula «Matrícula
+(número de cuenta UNAM)» con una línea de introducción arriba del campo.
+
+Se conserva de ADR-023: matrícula estricta de 9 dígitos sin «correcciones», hash HMAC (nunca
+se guarda la matrícula), límite por dirección (60 intentos / 10 min) con guardia que falla
+cerrado, cierre de la sesión previa antes de entrar, borradores ligados a su dueña, botón
+«Salir» y alias fijo (ADR-024).
+
+**Consecuencias.** Riesgo aceptado por la usuaria: quien conozca la matrícula de otra persona
+puede entrar a su perfil (ver su carta y sus matches anónimos). Nunca ve la matrícula ni
+respuestas crudas de nadie más. Una pestaña abierta con el bundle anterior falla al entrar
+hasta recargar.

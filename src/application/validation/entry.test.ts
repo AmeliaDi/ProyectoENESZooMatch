@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { accessKeySchema, enterRequestSchema, matriculaSchema } from "./common";
+import { enterRequestSchema, matriculaSchema } from "./common";
 
 describe("matrícula (ADR-023)", () => {
   it("accepts exactly nine digits, forgiving only surrounding spaces", () => {
@@ -31,26 +31,12 @@ describe("matrícula (ADR-023)", () => {
   });
 });
 
-describe("access key", () => {
-  it("enforces length bounds", () => {
-    expect(accessKeySchema.safeParse("12345").success).toBe(false);
-    expect(accessKeySchema.safeParse("123456").success).toBe(true);
-    expect(accessKeySchema.safeParse("x".repeat(64)).success).toBe(true);
-    expect(accessKeySchema.safeParse("x".repeat(65)).success).toBe(false);
-  });
-
-  it("rejects control characters and NFC-normalizes accents", () => {
-    expect(accessKeySchema.safeParse("abc\u0000def").success).toBe(false);
-    expect(accessKeySchema.parse("cafe\u0301ñandú")).toBe("caféñandú");
-  });
-});
-
-describe("enter request", () => {
-  it("requires the key and rejects unknown fields", () => {
-    expect(enterRequestSchema.safeParse({ matricula: "123456789" }).success).toBe(false);
-    expect(
-      enterRequestSchema.safeParse({ matricula: "123456789", accessKey: "secreto1", extra: 1 }).success,
-    ).toBe(false);
-    expect(enterRequestSchema.safeParse({ matricula: "123456789", accessKey: "secreto1" }).success).toBe(true);
+describe("enter request (ADR-026)", () => {
+  it("needs only the matrícula and rejects unknown fields, including a leftover key", () => {
+    expect(enterRequestSchema.safeParse({ matricula: "123456789" }).success).toBe(true);
+    expect(enterRequestSchema.safeParse({ matricula: "123456789", inclusiveMode: "neutro_e" }).success).toBe(true);
+    expect(enterRequestSchema.safeParse({ matricula: "123456789", accessKey: "secreto1" }).success).toBe(false);
+    expect(enterRequestSchema.safeParse({ matricula: "123456789", extra: 1 }).success).toBe(false);
+    expect(enterRequestSchema.safeParse({}).success).toBe(false);
   });
 });

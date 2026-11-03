@@ -84,11 +84,7 @@ CREATE TABLE public.user_roles (
 CREATE TABLE public.profiles (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   matricula_hash TEXT NOT NULL UNIQUE CHECK (matricula_hash ~ '^[0-9a-f]{64}$'),
-  -- scrypt hash of the personal key (ADR-023). NULL only until the first
-  -- entry after the key was introduced. Service-role only, never in a DTO.
-  -- LIKE, not a regex: `$` inside a dollar-quoted SQL API payload is easy to
-  -- lose, and a regex `^scrypt$` silently rejects every real hash.
-  access_key_hash TEXT CHECK (access_key_hash IS NULL OR access_key_hash LIKE 'scrypt$%'),
+
   alias TEXT UNIQUE,
   animal_id TEXT REFERENCES public.animals(id),
   color_id TEXT REFERENCES public.colors(id),
@@ -680,11 +676,12 @@ END;
 $$;
 
 -- ─── Entry guard (ADR-023) ──────────────────────────────────────────────────
--- Throttles entry attempts per network address and wrong keys per account.
+-- Throttles entry attempts per network address (ADR-026: the matrícula is the
+-- only credential, so there are no per-account key failures to count).
 -- Subjects are HMAC digests computed by the server: no raw IP or matrícula is
 -- ever stored. Rows expire on their own; stale ones are swept on each hit.
 CREATE TABLE private.access_guard (
-  kind TEXT NOT NULL CHECK (kind IN ('address_attempt', 'address_failure', 'account_failure')),
+  kind TEXT NOT NULL CHECK (kind IN ('address_attempt')),
   subject TEXT NOT NULL CHECK (subject ~ '^[0-9a-f]{64}$'),
   window_started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   hits INTEGER NOT NULL DEFAULT 0 CHECK (hits >= 0),
@@ -748,42 +745,6 @@ BEGIN
 END;
 $$;
 
--- Seconds the subject is still locked, without counting a hit.
-CREATE FUNCTION public.access_guard_peek(p_kind TEXT, p_subject TEXT)
-RETURNS INTEGER
-LANGUAGE plpgsql
-STABLE
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-DECLARE
-  v_until TIMESTAMPTZ;
-BEGIN
-  PERFORM private.assert_service_role();
-  SELECT locked_until INTO v_until
-  FROM private.access_guard
-  WHERE kind = p_kind AND subject = p_subject;
-  IF v_until IS NULL OR v_until <= now() THEN
-    RETURN 0;
-  END IF;
-  RETURN ceil(extract(epoch FROM v_until - now()))::INTEGER;
-END;
-$$;
-
--- Forgets a subject's failures after a correct key.
-CREATE FUNCTION public.access_guard_clear(p_kind TEXT, p_subject TEXT)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-BEGIN
-  PERFORM private.assert_service_role();
-  DELETE FROM private.access_guard
-  WHERE kind = p_kind AND subject = p_subject
-    AND (locked_until IS NULL OR locked_until <= now());
-END;
-$$;
 
 -- ─── Function privileges ────────────────────────────────────────────────────
 
@@ -796,9 +757,7 @@ GRANT EXECUTE ON FUNCTION
   public.replace_matches(JSONB, TEXT),
   public.get_user_matches(UUID),
   public.notify_matches(UUID),
-  public.access_guard_hit(TEXT, TEXT, INTEGER, INTEGER, INTEGER),
-  public.access_guard_peek(TEXT, TEXT),
-  public.access_guard_clear(TEXT, TEXT)
+  public.access_guard_hit(TEXT, TEXT, INTEGER, INTEGER, INTEGER)
 TO service_role;
 
 GRANT EXECUTE ON FUNCTION

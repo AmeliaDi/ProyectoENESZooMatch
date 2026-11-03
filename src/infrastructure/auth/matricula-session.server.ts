@@ -2,8 +2,7 @@ import { createHmac, randomBytes } from "node:crypto";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { hashAccessKey, verifyAccessKey } from "@/infrastructure/auth/access-key.server";
-import { createAccessGuard, guardSubject, type AccessGuard } from "@/infrastructure/auth/access-guard.server";
+import { createAccessGuard, guardSubject } from "@/infrastructure/auth/access-guard.server";
 import { hashMatricula, privateLoginEmail } from "@/infrastructure/auth/identity.server";
 import { mismatchedKeyNames, missingEnvNames } from "@/infrastructure/env/env-report.server";
 import { getServerEnv } from "@/infrastructure/env/env.server";
@@ -17,12 +16,11 @@ import { createClient } from "@/infrastructure/supabase/server";
  */
 export type MatriculaEntryResult =
   | { ok: true; redirect: "/resultado" | "/cuestionario"; draftOwner: string }
-  | { ok: false; reason: "misconfigured" | "unavailable" | "invalid_key" }
+  | { ok: false; reason: "misconfigured" | "unavailable" }
   | { ok: false; reason: "locked"; retryAfter: number };
 
 export interface MatriculaEntryInput {
   matricula: string;
-  accessKey: string;
   /** Client network address, only used (HMAC-digested) by the entry guard. */
   address: string;
 }
@@ -33,17 +31,15 @@ type EntryStep =
   | "profile_lookup"
   | "create_user"
   | "insert_profile"
-  | "claim_key"
   | "generate_link"
   | "verify_otp";
 
 interface ProfileRow {
   user_id: string;
   quiz_completed_at: string | null;
-  access_key_hash: string | null;
 }
 
-const PROFILE_COLUMNS = "user_id, quiz_completed_at, access_key_hash";
+const PROFILE_COLUMNS = "user_id, quiz_completed_at";
 const RACE_RETRIES = 5;
 const RACE_DELAY_MS = 25;
 
@@ -90,11 +86,10 @@ async function findProfileAfterRace(admin: SupabaseClient, matriculaHash: string
   return findProfile(admin, matriculaHash);
 }
 
-/** Creates auth user + profile row (with its key); tolerates a concurrent first entry. */
+/** Creates auth user + profile row; tolerates a concurrent first entry. */
 async function createProfile(
   admin: SupabaseClient,
   matriculaHash: string,
-  keyHash: string,
 ): Promise<ProfileRow | MatriculaEntryResult> {
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email: privateLoginEmail(matriculaHash),
@@ -106,56 +101,24 @@ async function createProfile(
     return existing.data ?? fail("create_user", createError ?? existing.error);
   }
 
-  const row = { user_id: created.user.id, matricula_hash: matriculaHash, access_key_hash: keyHash };
+  const row = { user_id: created.user.id, matricula_hash: matriculaHash };
   const { error: insertError } = await admin.from("profiles").insert(row);
-  if (!insertError) return { user_id: row.user_id, quiz_completed_at: null, access_key_hash: keyHash };
+  if (!insertError) return { user_id: row.user_id, quiz_completed_at: null };
 
   await admin.auth.admin.deleteUser(created.user.id);
   const existing = await findProfileAfterRace(admin, matriculaHash);
   return existing.data ?? fail("insert_profile", insertError);
 }
 
-/**
- * Profiles created before keys existed get theirs on the next entry
- * (trust on first use). The conditional update makes two concurrent first
- * entries race safely: only one key is stored, the other is then verified.
- */
-async function claimKey(
-  admin: SupabaseClient,
-  profile: ProfileRow,
-  keyHash: string,
-): Promise<ProfileRow | MatriculaEntryResult> {
-  const { data, error } = await admin
-    .from("profiles")
-    .update({ access_key_hash: keyHash })
-    .eq("user_id", profile.user_id)
-    .is("access_key_hash", null)
-    .select(PROFILE_COLUMNS)
-    .maybeSingle<ProfileRow>();
-  if (error) return fail("claim_key", error);
-  if (data) return data;
-  const reread = await admin.from("profiles").select(PROFILE_COLUMNS).eq("user_id", profile.user_id).maybeSingle<ProfileRow>();
-  return reread.data ?? fail("claim_key", reread.error);
-}
-
-/** Resolves the account and proves the key; never issues a session by itself. */
-async function authenticate(
+/** Resolves the account for a matrícula, creating it on first entry. */
+async function resolveProfile(
   admin: SupabaseClient,
   matriculaHash: string,
-  accessKey: string,
 ): Promise<ProfileRow | MatriculaEntryResult> {
   const lookup = await findProfile(admin, matriculaHash);
   // PostgREST reports the HTTP status on the response, not on the error.
   if (lookup.error) return fail("profile_lookup", { ...lookup.error, status: lookup.status });
-
-  let profile: ProfileRow | MatriculaEntryResult = lookup.data
-    ?? (await createProfile(admin, matriculaHash, await hashAccessKey(accessKey)));
-  if (isResult(profile)) return profile;
-  if (!profile.access_key_hash) profile = await claimKey(admin, profile, await hashAccessKey(accessKey));
-  if (isResult(profile)) return profile;
-
-  const stored = profile.access_key_hash;
-  return stored && (await verifyAccessKey(accessKey, stored)) ? profile : { ok: false, reason: "invalid_key" };
+  return lookup.data ?? createProfile(admin, matriculaHash);
 }
 
 /**
@@ -165,28 +128,6 @@ async function authenticate(
  */
 function draftOwnerTag(userId: string, secret: string): string {
   return createHmac("sha256", secret).update(`draft-owner:${userId}`, "utf8").digest("hex").slice(0, 32);
-}
-
-/** Throttle checks before any key is compared. */
-async function guardBefore(
-  guard: AccessGuard,
-  addressSubject: string,
-  accountSubject: string,
-): Promise<MatriculaEntryResult | null> {
-  const [address, account] = await Promise.all([
-    guard.hit("address_attempt", addressSubject),
-    guard.peek("account_failure", accountSubject),
-  ]);
-  if (address === null || account === null) return fail("guard", new Error("guard unavailable"));
-  const retryAfter = Math.max(address, account);
-  return retryAfter > 0 ? { ok: false, reason: "locked", retryAfter } : null;
-}
-
-async function recordFailure(guard: AccessGuard, addressSubject: string, accountSubject: string) {
-  await Promise.all([
-    guard.hit("account_failure", accountSubject),
-    guard.hit("address_failure", addressSubject),
-  ]);
 }
 
 async function issueSession(
@@ -226,19 +167,12 @@ export async function enterWithMatricula(input: MatriculaEntryInput): Promise<Ma
   try {
     const secret = env.MATRICULA_HMAC_SECRET;
     const matriculaHash = hashMatricula(input.matricula, secret);
-    const guard = createAccessGuard(admin);
-    const addressSubject = guardSubject("address", input.address, secret);
-    const accountSubject = guardSubject("account", matriculaHash, secret);
+    const retryAfter = await createAccessGuard(admin).hit("address_attempt", guardSubject("address", input.address, secret));
+    if (retryAfter === null) return fail("guard", new Error("guard unavailable"));
+    if (retryAfter > 0) return { ok: false, reason: "locked", retryAfter };
 
-    const blocked = await guardBefore(guard, addressSubject, accountSubject);
-    if (blocked) return blocked;
-
-    const profile = await authenticate(admin, matriculaHash, input.accessKey);
-    if (isResult(profile)) {
-      if (!profile.ok && profile.reason === "invalid_key") await recordFailure(guard, addressSubject, accountSubject);
-      return profile;
-    }
-    await guard.clear("account_failure", accountSubject);
+    const profile = await resolveProfile(admin, matriculaHash);
+    if (isResult(profile)) return profile;
 
     const sessionFailure = await issueSession(admin, sessionClient, matriculaHash);
     if (sessionFailure) return sessionFailure;

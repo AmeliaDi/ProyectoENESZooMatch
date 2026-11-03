@@ -76,13 +76,14 @@ describe("base migration", () => {
     expect(SQL).not.toMatch(/auth\.jwt\(\) ->> 'role' !=/);
   });
 
-  it("keeps the entry guard service-only and the key hash private (ADR-023)", () => {
-    for (const name of ["access_guard_hit", "access_guard_peek", "access_guard_clear"]) {
-      expect(PUBLIC_FUNCTIONS.get(name), name).toContain("PERFORM private.assert_service_role();");
-      expect(PUBLIC_FUNCTIONS.get(name), name).toContain("SECURITY DEFINER");
-    }
+  it("keeps the entry guard service-only and has no personal key (ADR-026)", () => {
+    const guard = PUBLIC_FUNCTIONS.get("access_guard_hit");
+    expect(guard).toContain("PERFORM private.assert_service_role();");
+    expect(guard).toContain("SECURITY DEFINER");
+    expect(PUBLIC_FUNCTIONS.has("access_guard_peek")).toBe(false);
+    expect(PUBLIC_FUNCTIONS.has("access_guard_clear")).toBe(false);
     expect(SQL).toContain("CREATE TABLE private.access_guard");
-    expect(SQL).toContain("CHECK (access_key_hash IS NULL OR access_key_hash LIKE 'scrypt$%')");
+    expect(SQL).not.toContain("access_key_hash");
     expect(SQL).not.toMatch(/GRANT[^;]*access_guard[^;]*TO (anon|authenticated)/);
   });
 

@@ -1,15 +1,9 @@
 {
-  "version": "access-1",
+  "version": "access-2",
   "matricula": {
     "digits": 9
   },
-  "accessKey": {
-    "minLength": 6,
-    "maxLength": 64
-  },
   "guard": {
-    "attemptsPerAddress": { "limit": 60, "windowSeconds": 600, "lockSeconds": 600 },
-    "failuresPerAddress": { "limit": 15, "windowSeconds": 900, "lockSeconds": 900 },
-    "failuresPerAccount": { "limit": 5, "windowSeconds": 900, "lockSeconds": 900 }
+    "attemptsPerAddress": { "limit": 60, "windowSeconds": 600, "lockSeconds": 600 }
   }
 }

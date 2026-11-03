@@ -13,7 +13,6 @@ async function handlePost(request: Request) {
 
   const result = await enterWithMatricula({
     matricula: parsed.data.matricula,
-    accessKey: parsed.data.accessKey,
     address: clientAddress(request.headers),
   });
   if (result.ok) {
@@ -21,8 +20,6 @@ async function handlePost(request: Request) {
   }
 
   switch (result.reason) {
-    case "invalid_key":
-      return errorResponse("auth.invalid_credentials");
     case "locked": {
       const response = errorResponse("auth.locked");
       response.headers.set("Retry-After", String(result.retryAfter));

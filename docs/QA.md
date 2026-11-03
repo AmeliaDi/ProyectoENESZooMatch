@@ -35,10 +35,10 @@ Scripts reproducibles:
 **39/39 OK** (las mismas 39 en local).
 
 > No hay padrón de matrículas: cualquier matrícula de exactamente 9 dígitos
-> puede registrarse, pero desde ADR-023 la cuenta se protege con una clave
-> personal fijada en la primera entrada, y el guardia de Postgres frena la
-> enumeración. `qa-api.mjs` prueba formatos inválidos, clave incorrecta (401),
-> cierre de la sesión previa tras un fallo y `/api/exit`.
+> puede registrarse. Desde ADR-026 la matrícula es la única credencial (sin
+> clave personal) y el guardia de Postgres limita intentos por dirección.
+> `qa-api.mjs` prueba formatos inválidos, campos extra rechazados (400),
+> Origin ajeno (403), alias fijo y `/api/exit`.
 
 ## 2. UI: 9 pantallas × 2 vistas × 2 modos (local, dev)
 
