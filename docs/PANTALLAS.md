@@ -170,6 +170,9 @@ flowchart TD
   - **Borrar mis datos:** confirmación única con el texto de la guía. Borra el
     usuario de Auth, y perfil, respuestas, matches y avisos caen en cascada; se
     republican las afinidades, se cierra la sesión y la entrada lo confirma.
+- **Chats** (`chat-security-section.tsx`): cambiar el PIN (actual + nuevo dos
+  veces), «Olvidé mi PIN» (lleva a `/chats`), actividad de seguridad reciente e
+  intentos fallidos recientes (agregado; sin IP ni dispositivo).
 - **Cómo se calcula:** 4 pasos en lenguaje simple. Los umbrales se leen de la
   configuración y se declaran los límites (sin validación con parejas reales).
 - **Estados:** "Revisando tu perfil…"; sin sesión, enlace a la entrada; error al
@@ -191,6 +194,27 @@ flowchart TD
 - **Anti-plantilla:** marcos de atlas con coordenadas AR, pistas de celdas en
   lugar de barras de progreso redondeadas y sin porcentajes de rasgo (no
   rankea).
+
+## 8c. Chats (`/chats`, `src/ui/chat/chats-view.tsx`)
+
+- **Objetivo:** el candado frente a tus chats (ADR-029, `docs/CHAT.md`). El chat
+  todavía no existe; esta pantalla es su puerta.
+- **Estados**, según `GET /api/chat/status`:
+  - sin PIN → «Crea tu PIN» en dos pasos; si es trivial, «Elige uno que solo tú
+    recuerdes» y se vuelve al primer paso;
+  - con PIN y candado cerrado → pedir PIN, con «Te quedan N intentos» y, en
+    pausa, «Tómate un respiro…» con cuenta regresiva y el enlace «Olvidé mi PIN»;
+  - restablecimiento pendiente → aviso visible, cancelar con el PIN actual y,
+    cuando termina la espera de 24 h, crear el PIN nuevo;
+  - abierto → estado vacío «Aquí vivirán tus chats cuando tú y un match acepten
+    conversar» y el botón «Cerrar el candado».
+- **PIN:** un solo `<input>` numérico (sin autocompletar ni gestor de
+  contraseñas) bajo 4 casillas pixel decorativas. Cada dígito enciende una
+  estrella, y el botón de mostrar u ocultar vuelve a enmascararlo. Usa
+  `aria-live` para errores y pausas. Sin animación con `prefers-reduced-motion`.
+- **Al ocultar la página** (`pagehide`), `sendBeacon` cierra el candado.
+- **Enlaces:** línea fina del resultado y Ajustes → Chats (cambiar PIN, olvidé mi
+  PIN, actividad reciente e intentos fallidos).
 
 ## 9. Admin (`/admin`, `/admin/login`)
 

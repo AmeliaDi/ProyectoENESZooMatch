@@ -8,6 +8,8 @@ export const TABLE = {
   responses: "quiz_responses",
   notifications: "notifications",
   roles: "user_roles",
+  chatPins: "chat_pins",
+  chatEvents: "chat_security_events",
 } as const;
 export const RPC = {
   submit: "submit_quiz_result",

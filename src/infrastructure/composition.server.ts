@@ -4,6 +4,7 @@
  */
 import { createHash } from "node:crypto";
 
+import type { ChatRecoveryDeps } from "@/application/chat";
 import type { AppError } from "@/application/errors";
 import type { GetResultDeps } from "@/application/get-result";
 import type { PrivacyDeps } from "@/application/privacy";
@@ -11,7 +12,12 @@ import type { AdminRepository, NotificationRepository, Scheduler } from "@/appli
 import type { RecomputeDeps } from "@/application/recompute-matches";
 import type { RefineDeps } from "@/application/refine-profile";
 import type { SubmitQuizDeps } from "@/application/submit-quiz";
-import { err, ok, type Result } from "@/domain/shared";
+import { err, ok, type Clock, type Result } from "@/domain/shared";
+
+import { createAccessGuard, guardSubject } from "./auth/access-guard.server";
+import { createPinHasher } from "./chat/pin-hasher.server";
+import { supabaseChatPinRepository, supabaseMatriculaVerifier } from "./chat/pin-repository";
+import { getChatPinPepper, getServerEnv } from "./env/env.server";
 
 import { serverLatentScorer } from "./latent-scorer.server";
 import { createAdminClient } from "./supabase/admin.server";
@@ -29,6 +35,8 @@ const systemScheduler: Scheduler = {
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   random: Math.random,
 };
+
+const systemClock: Clock = { now: () => new Date() };
 
 const sha256Hex = (input: string) => createHash("sha256").update(input, "utf8").digest("hex");
 
@@ -116,6 +124,42 @@ export async function adminContext(): Promise<Result<AdminRepository, Failure>> 
   if (!auth.ok) return auth;
   const repo = supabaseAdminRepository(auth.value.session);
   return (await repo.isAdmin(auth.value.userId)) ? ok(repo) : err("auth.forbidden");
+}
+
+export interface ChatContext {
+  userId: string;
+  deps: ChatRecoveryDeps;
+  /** Signs the lock-session cookie (key derived from it). */
+  pepper: string;
+  /** Per-address PIN guard: seconds locked, or `null` when it failed (fail closed). */
+  guardAddress(address: string): Promise<number | null>;
+}
+
+/**
+ * Chat PIN dependencies. Without `CHAT_PIN_PEPPER` (or the server env) the
+ * chat routes answer `service.unavailable`; nothing else is affected.
+ */
+export async function chatContext(): Promise<Result<ChatContext, Failure>> {
+  const pepper = getChatPinPepper();
+  const env = getServerEnv();
+  if (!pepper || !env) return err("service.unavailable");
+  const auth = await authenticated();
+  if (!auth.ok) return auth;
+  const admin = createAdminClient();
+  if (!admin) return err("service.unavailable");
+  const guard = createAccessGuard(admin);
+  return ok({
+    userId: auth.value.userId,
+    pepper,
+    deps: {
+      pins: supabaseChatPinRepository(admin),
+      hasher: createPinHasher(pepper),
+      matricula: supabaseMatriculaVerifier(admin, env.MATRICULA_HMAC_SECRET),
+      clock: systemClock,
+    },
+    guardAddress: (address) =>
+      guard.hit("chat_pin_address", guardSubject("chat_pin_address", address, env.MATRICULA_HMAC_SECRET)),
+  });
 }
 
 export function recomputeDeps(): Result<RecomputeDeps, Failure> {

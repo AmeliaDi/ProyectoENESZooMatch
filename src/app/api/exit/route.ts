@@ -1,3 +1,4 @@
+import { clearLockCookie } from "@/infrastructure/chat/lock-cookie.server";
 import { jsonResponse } from "@/infrastructure/http/responses";
 import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
 import { createClient } from "@/infrastructure/supabase/server";
@@ -9,7 +10,9 @@ export const dynamic = "force-dynamic";
 async function handlePost() {
   const client = await createClient();
   await client?.auth.signOut({ scope: "local" }).catch(() => undefined);
-  return jsonResponse({ ok: true });
+  const response = jsonResponse({ ok: true });
+  clearLockCookie(response);
+  return response;
 }
 
 const methods = ["POST"] as const;

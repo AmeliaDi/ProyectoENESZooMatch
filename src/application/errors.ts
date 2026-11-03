@@ -12,7 +12,32 @@ export type AppError =
   | "service.misconfigured"
   | "quiz.not_completed"
   | "storage.failed"
-  | "match.pool_unstable";
+  | "match.pool_unstable"
+  | ChatError;
+
+/** Chat PIN lock (docs/CHAT.md). Messages never hint at the PIN itself. */
+export type ChatError =
+  | "chat.locked"
+  | "chat.pin_missing"
+  | "chat.pin_exists"
+  | "chat.pin_invalid"
+  | "chat.pin_weak"
+  | "chat.pin_mismatch"
+  | "chat.pin_paused"
+  | "chat.reset_required"
+  | "chat.recovery_pending"
+  | "chat.recovery_none"
+  | "chat.recovery_not_ready"
+  | "chat.recovery_invalid";
+
+/** A failure plus the optional hints a client may show (never PIN details). */
+export interface AppFailure {
+  code: AppError;
+  /** Seconds until the action may be retried. */
+  retryAfter?: number;
+  /** Guesses left before the next pause. */
+  attemptsLeft?: number;
+}
 
 /** Failure of a persistence adapter; adapters never throw. */
 export type StorageError = "storage.failed";

@@ -10,6 +10,8 @@
 //        npm run db:apply -- --status  → table row counts only
 //        npm run db:apply -- --seed    → re-apply the idempotent seed on an existing
 //          schema and drop quiz_items no longer in the bank (only if unanswered)
+//        npm run db:apply -- --migration supabase/migrations/<file>.sql
+//          → apply ONE idempotent migration on a populated schema (keeps data)
 // The base migration is not idempotent; on a populated schema the script
 // stops instead of guessing. Reset the project first (deletes all data).
 import { existsSync, readFileSync } from "node:fs";
@@ -51,6 +53,33 @@ const STATUS_SQL = `
   from information_schema.tables
   where table_schema = 'public' and table_type = 'BASE TABLE'
   order by 1`;
+
+const MIGRATIONS_DIR = "supabase/migrations/";
+
+// Only files under supabase/migrations that declare themselves idempotent.
+function readIdempotentMigration(path) {
+  const normalized = path.replaceAll("\\", "/");
+  if (!normalized.startsWith(MIGRATIONS_DIR) || !normalized.endsWith(".sql") || !existsSync(normalized)) {
+    console.error(`--migration espera un archivo .sql dentro de ${MIGRATIONS_DIR}`);
+    process.exit(1);
+  }
+  const sql = readFileSync(normalized, "utf8");
+  if (!/idempotent/i.test(sql.slice(0, 2000)) || /^CREATE TABLE public\.\w+ \(/m.test(sql)) {
+    console.error(`${normalized} no se declara idempotente (usa IF NOT EXISTS); no se aplicó.`);
+    process.exit(1);
+  }
+  return { normalized, sql };
+}
+
+const migrationIndex = process.argv.indexOf("--migration");
+if (migrationIndex !== -1) {
+  const { normalized, sql } = readIdempotentMigration(process.argv[migrationIndex + 1] ?? "");
+  await query(sql);
+  await query("notify pgrst, 'reload schema'");
+  console.log(`aplicado ${normalized}`);
+  console.table(await query(STATUS_SQL));
+  process.exit(0);
+}
 
 const seedOnly = process.argv.includes("--seed");
 const existing = await query(STATUS_SQL);

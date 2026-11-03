@@ -21,3 +21,15 @@ export function getServerEnv(source: EnvSource = process.env): ServerEnv | null 
 
   return result.success ? result.data : null;
 }
+
+const MIN_PEPPER_LENGTH = 32;
+
+/**
+ * Optional server-only pepper of the chat PIN (ADR-029). Kept out of the
+ * required schema: without it only the chat PIN routes answer
+ * `service.unavailable`; the rest of the app keeps working.
+ */
+export function getChatPinPepper(source: EnvSource = process.env): string | null {
+  const value = source.CHAT_PIN_PEPPER?.trim();
+  return value && value.length >= MIN_PEPPER_LENGTH ? value : null;
+}

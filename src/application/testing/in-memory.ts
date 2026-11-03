@@ -4,11 +4,17 @@
  * any network.
  */
 import type { GlobalMatch } from "@/domain/matching";
+import { clearAttempts } from "@/domain/chat";
 import { err, ok } from "@/domain/shared";
 
 import type { StorageError } from "../errors";
 import type {
+  ChatPinRecord,
+  ChatPinRepository,
+  ChatSecurityEvent,
   CounterpartProfile,
+  MatriculaVerifier,
+  PinHasher,
   MatchRepository,
   NotificationRecord,
   NotificationRepository,
@@ -42,6 +48,11 @@ export class MemoryStore {
   own: OwnProfile | null = null;
   counterparts: CounterpartProfile[] = [];
   stored: StoredMatch[] = [];
+  /** chat_pins / chat_security_events; cascade from the account like in SQL. */
+  readonly chatPins = new Map<string, ChatPinRecord>();
+  readonly chatEvents: Array<ChatSecurityEvent & { userId: string }> = [];
+  /** Matrícula per account (the real adapter compares HMAC digests). */
+  readonly matriculas = new Map<string, string>();
 
   pool(): PoolProfile[] {
     return [...this.results.values()]
@@ -73,6 +84,8 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
       if (store.faults.save) return failed;
       store.results.delete(userId);
       store.paused.delete(userId);
+      store.chatPins.delete(userId);
+      store.chatEvents.splice(0, store.chatEvents.length, ...store.chatEvents.filter((e) => e.userId !== userId));
       store.version += 1;
       return ok(undefined);
     },
@@ -147,3 +160,45 @@ export function memoryNotifications(store: MemoryStore): NotificationRepository 
 }
 
 export const instantScheduler = { sleep: async () => {}, random: () => 0 };
+
+export function memoryChatPins(store: MemoryStore): ChatPinRepository {
+  return {
+    find: async (userId) => (store.faults.save ? failed : ok(store.chatPins.get(userId) ?? null)),
+    async create(userId, digest, at) {
+      if (store.faults.save) return failed;
+      if (store.chatPins.has(userId)) return ok(false);
+      store.chatPins.set(userId, {
+        digest, createdAt: at, changedAt: at, attempts: clearAttempts(),
+        recentFailures: 0, lastFailedAt: null, recoveryRequestedAt: null, revision: 0,
+      });
+      return ok(true);
+    },
+    async update(userId, revision, patch) {
+      if (store.faults.save) return failed;
+      const current = store.chatPins.get(userId);
+      if (!current || (revision !== null && current.revision !== revision)) return ok(false);
+      store.chatPins.set(userId, { ...current, ...patch, revision: current.revision + 1 });
+      return ok(true);
+    },
+    async recordEvent(userId, kind, at) {
+      store.chatEvents.push({ userId, kind, at });
+      return ok(undefined);
+    },
+    listEvents: async (userId, limit) =>
+      ok(store.chatEvents.filter((e) => e.userId === userId).reverse().slice(0, limit).map(({ kind, at }) => ({ kind, at }))),
+  };
+}
+
+/** Reversible stand-in for the scrypt hasher: fast, deterministic, test-only. */
+export const plainPinHasher: PinHasher = {
+  hash: async (userId, pin) => ({
+    hash: `${userId}:${pin}`,
+    salt: "salt",
+    params: { algorithm: "scrypt", log2N: 1, r: 1, p: 1, keyLen: 1 },
+  }),
+  verify: async (userId, pin, stored) => stored.hash === `${userId}:${pin}`,
+};
+
+export function memoryMatriculas(store: MemoryStore): MatriculaVerifier {
+  return { matches: async (userId, matricula) => ok(store.matriculas.get(userId) === matricula) };
+}

@@ -4,6 +4,7 @@
  * comes back as a `Result`.
  */
 import type { SubtypeMark } from "@/domain/avatars/avatar-spec";
+import type { AttemptState } from "@/domain/chat";
 import type { GlobalMatch } from "@/domain/matching";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import type { Result } from "@/domain/shared";
@@ -139,6 +140,77 @@ export interface AdminRepository {
     romance: number;
     amistad: number;
   }): Promise<Result<unknown, StorageError>>;
+}
+
+/** scrypt parameters stored next to each PIN hash so they can evolve. */
+export interface PinKdfParams {
+  algorithm: "scrypt";
+  log2N: number;
+  r: number;
+  p: number;
+  keyLen: number;
+}
+
+/** Output of the PIN KDF; never leaves the server. */
+export interface PinDigest {
+  hash: string;
+  salt: string;
+  params: PinKdfParams;
+}
+
+export interface PinHasher {
+  hash(userId: string, pin: string): Promise<PinDigest>;
+  /** Constant-time comparison against the stored digest. */
+  verify(userId: string, pin: string, stored: PinDigest): Promise<boolean>;
+}
+
+export interface ChatPinRecord {
+  digest: PinDigest;
+  createdAt: Date;
+  changedAt: Date;
+  attempts: AttemptState;
+  /** Failures inside the recent window (aggregate, not one row per guess). */
+  recentFailures: number;
+  lastFailedAt: Date | null;
+  recoveryRequestedAt: Date | null;
+  /** Bumped on every write; the compare-and-swap token. */
+  revision: number;
+}
+
+export type ChatPinPatch = Partial<Omit<ChatPinRecord, "createdAt" | "revision">>;
+
+export const CHAT_SECURITY_EVENT_KINDS = [
+  "created",
+  "changed",
+  "paused",
+  "recovery_requested",
+  "recovery_cancelled",
+  "recovery_completed",
+] as const;
+
+export type ChatSecurityEventKind = (typeof CHAT_SECURITY_EVENT_KINDS)[number];
+
+export interface ChatSecurityEvent {
+  kind: ChatSecurityEventKind;
+  at: Date;
+}
+
+export interface ChatPinRepository {
+  find(userId: string): Promise<Result<ChatPinRecord | null, StorageError>>;
+  /** `false` when the person already has a PIN. */
+  create(userId: string, digest: PinDigest, at: Date): Promise<Result<boolean, StorageError>>;
+  /**
+   * Applies the patch only if the stored revision still equals `revision`
+   * (`null` = unconditional). Resolves `false` on a lost race.
+   */
+  update(userId: string, revision: number | null, patch: ChatPinPatch): Promise<Result<boolean, StorageError>>;
+  recordEvent(userId: string, kind: ChatSecurityEventKind, at: Date): Promise<Result<void, StorageError>>;
+  listEvents(userId: string, limit: number): Promise<Result<ChatSecurityEvent[], StorageError>>;
+}
+
+/** Checks a retyped matrícula against the account in session. */
+export interface MatriculaVerifier {
+  matches(userId: string, matricula: string): Promise<Result<boolean, StorageError>>;
 }
 
 /** Deferred effects for retry loops, injectable for tests. */

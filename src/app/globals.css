@@ -4,6 +4,7 @@
 @import "./screens.css";
 @import "./card.css";
 @import "./refine.css";
+@import "./chat.css";
 
 /*
  * Global reset only. Every colour, font and surface comes from the Atlas
@@ -41,8 +42,8 @@ label {
 }
 
 ::selection {
-  background: var(--zm-gold);
-  color: var(--zm-on-gold);
+  background: var(--zm-fg);
+  color: var(--zm-sky);
 }
 
 @media (prefers-reduced-motion: reduce) {

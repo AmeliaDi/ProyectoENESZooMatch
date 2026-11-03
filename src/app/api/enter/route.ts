@@ -1,13 +1,21 @@
 import { enterRequestSchema, parseJsonBody } from "@/application/validation/common";
 import { clientAddress } from "@/infrastructure/auth/access-guard.server";
 import { enterWithMatricula } from "@/infrastructure/auth/matricula-session.server";
+import { clearLockCookie } from "@/infrastructure/chat/lock-cookie.server";
 import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
 import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** Entering always closes the previous chat lock session on this device. */
 async function handlePost(request: Request) {
+  const response = await enter(request);
+  clearLockCookie(response);
+  return response;
+}
+
+async function enter(request: Request) {
   const parsed = enterRequestSchema.safeParse(await parseJsonBody(request));
   if (!parsed.success) return errorResponse("request.invalid");
 

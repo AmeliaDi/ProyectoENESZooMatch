@@ -594,3 +594,121 @@ cerrado, cierre de la sesión previa antes de entrar, borradores ligados a su du
 puede entrar a su perfil (ver su carta y sus matches anónimos). Nunca ve la matrícula ni
 respuestas crudas de nadie más. Una pestaña abierta con el bundle anterior falla al entrar
 hasta recargar.
+
+## ADR-029 · PIN de chat: candado ligero, no cifrado
+
+**Contexto.** Los chats entre matches vendrán después, y desde ADR-026 la matrícula es la única
+credencial. Hacía falta un candado para quien tome un dispositivo con la sesión abierta, sin
+prometer cifrado. Diseño completo en `docs/CHAT.md`.
+
+**Decisión.**
+- **PIN obligatorio de 4 dígitos ASCII**, uno por persona. Se rechazan las 10 repeticiones, las
+  14 secuencias ±1 y una lista corta (`data/chat-config.json`). Los años sí se aceptan.
+- **Almacenamiento:** `public.chat_pins` guarda scrypt (N = 2¹⁵, r = 8, p = 1, 32 B, sal de
+  16 B por persona, como en ADR-023) sobre `HMAC-SHA256(CHAT_PIN_PEPPER, userId:pin)`. La
+  comparación usa `timingSafeEqual`. La tabla tiene RLS sin políticas y `REVOKE` a
+  `anon`/`authenticated`, así que solo el servidor la lee. Los eventos
+  (`chat_security_events`) tampoco tienen políticas: la persona los ve por
+  `GET /api/chat/activity`. Los fallos se guardan como agregado, no como un evento por intento.
+- **Intentos:** pausas de 1, 5, 15 y 60 min cada 5 fallos. Cada intento se cobra con
+  *compare-and-swap* (`revision`) **antes** de comparar el hash, así que pedir en paralelo no
+  da intentos extra. Tras 4 pausas de 60 min solo queda restablecer. Además se aplica la
+  guardia por IP (`access_guard_hit`, tipo `chat_pin_address`, 30 intentos cada 10 min), que
+  falla cerrada.
+- **Sesión de candado:** cookie `httpOnly`, `SameSite=Strict`, `Secure` en producción y
+  `Path=/api/chat`, firmada con `HMAC(pepper, "chat-lock-session")` y ligada al `userId`.
+  Expira tras 10 min de inactividad o 120 min en total. `/api/chat/lock`, `/api/exit` y
+  `/api/enter` la borran, y `pagehide` envía `sendBeacon`. Toda ruta de chat debe pasar
+  `requireChatLock`; sin él responde `chat.locked` y no devuelve datos.
+- **Olvidé mi PIN:** se reescribe la matrícula, que debe coincidir con la cuenta en sesión, y
+  se espera 24 h. Durante la espera los chats quedan cerrados y se ve un aviso. Se puede
+  cancelar con el PIN actual. Al completar solo se reescribe el PIN.
+- **Sin `CHAT_PIN_PEPPER`** las rutas de PIN responden `service.unavailable`; el resto de la
+  app sigue funcionando.
+
+**Consecuencias.** Riesgo inherente: solo hay 10 000 combinaciones. Si se filtran la tabla
+**y** el *pepper*, el ataque fuera de línea es trivial: el *pepper* es la defensa principal y
+vive solo en Vercel. En línea, las pausas por cuenta (≈ 5 intentos/h en el peor escalón, y
+luego solo restablecer) y la guardia por IP hacen impráctico adivinar. Quien conoce la
+matrícula aún puede pedir un restablecimiento, pero la espera de 24 h, el aviso y la
+actividad visible dan tiempo a cancelarlo. El PIN no protege frente a quien opera el
+servidor; el cifrado de extremo a extremo sería un diseño aparte. La migración
+`20261102000000_chat_pin.sql` es idempotente y también amplía el `CHECK` de
+`private.access_guard`.
+
+## ADR-027 · Contraste, dorado con regla y sprites con contorno
+
+**Contexto.** La auditoría visual (`docs/AUDITORIA_VISUAL.md`) midió huecos que los
+`contrastPairs` no veían: `fg` sobre una estrella brillante 2.80 (noche), líneas del lienzo
+de 1.78–2.65 de día, el % de un nodo atenuado 3.49 de día y el borde de los sprites
+(sombra 2.02 de noche, brillo 2.07 de día). Además, 13 tipos de elemento eran dorados a la vez y
+el nodo «tú» no destacaba.
+
+**Decisión.**
+- **Tokens por modo** (no invertidos) en `data/design-tokens.json`: escala `oro-100…oro-700`
+  (100 = menos contraste con el cielo, 700 = más; `gold` y `focus` son pasos de la escala), `fg`
+  y `fg-muted` más contrastados (noche 15.14 / 10.91; día 14.22 / 8.12) y `effects` por modo:
+  `veil`, `textOutline`, `titleGlow` y los halos `glow-suave`, `glow-foco` y `glow-hito`
+  (color, radio en px múltiplo de `--zm-px`, opacidad). En alto contraste todos los halos
+  tienen opacidad 0 (lo exige el esquema).
+- **Regla del dorado:** solo tu nodo (`glow-foco`), el match ≥ 95 % (`glow-hito`, ADR-025), la
+  línea y el destello al unirse, los badges (`Chip tone="gold"`), las cifras clave (% ≥ 95 en el
+  atlas pixel) y el foco (aro dorado; de día `#5C3B00` = oro-700, 8.44:1). La estrella de
+  progreso actual se conserva. Títulos, botón primario, tab, chips de confianza, Likert,
+  estrellas de carga, virtudes, `summary`, refinar, bordes de narrativa y la selección de texto
+  pasan a `fg`/`fg-muted`/`rim`.
+- **Texto pixel-friendly:** títulos con contorno duro de 1 px lógico en 8 direcciones más un
+  halo de acento con desplazamientos de 2 px a baja opacidad (sin radio de blur). El texto largo
+  sobre el cielo lleva un velo del color del cielo (`--zm-veil`, 0.8 noche / 0.88 día) y siempre
+  usa `--font-read`.
+- **Sprites:** contorno interior de 1 px de sprite en `#6A6790` (3.35:1 noche, 4.44:1 día) y
+  *rim light* de 1 px bajo el contorno superior (base mezclada 50 % hacia la luz de estrella).
+  Las plantillas ya tocan las columnas 0/15 y las filas 0/15, así que no hay margen para un anillo
+  exterior: el contorno reemplaza las celdas del borde de la silueta, por lo que la máscara (y la
+  distinguibilidad por silueta) no cambia. Sombra ×0.78 y brillo hacia `#FFF3D1`, porque ya no
+  forman el borde. Paleta de hasta 8 tonos. La cola se dibuja con la tinta del contorno.
+- **Lienzo:** halos pre-renderizados con patrones Bayer compartidos (25/50/75 % según el escalón
+  de afinidad; dorados al 75 %), sin `filter` ni cálculo por frame. Se quita el parpadeo
+  `steps(1)` de halos y destellos: solo el elemento prioritario (tu nodo; el top si no estás)
+  respira (4.8 s, opacidad 1 → 0.72), y nunca con `prefers-reduced-motion` ni en alto contraste.
+  Las líneas usan `rim` con opacidad mínima 0.75 (antes 0.18 + 0.54·sim); el % nunca baja de
+  0.8 de opacidad y el % dorado siempre va opaco. La selección es un anillo dorado discreto.
+- **Verificación:** `src/ui/design/contrast-audit.ts` (puro) y `contrast-audit.test.ts` corren
+  en `npm run test`, así que `npm run check` falla si cualquiera de estos pares regresa: texto
+  sobre la estrella con velo, líneas mínimas, % atenuado, contorno de sprites en ambos cielos y la
+  escala de oro. `/dev/ui` muestra la matriz completa, los halos por estado y el antes/después.
+
+**Consecuencias.** El dorado ocupa mucho menos y vuelve a señalar: tu nodo, el top y el foco.
+Los sprites se ven con un borde violeta grisáceo en ambos cielos; cualquier tono nuevo del
+catálogo sigue necesitando ≥ 3:1 de base, y el contorno se re-mide en los tests si cambia el
+cielo.
+
+## ADR-028 · Números legibles: atlas 5×7 y Atkinson tabular
+
+**Contexto.** Pixelify Sans no tiene `tnum` (el «1» avanza 404 y el resto 586), su «0» es
+idéntico a la «O», su retícula interna es irregular y el `%` se empasta por debajo de 16 px
+(AUDITORIA §5). Atkinson Hyperlegible Next ya se carga, tiene `tnum` (los diez dígitos avanzan
+632) y distingue 0/O.
+
+**Decisión.** Se comparó en `/dev/numeros` a 12, 14, 16, 24 y 32 px, en noche y día:
+A (Pixelify + `tabular-nums`: sin efecto, se muestra para constancia), B (Atkinson +
+`tabular-nums`) y C (atlas propio). No se probó una segunda fuente pixel vía `unicode-range`:
+añadiría una descarga y C ya da identidad pixel exacta.
+- **C para cifras destacadas:** `PixelNumber` (`src/ui/kit/pixel-number.tsx`) dibuja el atlas
+  5×7 de `src/domain/shared/pixel-digits.ts` (datos puros: dígitos tabulares por construcción,
+  cero con barra, «1» con bandera y base, `%` de un dígito de ancho, `− + × x / : , .`) como
+  `<rect>` con `crispEdges`, en escalas enteras de `--zm-px` (sm/md/lg = 14/28/42 px de alto).
+  El SVG es `aria-hidden` y al lado hay un texto real visualmente oculto. Si un carácter no está
+  en el atlas, cae a Atkinson tabular en vez de perderse. Se usa en: el % de la lista de matches
+  (`lg`, dorado si ≥ 95), el % del detalle (`md`), el % de la carta (`sm`) y el total del panel
+  admin (`lg`).
+- **B para cifras chicas:** clase `.zm-num` (Atkinson + `tabular-nums`) en el progreso del test,
+  «Pregunta N de M», `+N pts`, valores de `PixelBars`, tablas y umbrales del admin y contadores.
+- **Lienzo SVG:** la etiqueta % usa `<text>` en Atkinson tabular (negrita, con el recorte del
+  cielo). El atlas a escala entera no cabe ahí: el texto vive en unidades del mundo y cambia con
+  el zoom, así que un rect de atlas caería en fracciones de px; el texto con hinting sí se
+  mantiene nítido.
+
+**Consecuencias.** Las cifras ya no «bailan» ni confunden 0/O. Por debajo de 14 px no hay
+escala entera legible del atlas, así que ahí siempre va Atkinson. Pixelify queda solo para
+letras.

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import type { AppError } from "@/application/errors";
+import type { AppError, AppFailure } from "@/application/errors";
 
 const NO_STORE = { "Cache-Control": "no-store" } as const;
 
@@ -14,6 +14,18 @@ const STATUS: Record<AppError, number> = {
   "service.misconfigured": 503,
   "storage.failed": 503,
   "match.pool_unstable": 503,
+  "chat.locked": 423,
+  "chat.pin_missing": 409,
+  "chat.pin_exists": 409,
+  "chat.pin_invalid": 403,
+  "chat.pin_weak": 422,
+  "chat.pin_mismatch": 422,
+  "chat.pin_paused": 429,
+  "chat.reset_required": 423,
+  "chat.recovery_pending": 423,
+  "chat.recovery_none": 409,
+  "chat.recovery_not_ready": 409,
+  "chat.recovery_invalid": 403,
 };
 
 const MESSAGE: Record<AppError, string> = {
@@ -26,14 +38,36 @@ const MESSAGE: Record<AppError, string> = {
   "service.misconfigured": "El servicio aún no está configurado.",
   "storage.failed": "No pudimos guardar o leer tus datos. Intenta de nuevo.",
   "match.pool_unstable": "Las afinidades se están recalculando. Intenta en un momento.",
+  "chat.locked": "Tus chats tienen candado. Escribe tu PIN para abrirlos.",
+  "chat.pin_missing": "Aún no creas tu PIN de chats.",
+  "chat.pin_exists": "Ya tienes un PIN de chats.",
+  "chat.pin_invalid": "Ese PIN no es.",
+  "chat.pin_weak": "Elige uno que solo tú recuerdes.",
+  "chat.pin_mismatch": "Los dos PIN no coinciden. Intenta de nuevo.",
+  "chat.pin_paused": "Tómate un respiro: puedes intentar de nuevo en un momento.",
+  "chat.reset_required": "Por cuidado, ahora solo puedes restablecer tu PIN.",
+  "chat.recovery_pending":
+    "Alguien pidió restablecer tu PIN. Si no fuiste tú, cancélalo con tu PIN actual.",
+  "chat.recovery_none": "No hay ninguna solicitud para restablecer tu PIN.",
+  "chat.recovery_not_ready": "Tu PIN nuevo podrá crearse al terminar la espera.",
+  "chat.recovery_invalid": "No pudimos verificar esos datos.",
 };
 
 /** Single mapping from application errors to HTTP. `code` is stable for clients. */
-export function errorResponse(error: AppError): NextResponse {
-  return NextResponse.json(
-    { error: MESSAGE[error], code: error },
-    { status: STATUS[error], headers: NO_STORE },
+export function errorResponse(error: AppError | AppFailure): NextResponse {
+  const failure: AppFailure = typeof error === "string" ? { code: error } : error;
+  const { code, retryAfter, attemptsLeft } = failure;
+  const response = NextResponse.json(
+    {
+      error: MESSAGE[code],
+      code,
+      ...(retryAfter === undefined ? {} : { retryAfter }),
+      ...(attemptsLeft === undefined ? {} : { attemptsLeft }),
+    },
+    { status: STATUS[code], headers: NO_STORE },
   );
+  if (retryAfter !== undefined) response.headers.set("Retry-After", String(retryAfter));
+  return response;
 }
 
 export function jsonResponse(body: unknown): NextResponse {

@@ -23,6 +23,8 @@ import { useNotificationsPaused } from "@/ui/shared/notification-provider";
 import { writeNotificationsPaused } from "@/ui/shared/notification-grouping";
 import { ThemeSelector } from "@/ui/shared/theme-selector";
 
+import { ChatSecuritySection } from "./chat-security-section";
+
 type Account =
   | { state: "loading" }
   | { state: "guest" }
@@ -210,6 +212,10 @@ export function SettingsView() {
           <p role="status" aria-live="polite" className="zm-settings__message">
             {message}
           </p>
+        </Frame>
+
+        <Frame title="Chats" coord="AR 09h" id="chats">
+          <ChatSecuritySection />
         </Frame>
 
         <Frame title="Cómo se calcula" coord="AR 11h" id="como-se-calcula">

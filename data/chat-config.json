@@ -1,0 +1,33 @@
+{
+  "version": "chat-1",
+  "pin": {
+    "length": 4,
+    "blocklist": ["1212", "2580", "1004", "2000", "6969", "1122"]
+  },
+  "attempts": {
+    "perStep": 5,
+    "waitMinutes": [1, 5, 15, 60],
+    "resetOnlyAfterMaxPauses": 4,
+    "recentFailureDays": 7
+  },
+  "lock": {
+    "idleMinutes": 10,
+    "maxMinutes": 120,
+    "onHidden": true
+  },
+  "recovery": {
+    "waitHours": 24
+  },
+  "kdf": {
+    "log2N": 15,
+    "r": 8,
+    "p": 1,
+    "keyLen": 32,
+    "saltBytes": 16,
+    "maxmemMiB": 64
+  },
+  "activity": {
+    "limit": 20
+  },
+  "addressGuard": { "limit": 30, "windowSeconds": 600, "lockSeconds": 900 }
+}

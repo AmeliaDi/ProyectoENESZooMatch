@@ -212,7 +212,7 @@ export function PublicResultView() {
 
         <p className="zm-result__fine">
           {RESULT_FINE_COPY} <Link href="/evidencia">Qué sabemos y qué no</Link> ·{" "}
-          <Link href="/perfil">Afinar mi perfil</Link>
+          <Link href="/perfil">Afinar mi perfil</Link> · <Link href="/chats">Chats</Link>
         </p>
       </main>
     </AtlasShell>

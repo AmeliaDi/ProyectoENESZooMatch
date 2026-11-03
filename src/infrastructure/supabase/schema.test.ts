@@ -20,9 +20,13 @@ const PUBLIC_FUNCTIONS = new Map(
   [...SQL.matchAll(/CREATE FUNCTION public\.(\w+)\(([\s\S]*?)\$\$;/g)].map((m) => [m[1]!, m[0]]),
 );
 
+const CHAT_MIGRATION = "20261102000000_chat_pin.sql";
+const CHAT_SQL = readFileSync(resolve(MIGRATIONS_DIR, CHAT_MIGRATION), "utf8");
+const CHAT_TABLES = ["chat_pins", "chat_security_events"] as const;
+
 describe("base migration", () => {
-  it("is the only migration", () => {
-    expect(readdirSync(MIGRATIONS_DIR)).toEqual(["00000000000000_base.sql"]);
+  it("is the base plus the idempotent chat PIN migration", () => {
+    expect(readdirSync(MIGRATIONS_DIR)).toEqual(["00000000000000_base.sql", CHAT_MIGRATION]);
   });
 
   it("uses no versioned names anywhere", () => {
@@ -128,5 +132,57 @@ describe("base migration", () => {
 
   it("keeps participant tables free of client policies", () => {
     expect(SQL).not.toMatch(/CREATE POLICY \w+ ON public\.(profiles|quiz_responses|matches|notifications)\b/);
+  });
+});
+
+describe("chat PIN migration (ADR-029)", () => {
+  it("is idempotent and safe on a populated schema", () => {
+    expect(CHAT_SQL).not.toMatch(/\/\*|\*\//);
+    expect(CHAT_SQL).not.toMatch(/^CREATE TABLE (?!IF NOT EXISTS)/m);
+    expect(CHAT_SQL).not.toMatch(/^CREATE (INDEX|FUNCTION|POLICY) (?!IF NOT EXISTS|OR REPLACE)/m);
+    for (const [, name] of CHAT_SQL.matchAll(/^CREATE TRIGGER (\w+)/gm)) {
+      expect(CHAT_SQL).toContain(`DROP TRIGGER IF EXISTS ${name} ON`);
+    }
+    expect(CHAT_SQL).not.toMatch(/\b(DROP TABLE|TRUNCATE|DELETE FROM)\b/);
+    expect(CHAT_SQL).toContain("SET search_path = ''");
+  });
+
+  it("matches the base migration column by column", () => {
+    for (const table of CHAT_TABLES) {
+      const body = (sql: string, head: string) => sql.match(new RegExp(`${head}public\\.${table} \\(([\\s\\S]*?)\\n\\);`))?.[1];
+      const incremental = body(CHAT_SQL, "CREATE TABLE IF NOT EXISTS ");
+      expect(incremental, table).toBeTruthy();
+      expect(body(SQL, "CREATE TABLE ")).toBe(incremental);
+    }
+  });
+
+  it("keeps PIN tables server-only: RLS on, no policies, no API grants", () => {
+    for (const sql of [SQL, CHAT_SQL]) {
+      for (const table of CHAT_TABLES) {
+        expect(sql).toContain(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY;`);
+        expect(sql).not.toMatch(new RegExp(`CREATE POLICY \\w+ ON public\\.${table}\\b`));
+      }
+      expect(sql).toContain("REVOKE ALL ON public.chat_pins, public.chat_security_events FROM PUBLIC, anon, authenticated;");
+      expect(sql).toContain("GRANT ALL ON public.chat_pins, public.chat_security_events TO service_role;");
+      expect(sql).not.toMatch(/GRANT [^;]*chat_[^;]* TO (anon|authenticated)/);
+    }
+  });
+
+  it("cascades from the account so deleting data deletes the PIN", () => {
+    for (const sql of [SQL, CHAT_SQL]) {
+      expect(sql).toContain("user_id UUID PRIMARY KEY REFERENCES public.profiles(user_id) ON DELETE CASCADE,");
+      expect(sql).toContain("user_id UUID NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE,");
+    }
+  });
+
+  it("never stores the PIN, an address or content in events", () => {
+    const events = CHAT_SQL.match(/public\.chat_security_events \(([\s\S]*?)\n\);/)?.[1] ?? "";
+    expect(events).not.toMatch(/\b(pin|ip|address|content|body|device)\b/i);
+  });
+
+  it("lets the access guard accept the chat PIN kind", () => {
+    expect(SQL).toContain("CHECK (kind IN ('address_attempt', 'chat_pin_address'))");
+    expect(CHAT_SQL).toContain("DROP CONSTRAINT IF EXISTS access_guard_kind_check");
+    expect(CHAT_SQL).toContain("CHECK (kind IN ('address_attempt', 'chat_pin_address'))");
   });
 });

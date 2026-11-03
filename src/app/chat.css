@@ -1,0 +1,78 @@
+/*
+ * Chat lock (/chats and Ajustes → Chats). Only Atlas tokens: every length is a
+ * multiple of --zm-px, hard shadows via .zm-box, no radii, no blur. Digits use
+ * the reading font with tabular figures so the boxes never jitter.
+ */
+
+.zm-chat {
+  display: grid;
+  gap: calc(var(--zm-px) * 10);
+  width: min(100%, 36rem);
+  margin: 0 auto;
+  padding: calc(var(--zm-px) * 12) calc(var(--zm-px) * 8);
+}
+.zm-chat__heading { margin: 0; font-family: var(--font-pixel); font-size: clamp(1.5rem, 5vw, 2rem); }
+.zm-chat__intro { margin: 0; color: var(--zm-fg-muted); }
+.zm-chat__panel { display: grid; gap: calc(var(--zm-px) * 8); padding: calc(var(--zm-px) * 12) calc(var(--zm-px) * 8); }
+.zm-chat__form { display: grid; gap: calc(var(--zm-px) * 6); justify-items: start; }
+.zm-chat__title { margin: 0; font-family: var(--font-pixel); font-size: 1.25rem; }
+.zm-chat__step { margin: 0; }
+.zm-chat__message { min-height: 1.5em; margin: 0; color: var(--zm-fg); }
+.zm-chat__countdown { font-family: var(--font-read); font-variant-numeric: tabular-nums; }
+.zm-chat__actions { display: flex; flex-wrap: wrap; gap: calc(var(--zm-px) * 4); }
+.zm-chat__notice {
+  --box-rim: var(--zm-gold);
+  margin: 0;
+  padding: calc(var(--zm-px) * 6) calc(var(--zm-px) * 8);
+}
+.zm-chat__activity { display: grid; gap: calc(var(--zm-px) * 2); margin: 0; padding-left: calc(var(--zm-px) * 10); }
+.zm-chat__when { color: var(--zm-fg-muted); font-variant-numeric: tabular-nums; }
+
+/* ─── PIN: one real input under four presentational boxes ─── */
+.zm-pin { display: flex; align-items: center; gap: calc(var(--zm-px) * 4); }
+.zm-pin__field { position: relative; }
+.zm-pin__input {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font-size: 1rem;
+  caret-color: transparent;
+  cursor: text;
+}
+.zm-pin__cells { display: flex; gap: calc(var(--zm-px) * 4); }
+.zm-pin__cell {
+  display: grid;
+  place-items: center;
+  width: calc(var(--zm-px) * 28);
+  height: calc(var(--zm-px) * 32);
+  font-family: var(--font-read);
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.zm-pin__cell[data-current] { --box-rim: var(--zm-gold); }
+.zm-pin__field:focus-within .zm-pin__cell[data-current] { --box-rim: var(--zm-focus); }
+.zm-pin[data-invalid] .zm-pin__cell { --box-rim: var(--zm-danger); }
+.zm-pin__field:has(.zm-pin__input:focus-visible) {
+  outline: var(--zm-px) solid var(--zm-focus);
+  outline-offset: calc(var(--zm-px) * 2);
+}
+.zm-pin__star {
+  position: absolute;
+  top: calc(var(--zm-px) * 3);
+  right: calc(var(--zm-px) * 3);
+  width: calc(var(--zm-px) * 2);
+  height: calc(var(--zm-px) * 2);
+  background: var(--zm-star);
+}
+.zm-pin__cell[data-filled] .zm-pin__star {
+  background: var(--zm-gold);
+  animation: zm-star-on var(--zm-dur-emphasis) var(--zm-steps);
+}
+.zm-pin__toggle { min-width: var(--zm-touch); min-height: var(--zm-touch); }
+
+@media (prefers-reduced-motion: reduce) {
+  .zm-pin__cell[data-filled] .zm-pin__star { animation: none; }
+}

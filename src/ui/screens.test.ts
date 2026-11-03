@@ -14,6 +14,7 @@ import { cellsFor } from "./admin/pixel-bars";
 import { categoryIcon } from "./design/category-icons";
 import { dawnStars, sparkleCells } from "./design/dawn";
 import { ICON_NAMES } from "./design/icons";
+import { CHAT_COPY, attemptsMessage, formatCountdown, pausedMessage } from "./chat/chat-copy";
 import { CONSTELLATION_COPY } from "./constellation/types";
 import { MATRICULA_COPY } from "./entry/matricula-entry";
 import { ONBOARDING_PLATES } from "./entry/onboarding";
@@ -23,6 +24,7 @@ import { EXPLANATION_COPY_UI } from "./result/explanation-blocks";
 import { FEW_PEOPLE_COPY, RESULT_FINE_COPY } from "./result/result-view";
 import { EVIDENCE_SUMMARY } from "@/config/evidence-summary";
 import { litStars } from "./result/why-bars";
+import { CHAT_EVENT_LABELS } from "./settings/chat-security-section";
 
 const FORBIDDEN = /perfect[oa]|destino|garantizad[oa]|alma[s]? gemela|100 ?% compatible|para siempre|media naranja/i;
 const EMOJI = /\p{Extended_Pictographic}/u;
@@ -42,6 +44,7 @@ const SCREEN_FILES = [
   resolve("src/app/screens.css"),
   resolve("src/app/card.css"),
   resolve("src/app/refine.css"),
+  resolve("src/app/chat.css"),
 ];
 
 describe("copy", () => {
@@ -58,6 +61,11 @@ describe("copy", () => {
     ...EVIDENCE_SUMMARY.unknowns,
     ...EVIDENCE_SUMMARY.layers.map((l) => l.text),
     ...Object.values(CONSTELLATION_COPY),
+    ...Object.values(CHAT_COPY),
+    ...Object.values(CHAT_EVENT_LABELS),
+    attemptsMessage(1),
+    attemptsMessage(4),
+    pausedMessage(300),
   ];
 
   it("has no forbidden words or emojis", () => {
@@ -81,6 +89,32 @@ describe("screen sources", () => {
       expect(source, file).not.toMatch(legacy);
       expect(source, file).not.toMatch(EMOJI);
     }
+  });
+});
+
+describe("chat lock copy", () => {
+  it("is honest that the PIN is a lock, not encryption", () => {
+    expect(CHAT_COPY.intro).toContain("No cifra los mensajes");
+    expect(CHAT_COPY.weak).toBe("Elige uno que solo tú recuerdes.");
+    expect(CHAT_COPY.empty).not.toMatch(/pronto|seguro que|vas a/i);
+  });
+
+  it("counts down calmly and pluralizes", () => {
+    expect(formatCountdown(299)).toBe("4:59");
+    expect(formatCountdown(60)).toBe("1:00");
+    expect(formatCountdown(3600)).toBe("1 h 0 min");
+    expect(pausedMessage(299)).toBe("Tómate un respiro: puedes intentar de nuevo en 4:59.");
+    expect(attemptsMessage(1)).toBe("Ese PIN no es. Te queda 1 intento antes de una pausa.");
+    expect(attemptsMessage(3)).toBe("Ese PIN no es. Te quedan 3 intentos antes de una pausa.");
+  });
+
+  it("keeps a single numeric input that no password manager claims", () => {
+    const source = readFileSync(resolve("src/ui/chat/pin-input.tsx"), "utf8");
+    expect(source.match(/<input\s/g)).toHaveLength(1);
+    for (const attr of ['inputMode="numeric"', 'pattern="[0-9]*"', 'autoComplete="off"', 'name="chat-lock-code"', 'aria-hidden="true"']) {
+      expect(source).toContain(attr);
+    }
+    expect(source).not.toMatch(/type="password"|name="[^"]*pass/);
   });
 });
 
