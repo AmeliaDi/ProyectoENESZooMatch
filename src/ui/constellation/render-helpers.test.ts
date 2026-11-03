@@ -10,6 +10,7 @@ import type { CompatibilityBadge } from "@/types/microtest";
 import {
   BADGE_LIMITS,
   affinityLabelY,
+  isRadiantAffinity,
   GHOST_ANIMAL_ID,
   GHOST_COLOR_ID,
   GHOST_OPACITY,
@@ -328,5 +329,15 @@ describe("affinityLabelY", () => {
     const withHearts = affinityLabelY(40, true);
     expect(plain).toBeLessThan(-20);
     expect(withHearts).toBeLessThan(plain);
+  });
+});
+
+describe("isRadiantAffinity", () => {
+  it("glows exactly when the shown percent reaches 95", () => {
+    expect(isRadiantAffinity(0.9449)).toBe(false);
+    expect(isRadiantAffinity(0.945)).toBe(true);
+    expect(isRadiantAffinity(0.97)).toBe(true);
+    expect(isRadiantAffinity(1)).toBe(true);
+    expect(isRadiantAffinity(0.5)).toBe(false);
   });
 });

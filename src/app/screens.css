@@ -309,6 +309,15 @@
 }
 .zm-canvas__tag { pointer-events: none; fill: var(--zm-fg); font-family: var(--font-pixel); }
 .zm-canvas__affinity { pointer-events: none; fill: var(--zm-fg); font-family: var(--font-pixel); stroke: var(--zm-sky); stroke-width: 3px; stroke-linejoin: miter; paint-order: stroke; }
+/* Radiant (≥ 95 %) stars: gold dither aura, stepped corona and pixel sparkles; never blur. */
+.zm-canvas__radiant { color: var(--zm-gold); }
+.zm-canvas__radiant-dot { fill: var(--zm-gold); }
+.zm-canvas__radiant-glow { opacity: 0.38; animation: zm-blink 2.8s steps(1) infinite; }
+.zm-canvas__radiant-glow--flat { opacity: 0.16; }
+.zm-canvas__radiant-corona { fill: none; stroke: currentColor; }
+.zm-canvas__radiant-spark { fill: currentColor; animation: zm-blink 1.4s steps(1) infinite; }
+.zm-canvas__affinity--radiant { fill: var(--zm-gold); font-weight: 700; }
+.zm-canvas__line--radiant { stroke: var(--zm-gold); }
 .zm-canvas__overlay { position: absolute; inset: 0; display: grid; place-items: center; }
 .zm-canvas__status { color: var(--zm-fg-muted); font-family: var(--font-pixel); font-size: 0.875rem; }
 .zm-canvas__empty { position: absolute; inset: auto 0 calc(var(--zm-px) * 8); display: flex; justify-content: center; padding: 0 calc(var(--zm-px) * 8); pointer-events: none; }

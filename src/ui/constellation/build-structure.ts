@@ -17,6 +17,7 @@ import {
   edgeStrokeOpacity,
   edgeStrokeWidth,
   formatAffinityPercent,
+  isRadiantAffinity,
   matchAriaLabel,
   nodeOpacity,
   selfAriaLabel,
@@ -132,6 +133,7 @@ export function structureFromWorld(
       colorHex: info.colorHex,
       alias: info.alias,
       affinityLabel: isGhost || isSelf ? null : `${formatAffinityPercent(body.similarity)}%`,
+      radiant: !isGhost && !isSelf && !body.leaving && isRadiantAffinity(body.similarity),
       ariaLabel,
       opacity: isGhost ? GHOST_OPACITY : isSelf ? 1 : nodeOpacity(body.similarity, world.threshold),
       initialX: body.x,
@@ -140,6 +142,7 @@ export function structureFromWorld(
   });
 
   const colorById = new Map(nodes.map((node) => [node.id, node.colorHex]));
+  const radiantIds = new Set(nodes.filter((node) => node.radiant).map((node) => node.id));
   const edges: RenderEdge[] = world.links.map((link) => {
     const a = world.bodies[link.a]!;
     const b = world.bodies[link.b]!;
@@ -153,6 +156,7 @@ export function structureFromWorld(
       width: edgeStrokeWidth(link.similarity),
       opacity: edgeStrokeOpacity(link.similarity),
       color: link.kind === "spoke" ? (colorById.get(other) ?? EDGE_NEUTRAL_COLOR) : EDGE_NEUTRAL_COLOR,
+      radiant: link.kind === "spoke" && radiantIds.has(other),
     };
   });
 

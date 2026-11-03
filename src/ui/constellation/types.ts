@@ -267,6 +267,8 @@ export interface RenderNode {
   alias: string;
   /** Small visible affinity (`"87%"`) for real matches; `null` for you and ghosts. */
   affinityLabel: string | null;
+  /** Very high estimated affinity: the star is painted golden. Never you or ghosts. */
+  radiant: boolean;
   /** Fully-formed es-MX accessible name. */
   ariaLabel: string;
   /** 0-1 body opacity, scaled by similarity for real matches. */
@@ -292,6 +294,8 @@ export interface RenderEdge {
   opacity: number;
   /** Stroke colour (the outer node's hex for self-edges, ink for the rest). */
   color: string;
+  /** Spoke to a golden (radiant) match: drawn in gold. */
+  radiant: boolean;
 }
 
 /** The whole static React structure; rebuilt only on data / track / resize. */

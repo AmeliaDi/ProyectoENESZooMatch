@@ -11,6 +11,7 @@ import { memo, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as Re
 import { GLOW_PATTERN_ID } from "./glow";
 import { PixelAnimal } from "./PixelAnimal";
 import { affinityLabelY, HIT_RADIUS_PADDING, round2 } from "./render-helpers";
+import { RadiantAura } from "./RadiantAura";
 import { OrbitingHearts } from "./RomanceHearts";
 import type { RenderNode } from "./types";
 
@@ -69,6 +70,9 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, showTag, reducedMo
               className={flatGlow ? "zm-canvas__glow zm-canvas__glow--flat" : "zm-canvas__glow"}
             />
           ) : null}
+          {interactive && node.radiant ? (
+            <RadiantAura radius={node.radius} size={node.displaySize} flat={flatGlow} />
+          ) : null}
           {node.isSelf ? (
             <g className={reducedMotion ? undefined : "zm-canvas__halo"}>
               <circle r={node.radius * 1.9} fill={node.colorHex} opacity={0.12} />
@@ -101,7 +105,7 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, showTag, reducedMo
             <text
               y={round2(affinityLabelY(node.displaySize, romance))}
               textAnchor="middle"
-              className="zm-canvas__affinity"
+              className={node.radiant ? "zm-canvas__affinity zm-canvas__affinity--radiant" : "zm-canvas__affinity"}
               fontSize={9}
               aria-hidden="true"
             >

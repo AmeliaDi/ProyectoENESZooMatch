@@ -56,7 +56,7 @@ import { mulberry32 } from "@/domain/shared";
 import { Button, IconButton } from "@/ui/kit/button";
 
 import { buildNodeMeta, structureFromWorld, toSceneMatches } from "./build-structure";
-import { GLOW_PATTERN_ID } from "./glow";
+import { GLOW_PATTERN_ID, RADIANT_PATTERN_ID } from "./glow";
 import { useElementSize } from "./hooks";
 import {
   GHOST_ANIMAL_ID,
@@ -738,6 +738,10 @@ function ConstellationCanvasImpl({
                 <rect width={1} height={1} fill="currentColor" />
                 <rect x={1} y={1} width={1} height={1} fill="currentColor" />
               </pattern>
+              <pattern id={RADIANT_PATTERN_ID} width={2} height={2} patternUnits="userSpaceOnUse">
+                <rect width={1} height={1} className="zm-canvas__radiant-dot" />
+                <rect x={1} y={1} width={1} height={1} className="zm-canvas__radiant-dot" />
+              </pattern>
             </defs>
             <g ref={skyRef}>
               {/* ── Group figures ── */}
@@ -762,6 +766,7 @@ function ConstellationCanvasImpl({
                     <line
                       key={edge.key}
                       data-line-key={edge.key}
+                      className={edge.radiant ? "zm-canvas__line--radiant" : undefined}
                       stroke={edge.color}
                       strokeWidth={lit ? edge.width + 1 : edge.width}
                       strokeOpacity={lit ? Math.min(1, edge.opacity + 0.25) : edge.opacity}

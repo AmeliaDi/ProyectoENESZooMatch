@@ -170,6 +170,19 @@ describe("structureFromWorld", () => {
     }
   });
 
+  it("turns only ≥ 95 % matches golden, with golden spokes", () => {
+    for (const node of structure.nodes) {
+      const expected = !node.isSelf && !node.isGhost && Math.round(meta.get(node.id)!.similarity * 100) >= 95;
+      expect(node.radiant, node.id).toBe(expected);
+    }
+    const radiant = new Set(structure.nodes.filter((n) => n.radiant).map((n) => n.id));
+    expect([...radiant].sort()).toEqual(["r10", "r11", "r9"]); // r9 = 0.948 reads «95%»
+    for (const edge of structure.edges) {
+      const touches = radiant.has(edge.source) || radiant.has(edge.target);
+      expect(edge.radiant).toBe(edge.kind === "spoke" && touches);
+    }
+  });
+
   it("scales match brightness with similarity", () => {
     for (const node of structure.nodes) {
       if (node.isSelf || node.isGhost) continue;

@@ -53,6 +53,17 @@ export const BADGE_LIMITS: Record<MatchTrack, number> = {
  */
 export const ROMANCE_SPRITE_THRESHOLD = 0.75;
 
+/** Shown affinity (rounded %) from which a match star turns golden. */
+export const RADIANT_AFFINITY_PERCENT = 95;
+
+/**
+ * Decided on the rounded percent the person reads, so a star labelled «95%»
+ * always glows and one labelled «94%» never does.
+ */
+export function isRadiantAffinity(similarity: number): boolean {
+  return Number(formatAffinityPercent(similarity)) >= RADIANT_AFFINITY_PERCENT;
+}
+
 /** Ghost sprites use these registered catalogue ids. */
 export const GHOST_ANIMAL_ID = "estrellita";
 export const GHOST_COLOR_ID = "ennea-neblina";

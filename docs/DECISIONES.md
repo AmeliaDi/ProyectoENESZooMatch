@@ -557,3 +557,16 @@ resuelve de forma determinista al generarlo.
 **Consecuencias.** Tras rehacer el test, el alias puede no coincidir con el animal o color
 actuales: es decisión de producto (identidad estable por encima de coherencia literal). Borrar
 los datos (`/api/privacy`) es el único modo de obtener un alias nuevo.
+
+## ADR-025 · Porcentaje visible y estrellas doradas en la constelación
+
+**Decisión.** Cada match muestra arriba de su sprite el porcentaje redondeado de afinidad
+estimada (no en tu nodo ni en los fantasmas; `aria-hidden` porque el nombre accesible ya lo
+dice). Si el porcentaje **mostrado** es ≥ 95 (`RADIANT_AFFINITY_PERCENT`), la estrella se
+vuelve dorada: aura con dithering Bayer en `--zm-gold`, corona discontinua, cuatro destellos
+pixel en desfase, número dorado y línea hacia ti dorada. Se decide sobre el número redondeado
+para que «95%» siempre brille y «94%» nunca. Sin blur ni degradados; con
+`prefers-reduced-motion` no parpadea.
+
+**Consecuencias.** Es un énfasis visual, no un rango: no cambia el orden, el puntaje ni la
+explicación. Con el romance más estricto (ADR-022) debería ser poco frecuente.
