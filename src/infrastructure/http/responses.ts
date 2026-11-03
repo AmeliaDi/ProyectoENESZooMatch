@@ -26,6 +26,9 @@ const STATUS: Record<AppError, number> = {
   "chat.recovery_none": 409,
   "chat.recovery_not_ready": 409,
   "chat.recovery_invalid": 403,
+  "chat.not_found": 404,
+  "chat.match_gone": 409,
+  "chat.conflict": 409,
 };
 
 const MESSAGE: Record<AppError, string> = {
@@ -51,6 +54,9 @@ const MESSAGE: Record<AppError, string> = {
   "chat.recovery_none": "No hay ninguna solicitud para restablecer tu PIN.",
   "chat.recovery_not_ready": "Tu PIN nuevo podrá crearse al terminar la espera.",
   "chat.recovery_invalid": "No pudimos verificar esos datos.",
+  "chat.not_found": "Esta conversación ya no está disponible.",
+  "chat.match_gone": "Esta afinidad ya no está en tu cielo.",
+  "chat.conflict": "La conversación cambió mientras escribías. Revisa y vuelve a intentarlo.",
 };
 
 /** Single mapping from application errors to HTTP. `code` is stable for clients. */

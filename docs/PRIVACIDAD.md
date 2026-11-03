@@ -68,13 +68,25 @@ Este es un resumen para orientarse. El detalle y los motivos están en los ADR e
   - Se cierra tras 10 min sin actividad o 120 min en total, al bloquearla, al ocultar la página
     (mejor esfuerzo), al salir o al entrar con otra matrícula.
 
+## 4.1 Chat entre matches (ADR-032)
+
+- La señal «Me interesa conocerte» no se muestra a la otra persona si no es mutua.
+- El cliente nunca envía ni recibe ids de usuario: solo *handles* opacos por persona y ids
+  aleatorios de conversación. Un id ajeno se responde igual que uno inexistente.
+- Mensajes y respuestas solo se leen con el candado abierto. La respuesta ajena de una ronda
+  solo se ve cuando ambas personas respondieron.
+- Las notificaciones de chat no llevan texto, alias ni qué conversación cambió.
+- Retirarse borra la conversación para ambas personas, sin aviso.
+
 ## 5. Borrado
 
 - **«Borrar mis datos»** (`DELETE /api/privacy`) elimina el usuario de Auth. Perfil, respuestas,
-  matches, avisos, PIN de chat y eventos de seguridad caen en cascada. Después se republican
+  matches, avisos, PIN de chat, eventos de seguridad, señales, conversaciones, respuestas y
+  mensajes caen en cascada. Después se republican
   las afinidades.
 - **Pausar el perfil** no borra nada; solo te saca del cálculo.
 - **Restablecer el PIN** solo reescribe el PIN; nunca borra conversaciones.
+- **Retirarte de un chat** borra esa conversación (respuestas y mensajes) para ambas personas.
 
 ## 6. Datos en este dispositivo
 

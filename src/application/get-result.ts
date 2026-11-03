@@ -15,6 +15,7 @@ import type { MatchEntryDto, ResultDto } from "./dto";
 import { layerBands, sharedProfile } from "./counterpart-view";
 import type { AppError } from "./errors";
 import { avatarParams } from "./identity-readout";
+import { matchHandle } from "./match-handle";
 import type { CounterpartProfile, MatchRepository, OwnProfile, ProfileRepository, StoredMatch } from "./ports";
 
 const COLOR_BY_ID = new Map(CATALOG_COLORS.map((c) => [c.id, c]));
@@ -29,7 +30,6 @@ function disclosed(other: CounterpartProfile | undefined) {
 
 /** Shown when the counterpart has no alias yet (should not happen after the quiz). */
 const FALLBACK_ALIAS = "alguien especial";
-const OPAQUE_ID_LENGTH = 16;
 
 export interface GetResultDeps {
   profiles: Pick<ProfileRepository, "findOwn" | "findCounterparts" | "countActive">;
@@ -77,7 +77,7 @@ function toEntry(
   const score = scoreOf(match, own, other);
   const shared = sharedProfile(other);
   return {
-    id: match.otherUser ? digest(`${viewerId}:${match.otherUser}`).slice(0, OPAQUE_ID_LENGTH) : null,
+    id: match.otherUser ? matchHandle(viewerId, match.otherUser, digest) : null,
     alias,
     animal: match.otherAnimal ?? "",
     animal_id: visual?.animalId ?? null,

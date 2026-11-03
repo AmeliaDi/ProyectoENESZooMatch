@@ -26,15 +26,23 @@ const CHAT_SQL = readFileSync(resolve(MIGRATIONS_DIR, CHAT_MIGRATION), "utf8");
 const CHAT_TABLES = ["chat_pins", "chat_security_events"] as const;
 const SHARING_MIGRATION = "20261103000000_shared_layers.sql";
 const SHARING_SQL = readFileSync(resolve(MIGRATIONS_DIR, SHARING_MIGRATION), "utf8");
+const CONVERSATIONS_MIGRATION = "20261104000000_conversations.sql";
+const CONVERSATIONS_SQL = readFileSync(resolve(MIGRATIONS_DIR, CONVERSATIONS_MIGRATION), "utf8");
+const CONVERSATION_TABLES = ["chat_interests", "conversations", "conversation_answers", "conversation_messages"] as const;
+const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
 describe("base migration", () => {
   it("is the base plus the idempotent incremental migrations", () => {
-    expect(readdirSync(MIGRATIONS_DIR)).toEqual(["00000000000000_base.sql", CHAT_MIGRATION, SHARING_MIGRATION]);
+    expect(readdirSync(MIGRATIONS_DIR)).toEqual([
+      "00000000000000_base.sql",
+      CHAT_MIGRATION,
+      SHARING_MIGRATION,
+      CONVERSATIONS_MIGRATION,
+    ]);
   });
 
   it("keeps shared layers in sync with the TypeScript ids and idempotent (ADR-030)", () => {
     const list = `ARRAY[\n    ${SHARE_LAYER_IDS.map((id) => `'${id}'`).join(", ")}\n  ]::TEXT[]`;
-    const lf = (s: string) => s.replace(/\r\n/g, "\n");
     expect(lf(SQL)).toContain(list);
     expect(lf(SHARING_SQL)).toContain(list);
     expect(SHARING_SQL).toContain("ADD COLUMN IF NOT EXISTS shared_layers TEXT[] NOT NULL DEFAULT '{}'");
@@ -145,6 +153,64 @@ describe("base migration", () => {
 
   it("keeps participant tables free of client policies", () => {
     expect(SQL).not.toMatch(/CREATE POLICY \w+ ON public\.(profiles|quiz_responses|matches|notifications)\b/);
+  });
+});
+
+describe("conversations migration (ADR-032)", () => {
+  it("is idempotent and only deletes inside leave_conversation", () => {
+    const sql = lf(CONVERSATIONS_SQL);
+    expect(sql).not.toMatch(/\/\*|\*\//);
+    expect(sql).not.toMatch(/^CREATE TABLE (?!IF NOT EXISTS)/m);
+    expect(sql).not.toMatch(/^CREATE (INDEX|FUNCTION|POLICY) (?!IF NOT EXISTS|OR REPLACE)/m);
+    for (const [, name] of sql.matchAll(/^CREATE TRIGGER (\w+)/gm)) {
+      expect(sql).toContain(`DROP TRIGGER IF EXISTS ${name} ON`);
+    }
+    expect(sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
+    const outside = sql.replace(/CREATE OR REPLACE FUNCTION public\.leave_conversation[\s\S]*?\$\$;/, "");
+    expect(outside).not.toMatch(/\bDELETE FROM\b/);
+  });
+
+  it("matches the base migration table by table", () => {
+    for (const table of CONVERSATION_TABLES) {
+      const body = (sql: string, head: string) => lf(sql).match(new RegExp(`${head}public\\.${table} \\(([\\s\\S]*?)\\n\\);`))?.[1];
+      const incremental = body(CONVERSATIONS_SQL, "CREATE TABLE IF NOT EXISTS ");
+      expect(incremental, table).toBeTruthy();
+      expect(body(SQL, "CREATE TABLE ")).toBe(incremental);
+    }
+  });
+
+  it("keeps chat data server-only: RLS on, no policies, no API grants", () => {
+    for (const sql of [SQL, CONVERSATIONS_SQL]) {
+      for (const table of CONVERSATION_TABLES) {
+        expect(sql).toContain(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY;`);
+        expect(sql).not.toMatch(new RegExp(`CREATE POLICY \\w+ ON public\\.${table}\\b`));
+      }
+      expect(sql).not.toMatch(/GRANT [^;]*(conversation|chat_interests|express_chat_interest)[^;]* TO (anon|authenticated)/);
+    }
+  });
+
+  it("opens a chat only for a current match and guards the RPCs", () => {
+    for (const name of ["express_chat_interest", "leave_conversation"]) {
+      const body = PUBLIC_FUNCTIONS.get(name) ?? "";
+      expect(body, name).toContain("PERFORM private.assert_service_role();");
+      expect(body, name).toContain("SECURITY DEFINER");
+    }
+    expect(PUBLIC_FUNCTIONS.get("express_chat_interest")).toContain("SELECT 1 FROM public.matches WHERE user_a = v_a AND user_b = v_b AND track = p_track");
+    expect(PUBLIC_FUNCTIONS.get("leave_conversation")).toContain("WHERE id = p_id AND p_user IN (user_a, user_b)");
+  });
+
+  it("cascades every chat row from the account", () => {
+    for (const sql of [SQL, CONVERSATIONS_SQL]) {
+      const tables = CONVERSATION_TABLES.map((t) => lf(sql).match(new RegExp(`public\\.${t} \\(([\\s\\S]*?)\\n\\);`))?.[1] ?? "");
+      for (const body of tables) {
+        for (const ref of body.match(/REFERENCES [^\n]+/g) ?? []) expect(ref).toContain("ON DELETE CASCADE");
+      }
+    }
+  });
+
+  it("accepts the content-free chat notification", () => {
+    expect(SQL).toContain("'welcome', 'chat'))");
+    expect(CONVERSATIONS_SQL).toContain("DROP CONSTRAINT IF EXISTS notifications_type_check");
   });
 });
 

@@ -28,7 +28,10 @@ export type ChatError =
   | "chat.recovery_pending"
   | "chat.recovery_none"
   | "chat.recovery_not_ready"
-  | "chat.recovery_invalid";
+  | "chat.recovery_invalid"
+  | "chat.not_found"
+  | "chat.match_gone"
+  | "chat.conflict";
 
 /** A failure plus the optional hints a client may show (never PIN details). */
 export interface AppFailure {

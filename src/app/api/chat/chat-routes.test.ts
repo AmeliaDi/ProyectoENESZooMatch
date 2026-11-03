@@ -6,6 +6,7 @@ import {
   memoryMatriculas,
   plainPinHasher,
 } from "@/application/testing/in-memory";
+import { ConversationStore, memoryConversations } from "@/application/testing/memory-conversations";
 import { CHAT_CONFIG } from "@/config";
 import { MS_PER_MINUTE, openLockSession } from "@/domain/chat";
 import { err, ok } from "@/domain/shared";
@@ -21,6 +22,9 @@ vi.mock("@/infrastructure/security/api.server", () => ({
   createPreflightHandler: () => async () => new Response(null, { status: 204 }),
 }));
 
+import { POST as answer } from "./conversations/[id]/answer/route";
+import { POST as message } from "./conversations/[id]/messages/route";
+import { DELETE as leave, GET as conversation } from "./conversations/[id]/route";
 import { GET as inbox } from "./inbox/route";
 import { POST as lock } from "./lock/route";
 import { POST as createPin } from "./pin/route";
@@ -34,6 +38,7 @@ const PEPPER = "p".repeat(64);
 const T0 = new Date("2026-11-02T12:00:00.000Z").getTime();
 
 let store: MemoryStore;
+let conversations: ConversationStore;
 let now: number;
 let guard: number | null;
 
@@ -41,6 +46,7 @@ function context(userId = USER): ChatContext {
   return {
     userId,
     pepper: PEPPER,
+    conversations: memoryConversations(conversations),
     deps: {
       pins: memoryChatPins(store),
       hasher: plainPinHasher,
@@ -75,6 +81,7 @@ async function createAndOpen(): Promise<string> {
 beforeEach(() => {
   vi.clearAllMocks();
   store = new MemoryStore();
+  conversations = new ConversationStore();
   store.matriculas.set(USER, "000000001");
   now = T0;
   guard = 0;
@@ -124,6 +131,57 @@ describe("GET /api/chat/inbox", () => {
   it("is unavailable without the pepper, never crashing", async () => {
     mocks.chatContext.mockResolvedValue(err("service.unavailable"));
     expect((await inbox(request("inbox"))).status).toBe(503);
+  });
+});
+
+describe("conversation routes", () => {
+  const OTHER = "user-2";
+
+  async function seeded(): Promise<string> {
+    conversations.addMatch("amistad", USER, OTHER);
+    const repo = memoryConversations(conversations);
+    await repo.expressInterest(OTHER, USER, "amistad");
+    const opened = await repo.expressInterest(USER, OTHER, "amistad");
+    if (!opened.ok || opened.value.kind !== "open") throw new Error("expected open");
+    return opened.value.conversationId;
+  }
+
+  it("read and write nothing without an open lock", async () => {
+    const id = await seeded();
+    await createAndOpen();
+    const read = await conversation(request(`conversations/${id}`));
+    expect(read.status).toBe(423);
+    expect(await read.json()).not.toHaveProperty("rounds");
+    const write = await answer(request(`conversations/${id}/answer`, { method: "POST", body: { round: 0, body: "hola" } }));
+    expect(write.status).toBe(423);
+    expect(conversations.answers).toEqual([]);
+    expect((await leave(request(`conversations/${id}`, { method: "DELETE" }))).status).toBe(423);
+    expect(conversations.conversations.size).toBe(1);
+  });
+
+  it("serve the conversation and its answers with the lock open", async () => {
+    const id = await seeded();
+    const cookie = await createAndOpen();
+    const listed = await inbox(request("inbox", { cookie }));
+    expect((await listed.json()).conversations).toHaveLength(1);
+    const sent = await answer(request(`conversations/${id}/answer`, { method: "POST", cookie, body: { round: 0, body: "hola" } }));
+    expect(sent.status).toBe(200);
+    expect((await sent.json()).rounds[0]).toMatchObject({ mine: "hola", theirs: null });
+  });
+
+  it("answer not found for malformed or foreign ids", async () => {
+    await seeded();
+    const cookie = await createAndOpen();
+    expect((await conversation(request("conversations/not-a-uuid", { cookie }))).status).toBe(404);
+    const foreign = "00000000-0000-4000-8000-999999999999";
+    expect((await conversation(request(`conversations/${foreign}`, { cookie }))).status).toBe(404);
+  });
+
+  it("reject unknown body fields", async () => {
+    const id = await seeded();
+    const cookie = await createAndOpen();
+    const response = await message(request(`conversations/${id}/messages`, { method: "POST", cookie, body: { body: "x", author: OTHER } }));
+    expect(response.status).toBe(400);
   });
 });
 

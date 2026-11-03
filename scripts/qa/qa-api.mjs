@@ -131,6 +131,63 @@ const activity = await (await get("/api/chat/activity", a)).text();
 row("actividad sin PIN ni hash", activity.includes("4817") || /hash|salt/i.test(activity) ? "fuga" : "limpia", !activity.includes("4817") && !/hash|salt/i.test(activity));
 const badRecovery = await post("/api/chat/recovery", { matricula: "426144899" }, a.cookie);
 row("recuperación con matrícula ajena", badRecovery.status, badRecovery.status >= 400);
+
+// Chat entre matches (ADR-032): solo entre las dos cuentas QA, identificadas por alias.
+await fetch(BASE + "/api/privacy", { method: "PATCH", headers: { "content-type": "application/json", origin: BASE, cookie: b.cookie }, body: JSON.stringify({ paused: false }) });
+const bAlias = (await (await get("/api/profile", b)).json()).profile?.alias ?? (await (await get("/api/result", b)).json()).alias;
+async function entryFor(s, alias) {
+  for (let i = 0; i < 6; i++) {
+    const r = await (await get("/api/result", s)).json();
+    for (const track of ["amistad", "romance"]) {
+      const e = (r.matches?.[track] ?? []).find((m) => m.alias === alias);
+      if (e?.id) return { track, id: e.id };
+    }
+    await new Promise((ok) => setTimeout(ok, 1500));
+  }
+  return null;
+}
+const aSeesB = await entryFor(a, bAlias);
+const bSeesA = aSeesB ? await entryFor(b, firstAlias) : null;
+row("cuentas QA son match entre sí", aSeesB ? aSeesB.track : "no", Boolean(aSeesB && bSeesA));
+if (aSeesB && bSeesA && aSeesB.track === bSeesA.track) {
+  const del = (p, body, s) => fetch(BASE + p, { method: "DELETE", headers: { "content-type": "application/json", origin: BASE, cookie: s.cookie }, body: body ? JSON.stringify(body) : undefined });
+  const bogus = await post("/api/interest", { match: "0123456789abcdef", track: aSeesB.track }, a.cookie);
+  row("señal a un handle que no es match", bogus.status, bogus.status === 409);
+  const sent = await (await post("/api/interest", { match: aSeesB.id, track: aSeesB.track }, a.cookie)).json();
+  row("señal unilateral", sent.state, sent.state === "sent");
+  const bStates = await (await get("/api/interest", b)).json();
+  row("la señal unilateral es invisible", JSON.stringify(bStates.states), Object.keys(bStates.states ?? {}).length === 0);
+  const opened = await (await post("/api/interest", { match: bSeesA.id, track: bSeesA.track }, b.cookie)).json();
+  row("señal mutua abre chat", opened.state, opened.state === "open" && /^[0-9a-f-]{36}$/.test(opened.conversation));
+  const conv = opened.conversation;
+  const aLock = withLock(a, lockCookie(unlocked));
+  const locked = await get(`/api/chat/conversations/${conv}`, a);
+  row("conversación sin candado", locked.status, locked.status === 423);
+  const bPin = await post("/api/chat/pin", { pin: "5926", confirm: "5926" }, b.cookie);
+  const bLock = withLock(b, lockCookie(bPin));
+  const inboxA = await (await get("/api/chat/inbox", aLock)).json();
+  const inboxRaw = JSON.stringify(inboxA);
+  row("inbox con la conversación y sin ids", inboxA.conversations?.length, inboxA.conversations?.length === 1 && !/user|matricula|hash/i.test(inboxRaw));
+  const ans = await (await post(`/api/chat/conversations/${conv}/answer`, { round: 0, body: "Respuesta QA de A" }, aLock.cookie)).json();
+  row("responder ronda 1", ans.rounds?.[0]?.mine ? "ok" : "no", ans.rounds?.[0]?.mine === "Respuesta QA de A" && ans.rounds?.[0]?.theirs === null);
+  const bView = await (await get(`/api/chat/conversations/${conv}`, bLock)).json();
+  row("respuesta ajena oculta hasta responder", JSON.stringify(bView.rounds?.[0]?.theirs), bView.rounds?.[0]?.theirs === null && !JSON.stringify(bView).includes("Respuesta QA de A"));
+  const twice = await post(`/api/chat/conversations/${conv}/answer`, { round: 0, body: "otra" }, aLock.cookie);
+  row("no se responde dos veces", twice.status, twice.status === 409);
+  const early = await post(`/api/chat/conversations/${conv}/messages`, { body: "hola" }, aLock.cookie);
+  row("sin chat libre antes de las rondas", early.status, early.status === 409);
+  const bAns = await (await post(`/api/chat/conversations/${conv}/answer`, { round: 0, body: "Respuesta QA de B" }, bLock.cookie)).json();
+  row("respuestas reveladas al responder ambas", bAns.rounds?.[0]?.theirs ?? "null", bAns.rounds?.[0]?.theirs === "Respuesta QA de A");
+  const outsider = await get(`/api/chat/conversations/${conv}`, { cookie: aLock.cookie.replace(a.cookie, b.cookie) });
+  row("candado de A con sesión de B", outsider.status, outsider.status === 423);
+  const left = await del(`/api/chat/conversations/${conv}`, null, bLock);
+  row("retirarse", left.status, left.status === 200);
+  const after = await get(`/api/chat/conversations/${conv}`, aLock);
+  row("conversación desaparece para ambas", after.status, after.status === 404);
+  const notes = await (await get("/api/notifications", a)).json();
+  const chatNotes = (notes.notifications ?? []).filter((n) => n.type === "chat");
+  row("aviso de chat sin contenido", chatNotes.length, chatNotes.every((n) => !/Respuesta QA|alias/i.test(n.title + n.body)));
+}
 for (const s of [a, b]) {
   const d = await fetch(BASE + "/api/privacy", { method: "DELETE", headers: { origin: BASE, cookie: s.cookie } });
   row("DELETE borrar mis datos", d.status, d.status === 200);

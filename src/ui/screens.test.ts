@@ -14,9 +14,20 @@ import { cellsFor } from "./admin/pixel-bars";
 import { categoryIcon } from "./design/category-icons";
 import { dawnStars, sparkleCells } from "./design/dawn";
 import { ICON_NAMES } from "./design/icons";
-import { CHAT_COPY, attemptsMessage, formatCountdown, pausedMessage } from "./chat/chat-copy";
+import {
+  CHAT_COPY,
+  CONVERSATION_COPY,
+  INTEREST_COPY,
+  attemptsMessage,
+  charsLeft,
+  formatCountdown,
+  pausedMessage,
+  stageLabel,
+} from "./chat/chat-copy";
 import { CONSTELLATION_COPY } from "./constellation/types";
 import { MATRICULA_COPY } from "./entry/matricula-entry";
+import { FEEDBACK_COPY } from "./feedback/feedback-toggles";
+import { LOST_COPY } from "./shared/lost-view";
 import { ONBOARDING_PLATES } from "./entry/onboarding";
 import { revealOrder } from "./quiz/reveal-order";
 import { REFINE_COPY } from "./refine/refine-invite";
@@ -62,7 +73,14 @@ describe("copy", () => {
     ...EVIDENCE_SUMMARY.layers.map((l) => l.text),
     ...Object.values(CONSTELLATION_COPY),
     ...Object.values(CHAT_COPY),
+    ...Object.values(CONVERSATION_COPY),
+    ...Object.values(INTEREST_COPY),
+    stageLabel("rounds", { round: 2, total: 3 }),
+    charsLeft(1),
+    charsLeft(-4),
     ...Object.values(CHAT_EVENT_LABELS),
+    ...Object.values(FEEDBACK_COPY),
+    ...Object.values(LOST_COPY),
     attemptsMessage(1),
     attemptsMessage(4),
     pausedMessage(300),
@@ -106,6 +124,18 @@ describe("chat lock copy", () => {
     expect(pausedMessage(299)).toBe("Tómate un respiro: puedes intentar de nuevo en 4:59.");
     expect(attemptsMessage(1)).toBe("Ese PIN no es. Te queda 1 intento antes de una pausa.");
     expect(attemptsMessage(3)).toBe("Ese PIN no es. Te quedan 3 intentos antes de una pausa.");
+  });
+
+  it("names stages in words and never pressures", () => {
+    expect(stageLabel("rounds", { round: 2, total: 3 })).toBe("Ronda 2 de 3");
+    expect(stageLabel("invite", null)).toBe("Invitación al chat libre");
+    expect(stageLabel("free", null)).toBe("Chat libre");
+    expect(charsLeft(1)).toBe("1 carácter disponible");
+    expect(CONVERSATION_COPY.leaveBody).toBe(
+      "Puedes retirarte sin explicar nada. La conversación desaparecerá para las dos personas.",
+    );
+    const calm = /prisa|rápido|ahora mismo|no te lo pierdas|solo hoy|urgente/i;
+    for (const text of [...Object.values(CONVERSATION_COPY), ...Object.values(INTEREST_COPY)]) expect(text).not.toMatch(calm);
   });
 
   it("keeps a single numeric input that no password manager claims", () => {

@@ -746,3 +746,70 @@ la siguiente carga del resultado. Tests: `get-result.test.ts` (por defecto vací
 elegidas, sin escalas prohibidas, solo campos de banda, ala solo con opt-in, capas sin
 números), `privacy.test.ts`, `shared-profile.test.ts` (geometría sin NaN, parsers que fallan
 cerrado), `layer-bands.test.ts` y `schema.test.ts` (SQL ↔ TypeScript).
+
+## ADR-031 · Dorado radiante relativo por pista y física para cielos llenos
+
+**Contexto.** El dorado «≥ 95 %» (ADR-025) era inalcanzable: en producción
+(327 afinidades, 2026-11-04) amistad va de 47 a 66 % (p99 61 %) y romance de 54 a 66 %
+(p99 65 %). Además, con 100–120 estrellas la proyección de contactos (24 iteraciones)
+costaba ~3.4 ms por paso en el perfil móvil, el 41 % del presupuesto de 16.7 ms.
+
+**Decisión.**
+- `result.radiantPercent` en `data/experience.json`: **romance 63, amistad 61** (cerca del
+  p99 real de cada pista; romance pide más, coherente con su mayor estrictez). Se sigue
+  decidiendo sobre el **% redondeado que se lee** (`isRadiantPercent`), así que una estrella
+  que dice «63 %» en romance siempre brilla y una que dice «62 %» nunca.
+  Hoy brillan 5 de 90 afinidades de romance y 4 de 237 de amistad.
+- Física: con más de `collision.crowdBodies` = 60 cuerpos, la proyección usa
+  `crowdIterations` = 10. Con 8 los sprites llegaron a tocarse (−0.8 px) a mitad del vuelo;
+  con 10 el test «nunca se tocan» sigue en verde.
+
+| Móvil 390×844 | 24 iter. (antes) | 10 iter. |
+|---|---|---|
+| 100 estrellas, paso medio | 2.74 ms (32.8 %) | 1.24 ms (14.9 %) |
+| 120 estrellas, paso medio | 3.39 ms (40.7 %) | 1.52 ms (18.3 %) |
+
+**Consecuencias.** El umbral se revisa con `.qa/sim-dist.mjs` cuando la población crezca.
+La escala entera de sprites (`SPRITE_SIZE_FACTOR` 2.4) se deja como está: el radio alimenta
+las colisiones y el render ya ajusta a la retícula de `--zm-px`, así que cambiarlo movería la
+física sin beneficio visible medido.
+
+## ADR-032 · Chat entre matches: señal mutua, rondas y chat libre
+
+**Contexto.** El candado (ADR-029) existía sin chat. `docs/CHAT.md` pedía señal de interés →
+rondas de preguntas → chat libre, con aceptación mutua y retirada sin explicación.
+
+**Decisión.**
+- **Señal unilateral invisible.** `POST /api/interest` recibe el *handle* opaco del resultado
+  (`matchHandle`, sha256 por persona que mira) y el servidor lo resuelve contra **sus matches
+  actuales**; nunca acepta un id de usuario. `express_chat_interest` (SQL, `SECURITY DEFINER`,
+  solo `service_role`) vuelve a comprobar que el par es match en esa pista y abre la
+  conversación de forma atómica (bloqueo consultivo por par) cuando la señal es mutua.
+- **Rondas.** Preguntas en `data/chat-config.json` (3 por pista, abiertas y ligeras). Solo se
+  responde la ronda actual, una vez; la respuesta ajena se revela cuando **ambas** respondieron
+  y las preguntas futuras no viajan. La etapa se **deriva** (nunca se guarda) con funciones
+  puras en `domain/chat/conversation.ts`.
+- **Chat libre** solo cuando ambas personas aceptan; la aceptación ajena no se revela antes de
+  aceptar tú. Textos normalizados (NFC, sin controles ni *bidi overrides*) y rechazados, no
+  truncados, si pasan el límite.
+- **Retirarse** borra conversación, respuestas, mensajes y **ambas** señales; la otra persona
+  no recibe aviso. Reabrir exige dos señales nuevas.
+- **Todo detrás del candado** (`requireChatLock`) salvo la señal. Un id ajeno o inválido
+  responde lo mismo que uno inexistente (`chat.not_found`). DTOs sin ids de usuario.
+- **Aviso sin contenido:** una sola notificación `chat` no leída por persona («Tienes novedades
+  en tus chats»), sin alias ni texto. La UI consulta cada 8 s con la pestaña visible.
+- Tablas sin políticas, en cascada desde `profiles` (migración
+  `20261104000000_conversations.sql`, idempotente y replicada en la base).
+
+**Consecuencias.** Quien opera el servidor puede leer los mensajes (no es cifrado; ADR-029).
+Si el par deja de ser match tras recalcular, la conversación abierta se conserva: ya hubo
+consentimiento mutuo y retirarse sigue disponible.
+
+## ADR-033 · Sonido y vibración opcionales; 404 y errores ilustrados
+
+**Decisión.** Sonido «chip» sintetizado con WebAudio y vibración corta, **apagados por
+defecto**, preferencia solo local (`localStorage`, falla cerrado). Un solo limitador
+(120 ms) para ambos; la vibración se desactiva con `prefers-reduced-motion`. Suenan al elegir
+un valor Likert y al formar una unión arrastrando una estrella (nunca en el acomodo
+automático). Parámetros en `experience.feedback`. Se añaden `not-found.tsx`, `error.tsx` y
+`global-error.tsx` con un ajolotito pixel y un saludo discreto tras 5 toques.

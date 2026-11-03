@@ -19,6 +19,17 @@ const TONE: Record<string, ToastTone> = {
   match_amistad: "amistad",
 };
 
+/**
+ * Kinds whose toast never counts: "Tienes novedades en tus chats" says it all,
+ * and a growing number would only add pressure (and hint at activity).
+ */
+const UNCOUNTED = new Set(["chat"]);
+
+function foldedBody(type: string, body: string, extra: number): string {
+  if (extra <= 0 || UNCOUNTED.has(type) || !body) return body;
+  return `${body} (y ${extra} ${extra === 1 ? "aviso más" : "avisos más"})`;
+}
+
 export interface GroupedToast extends ToastData {
   /** Every notification id folded into this toast (all are marked read together). */
   ids: string[];
@@ -40,13 +51,12 @@ export function groupNotifications(
   for (const [type, items] of groups) {
     const sorted = [...items].sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
     const head = sorted[0]!;
-    const extra = sorted.length - 1;
     toasts.push({
       id: head.id,
       ids: sorted.map((n) => n.id),
       tone: TONE[type] ?? "neutral",
       title: head.title,
-      body: extra > 0 ? `${head.body} (y ${extra} ${extra === 1 ? "aviso más" : "avisos más"})` : head.body,
+      body: foldedBody(type, head.body, sorted.length - 1),
     });
   }
   return toasts.slice(0, Math.max(0, maxVisible));

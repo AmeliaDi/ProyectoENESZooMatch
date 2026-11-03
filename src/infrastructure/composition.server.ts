@@ -4,7 +4,7 @@
  */
 import { createHash } from "node:crypto";
 
-import type { ChatRecoveryDeps } from "@/application/chat";
+import type { ChatRecoveryDeps, ConversationRepository, InterestDeps } from "@/application/chat";
 import type { AppError } from "@/application/errors";
 import type { GetResultDeps } from "@/application/get-result";
 import type { PrivacyDeps } from "@/application/privacy";
@@ -15,6 +15,7 @@ import type { SubmitQuizDeps } from "@/application/submit-quiz";
 import { err, ok, type Clock, type Result } from "@/domain/shared";
 
 import { createAccessGuard, guardSubject } from "./auth/access-guard.server";
+import { supabaseConversationRepository } from "./chat/conversation-repository";
 import { createPinHasher } from "./chat/pin-hasher.server";
 import { supabaseChatPinRepository, supabaseMatriculaVerifier } from "./chat/pin-repository";
 import { getChatPinPepper, getServerEnv } from "./env/env.server";
@@ -129,6 +130,8 @@ export async function adminContext(): Promise<Result<AdminRepository, Failure>> 
 export interface ChatContext {
   userId: string;
   deps: ChatRecoveryDeps;
+  /** Conversations between matches; only reachable behind `requireChatLock`. */
+  conversations: ConversationRepository;
   /** Signs the lock-session cookie (key derived from it). */
   pepper: string;
   /** Per-address PIN guard: seconds locked, or `null` when it failed (fail closed). */
@@ -151,6 +154,7 @@ export async function chatContext(): Promise<Result<ChatContext, Failure>> {
   return ok({
     userId: auth.value.userId,
     pepper,
+    conversations: supabaseConversationRepository(admin),
     deps: {
       pins: supabaseChatPinRepository(admin),
       hasher: createPinHasher(pepper),
@@ -159,6 +163,25 @@ export async function chatContext(): Promise<Result<ChatContext, Failure>> {
     },
     guardAddress: (address) =>
       guard.hit("chat_pin_address", guardSubject("chat_pin_address", address, env.MATRICULA_HMAC_SECRET)),
+  });
+}
+
+/**
+ * "Me interesa conocerte" lives in the result view, outside the chat lock: it
+ * reveals nothing (one-sided signals are invisible to the other person).
+ */
+export async function interestContext(): Promise<Result<{ userId: string; deps: InterestDeps }, Failure>> {
+  const auth = await authenticated();
+  if (!auth.ok) return auth;
+  const admin = createAdminClient();
+  if (!admin) return err("service.unavailable");
+  return ok({
+    userId: auth.value.userId,
+    deps: {
+      matches: supabaseMatchRepository(admin),
+      conversations: supabaseConversationRepository(admin),
+      digest: sha256Hex,
+    },
   });
 }
 

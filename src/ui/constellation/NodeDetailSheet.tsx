@@ -11,6 +11,7 @@
 
 import { useMemo } from "react";
 
+import { InterestAction } from "@/ui/chat/interest-action";
 import { categoryIcon } from "@/ui/design/category-icons";
 import { Chip } from "@/ui/kit/surfaces";
 import { Dialog } from "@/ui/kit/dialog";
@@ -101,9 +102,9 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
               <Icon name="privacy" filled /> Contacto con consentimiento
             </h3>
             <p className="zm-detail__muted">
-              Muy pronto podrás decir “me interesa conocerte”. Solo se abre un canal si las dos personas
-              lo eligen, y puedes retirarte sin explicar nada.
+              Solo se abre un chat si las dos personas lo eligen, y puedes retirarte sin explicar nada.
             </p>
+            <InterestAction matchId={node.id} track={track} />
           </section>
 
           <p className="zm-detail__fine">{EXPLANATION_COPY_UI.fine}</p>

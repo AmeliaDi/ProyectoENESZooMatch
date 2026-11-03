@@ -29,5 +29,24 @@
   "activity": {
     "limit": 20
   },
-  "addressGuard": { "limit": 30, "windowSeconds": 600, "lockSeconds": 900 }
+  "addressGuard": { "limit": 30, "windowSeconds": 600, "lockSeconds": 900 },
+  "conversation": {
+    "rounds": {
+      "romance": [
+        "¿Qué plan pequeño te alegra una semana pesada?",
+        "¿Qué te hace sentir en confianza con alguien?",
+        "¿Qué te gustaría que alguien supiera de ti desde el principio?"
+      ],
+      "amistad": [
+        "¿Qué te gusta hacer en un hueco entre clases?",
+        "¿De qué tema podrías platicar por horas?",
+        "¿Cómo es para ti una buena amistad?"
+      ]
+    },
+    "answerChars": 280,
+    "messageChars": 800,
+    "messagesPage": 200,
+    "pollSeconds": 8,
+    "inboxPollSeconds": 30
+  }
 }

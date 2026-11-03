@@ -10,6 +10,10 @@ export const TABLE = {
   roles: "user_roles",
   chatPins: "chat_pins",
   chatEvents: "chat_security_events",
+  chatInterests: "chat_interests",
+  conversations: "conversations",
+  answers: "conversation_answers",
+  messages: "conversation_messages",
 } as const;
 export const RPC = {
   submit: "submit_quiz_result",
@@ -20,6 +24,8 @@ export const RPC = {
   dashboard: "get_admin_dashboard",
   myNotifications: "get_my_notifications",
   markRead: "mark_notifications_read",
+  expressInterest: "express_chat_interest",
+  leaveConversation: "leave_conversation",
 } as const;
 
 export const PROFILE_PAGE_SIZE = 1000;

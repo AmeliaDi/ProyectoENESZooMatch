@@ -168,7 +168,7 @@ CREATE INDEX matches_user_b_idx ON public.matches (user_b, track);
 CREATE TABLE public.notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('match_romance', 'match_amistad', 'no_match', 'welcome')),
+  type TEXT NOT NULL CONSTRAINT notifications_type_check CHECK (type IN ('match_romance', 'match_amistad', 'no_match', 'welcome', 'chat')),
   title TEXT NOT NULL,
   body TEXT NOT NULL,
   metadata JSONB NOT NULL DEFAULT '{}',
@@ -808,6 +808,164 @@ REVOKE ALL ON public.chat_pins, public.chat_security_events FROM PUBLIC, anon, a
 GRANT ALL ON public.chat_pins, public.chat_security_events TO service_role;
 
 
+-- ─── Chat between matches (docs/CHAT.md §10, ADR-032) ──────────────────────
+-- Mirrors 20261104000000_conversations.sql. Server-only: RLS on, no policies.
+-- Everything cascades from profiles; leaving deletes the conversation and
+-- both signals.
+CREATE TABLE public.chat_interests (
+  from_user UUID NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE,
+  to_user UUID NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE,
+  track TEXT NOT NULL CHECK (track IN ('romance', 'amistad')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (from_user, to_user, track),
+  CONSTRAINT chat_interests_not_self CHECK (from_user <> to_user)
+);
+CREATE INDEX chat_interests_to_idx ON public.chat_interests (to_user, track);
+
+CREATE TABLE public.conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  track TEXT NOT NULL CHECK (track IN ('romance', 'amistad')),
+  user_a UUID NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE,
+  user_b UUID NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE,
+  free_ready_a BOOLEAN NOT NULL DEFAULT false,
+  free_ready_b BOOLEAN NOT NULL DEFAULT false,
+  seen_a TIMESTAMPTZ,
+  seen_b TIMESTAMPTZ,
+  last_actor UUID,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT conversations_ordered_pair CHECK (user_a < user_b),
+  CONSTRAINT conversations_pair_unique UNIQUE (user_a, user_b, track)
+);
+CREATE INDEX conversations_user_b_idx ON public.conversations (user_b);
+
+CREATE TABLE public.conversation_answers (
+  conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
+  author UUID NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE,
+  round SMALLINT NOT NULL CHECK (round BETWEEN 0 AND 5),
+  body TEXT NOT NULL CHECK (char_length(body) BETWEEN 1 AND 2000),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (conversation_id, author, round)
+);
+
+CREATE TABLE public.conversation_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
+  author UUID NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE,
+  body TEXT NOT NULL CHECK (char_length(body) BETWEEN 1 AND 2000),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX conversation_messages_conv_idx
+  ON public.conversation_messages (conversation_id, created_at DESC);
+
+-- Only participants may write into a conversation; bumps the activity marker.
+CREATE FUNCTION private.conversation_touch()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  UPDATE public.conversations
+  SET updated_at = NEW.created_at, last_actor = NEW.author
+  WHERE id = NEW.conversation_id AND NEW.author IN (user_a, user_b);
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Not a participant' USING ERRCODE = '42501';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER conversation_answers_touch
+  AFTER INSERT ON public.conversation_answers
+  FOR EACH ROW EXECUTE FUNCTION private.conversation_touch();
+CREATE TRIGGER conversation_messages_touch
+  AFTER INSERT ON public.conversation_messages
+  FOR EACH ROW EXECUTE FUNCTION private.conversation_touch();
+
+-- Records a signal and opens the conversation when it is mutual. Returns
+-- {"kind": "gone"} when the pair is not a current match on that track.
+CREATE FUNCTION public.express_chat_interest(p_from UUID, p_to UUID, p_track TEXT)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_a UUID := LEAST(p_from, p_to);
+  v_b UUID := GREATEST(p_from, p_to);
+  v_id UUID;
+BEGIN
+  PERFORM private.assert_service_role();
+  IF p_from = p_to OR NOT EXISTS (
+    SELECT 1 FROM public.matches WHERE user_a = v_a AND user_b = v_b AND track = p_track
+  ) THEN
+    RETURN jsonb_build_object('kind', 'gone');
+  END IF;
+
+  SELECT id INTO v_id FROM public.conversations WHERE user_a = v_a AND user_b = v_b AND track = p_track;
+  IF v_id IS NOT NULL THEN
+    RETURN jsonb_build_object('kind', 'open', 'conversation', v_id);
+  END IF;
+
+  INSERT INTO public.chat_interests (from_user, to_user, track)
+  VALUES (p_from, p_to, p_track) ON CONFLICT DO NOTHING;
+
+  -- Serialises the two signals of one pair so a mutual race opens exactly one.
+  PERFORM pg_advisory_xact_lock(hashtextextended(v_a::TEXT || v_b::TEXT || p_track, 0));
+  IF NOT EXISTS (
+    SELECT 1 FROM public.chat_interests WHERE from_user = p_to AND to_user = p_from AND track = p_track
+  ) THEN
+    RETURN jsonb_build_object('kind', 'sent');
+  END IF;
+
+  INSERT INTO public.conversations (track, user_a, user_b)
+  VALUES (p_track, v_a, v_b)
+  ON CONFLICT ON CONSTRAINT conversations_pair_unique DO NOTHING
+  RETURNING id INTO v_id;
+  IF v_id IS NULL THEN
+    SELECT id INTO v_id FROM public.conversations WHERE user_a = v_a AND user_b = v_b AND track = p_track;
+  END IF;
+  RETURN jsonb_build_object('kind', 'open', 'conversation', v_id);
+END;
+$$;
+
+-- Deletes the conversation (answers and messages cascade) and both signals.
+CREATE FUNCTION public.leave_conversation(p_id UUID, p_user UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_row public.conversations%ROWTYPE;
+BEGIN
+  PERFORM private.assert_service_role();
+  DELETE FROM public.conversations
+  WHERE id = p_id AND p_user IN (user_a, user_b)
+  RETURNING * INTO v_row;
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+  DELETE FROM public.chat_interests
+  WHERE track = v_row.track
+    AND ((from_user = v_row.user_a AND to_user = v_row.user_b)
+      OR (from_user = v_row.user_b AND to_user = v_row.user_a));
+  RETURN true;
+END;
+$$;
+
+ALTER TABLE public.chat_interests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conversation_answers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conversation_messages ENABLE ROW LEVEL SECURITY;
+-- chat_interests, conversations, conversation_*: no policies on purpose (server-only).
+
+REVOKE ALL ON public.chat_interests, public.conversations, public.conversation_answers, public.conversation_messages
+  FROM PUBLIC, anon, authenticated;
+GRANT ALL ON public.chat_interests, public.conversations, public.conversation_answers, public.conversation_messages
+  TO service_role;
+REVOKE ALL ON FUNCTION private.conversation_touch() FROM PUBLIC, anon, authenticated;
+
 -- ─── Function privileges ────────────────────────────────────────────────────
 
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;
@@ -819,7 +977,9 @@ GRANT EXECUTE ON FUNCTION
   public.replace_matches(JSONB, TEXT),
   public.get_user_matches(UUID),
   public.notify_matches(UUID),
-  public.access_guard_hit(TEXT, TEXT, INTEGER, INTEGER, INTEGER)
+  public.access_guard_hit(TEXT, TEXT, INTEGER, INTEGER, INTEGER),
+  public.express_chat_interest(UUID, UUID, TEXT),
+  public.leave_conversation(UUID, UUID)
 TO service_role;
 
 GRANT EXECUTE ON FUNCTION

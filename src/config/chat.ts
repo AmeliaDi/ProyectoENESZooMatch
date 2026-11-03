@@ -9,6 +9,9 @@ const MAX_PIN_LENGTH = 8;
 /** scrypt needs 128·N·r bytes; below N = 2^14 it is too cheap to matter. */
 const MIN_LOG2N = 14;
 const MAX_LOG2N = 20;
+const MAX_ROUNDS = 6;
+const MIN_TEXT_CHARS = 40;
+const MAX_TEXT_CHARS = 2000;
 
 /**
  * Chat PIN lock (docs/CHAT.md, ADR-029). A light lock against someone holding
@@ -51,6 +54,20 @@ export const chatConfigSchema = z
       limit: positiveInt,
       windowSeconds: positiveInt,
       lockSeconds: positiveInt,
+    }),
+    /** Chat between matches (docs/CHAT.md §10): question rounds, then free chat. */
+    conversation: z.strictObject({
+      rounds: z.strictObject({
+        romance: z.array(z.string().min(1)).min(1).max(MAX_ROUNDS),
+        amistad: z.array(z.string().min(1)).min(1).max(MAX_ROUNDS),
+      }),
+      answerChars: z.number().int().min(MIN_TEXT_CHARS).max(MAX_TEXT_CHARS),
+      messageChars: z.number().int().min(MIN_TEXT_CHARS).max(MAX_TEXT_CHARS),
+      /** Newest free-chat messages returned per read. */
+      messagesPage: positiveInt,
+      /** Client polling while a conversation / the inbox is visible. */
+      pollSeconds: positiveInt,
+      inboxPollSeconds: positiveInt,
     }),
   })
   .refine((c) => c.pin.blocklist.every((pin) => pin.length === c.pin.length), {

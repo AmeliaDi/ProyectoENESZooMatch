@@ -3,23 +3,27 @@
 /**
  * `/chats`: the gate in front of every conversation. No PIN → create one;
  * PIN and closed lock → ask for it; pending recovery → notice and cancel;
- * open → the (still empty) inbox, with a quick-lock button. Hiding the page
- * closes the lock (best effort); the server's idle expiry is the guarantee.
+ * open → the inbox, or one conversation (`?c=<id>`), with a quick-lock
+ * button. A `chat.locked` reply anywhere re-reads the status, which brings
+ * the PIN back. Hiding the page closes the lock (best effort); the server's
+ * idle expiry is the guarantee.
  */
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { CHAT_CONFIG } from "@/config";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
-import { Button } from "@/ui/kit/button";
 import { Icon } from "@/ui/kit/icon";
-import { EmptyState, ErrorState, LoadingState } from "@/ui/kit/states";
+import { ErrorState, LoadingState } from "@/ui/kit/states";
 import { ExitButton } from "@/ui/shared/exit-button";
 
 import { chatApi, lockOnHide, toStatus, type ChatStatus } from "./chat-api";
 import { CHAT_COPY } from "./chat-copy";
+import { ConversationView } from "./conversation-view";
+import { Inbox } from "./inbox-list";
 import { NewPinForm, UnlockForm } from "./pin-forms";
 import { RecoveryPending, RecoveryRequest } from "./recovery-flow";
+import { useOpenConversation } from "./use-open-conversation";
 
 type Screen =
   | { kind: "loading" }
@@ -49,23 +53,18 @@ function useLockOnHide(active: boolean) {
   }, [active]);
 }
 
-function Inbox({ onLock }: { onLock(): void }) {
-  return (
-    <>
-      <EmptyState title={CHAT_COPY.emptyTitle} body={CHAT_COPY.empty} />
-      <div className="zm-chat__actions">
-        <Button variant="secondary" icon="privacy" onClick={onLock}>{CHAT_COPY.lock}</Button>
-      </div>
-    </>
-  );
+function OpenChats({ onLock, onLocked }: { onLock(): void; onLocked(): void }) {
+  const [openId, setOpenId] = useOpenConversation();
+  if (openId === null) return <Inbox onOpen={setOpenId} onLock={onLock} onLocked={onLocked} />;
+  return <ConversationView key={openId} id={openId} onBack={() => setOpenId(null)} onLock={onLock} onLocked={onLocked} />;
 }
 
 function Gate({ status, refresh }: { status: ChatStatus; refresh(): Promise<void> }) {
   const [forgot, setForgot] = useState(false);
-  const reload = () => {
+  const reload = useCallback(() => {
     setForgot(false);
     void refresh();
-  };
+  }, [refresh]);
   const lock = async () => {
     await chatApi.lock();
     void refresh();
@@ -80,7 +79,7 @@ function Gate({ status, refresh }: { status: ChatStatus; refresh(): Promise<void
   if (forgot || status.resetOnly) {
     return <RecoveryRequest onRequested={reload} onBack={() => setForgot(false)} />;
   }
-  if (status.unlocked) return <Inbox onLock={() => void lock()} />;
+  if (status.unlocked) return <OpenChats onLock={() => void lock()} onLocked={reload} />;
   return (
     <UnlockForm
       {...(status.retryAfter === undefined ? {} : { initialPause: status.retryAfter })}

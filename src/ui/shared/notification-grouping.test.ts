@@ -28,6 +28,15 @@ describe("groupNotifications", () => {
     expect(toasts.map((t) => t.id)).toEqual(["2"]);
   });
 
+  it("folds chat news into one quiet toast without a count", () => {
+    const chat = (id: string, at: string): IncomingNotification => ({
+      id, type: "chat", title: "Tienes novedades en tus chats", body: "", read: false, created_at: at,
+    });
+    const toasts = groupNotifications([chat("1", "2026-01-01"), chat("2", "2026-01-02"), chat("3", "2026-01-03")], new Set(), 3);
+    expect(toasts).toHaveLength(1);
+    expect(toasts[0]).toMatchObject({ id: "3", tone: "neutral", title: "Tienes novedades en tus chats", body: "", ids: ["3", "2", "1"] });
+  });
+
   it("never invents urgency: bodies are passed through unchanged", () => {
     const [toast] = groupNotifications([n("1", "match_amistad", "1")], new Set(), 3);
     expect(toast?.body).toBe("b-1");

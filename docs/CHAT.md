@@ -1,11 +1,7 @@
 # Chat entre matches
 
-> **Estado (2026-11-02):** el **candado de PIN está implementado** como módulo independiente
-> (ADR-029; rutas en §9). El chat en sí (señal de interés, rondas de preguntas, chat libre y
-> aceptación mutua) **todavía no está diseñado ni implementado**: no hay tablas de mensajes.
-> `GET /api/chat/inbox` devuelve `{ conversations: [] }` solo con el candado abierto, y sirve
-> como contrato para las rutas futuras. Las secciones marcadas con *[depende del chat]* se
-> ajustarán cuando ese diseño exista.
+> **Estado (2026-11-04):** candado de PIN (ADR-029, §1–9) y chat entre matches (ADR-032, §10)
+> implementados.
 
 ## 1. Candado de PIN: qué es y qué no es
 
@@ -31,11 +27,11 @@ Desde ADR-026 la matrícula es la única credencial de la cuenta. Por eso:
 
 ## 2. Cuándo se crea
 
-**Hoy:** al entrar a `/chats` (enlazada desde el resultado y desde Ajustes). Sin PIN se pide
-crearlo; con PIN y candado cerrado se pide el PIN; abierto, se ve el estado vacío «Aquí vivirán
-tus chats cuando tú y un match acepten conversar».
+Al entrar a `/chats` (desde el resultado, desde Ajustes o desde «Abrir el chat» en el detalle de
+un match). Sin PIN se pide crearlo; con PIN y candado cerrado se pide el PIN; abierto, se ve la
+lista de conversaciones.
 
-1. *[depende del chat]* Se abre la primera conversación (aceptación mutua).
+1. Se abre la primera conversación (aceptación mutua, §10.1).
 2. Antes de mostrar **cualquier** mensaje aparece «Crea tu PIN»: dos pasos (escribir y
    confirmar) y dos líneas sobre qué protege y qué no.
 3. Si el PIN es trivial (§6.2): «Elige uno que solo tú recuerdes» y se vuelve al primer paso.
@@ -175,15 +171,71 @@ Todas usan `withApiSecurity`, cuerpos `strictObject` y respuestas `no-store`. Er
 | `DELETE /api/chat/recovery` | `{ pin }` (actual) | `{ ok }` |
 | `POST /api/chat/recovery/complete` | `{ pin, confirm }` | `{ ok }` + cookie |
 | `GET /api/chat/activity` | — | `{ events: [{ kind, at }], recentFailures, lastFailedAt }` |
-| `GET /api/chat/inbox` | — | `{ conversations: [] }` solo con candado abierto |
+| `GET /api/chat/inbox` | — | `InboxDto` (§10.4) solo con candado abierto |
 
 Códigos: `chat.locked` (423), `chat.pin_missing`/`chat.pin_exists` (409), `chat.pin_invalid`
 (403, genérico), `chat.pin_weak`/`chat.pin_mismatch` (422), `chat.pin_paused` (429),
 `chat.reset_required` y `chat.recovery_pending` (423), `chat.recovery_none` y
 `chat.recovery_not_ready` (409), `chat.recovery_invalid` (403, genérico).
 
-**Para el chat futuro:** toda ruta que lea o escriba mensajes debe empezar con
+**Regla:** toda ruta que lea o escriba mensajes empieza con
 `requireChatLock(request)` (`src/infrastructure/chat/chat-route.server.ts`) y responder con
 `open.value.renew(response)`. El guard exige sesión, cookie válida del mismo usuario, que no
 haya restablecimiento pendiente y que no esté en modo «solo restablecer». Si falla, borra la
 cookie.
+
+## 10. Chat entre matches (ADR-032)
+
+### 10.1 Señal de interés
+
+- En el detalle de un match: «Me interesa conocerte». La señal es **invisible** para la otra
+  persona mientras no sea mutua; se puede retirar.
+- El cliente solo envía el *handle* opaco del match (`MatchEntryDto.id`) y la pista. El
+  servidor lo resuelve contra los matches **actuales** de quien envía; si ya no es match:
+  `chat.match_gone`.
+- Cuando ambas señales existen, `express_chat_interest` abre una sola conversación (atómico) y
+  la primera persona recibe el aviso sin contenido.
+
+### 10.2 Etapas
+
+| Etapa | Qué pasa | Quién puede actuar |
+|---|---|---|
+| `rounds` | Una pregunta por ronda (`conversation.rounds` en config, 3 por pista). Cada quien responde una vez; la respuesta ajena se ve cuando ambas respondieron. Las preguntas futuras no se envían | Quien no ha respondido la ronda actual |
+| `invite` | «¿Quieren seguir platicando con libertad?» Cada quien acepta; la aceptación ajena no se revela antes de aceptar tú | Quien no ha aceptado |
+| `free` | Chat libre (últimos `messagesPage` = 200 mensajes) | Ambas |
+
+La etapa se deriva siempre de los hechos guardados (`domain/chat/conversation.ts`).
+Límites: respuestas 280 caracteres, mensajes 800; el texto se normaliza y, si se pasa, se
+rechaza (no se recorta).
+
+### 10.3 Retirarse
+
+`DELETE /api/chat/conversations/{id}` borra la conversación, sus respuestas y mensajes y
+**ambas** señales. La otra persona no recibe aviso ni motivo; al abrirla verá «Esta
+conversación ya no está disponible». Volver a hablar exige dos señales nuevas.
+
+### 10.4 Rutas
+
+| Ruta | Candado | Cuerpo | Respuesta |
+|---|---|---|---|
+| `GET /api/interest` | No | — | `{ states: { "track:handle": { state: "sent" } \| { state: "open", conversation } } }` |
+| `POST /api/interest` | No | `{ match, track }` | `{ state: "sent" }` o `{ state: "open", conversation }` |
+| `DELETE /api/interest` | No | `{ match, track }` | `{ ok }` |
+| `GET /api/chat/inbox` | Sí | — | `{ conversations: InboxEntryDto[] }` |
+| `GET /api/chat/conversations/{id}` | Sí | — | `ConversationDto` (marca como vista) |
+| `POST …/{id}/answer` | Sí | `{ round, body }` | `ConversationDto` |
+| `POST …/{id}/accept` | Sí | `{}` | `ConversationDto` |
+| `POST …/{id}/messages` | Sí | `{ body }` | `ConversationDto` |
+| `DELETE /api/chat/conversations/{id}` | Sí | — | `{ ok }` |
+
+Contratos en `src/contracts/chat.ts`. Códigos nuevos: `chat.not_found` (404, también para
+ids ajenos o mal formados), `chat.match_gone` (409), `chat.conflict` (409: ronda equivocada,
+ya respondida, etapa incorrecta).
+
+### 10.5 Datos
+
+`chat_interests`, `conversations`, `conversation_answers`, `conversation_messages`
+(`20261104000000_conversations.sql`): RLS sin políticas, `REVOKE` a `anon`/`authenticated`,
+todo en cascada desde `profiles`. Un *trigger* solo acepta escritos de participantes y
+actualiza `updated_at`/`last_actor`. Los DTOs nunca llevan ids de usuario; el compañero se
+muestra con alias y sprite público (ala y marca solo con su opt-in).
