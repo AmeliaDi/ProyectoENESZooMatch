@@ -44,6 +44,7 @@ const COUNTERPART: CounterpartProfile = {
   colorId: "ennea-4-w5",
   mark: "so",
   showAvatarDetail: false,
+  sharedLayers: [],
 };
 
 const MATCH: StoredMatch = {
@@ -176,11 +177,82 @@ describe("getResult", () => {
     }
   });
 
-  it("never serializes posteriors, vectors or answers", async () => {
+  it("shares nothing beyond alias, animal and colour by default (ADR-030)", async () => {
     const store = new MemoryStore();
     store.own = OWN;
     store.stored = [MATCH];
     store.counterparts = [COUNTERPART];
+    const result = await getResult(VIEWER, wire(store));
+    const entry = result.ok ? result.value.matches.amistad[0] : undefined;
+    expect(entry?.shared).toEqual({ sections: [], mbti: null, enneagram: null });
+    expect(entry?.mbti_code).toBeNull();
+  });
+
+  it("shows only the chosen layers, as bands, and never the never-share scales", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    store.stored = [MATCH];
+    store.counterparts = [{ ...COUNTERPART, sharedLayers: ["hexaco", "valores", "mbti"] }];
+    const result = await getResult(VIEWER, wire(store));
+    const entry = result.ok ? result.value.matches.amistad[0] : undefined;
+    expect(entry?.shared.sections.map((s) => s.id)).toEqual(["hexaco", "mbti", "valores"]);
+    expect(entry?.shared.mbti).toEqual({ code: "ENFP" });
+    expect(entry?.mbti_code).toBe("ENFP");
+    expect(entry?.shared.enneagram).toBeNull();
+    const keys = entry?.shared.sections.flatMap((s) => s.scales.map((x) => x.key)) ?? [];
+    for (const hidden of ["val_espiritualidad", "soc_politica", "act_igualdad", "rel_exclusividad", "meta_crianza"]) {
+      expect(keys).not.toContain(hidden);
+    }
+    for (const scale of entry?.shared.sections.flatMap((s) => s.scales) ?? []) {
+      expect(Object.keys(scale).sort()).toEqual(["confidence", "high", "key", "label", "leaning", "low"]);
+    }
+    const json = JSON.stringify(entry?.shared);
+    expect(json).not.toMatch(/position|range|theta|orientacion|identidad_genero|tipo_relacion/);
+  });
+
+  it("reveals the shared enneagram wing only with the avatar-detail opt-in", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    store.stored = [MATCH];
+    const ennea = { ...OTHER_LATENT, theta: { ...OTHER_LATENT.theta }, se: { ...OTHER_LATENT.se } };
+    for (let t = 1; t <= 9; t++) {
+      ennea.theta[`ennea_${t}`] = t === 4 ? 2.5 : t === 5 ? 1.2 : -0.5;
+      ennea.se[`ennea_${t}`] = 0.5;
+    }
+    store.counterparts = [{ ...COUNTERPART, latent: ennea, sharedLayers: ["eneagrama"] }];
+    const plain = await getResult(VIEWER, wire(store));
+    expect(plain.ok && plain.value.matches.amistad[0]?.shared.enneagram?.code).toBe("4");
+    store.counterparts = [{ ...COUNTERPART, latent: ennea, sharedLayers: ["eneagrama"], showAvatarDetail: true }];
+    const detailed = await getResult(VIEWER, wire(store));
+    expect(detailed.ok && detailed.value.matches.amistad[0]?.shared.enneagram?.code).toBe("4w5");
+  });
+
+  it("gives per-layer affinity as bands from the exact score, never numbers", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    store.stored = [MATCH];
+    store.counterparts = [COUNTERPART];
+    const result = await getResult(VIEWER, wire(store));
+    const layers = result.ok ? (result.value.matches.amistad[0]?.layers ?? []) : [];
+    const score = pairScore(OWN_LATENT, OTHER_LATENT, MATCHING_CONFIG.tracks.amistad, MATCHING_CONFIG.categories);
+    expect(layers.length).toBe(score.categories.filter((c) => c.id !== "mbti" && c.id !== "eneagrama").length);
+    for (const layer of layers) {
+      expect(["alta", "media", "baja"]).toContain(layer.band);
+      expect([1, 2, 3]).toContain(layer.strength);
+      expect(Object.keys(layer).sort()).toEqual(["band", "category", "label", "strength"]);
+    }
+    expect(layers[0]?.strength).toBe(3);
+
+    store.counterparts = [{ ...COUNTERPART, latent: null }];
+    const degraded = await getResult(VIEWER, wire(store));
+    expect(degraded.ok && degraded.value.matches.amistad[0]?.layers).toEqual([]);
+  });
+
+  it("never serializes posteriors, vectors or answers", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    store.stored = [MATCH];
+    store.counterparts = [{ ...COUNTERPART, sharedLayers: ["hexaco", "big_five", "mbti", "eneagrama", "valores", "relacional", "afecto", "estilo"] }];
     const result = await getResult(VIEWER, wire(store));
     const json = JSON.stringify(result);
     for (const leak of ["theta", '"se"', "0.654321", "0.123456", "latent", "vector", "answers"]) {

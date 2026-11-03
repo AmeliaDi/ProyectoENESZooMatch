@@ -50,3 +50,43 @@
 .zm-scale__poles { display: flex; justify-content: space-between; gap: calc(var(--zm-px) * 4); color: var(--zm-fg-muted); font-size: 0.75rem; }
 .zm-scale__poles > span:last-child { text-align: right; }
 .zm-scale__reading { margin: 0; font-size: 0.8125rem; }
+
+/* ─── HEXACO constellation (ADR-030) ───────────────────────── */
+.zm-hex { display: grid; gap: calc(var(--zm-px) * 5); margin: 0; justify-items: center; }
+.zm-hex__svg { width: min(100%, calc(var(--zm-px) * 128)); height: auto; }
+.zm-hex__frame { fill: none; stroke: var(--zm-grid); stroke-width: 1; }
+.zm-hex__spoke { stroke: var(--zm-grid); stroke-width: 1; stroke-dasharray: 1 2; }
+.zm-hex__shape { fill: none; stroke: var(--zm-rim); stroke-width: 1; }
+.zm-hex__band { stroke: var(--zm-rim); stroke-width: 3; opacity: 0.38; }
+.zm-hex__star { fill: var(--zm-fg); }
+.zm-hex g[data-open="true"] .zm-hex__star { fill: var(--zm-fg-muted); }
+.zm-hex g[data-selected="true"] .zm-hex__star { fill: var(--zm-gold); }
+.zm-hex__keys { display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--zm-px) * 3); margin: 0; padding: 0; list-style: none; }
+.zm-hex__key { min-height: 44px; cursor: pointer; font: inherit; color: var(--zm-fg); }
+.zm-hex__key[aria-pressed="true"] { --box-rim: var(--zm-gold); text-decoration: underline; text-underline-offset: calc(var(--zm-px) * 2); }
+.zm-hex__hint { justify-self: stretch; min-height: 3em; margin: 0; text-align: center; }
+.zm-hex__alt { justify-self: stretch; }
+.zm-hex__alt-summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 0.875rem; }
+.zm-hex__table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.zm-hex__table th, .zm-hex__table td { padding: calc(var(--zm-px) * 2) calc(var(--zm-px) * 3); border-bottom: var(--zm-px) solid var(--zm-grid); text-align: left; vertical-align: top; }
+
+/* ─── Per-layer affinity and shared readings (detail sheet) ── */
+.zm-layers { display: grid; gap: calc(var(--zm-px) * 4); margin: 0; padding: 0; list-style: none; }
+.zm-layer { display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--zm-px) * 48); gap: calc(var(--zm-px) * 1) calc(var(--zm-px) * 4); align-items: center; }
+.zm-layer__label { font-weight: 600; font-size: 0.875rem; }
+.zm-layer__line { width: 100%; height: calc(var(--zm-px) * 6); }
+.zm-layer__track { fill: var(--zm-grid); }
+.zm-layer__lit { fill: var(--zm-rim); }
+.zm-layer[data-top="true"] .zm-layer__lit { fill: var(--zm-gold); }
+.zm-layer__words { grid-column: 1 / -1; color: var(--zm-fg-muted); font-size: 0.75rem; }
+.zm-shared { border-top: var(--zm-px) solid var(--zm-grid); }
+.zm-shared__summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; font-size: 0.875rem; }
+.zm-shared__list { display: grid; gap: calc(var(--zm-px) * 2); margin: 0; padding: 0 0 calc(var(--zm-px) * 4); list-style: none; font-size: 0.8125rem; }
+
+/* ─── Lo que compartes (ajustes) ───────────────────────────── */
+.zm-sharing { display: grid; gap: calc(var(--zm-px) * 5); }
+.zm-sharing__list { display: grid; gap: calc(var(--zm-px) * 3); margin: 0; padding: 0; list-style: none; }
+@media (min-width: 720px) { .zm-sharing__list { grid-template-columns: repeat(2, 1fr); } }
+.zm-sharing__toggle { width: 100%; justify-content: flex-start; gap: calc(var(--zm-px) * 4); }
+.zm-sharing__box { width: calc(var(--zm-px) * 6); height: calc(var(--zm-px) * 6); flex: none; border: var(--zm-px) solid currentColor; }
+.zm-sharing__box[data-on="true"] { background: currentColor; box-shadow: inset 0 0 0 var(--zm-px) var(--zm-frame); }

@@ -4,6 +4,7 @@
  * vectors, answers, matrícula hashes or counterpart user ids.
  */
 import type { ChemistrySummary, MatchExplanation } from "@/domain/explainability";
+import type { LayerAffinityBand } from "@/domain/explainability/layer-bands";
 
 export type {
   ChemistrySummary,
@@ -13,6 +14,32 @@ export type {
   MatchExplanation,
   TalkTopics,
 } from "@/domain/explainability";
+
+export type { AffinityBand, LayerAffinityBand, LineStrength } from "@/domain/explainability/layer-bands";
+
+/** A shared scale as a band: pole leaning + how sure, never a position (ADR-030). */
+export interface SharedScaleDto {
+  key: string;
+  label: string;
+  low: string;
+  high: string;
+  leaning: "bajo" | "medio" | "alto";
+  confidence: "clara" | "tentativa" | "abierta";
+}
+
+export interface SharedSectionDto {
+  id: string;
+  title: string;
+  scales: SharedScaleDto[];
+}
+
+/** Only what the counterpart chose to share; empty by default. */
+export interface SharedProfileDto {
+  sections: SharedSectionDto[];
+  mbti: { code: string } | null;
+  /** Main type always; the wing only with the avatar-detail opt-in. */
+  enneagram: { code: string; name: string } | null;
+}
 
 /** Enneagram subtype instinct drawn as a small sprite mark. */
 export type SpriteMark = "sp" | "so" | "sx";
@@ -53,6 +80,9 @@ export interface MatchEntryDto {
   badges: Array<{ dimension: string; affinity: number }>;
   /** Layered explanation built from the exact pair score (ADR-021). */
   explanation: MatchExplanation | null;
+  /** Affinity per layer as bands, from the same exact pair score (ADR-030). */
+  layers: LayerAffinityBand[];
+  shared: SharedProfileDto;
 }
 
 export interface ResultDto {

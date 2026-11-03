@@ -15,6 +15,8 @@ export interface ScaleReadingDto {
   high: string;
   /** Estimated population position Φ(θ̂) ∈ [0, 1], 2 decimals. */
   position: number;
+  /** One everyday line (HEXACO hexagon); optional. */
+  hint?: string;
   /** Faint band Φ(θ̂ ± z·SE). */
   range: [number, number];
   confidence: ReadingConfidenceDto;

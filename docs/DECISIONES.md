@@ -712,3 +712,37 @@ añadiría una descarga y C ya da identidad pixel exacta.
 **Consecuencias.** Las cifras ya no «bailan» ni confunden 0/O. Por debajo de 14 px no hay
 escala entera legible del atlas, así que ahí siempre va Atkinson. Pixelify queda solo para
 letras.
+
+## ADR-030 · Perfil de afinidades: lo tuyo completo, lo ajeno en bandas y por elección
+
+**Contexto.** Fase 3 del pulido visual. «Tu carta» ya mostraba todas las lecturas propias,
+pero del resto de personas solo se veían alias, animal, color, el % global y la explicación.
+Se pidió ver la afinidad por capa y, si la otra persona quiere, algo de su perfil, sin
+exponer datos sensibles.
+
+**Decisión.**
+- **Compartir es opt-in por capa** (`profiles.shared_layers`, vacío por defecto; migración
+  `20261103000000_shared_layers.sql`, idempotente). Las capas posibles son las secciones de
+  la carta más el eneagrama (`src/types/sharing.ts`, el mismo `CHECK` en SQL).
+- **A terceros solo van bandas** (`readSharedSections`): polo + claridad. Nunca Φ(θ̂),
+  intervalos, θ, SE ni respuestas. `sharing.neverShare` en `data/self-reading.json` excluye
+  siempre espiritualidad, afinidad política, actitudes de rol de género, exclusividad y
+  crianza, aunque su capa se comparta. Los filtros duros no forman parte de ninguna lectura.
+- **El MBTI ajeno deja de viajar por defecto:** `mbti_code` del match es `null` salvo que se
+  comparta la capa `mbti`. El eneagrama compartido muestra el tipo; el ala solo con
+  `show_avatar_detail` (coherente con ADR-018).
+- **Afinidad por capa** (`layerAffinityBands`): misma `pairScore` exacta que la explicación;
+  banda = similitud de la categoría con los cortes del copy (`bands.alta/media`), grosor 1–3
+  = ⌈3 · contribución / máxima contribución⌉. MBTI/Eneagrama fuera (narrativa, ADR-017).
+  Sin porcentajes por capa para no sobreinterpretar diferencias pequeñas.
+- **Visual:** HEXACO como constelación de seis estrellas (estrella = estimación, tramo tenue =
+  banda ±1·SE, sobre un hexágono en retícula entera), con explicación de una línea al tocar y
+  tabla alternativa. Placa de eneagrama con estado «aún afinando» si la entropía es alta. En el
+  detalle, líneas por capa (dorado solo en la más fuerte) y «Lo que eligió compartir».
+  Bloques «Cómo leer esto» y «Qué no sabemos todavía» en la carta.
+
+**Consecuencias.** Nadie ve de otra persona más de lo que eligió. Retirar una capa aplica en
+la siguiente carga del resultado. Tests: `get-result.test.ts` (por defecto vacío, solo capas
+elegidas, sin escalas prohibidas, solo campos de banda, ala solo con opt-in, capas sin
+números), `privacy.test.ts`, `shared-profile.test.ts` (geometría sin NaN, parsers que fallan
+cerrado), `layer-bands.test.ts` y `schema.test.ts` (SQL ↔ TypeScript).

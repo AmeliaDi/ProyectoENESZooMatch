@@ -8,6 +8,7 @@ import { z } from "zod";
 import type { CounterpartProfile, OwnProfile, PoolProfile, ProfileRepository } from "@/application/ports";
 import { ok } from "@/domain/shared";
 import { ALL_DIMENSIONS, QUIZ_MODULE_IDS } from "@/types/microtest";
+import { isShareLayer, type ShareLayerId } from "@/types/sharing";
 import type { DimensionScores, ScoredProfile } from "@/types/microtest";
 
 import { FALLBACK_MBTI, NEUTRAL_SCORE, PROFILE_PAGE_SIZE, RPC, TABLE, attempt, failed, firstJoined } from "./shared";
@@ -24,6 +25,11 @@ const latentSchema = z
   .catch(null);
 
 const modulesSchema = z.array(z.enum(QUIZ_MODULE_IDS)).catch([]);
+
+/** Unknown values are dropped, never shown: sharing fails closed. */
+function toSharedLayers(value: unknown): ShareLayerId[] {
+  return Array.isArray(value) ? value.filter(isShareLayer) : [];
+}
 
 const answerRowSchema = z.object({
   item_id: z.string(),
@@ -89,6 +95,7 @@ function toCounterpart(row: Record<string, unknown>): CounterpartProfile {
     colorId: (row.color_id as string | null) ?? null,
     mark: toMark(row.avatar_mark),
     showAvatarDetail: row.show_avatar_detail === true,
+    sharedLayers: toSharedLayers(row.shared_layers),
   };
 }
 
@@ -112,10 +119,21 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
 
     async privacyState(userId) {
       const res = await attempt(() =>
-        admin.from(TABLE.profiles).select("paused_at, show_avatar_detail").eq("user_id", userId).maybeSingle(),
+        admin.from(TABLE.profiles).select("paused_at, show_avatar_detail, shared_layers").eq("user_id", userId).maybeSingle(),
       );
       if (!res || res.error) return failed;
-      return ok({ paused: Boolean(res.data?.paused_at), showAvatarDetail: res.data?.show_avatar_detail === true });
+      return ok({
+        paused: Boolean(res.data?.paused_at),
+        showAvatarDetail: res.data?.show_avatar_detail === true,
+        sharedLayers: toSharedLayers(res.data?.shared_layers),
+      });
+    },
+
+    async setSharedLayers(userId, layers) {
+      const res = await attempt(() =>
+        admin.from(TABLE.profiles).update({ shared_layers: [...layers] }).eq("user_id", userId),
+      );
+      return res && !res.error ? ok(undefined) : failed;
     },
 
     async setShowAvatarDetail(userId, show) {
@@ -237,7 +255,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
         admin
           .from(TABLE.profiles)
           .select(
-            "user_id, mbti_code, latent_profile, animal_id, color_id, avatar_mark, show_avatar_detail",
+            "user_id, mbti_code, latent_profile, animal_id, color_id, avatar_mark, show_avatar_detail, shared_layers",
           )
           .in("user_id", [...userIds]),
       );

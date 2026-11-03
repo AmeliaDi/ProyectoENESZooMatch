@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ROMANCE_VECTOR_LENGTH, FRIENDSHIP_VECTOR_LENGTH } from "@/types/microtest";
 import type { ScoredProfile } from "@/types/microtest";
 
-import { deleteMyData, getPrivacyState, setProfilePaused, setShowAvatarDetail } from "./privacy";
+import { deleteMyData, getPrivacyState, setProfilePaused, setSharedLayers, setShowAvatarDetail } from "./privacy";
 import { MemoryStore, instantScheduler, memoryMatches, memoryProfiles } from "./testing/in-memory";
 
 function profile(): ScoredProfile {
@@ -40,7 +40,7 @@ describe("privacy use cases", () => {
     const result = await setProfilePaused("a", true, deps);
     expect(result).toEqual({ ok: true, value: { paused: true, recomputePending: false } });
     expect(store.pool().map((p) => p.userId)).toEqual(["b"]);
-    expect(await getPrivacyState("a", deps)).toEqual({ ok: true, value: { paused: true, showAvatarDetail: false } });
+    expect(await getPrivacyState("a", deps)).toEqual({ ok: true, value: { paused: true, showAvatarDetail: false, sharedLayers: [] } });
   });
 
   it("resumes: rejoins the pool", async () => {
@@ -61,7 +61,17 @@ describe("privacy use cases", () => {
     const { store, deps } = setup();
     const version = store.version;
     expect(await setShowAvatarDetail("a", true, deps)).toEqual({ ok: true, value: undefined });
-    expect(await getPrivacyState("a", deps)).toEqual({ ok: true, value: { paused: false, showAvatarDetail: true } });
+    expect(await getPrivacyState("a", deps)).toEqual({ ok: true, value: { paused: false, showAvatarDetail: true, sharedLayers: [] } });
+    expect(store.version).toBe(version);
+  });
+
+  it("stores shared layers deduplicated, in canonical order, without touching the pool", async () => {
+    const { store, deps } = setup();
+    const version = store.version;
+    expect(await getPrivacyState("a", deps)).toMatchObject({ value: { sharedLayers: [] } });
+    expect(await setSharedLayers("a", ["valores", "hexaco", "valores"], deps)).toEqual({ ok: true, value: ["hexaco", "valores"] });
+    expect(await getPrivacyState("a", deps)).toMatchObject({ value: { sharedLayers: ["hexaco", "valores"] } });
+    expect(await setSharedLayers("a", [], deps)).toEqual({ ok: true, value: [] });
     expect(store.version).toBe(version);
   });
 

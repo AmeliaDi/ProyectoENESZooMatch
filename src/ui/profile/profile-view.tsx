@@ -23,6 +23,7 @@ import { RefineInvite } from "@/ui/refine/refine-invite";
 
 import { parseProfile } from "./parse-profile";
 import { ProfileSections } from "./profile-sections";
+import { EnneagramPlate, ReadingGuide } from "./reading-guide";
 
 type State =
   | { kind: "loading" }
@@ -209,10 +210,12 @@ export function ProfileView() {
           track={profile.affinities.romance.count > 0 ? "romance" : "amistad"}
           completed={profile.completedModules}
         />
+        <EnneagramPlate profile={profile} />
         <ProfileSections profile={profile} />
+        <ReadingGuide />
         <p className="zm-result__fine">
-          Solo tú ves esta carta. Son estimaciones del test con su margen de duda, no etiquetas ni una medida de tu
-          valor. <Link href="/ajustes#como-se-calcula">Cómo se calcula</Link>
+          Esta carta completa solo la ves tú. Otras personas ven tu alias, tu animalito y tu color, y solo las capas
+          que elijas en <Link href="/ajustes#lo-que-compartes">Lo que compartes</Link>, en bandas y nunca con números.
         </p>
       </main>
     </AtlasShell>

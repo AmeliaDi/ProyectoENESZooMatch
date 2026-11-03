@@ -10,6 +10,7 @@ import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import type { Result } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
 import type { MatchTrack, ProfileIdentity, QuizModuleId, ScoredProfile } from "@/types/microtest";
+import type { ShareLayerId } from "@/types/sharing";
 
 import type { AppError, StorageError } from "./errors";
 
@@ -61,11 +62,14 @@ export interface CounterpartProfile {
   mark: SubtypeMark | null;
   /** Opt-in disclosure of the wing tone and subtype mark to third parties. */
   showAvatarDetail: boolean;
+  /** Reading layers this person chose to show (ADR-030); empty by default. */
+  sharedLayers: readonly ShareLayerId[];
 }
 
 export interface PrivacyState {
   paused: boolean;
   showAvatarDetail: boolean;
+  sharedLayers: ShareLayerId[];
 }
 
 export interface ProfileRepository {
@@ -73,6 +77,7 @@ export interface ProfileRepository {
   privacyState(userId: string): Promise<Result<PrivacyState, StorageError>>;
   setPaused(userId: string, paused: boolean): Promise<Result<void, StorageError>>;
   setShowAvatarDetail(userId: string, show: boolean): Promise<Result<void, StorageError>>;
+  setSharedLayers(userId: string, layers: readonly ShareLayerId[]): Promise<Result<void, StorageError>>;
   /** Deletes the auth user; every participant row cascades from it. */
   deleteAccount(userId: string): Promise<Result<void, StorageError>>;
   /** Resolves to the effective alias: the first one ever assigned is kept. */

@@ -1,4 +1,5 @@
 import { ok, type Result } from "@/domain/shared";
+import { SHARE_LAYER_IDS, type ShareLayerId } from "@/types/sharing";
 
 import type { AppError } from "./errors";
 import type { PrivacyState, ProfileRepository } from "./ports";
@@ -6,7 +7,7 @@ import { recomputeMatches, type RecomputeDeps } from "./recompute-matches";
 
 export interface PrivacyDeps extends RecomputeDeps {
   profiles: RecomputeDeps["profiles"] &
-    Pick<ProfileRepository, "privacyState" | "setPaused" | "setShowAvatarDetail" | "deleteAccount">;
+    Pick<ProfileRepository, "privacyState" | "setPaused" | "setShowAvatarDetail" | "setSharedLayers" | "deleteAccount">;
 }
 
 export interface PrivacyOutcome {
@@ -22,6 +23,20 @@ export function setShowAvatarDetail(
   deps: Pick<PrivacyDeps, "profiles">,
 ): Promise<Result<void, AppError>> {
   return deps.profiles.setShowAvatarDetail(userId, show);
+}
+
+/**
+ * What others may see of your readings (ADR-030). Visual only: matches do not
+ * change. Stored deduplicated and in canonical order.
+ */
+export async function setSharedLayers(
+  userId: string,
+  layers: readonly ShareLayerId[],
+  deps: Pick<PrivacyDeps, "profiles">,
+): Promise<Result<ShareLayerId[], AppError>> {
+  const canonical = SHARE_LAYER_IDS.filter((id) => layers.includes(id));
+  const saved = await deps.profiles.setSharedLayers(userId, canonical);
+  return saved.ok ? ok(canonical) : saved;
 }
 
 export function getPrivacyState(

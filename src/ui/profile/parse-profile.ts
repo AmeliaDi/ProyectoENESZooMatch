@@ -35,7 +35,18 @@ function parseScale(raw: unknown): ScaleReadingDto | null {
   const leaning = oneOf(raw.leaning, LEANING);
   if (!key || !label || !low || !high || position === null || from === null || to === null) return null;
   if (!confidence || !leaning) return null;
-  return { key, label, low, high, position, range: [Math.min(from, to), Math.max(from, to)], confidence, leaning };
+  const hint = str(raw.hint);
+  return {
+    key,
+    label,
+    low,
+    high,
+    ...(hint ? { hint } : {}),
+    position,
+    range: [Math.min(from, to), Math.max(from, to)],
+    confidence,
+    leaning,
+  };
 }
 
 function parseSection(raw: unknown): SectionReadingDto | null {

@@ -24,6 +24,7 @@ export interface ScaleReading {
   readonly label: string;
   readonly low: string;
   readonly high: string;
+  readonly hint?: string;
   /** Φ(θ̂) rounded to 2 decimals. */
   readonly position: number;
   readonly range: readonly [number, number];
@@ -80,6 +81,7 @@ export function readScale(
     label: scale.label,
     low: scale.low,
     high: scale.high,
+    ...(scale.hint ? { hint: scale.hint } : {}),
     position: round2(position),
     range: [round2(normalCdf(theta - intervalZ * se)), round2(normalCdf(theta + intervalZ * se))],
     confidence,

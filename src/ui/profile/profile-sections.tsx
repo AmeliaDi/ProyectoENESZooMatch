@@ -2,15 +2,28 @@
 
 /**
  * The readings, one collapsible atlas plate per area. HEXACO opens by
- * default (it is the core of the affinity); the rest stay folded so the card
- * is calm on mobile. Native <details> keeps keyboard and screen readers happy.
+ * default (it is the core of the affinity) and is drawn as a six-star
+ * constellation; the rest stay folded so the card is calm on mobile.
+ * Native <details> keeps keyboard and screen readers happy.
  */
-import type { ProfileDto } from "@/contracts/profile";
+import type { ProfileDto, SectionReadingDto } from "@/contracts/profile";
 import { Icon } from "@/ui/kit/icon";
 
+import { HexacoConstellation } from "./hexaco-constellation";
 import { ScaleRow } from "./scale-row";
 
 const OPEN_BY_DEFAULT = new Set(["hexaco"]);
+
+function SectionBody({ section }: { section: SectionReadingDto }) {
+  if (section.id === "hexaco") return <HexacoConstellation scales={section.scales} />;
+  return (
+    <ul className="zm-scales">
+      {section.scales.map((scale) => (
+        <ScaleRow key={scale.key} reading={scale} />
+      ))}
+    </ul>
+  );
+}
 
 export function ProfileSections({ profile }: { profile: ProfileDto }) {
   const { open, total } = profile.openScales;
@@ -32,11 +45,7 @@ export function ProfileSections({ profile }: { profile: ProfileDto }) {
             <span>{section.title}</span>
           </summary>
           <p className="zm-detail__muted">{section.blurb}</p>
-          <ul className="zm-scales">
-            {section.scales.map((scale) => (
-              <ScaleRow key={scale.key} reading={scale} />
-            ))}
-          </ul>
+          <SectionBody section={section} />
         </details>
       ))}
     </section>

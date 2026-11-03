@@ -6,12 +6,13 @@ import {
   type MatchExplanation,
   type NarrativeSide,
 } from "@/domain/explainability";
-import { MATCHING_CONFIG, pairScore } from "@/domain/matching";
+import { MATCHING_CONFIG, pairScore, type PairScore } from "@/domain/matching";
 import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
 import { err, ok, type Result } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
 
 import type { MatchEntryDto, ResultDto } from "./dto";
+import { layerBands, sharedProfile } from "./counterpart-view";
 import type { AppError } from "./errors";
 import { avatarParams } from "./identity-readout";
 import type { CounterpartProfile, MatchRepository, OwnProfile, ProfileRepository, StoredMatch } from "./ports";
@@ -47,9 +48,13 @@ function narrativeSide(latent: LatentProfile, mbti: string | null): NarrativeSid
  * explanation is the model's own. Returns null (view degrades gracefully)
  * when a latent profile is missing.
  */
-function explain(match: StoredMatch, own: OwnProfile, other: CounterpartProfile | undefined): MatchExplanation | null {
+function scoreOf(match: StoredMatch, own: OwnProfile, other: CounterpartProfile | undefined): PairScore | null {
   if (!own.latent || !other?.latent) return null;
-  const score = pairScore(own.latent, other.latent, MATCHING_CONFIG.tracks[match.track], MATCHING_CONFIG.categories);
+  return pairScore(own.latent, other.latent, MATCHING_CONFIG.tracks[match.track], MATCHING_CONFIG.categories);
+}
+
+function explain(match: StoredMatch, own: OwnProfile, other: CounterpartProfile | undefined, score: PairScore | null): MatchExplanation | null {
+  if (!score || !own.latent || !other?.latent) return null;
   return explainPair({
     score,
     track: match.track,
@@ -69,6 +74,8 @@ function toEntry(
 ): MatchEntryDto {
   const alias = match.otherAlias ?? FALLBACK_ALIAS;
   const visual = disclosed(other);
+  const score = scoreOf(match, own, other);
+  const shared = sharedProfile(other);
   return {
     id: match.otherUser ? digest(`${viewerId}:${match.otherUser}`).slice(0, OPAQUE_ID_LENGTH) : null,
     alias,
@@ -78,11 +85,13 @@ function toEntry(
     color_id: visual?.colorId ?? null,
     color_hex: visual?.colorHex ?? null,
     mark: visual?.mark ?? null,
-    mbti_code: other?.mbtiCode ?? null,
+    mbti_code: shared.mbti?.code ?? null,
     similarity: match.similarity,
     chemistry: computeChemistrySummary(match.similarity, match.track),
     badges: match.badges,
-    explanation: explain(match, own, other),
+    explanation: explain(match, own, other, score),
+    layers: layerBands(score),
+    shared,
   };
 }
 

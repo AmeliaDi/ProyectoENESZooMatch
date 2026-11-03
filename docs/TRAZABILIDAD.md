@@ -16,7 +16,7 @@ si cambian pesos, umbrales o parámetros.
 |---|---|
 | data/matching-config.json | `2d0c61300e6d2460` |
 | data/psychometric-params.json | `d25ff00d96fc3820` |
-| data/self-reading.json | `347f4a593471fe97` |
+| data/self-reading.json | `3c021cda2e0b33fa` |
 
 ## Matriz
 

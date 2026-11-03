@@ -24,6 +24,7 @@ import { writeNotificationsPaused } from "@/ui/shared/notification-grouping";
 import { ThemeSelector } from "@/ui/shared/theme-selector";
 
 import { ChatSecuritySection } from "./chat-security-section";
+import { SharingSection } from "./sharing-section";
 
 type Account =
   | { state: "loading" }
@@ -212,6 +213,10 @@ export function SettingsView() {
           <p role="status" aria-live="polite" className="zm-settings__message">
             {message}
           </p>
+        </Frame>
+
+        <Frame title="Lo que compartes" coord="AR 08h" id="lo-que-compartes">
+          <SharingSection />
         </Frame>
 
         <Frame title="Chats" coord="AR 09h" id="chats">

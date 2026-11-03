@@ -92,6 +92,10 @@ CREATE TABLE public.profiles (
   avatar_mark TEXT CHECK (avatar_mark IS NULL OR avatar_mark IN ('sp', 'so', 'sx')),
   -- Opt-in: third parties see the wing tone and subtype mark only when true.
   show_avatar_detail BOOLEAN NOT NULL DEFAULT false,
+  -- Opt-in reading layers shown to third parties as bands (ADR-030).
+  shared_layers TEXT[] NOT NULL DEFAULT '{}' CONSTRAINT profiles_shared_layers_known CHECK (shared_layers <@ ARRAY[
+    'hexaco', 'big_five', 'mbti', 'eneagrama', 'valores', 'relacional', 'afecto', 'estilo'
+  ]::TEXT[]),
   narrative TEXT,
   orientacion_sexual TEXT[] NOT NULL DEFAULT '{}',
   identidad_genero TEXT[] NOT NULL DEFAULT '{}',

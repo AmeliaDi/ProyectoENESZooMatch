@@ -18,6 +18,7 @@ import { Icon } from "@/ui/kit/icon";
 import { PixelNumber } from "@/ui/kit/pixel-number";
 import { EXPLANATION_COPY_UI, ExplanationBlocks } from "@/ui/result/explanation-blocks";
 
+import { LayerAffinity, SharedReadings } from "./layer-affinity";
 import { PixelAnimal } from "./PixelAnimal";
 import { RomanceDuo } from "./RomanceHearts";
 import { formatAffinityPercent, isRadiantAffinity, sliceBadges } from "./render-helpers";
@@ -75,6 +76,9 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
 
           {explanation ? <ExplanationBlocks explanation={explanation} track={track} idPrefix="detail" /> : null}
 
+          <LayerAffinity layers={node.layers ?? []} idPrefix="detail" />
+          <SharedReadings shared={node.shared} idPrefix="detail" />
+
           {badges.length > 0 ? (
             <section aria-labelledby="detail-badges">
               <h3 id="detail-badges" className="zm-detail__h">
@@ -91,7 +95,6 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
               </ul>
             </section>
           ) : null}
-
 
           <section aria-labelledby="detail-contact" className="zm-box zm-box--flat zm-detail__contact">
             <h3 id="detail-contact" className="zm-detail__h">

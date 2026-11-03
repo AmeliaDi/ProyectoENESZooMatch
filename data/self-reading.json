@@ -10,6 +10,19 @@
   },
   "virtuesMax": 4,
   "affinitiesTop": 3,
+  "sharing": {
+    "layers": [
+      { "id": "hexaco", "label": "Tu núcleo (HEXACO)" },
+      { "id": "big_five", "label": "Puente Big Five" },
+      { "id": "mbti", "label": "Tus cuatro ejes (MBTI)" },
+      { "id": "eneagrama", "label": "Tu tipo de eneagrama" },
+      { "id": "valores", "label": "Lo que te importa" },
+      { "id": "relacional", "label": "Cómo te vinculas" },
+      { "id": "afecto", "label": "Cómo das y recibes cariño" },
+      { "id": "estilo", "label": "Gustos y rutinas" }
+    ],
+    "neverShare": ["val_espiritualidad", "soc_politica", "act_igualdad", "act_compromiso_social", "rel_exclusividad", "meta_crianza"]
+  },
   "sections": [
     {
       "id": "hexaco",
@@ -17,20 +30,26 @@
       "blurb": "Seis rasgos (modelo HEXACO). Son la base del cálculo de afinidad.",
       "scales": [
         { "factor": "hex_h", "label": "Honestidad-Humildad", "low": "Gusto por el reconocimiento y lo material", "high": "Transparencia y trato justo",
+          "hint": "Cuánto pesan para ti la transparencia, el trato justo y no presumir.",
           "virtues": { "high": { "title": "Trato justo", "text": "Valoras la transparencia y tratar a todxs con equidad." } } },
         { "factor": "hex_e", "label": "Emocionalidad", "low": "Templanza ante el riesgo", "high": "Sensibilidad y lazos cercanos",
+          "hint": "Qué tanto sientes los sustos y extrañas a tu gente cercana.",
           "virtues": { "high": { "title": "Corazón atento", "text": "Sientes con intensidad y cuidas los lazos con quien quieres." },
                        "low": { "title": "Temple", "text": "Mantienes la cabeza fría cuando algo asusta." } } },
         { "factor": "hex_x", "label": "Extraversión", "low": "Energía tranquila y reservada", "high": "Energía social y expresiva",
+          "hint": "Cuánta energía te da convivir, hablar en grupo y ser visible.",
           "virtues": { "high": { "title": "Chispa social", "text": "Le das vida a los grupos y te animas a convivir." },
                        "low": { "title": "Calma propia", "text": "Disfrutas tus espacios tranquilos y escuchas con atención." } } },
         { "factor": "hex_a", "label": "Amabilidad", "low": "Franqueza y firmeza", "high": "Paciencia y perdón",
+          "hint": "Cómo reaccionas cuando algo te molesta: con paciencia o con firmeza.",
           "virtues": { "high": { "title": "Paciencia", "text": "Sueles perdonar y dar segundas oportunidades." },
                        "low": { "title": "Franqueza", "text": "Dices lo que piensas y defiendes lo que importa." } } },
         { "factor": "hex_c", "label": "Responsabilidad", "low": "Espontaneidad y flexibilidad", "high": "Orden y constancia",
+          "hint": "Si te acomoda más planear con calma o resolver sobre la marcha.",
           "virtues": { "high": { "title": "Constancia", "text": "Planeas, cumples y cuidas los detalles." },
                        "low": { "title": "Flexibilidad", "text": "Te adaptas sobre la marcha sin drama." } } },
         { "factor": "hex_o", "label": "Apertura", "low": "Gusto por lo conocido", "high": "Curiosidad y creatividad",
+          "hint": "Qué tanto te llaman las ideas nuevas, el arte y lo poco común.",
           "virtues": { "high": { "title": "Curiosidad", "text": "Te atraen las ideas nuevas, el arte y lo poco común." },
                        "low": { "title": "Raíces firmes", "text": "Valoras lo probado y sabes lo que te funciona." } } }
       ]
@@ -51,7 +70,7 @@
     {
       "id": "mbti",
       "title": "Tus cuatro ejes (MBTI)",
-      "blurb": "Preferencias continuas, no cajas. Definen tu animalito; casi no pesan en la afinidad.",
+      "blurb": "Preferencias continuas: describen tu estilo, no tu capacidad. Definen tu animalito; casi no pesan en la afinidad.",
       "scales": [
         { "factor": "mbti_ei", "label": "Energía", "low": "Hacia afuera (E)", "high": "Hacia adentro (I)" },
         { "factor": "mbti_sn", "label": "Información", "low": "Lo concreto (S)", "high": "Las posibilidades (N)" },

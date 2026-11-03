@@ -1,4 +1,4 @@
-import { deleteMyData, getPrivacyState, setProfilePaused, setShowAvatarDetail } from "@/application/privacy";
+import { deleteMyData, getPrivacyState, setProfilePaused, setSharedLayers, setShowAvatarDetail } from "@/application/privacy";
 import { parseJsonBody } from "@/application/validation/common";
 import { privacyUpdateSchema } from "@/application/validation/quiz";
 import { privacyContext } from "@/infrastructure/composition.server";
@@ -24,6 +24,10 @@ async function handlePatch(request: Request) {
   if ("showAvatarDetail" in parsed.data) {
     const shown = await setShowAvatarDetail(userId, parsed.data.showAvatarDetail, deps);
     return shown.ok ? jsonResponse({ showAvatarDetail: parsed.data.showAvatarDetail }) : errorResponse(shown.error);
+  }
+  if ("sharedLayers" in parsed.data) {
+    const shared = await setSharedLayers(userId, parsed.data.sharedLayers, deps);
+    return shared.ok ? jsonResponse({ sharedLayers: shared.value }) : errorResponse(shared.error);
   }
   const result = await setProfilePaused(userId, parsed.data.paused, deps);
   return result.ok ? jsonResponse(result.value) : errorResponse(result.error);

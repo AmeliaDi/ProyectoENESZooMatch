@@ -3,9 +3,17 @@
  * malformed entries are dropped, badge labels come from a local map and the
  * badge icon is the dimension's category key (rendered as a pixel icon).
  */
-import type { ChemistrySummary, MatchExplanation, SpriteMark } from "@/contracts/result";
+import type {
+  ChemistrySummary,
+  LayerAffinityBand,
+  MatchExplanation,
+  SharedProfileDto,
+  SpriteMark,
+} from "@/contracts/result";
 import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
 import type { CompatibilityBadge } from "@/types/microtest";
+
+import { parseLayers, parseShared } from "./parse-shared";
 
 export { NO_MATCH_MESSAGE };
 
@@ -25,6 +33,10 @@ export interface ResultMatch {
   badges: CompatibilityBadge[];
   narrative: string;
   explanation: MatchExplanation | null;
+  /** Per-layer affinity bands (empty when the API omitted them). */
+  layers: LayerAffinityBand[];
+  /** What the counterpart chose to share (nothing by default). */
+  shared: SharedProfileDto;
 }
 
 export interface PublicResult {
@@ -200,6 +212,8 @@ function parseMatchEntry(raw: unknown): ResultMatch | null {
     badges: parseBadges(raw.badges),
     narrative: optionalString(raw.narrative) ?? "",
     explanation,
+    layers: parseLayers(raw.layers),
+    shared: parseShared(raw.shared),
   };
 }
 

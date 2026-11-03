@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { QUIZ_ITEMS, isSkippableItem } from "@/config";
 import { QUIZ_MODULE_IDS, type QuizModuleId } from "@/types/microtest";
+import { SHARE_LAYER_IDS } from "@/types/sharing";
 import { inclusiveModeSchema } from "./common";
 
 /**
@@ -118,6 +119,7 @@ export const refineSubmissionSchema = z
 export const privacyUpdateSchema = z.union([
   z.strictObject({ paused: z.boolean() }),
   z.strictObject({ showAvatarDetail: z.boolean() }),
+  z.strictObject({ sharedLayers: z.array(z.enum(SHARE_LAYER_IDS)).max(SHARE_LAYER_IDS.length) }),
 ]);
 
 export const notificationIdsSchema = z.object({

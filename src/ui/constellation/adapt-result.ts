@@ -254,6 +254,8 @@ function adaptTrack(
       chemistry: entry.chemistry,
       explanation: entry.explanation ?? null,
       mbtiCode: entry.mbti_code ?? null,
+      layers: entry.layers,
+      shared: entry.shared,
     });
   });
   return adapted;

@@ -18,7 +18,7 @@
  */
 
 import type { PhysicsConfig } from "@/config";
-import type { ChemistrySummary, MatchExplanation } from "@/contracts/result";
+import type { ChemistrySummary, LayerAffinityBand, MatchExplanation, SharedProfileDto } from "@/contracts/result";
 import type { LinkKind, PairSimilarity } from "@/domain/constellation";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 import type { CSSProperties, RefObject } from "react";
@@ -63,8 +63,12 @@ export interface ConstellationNodeInput {
   isSelf: boolean;
   /** True for decorative, non-interactive peripheral nodes. */
   isGhost: boolean;
-  /** Matched person's MBTI code, when known (surfaced in the detail sheet). */
+  /** Matched person's MBTI code, only when they share it (or the own code). */
   mbtiCode?: string | null;
+  /** Per-layer affinity bands with this person (ADR-030). */
+  layers?: readonly LayerAffinityBand[] | undefined;
+  /** What this person chose to share; absent = nothing. */
+  shared?: SharedProfileDto | undefined;
 }
 
 /** The current user: no similarity, track, badges or explanation of its own. */

@@ -6,6 +6,7 @@
 import type { GlobalMatch } from "@/domain/matching";
 import { clearAttempts } from "@/domain/chat";
 import { err, ok } from "@/domain/shared";
+import type { ShareLayerId } from "@/types/sharing";
 
 import type { StorageError } from "../errors";
 import type {
@@ -36,6 +37,7 @@ export class MemoryStore {
   readonly inclusiveModes = new Map<string, string>();
   readonly paused = new Set<string>();
   readonly showDetail = new Set<string>();
+  readonly sharedLayers = new Map<string, ShareLayerId[]>();
   matches: GlobalMatch[] = [];
   readonly notifications: Array<NotificationRecord & { userId: string }> = [];
   readonly notified: string[] = [];
@@ -66,7 +68,13 @@ const failed = err<StorageError>("storage.failed");
 export function memoryProfiles(store: MemoryStore): ProfileRepository {
   return {
     isQuizCompleted: async (userId) => ok(store.results.has(userId)),
-    privacyState: async (userId) => ok({ paused: store.paused.has(userId), showAvatarDetail: store.showDetail.has(userId) }),
+    privacyState: async (userId) =>
+      ok({ paused: store.paused.has(userId), showAvatarDetail: store.showDetail.has(userId), sharedLayers: [...(store.sharedLayers.get(userId) ?? [])] }),
+    async setSharedLayers(userId, layers) {
+      if (store.faults.save) return failed;
+      store.sharedLayers.set(userId, [...layers]);
+      return ok(undefined);
+    },
     async setShowAvatarDetail(userId, show) {
       if (store.faults.save) return failed;
       if (show) store.showDetail.add(userId);

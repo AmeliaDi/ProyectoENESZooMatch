@@ -35,6 +35,8 @@ function makeMatch(overrides: Partial<ResultMatch> = {}): ResultMatch {
     badges: [BADGE],
     narrative: "Dos criaturas que se reconocen.",
     explanation: null,
+    layers: [],
+    shared: { sections: [], mbti: null, enneagram: null },
     ...overrides,
   };
 }

@@ -24,6 +24,16 @@ Este es un resumen para orientarse. El detalle y los motivos están en los ADR e
 - **Avatar:** por defecto, terceras personas ven solo el animal y el color base. El tono del ala
   y la marca de subtipo aparecen solo si la persona lo activa en Ajustes (`publicVisual`, que
   se aplica en el servidor, ADR-018).
+- **Lecturas compartidas (ADR-030):** por defecto, nada más que alias, animal y color. En
+  Ajustes → «Lo que compartes» cada persona puede mostrar capas (HEXACO, Big Five, ejes MBTI,
+  eneagrama, valores, vínculo, cariño, gustos). Se envían solo como **bandas** (polo hacia el que
+  se inclina + claridad), nunca Φ(θ̂), intervalos, θ, SE ni respuestas. Aunque se comparta una
+  capa, nunca salen: espiritualidad, afinidad política, actitudes de rol de género, exclusividad,
+  planes de crianza (`sharing.neverShare`) ni los filtros duros. El código MBTI y el tipo de
+  eneagrama solo viajan si se comparte su capa; el ala, solo con el detalle del avatar activado.
+  Se puede retirar en cualquier momento y aplica en la siguiente carga.
+- **Afinidad por capa** con cada persona: bandas (alta/media/baja) y un grosor 1–3 derivado de
+  la contribución real; nunca porcentajes por capa.
 - Los matches no incluyen ids ni respuestas. «Pocas personas» se comunica con un booleano, nunca
   con el conteo (ADR-012).
 
@@ -66,7 +76,14 @@ Este es un resumen para orientarse. El detalle y los motivos están en los ADR e
 - **Pausar el perfil** no borra nada; solo te saca del cálculo.
 - **Restablecer el PIN** solo reescribe el PIN; nunca borra conversaciones.
 
-## 6. Logs
+## 6. Datos en este dispositivo
+
+El almacenamiento del navegador guarda solo preferencias y borradores: tema, modo de lenguaje,
+avisos en pausa, onboarding y guía rápida ya vistos (`zoomatch:onboarding-seen`,
+`zoomatch:coachmarks:v1`) y el borrador del test en curso. Nada identificable; «Borrar mis
+datos» lo limpia.
+
+## 7. Logs
 
 `logServerEvent` registra solo campos no identificables: nunca matrícula, hash, correo, id de
 usuario, PIN ni respuestas.

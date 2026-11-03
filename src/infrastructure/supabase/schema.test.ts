@@ -8,6 +8,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { FRIENDSHIP_VECTOR_LENGTH, QUIZ_MODULE_IDS, ROMANCE_VECTOR_LENGTH } from "@/types/microtest";
+import { SHARE_LAYER_IDS } from "@/types/sharing";
 
 import { RPC, TABLE } from "./repositories";
 
@@ -23,10 +24,22 @@ const PUBLIC_FUNCTIONS = new Map(
 const CHAT_MIGRATION = "20261102000000_chat_pin.sql";
 const CHAT_SQL = readFileSync(resolve(MIGRATIONS_DIR, CHAT_MIGRATION), "utf8");
 const CHAT_TABLES = ["chat_pins", "chat_security_events"] as const;
+const SHARING_MIGRATION = "20261103000000_shared_layers.sql";
+const SHARING_SQL = readFileSync(resolve(MIGRATIONS_DIR, SHARING_MIGRATION), "utf8");
 
 describe("base migration", () => {
-  it("is the base plus the idempotent chat PIN migration", () => {
-    expect(readdirSync(MIGRATIONS_DIR)).toEqual(["00000000000000_base.sql", CHAT_MIGRATION]);
+  it("is the base plus the idempotent incremental migrations", () => {
+    expect(readdirSync(MIGRATIONS_DIR)).toEqual(["00000000000000_base.sql", CHAT_MIGRATION, SHARING_MIGRATION]);
+  });
+
+  it("keeps shared layers in sync with the TypeScript ids and idempotent (ADR-030)", () => {
+    const list = `ARRAY[\n    ${SHARE_LAYER_IDS.map((id) => `'${id}'`).join(", ")}\n  ]::TEXT[]`;
+    const lf = (s: string) => s.replace(/\r\n/g, "\n");
+    expect(lf(SQL)).toContain(list);
+    expect(lf(SHARING_SQL)).toContain(list);
+    expect(SHARING_SQL).toContain("ADD COLUMN IF NOT EXISTS shared_layers TEXT[] NOT NULL DEFAULT '{}'");
+    expect(SHARING_SQL).toContain("DROP CONSTRAINT IF EXISTS profiles_shared_layers_known");
+    expect(SHARING_SQL).not.toMatch(/\b(DROP TABLE|TRUNCATE|DELETE FROM|GRANT)\b/);
   });
 
   it("uses no versioned names anywhere", () => {
