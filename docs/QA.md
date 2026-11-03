@@ -126,6 +126,15 @@ HSS...BHHB...SSH
 | Física móvil 120 estrellas, paso medio | 3.39 → 1.52 ms (40.7 → 18.3 % del cuadro) |
 | Dorado con afinidades reales | romance 5/90, amistad 4/237 (antes 0) |
 
+## 4.2 Cierre de pendientes (2026-11-04, `af2ea0d`, ADR-034)
+
+| Comprobación | Resultado |
+|---|---|
+| `npm run check` y build | 820 tests en verde (salen los del operador Φ eliminado y entran tap, toast con destino y colisión de alias) |
+| QA de API contra producción | **80/80 OK**, alias fijo al rehacer incluido |
+| Colisión de alias en la base real (bloque revertido, `.qa/alias-probe.mjs`) | 1.ª persona `… · ZZZZ`; 2.ª `… · ZZZZ-D8F`; al rehacer conserva `-D8F`. Perfiles antes y después: 71 |
+| LCP / CLS | `/resultado` 876 ms / 0.000; `/chats` 876 ms / 0.006 |
+
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
 
 - **Chat en dos teléfonos reales**: el flujo se probó por API y con tests de componentes;

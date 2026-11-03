@@ -13,7 +13,7 @@ Las secciones §1–§4 son la **foto histórica** de la auditoría inicial del
 |---|---|
 | Tests | 820 en verde (`npm run check`) |
 | Lint, typecheck, secretos y build | En verde |
-| QA de API contra producción | 80/80 (`docs/QA.md` §4.1) |
+| QA de API contra producción | 80/80 (`docs/QA.md` §4.2) |
 | HEXACO, MBTI continuo, Eneagrama con softmax y entropía | Implementados (Fases 3–5) |
 | `QA.md`, `VALIDACION.md`, `MEDICION.md`, `TRAZABILIDAD.md`, `PREREGISTRO.md` | Existen |
 | Números mágicos de §1 | Cerrados (ADR-034): el operador Φ se eliminó, `selectColor` ya no existe y las bandas 0.45/0.65 de la etiqueta de apego viven en `data/enneagram.json` → `attachment_label` |
@@ -174,6 +174,7 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | Candado PIN | Cerrada | `docs/CHAT.md` §1–9, ADR-029 |
 | Chat entre matches | Cerrada (2026-11-04) | `docs/CHAT.md` §10, ADR-032, migración `20261104000000_conversations.sql` (aplicada) |
 | Sonido, háptica, 404 y easter egg | Cerrada | ADR-033, `src/ui/feedback/` |
+| Cierre de pendientes (Φ, alias, avisos, docs) | Cerrada (2026-11-04) | ADR-034, migración `20261105000000_alias_collision.sql` (aplicada) |
 | Dorado por pista y física de cielos llenos | Cerrada | ADR-031, `docs/FISICA.md` |
 
 **Pendiente solo manual** (no automatizable aquí, ver `docs/QA.md` §5): teléfono real de gama
