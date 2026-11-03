@@ -7,6 +7,9 @@ import { loadConfig } from "./load";
 
 const positiveInt = z.number().int().positive();
 
+/** Lengths on the 2 px logical-pixel grid (docs/DISENO.md §7.3). */
+const gridPx = positiveInt.refine((n) => n % 2 === 0, "multiple of the 2 px logical pixel");
+
 const OPTIONAL_MODULES = QUIZ_MODULE_IDS.filter((id) => id !== "nucleo") as [QuizModuleId, ...QuizModuleId[]];
 /** A permutation of every optional module. */
 const moduleOrder = z
@@ -69,6 +72,26 @@ export const experienceSchema = z.strictObject({
     pollMs: z.number().int().min(10000),
     /** Aggregated cells below k are suppressed (k-anonymity floor). */
     kAnonymity: z.number().int().min(2),
+  }),
+  /**
+   * Quick guide over the constellation (first visit to /resultado). The key is
+   * versioned: bump it when the steps change so everybody sees the new guide.
+   */
+  coachmarks: z.strictObject({
+    storageKey: z.string().regex(/:v\d+$/, "versioned key, e.g. zoomatch:coachmarks:v1"),
+    /** Up to this viewport width the guide uses the mobile card even with a fine pointer. */
+    mobileMaxWidthPx: positiveInt,
+    /** Wait for the sky to settle before the first step appears. */
+    openDelayMs: z.number().int().nonnegative(),
+    /** How often the highlight re-measures its target (the canvas can scroll or resize). */
+    trackMs: z.number().int().min(100),
+    /** One loop of the pixel finger drag and its number of discrete frames. */
+    dragLoopMs: positiveInt,
+    dragSteps: z.number().int().min(2).max(12),
+    /** Breathing room between the highlighted element and the gold halo. */
+    highlightPadPx: gridPx,
+    /** Side of the square highlighted at the canvas centre when your node is not found. */
+    selfFallbackPx: gridPx,
   }),
 });
 

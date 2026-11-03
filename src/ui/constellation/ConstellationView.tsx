@@ -77,6 +77,8 @@ export function ConstellationView({
         id={`constellation-panel-${track}`}
         role="tabpanel"
         aria-labelledby={`constellation-tab-${track}`}
+        data-coach="canvas"
+        data-coach-self-id={me.id}
       >
         <ConstellationCanvas
           me={me}

@@ -41,5 +41,15 @@
   "admin": {
     "pollMs": 60000,
     "kAnonymity": 5
+  },
+  "coachmarks": {
+    "storageKey": "zoomatch:coachmarks:v1",
+    "mobileMaxWidthPx": 767,
+    "openDelayMs": 700,
+    "trackMs": 400,
+    "dragLoopMs": 1600,
+    "dragSteps": 6,
+    "highlightPadPx": 8,
+    "selfFallbackPx": 64
   }
 }

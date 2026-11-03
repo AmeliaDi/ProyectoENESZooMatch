@@ -15,16 +15,18 @@ export function TrackToggle({ track, onChange, counts, panelId = "constellation-
   // The kit derives `${idPrefix}-panel-${key}`; the canvas panel uses `panelId`.
   const prefix = panelId.replace(/-panel$/, "");
   return (
-    <Tabs<MatchTrack>
-      label={CONSTELLATION_COPY.trackToggleLabel}
-      idPrefix={prefix}
-      items={[
-        { key: "romance", label: `Romance${suffix(counts?.romance)}`, icon: "romance", tone: "romance" },
-        { key: "amistad", label: `Amistad${suffix(counts?.amistad)}`, icon: "amistad", tone: "amistad" },
-      ]}
-      value={track}
-      onChange={onChange}
-    />
+    <div className="zm-coach-anchor" data-coach="tracks">
+      <Tabs<MatchTrack>
+        label={CONSTELLATION_COPY.trackToggleLabel}
+        idPrefix={prefix}
+        items={[
+          { key: "romance", label: `Romance${suffix(counts?.romance)}`, icon: "romance", tone: "romance" },
+          { key: "amistad", label: `Amistad${suffix(counts?.amistad)}`, icon: "amistad", tone: "amistad" },
+        ]}
+        value={track}
+        onChange={onChange}
+      />
+    </div>
   );
 }
 

@@ -1,0 +1,155 @@
+/*
+ * Quick guide over the constellation (src/ui/coach). Never modal: the layer,
+ * the dim and the halo are `pointer-events: none`, so the sky keeps taking
+ * drags, taps and pinches (coachmarks.test.ts reads this file to check it).
+ * Atlas rules: every length is a multiple of --zm-px, no radius, no blur,
+ * dithering instead of soft fades, hard zero-blur shadows only.
+ */
+
+.zm-coach-host { position: relative; }
+.zm-coach-anchor { display: inline-flex; }
+
+/* ─── "?" button over the canvas (top-left; zoom lives top-right) ─── */
+.zm-coach-help {
+  position: absolute;
+  z-index: var(--zm-z-chrome);
+  top: calc(var(--zm-px) * 4);
+  left: calc(var(--zm-px) * 4);
+  font-size: 1.125rem;
+}
+
+/* ─── Dimmed sky with a hole on the explained element ─────────── */
+.zm-coach-layer {
+  position: fixed;
+  z-index: var(--zm-z-chrome);
+  inset: 0;
+  pointer-events: none;
+}
+.zm-coach-dim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--zm-shadow);
+  mask-image: var(--zm-dither-25);
+  mask-size: calc(var(--zm-px) * 4) calc(var(--zm-px) * 4);
+  mask-repeat: repeat;
+}
+/* Subtle gold halo: 1 logical px gold rim plus a zero-blur spread at the
+   per-mode focus-glow opacity (0 in high contrast, where the rim stays). */
+.zm-coach-halo {
+  position: absolute;
+  pointer-events: none;
+  outline: var(--zm-px) solid var(--zm-oro-400);
+  outline-offset: calc(var(--zm-px) * -1);
+  box-shadow: 0 0 0 calc(var(--zm-px) * 2) color-mix(in srgb, var(--zm-glow-foco) calc(var(--zm-glow-foco-o) * 100%), transparent);
+  transition: left var(--zm-dur-enter) var(--zm-steps), top var(--zm-dur-enter) var(--zm-steps),
+    width var(--zm-dur-enter) var(--zm-steps), height var(--zm-dur-enter) var(--zm-steps);
+}
+[data-theme="night-hc"] .zm-coach-halo,
+[data-theme="day-hc"] .zm-coach-halo { outline-width: calc(var(--zm-px) * 2); }
+
+/* ─── Mobile card, anchored to the bottom ─────────────────────── */
+.zm-coach-card {
+  position: fixed;
+  z-index: var(--zm-z-sheet);
+  right: calc(var(--zm-px) * 6);
+  bottom: calc(var(--zm-px) * 6);
+  left: calc(var(--zm-px) * 6);
+  display: grid;
+  gap: calc(var(--zm-px) * 4);
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: calc(var(--zm-px) * 6) calc(var(--zm-px) * 8) calc(var(--zm-px) * 8);
+  pointer-events: auto;
+  animation: zm-rise var(--zm-dur-enter) var(--zm-steps);
+}
+.zm-coach-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--zm-px) * 4);
+}
+.zm-coach-card__count { margin: 0; color: var(--zm-fg-muted); font-size: 0.8125rem; }
+.zm-coach-card__title {
+  margin: 0;
+  color: var(--zm-fg);
+  font-family: var(--font-pixel);
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+.zm-coach-card__body { margin: 0; color: var(--zm-fg); font-size: 0.9375rem; line-height: 1.4; }
+.zm-coach-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--zm-px) * 4);
+}
+.zm-coach-card__nav { display: flex; gap: calc(var(--zm-px) * 4); margin-left: auto; }
+.zm-coach-card__never { padding-inline: calc(var(--zm-px) * 4); font-size: 0.875rem; }
+
+/* ─── Support copy (calculation, anonymity, what you share) ───── */
+.zm-coach-support {
+  display: grid;
+  gap: calc(var(--zm-px) * 2);
+  padding-top: calc(var(--zm-px) * 4);
+  border-top: var(--zm-px) solid var(--zm-grid);
+  color: var(--zm-fg-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+.zm-coach-support p { margin: 0; }
+.zm-coach-support a {
+  display: inline-block;
+  min-height: var(--zm-touch);
+  padding-block: calc(var(--zm-px) * 6);
+  color: var(--zm-fg);
+  text-decoration: underline solid var(--zm-px);
+  text-underline-offset: calc(var(--zm-px) * 2);
+}
+
+/* ─── Desktop tooltip (fine pointer), under the "?" button ────── */
+.zm-coach-tip {
+  position: absolute;
+  z-index: var(--zm-z-tooltip);
+  top: calc(var(--zm-touch) + var(--zm-px) * 8);
+  left: calc(var(--zm-px) * 4);
+  display: grid;
+  gap: calc(var(--zm-px) * 4);
+  width: min(22rem, calc(100% - var(--zm-px) * 8));
+  padding: calc(var(--zm-px) * 6) calc(var(--zm-px) * 8) calc(var(--zm-px) * 8);
+  pointer-events: auto;
+  animation: zm-rise var(--zm-dur-enter) var(--zm-steps);
+}
+.zm-coach-tip > .zm-btn { justify-self: end; }
+.zm-coach-tip__list {
+  display: grid;
+  gap: calc(var(--zm-px) * 2);
+  margin: 0;
+  padding-left: calc(var(--zm-px) * 8);
+  color: var(--zm-fg);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/* ─── Pixel finger dragging a star (whole-cell steps) ─────────── */
+.zm-coach-finger { display: block; margin: 0 auto; image-rendering: pixelated; }
+.zm-coach-finger__track { fill: var(--zm-grid); }
+.zm-coach-finger__match { fill: var(--zm-star); }
+.zm-coach-finger__star { fill: var(--zm-oro-400); }
+.zm-coach-finger__fill { fill: var(--zm-fg); }
+.zm-coach-finger__line { fill: var(--zm-shadow); }
+.zm-coach-finger__grab--moving {
+  animation: zm-coach-drag var(--coach-drag-ms) steps(var(--coach-drag-steps), jump-end) infinite;
+}
+@keyframes zm-coach-drag {
+  from { transform: translateX(0); }
+  to { transform: translateX(var(--coach-drag-dx)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zm-coach-card,
+  .zm-coach-tip,
+  .zm-coach-finger__grab--moving { animation: none; }
+  .zm-coach-halo { transition: none; }
+}

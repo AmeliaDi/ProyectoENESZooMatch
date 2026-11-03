@@ -156,6 +156,7 @@ export function PublicResultView() {
         </header>
 
         <div className="zm-result__controls">
+          <div data-coach="tracks">
           <Tabs<MatchTrack>
             label="Tipo de conexión"
             idPrefix="constellation"
@@ -166,6 +167,7 @@ export function PublicResultView() {
             value={track}
             onChange={setTrack}
           />
+          </div>
           <div className="zm-result__tools">
             <Button
               variant="secondary"

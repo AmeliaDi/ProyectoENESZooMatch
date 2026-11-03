@@ -8,6 +8,7 @@
 
 import { useMemo } from "react";
 
+import { CoachMarks } from "@/ui/coach/coach-guide";
 import { ErrorState, LoadingState } from "@/ui/kit/states";
 import { NO_MATCH_MESSAGE, type PublicResult } from "@/ui/result/parse-result";
 import type { MatchTrack } from "@/types/microtest";
@@ -25,6 +26,8 @@ export interface ConstellationSectionProps {
   initialTrack?: MatchTrack;
   emptyMessage?: string;
   className?: string;
+  /** Quick guide on the first visit (the result screen); off for embeds. */
+  coachmarks?: boolean;
 }
 
 export function ConstellationSection({
@@ -35,6 +38,7 @@ export function ConstellationSection({
   initialTrack = "romance",
   emptyMessage = NO_MATCH_MESSAGE,
   className,
+  coachmarks = true,
 }: ConstellationSectionProps) {
   const adapted = useMemo(() => (result ? adaptResult(result) : null), [result]);
 
@@ -49,14 +53,17 @@ export function ConstellationSection({
   }
 
   return (
-    <ConstellationView
-      me={adapted.me}
-      matches={adapted.matches}
-      initialTrack={initialTrack}
-      {...(track !== undefined ? { track } : {})}
-      emptyMessage={emptyMessage}
-      {...(className !== undefined ? { className } : {})}
-    />
+    <div className="zm-coach-host">
+      <ConstellationView
+        me={adapted.me}
+        matches={adapted.matches}
+        initialTrack={initialTrack}
+        {...(track !== undefined ? { track } : {})}
+        emptyMessage={emptyMessage}
+        {...(className !== undefined ? { className } : {})}
+      />
+      {coachmarks ? <CoachMarks autoOpen /> : null}
+    </div>
   );
 }
 
