@@ -575,11 +575,11 @@ el selector de los 4 modos, los iconos a ×1, ×2 y ×3, la tabla de pares, la m
 completa (cada rol contra cada superficie), la auditoría antes/ahora y los halos del
 lienzo en cada estado. `/dev/numeros` compara las cifras.
 
-### 7.7 Pendiente para la Fase 3
+### 7.7 Migración de clases heredadas (cerrado)
 
-Las pantallas actuales siguen usando las clases heredadas (`text-ink`, radiales,
-`backdrop-blur`, `rounded-*` y emojis en los avisos). Se migran al kit en la
-Fase 3 y después se borran los tokens viejos.
+Las clases heredadas (`text-ink`, radiales, `backdrop-blur`, `rounded-*` y emojis en
+los avisos) se migraron al kit en la Fase 3. Hoy no queda ninguna en `src/` y el linter
+de pantallas (`src/ui/screens.test.ts`) impide que vuelvan.
 
 ### 7.8 Contraste, dorado y halos (ADR-027)
 

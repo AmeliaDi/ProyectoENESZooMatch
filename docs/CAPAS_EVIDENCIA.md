@@ -1,8 +1,7 @@
 # Capas candidatas: evidencia y decisión (afinado, Fase 2)
 
-> **Estado: propuesta, pendiente de aprobación.** Ningún ítem, peso ni
-> código de la app ha cambiado todavía. La Fase 3 escribirá el test solo
-> con las capas que se aprueben aquí.
+> **Estado: aprobado (2026-11-01) y aplicado en la Fase 3** (ADR-015 y ADR-016).
+> El test vigente se construyó solo con las capas aprobadas aquí.
 
 ## 0. Cómo se decidió
 

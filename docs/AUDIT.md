@@ -1,6 +1,8 @@
 # AUDIT — ENES ZooMatch
 
 > **Documento histórico (anterior a la unificación de 2026-10-31).** Las rutas `src/lib/*`, las tablas `*_v2` y las migraciones que menciona ya no existen. La estructura vigente está en [`ARQUITECTURA.md`](./ARQUITECTURA.md) y [`../README.md`](../README.md).
+>
+> **Pendientes operativos de §0, revisados el 2026-11-04:** B-02 y el smoke remoto quedaron cerrados (migración base única aplicada; QA de API 80/80 contra producción, `QA.md` §4.1). M-03 (`purge_event.sql`) es un paso de cierre del evento. Sigue abierto **H-01**: sin Upstash el rate limit funciona en *fail-open*. La prueba de ráfaga real con 50 envíos concurrentes sigue sin correrse.
 
 Fecha: 2026-10-25 · Auditado: rama `devin/1792976834-unify-v2-flow` @ `3434817` ([PR #1](https://github.com/AmeliaDi/ProyectoENESZooMatch/pull/1), **sin mergear**) contra `origin/main` @ `5294fa6`.
 Cuando la documentación contradice al código, manda el código (ver §3, Área "Docs").

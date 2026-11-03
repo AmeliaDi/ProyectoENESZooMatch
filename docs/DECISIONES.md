@@ -462,11 +462,10 @@ modelo no calcula, y con el piso de 60 % nadie llegaba a «confianza alta» (ADR
 
 ---
 
-## Pendientes conocidos (no decididos aún)
+## Pendientes conocidos (revisados el 2026-11-04, ADR-034)
 
-- **Alias:** hoy es determinista con sufijo de 4 caracteres en base 36. Una colisión
-  provocaría que el envío falle siempre (`UNIQUE`). Se reemplaza en el Prompt 2 por un
-  alias derivado de HMAC con resolución determinista de colisiones.
+- **Alias:** ~~una colisión haría fallar el envío siempre~~. **Resuelto (ADR-034):**
+  `submit_quiz_result` añade un sufijo determinista si el alias ya existe.
 - **Tope de matches:** el motor recorta a 3 (romance) y 5 (amistad) por persona, pero
   la unión de los top-K de ambos lados puede dejar a alguien con más. Se mantiene
   con el modelo por capas: así nadie pierde un match que la otra persona sí eligió.
@@ -813,3 +812,37 @@ defecto**, preferencia solo local (`localStorage`, falla cerrado). Un solo limit
 un valor Likert y al formar una unión arrastrando una estrella (nunca en el acomodo
 automático). Parámetros en `experience.feedback`. Se añaden `not-found.tsx`, `error.tsx` y
 `global-error.tsx` con un ajolotito pixel y un saludo discreto tras 5 toques.
+
+## ADR-034 · Cierre de pendientes: Φ eliminado, alias sin colisiones y detalles de UI
+
+**Contexto.** La auditoría inicial (`ESTADO_ACTUAL.md` §1) listó números mágicos y varias
+secciones de «pendientes» quedaron abiertas en `docs/`.
+
+**Decisión.**
+- **Operador Φ eliminado.** `functionAffinity`, `mbtiCompatibility`, `enneagramCompatibility`,
+  `attachmentCompatibility`, `psychometricCompatibility` y `operator_weights` (0.4/0.35/0.25)
+  ya no los usaba ningún flujo desde el modelo por capas (ADR-017); eran heurística sin
+  respaldo (EV-35, EV-42). Se borran con sus tests. Se conserva la derivación de tipo, ala,
+  tríada y estilo de apego que usan los sprites. Las bandas 0.45/0.65 que dan el matiz
+  «introspectivo/expansivo» a la etiqueta segura pasan a `data/enneagram.json` →
+  `attachment_label` (`supuesto_diseno`).
+- **Colisión de alias.** El alias tiene sufijo de 4 caracteres en base 36 y `UNIQUE`: una
+  colisión hacía fallar el envío para siempre. `submit_quiz_result` prueba ahora hasta 8
+  sufijos deterministas (`-` + 3 hex de `md5(user_id || intento)`) antes de asignar un alias
+  nuevo; los alias ya asignados no cambian (ADR-024). Migración
+  `20261105000000_alias_collision.sql`, idempotente, aplicada y replicada en la base.
+- **Ver sin recargar.** `/resultado` relee `/api/result` en silencio al volver a la pestaña
+  (como mucho cada `experience.result.refreshOnReturnMs` = 30 s) y solo actualiza si el
+  contenido cambió: una capa que alguien deja de compartir, o un recálculo, aparece sin
+  recargar y el cielo no se reacomoda si nada cambió.
+- **Toque con movimiento reducido.** Sin física no hay uniones que suenen; al abrir una
+  estrella suena un chip `tap` (solo sonido, nunca vibración), si la persona activó el
+  sonido.
+- **Avisos con destino.** Los toasts aceptan `action` (enlace ≥ 44 px); el aviso `chat` lleva a
+  `/chats`, nunca a una conversación concreta.
+- **No se pasa el lienzo a `<canvas>`.** El producto muestra como máximo 24 estrellas y con
+  120 nodos ya se superan los 30 fps acordados (ADR-031). El cambio de arquitectura no se
+  justifica; queda descartado, no pendiente.
+
+**Consecuencias.** La «Coherencia MBTI–Eneagrama» y el «Tope de matches» siguen como estaban
+documentados. El único pendiente operativo es Upstash (rate limit en *fail-open*).

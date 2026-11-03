@@ -183,7 +183,8 @@ nada cambia.
   con ×4 el arranque cae a un dígito y no termina de dormir en 20 s. Las optimizaciones
   hechas (PNG, patrón compartido, escrituras mínimas) subieron el reposo de 27 a 66 fps
   con ×1. Para ir más allá habría que pasar el lienzo a `<canvas>` con una capa SVG solo
-  para accesibilidad: es un cambio de arquitectura y lo dejo como decisión tuya.
+  para accesibilidad. **Decidido (ADR-034): no se hace.** El producto muestra como máximo 24
+  estrellas y con 120 nodos ya se superan los 30 fps acordados (ADR-031).
 - El "cluster denso" con ×4 arranca a ~30 fps durante los primeros segundos (el SVG de
   33 sprites); después de dormir está en 73.
 - El "jitter" mide desplazamiento por paso mientras se mueven (no temblor en reposo): en

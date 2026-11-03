@@ -505,9 +505,11 @@ debajo de 50 nodos. Con 100–120 nodos en un móvil de gama media no está gara
 60 fps (meta acordada: > 30 fps). `buildScene` con 100–120 nodos es una tarea de 36–62 ms que
 solo se ejecuta una vez.
 
-### E.5 Pendientes
+### E.5 Pendientes (revisados el 2026-11-04)
 
-- Revisión a ojo en un móvil real (sin capturas en este entorno).
-- Escala entera de los sprites en el lienzo (ver E.3).
-- Si algún día sube el tope de matches por encima de ~50: reducir iteraciones de proyección o
-  la frecuencia de paso con muchos nodos.
+- Revisión a ojo en un móvil real: **manual**, sigue abierta (`docs/QA.md` §5).
+- Escala entera de los sprites en el lienzo (ver E.3): **aceptado como está**. El lienzo usa
+  zoom continuo; los sprites son PNG con `image-rendering: pixelated`, así que el píxel se ve
+  nítido aunque la escala no sea entera, y forzarla cambiaría el radio de colisión.
+- Tope de matches por encima de ~50: **resuelto** por ADR-031 (iteraciones de proyección por
+  multitud: con 120 nodos el paso usa el 18 % del cuadro en móvil).

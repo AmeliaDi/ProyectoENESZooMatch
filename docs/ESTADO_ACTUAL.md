@@ -1,10 +1,28 @@
 # Estado actual y plan de integración: HEXACO como núcleo
 
-> Fase 0 del prompt de afinado (2026-11-01). Este documento **no modifica
-> código**: describe lo que el repositorio contiene hoy, lo que falta y cómo
-> integrar el resto. Si el contexto se reinicia, se retoma desde aquí.
+> Fase 0 del prompt de afinado (2026-11-01). Si el contexto se reinicia, se
+> retoma desde aquí.
 
-## 1. Salud del repositorio
+## Estado vigente (2026-11-04)
+
+Todas las fases de todos los prompts están cerradas (tabla «Avance» en §6).
+Las secciones §1–§4 son la **foto histórica** de la auditoría inicial del
+2026-11-01 y se conservan para la trazabilidad; ya no describen el código.
+
+| Comprobación | Hoy |
+|---|---|
+| Tests | 820 en verde (`npm run check`) |
+| Lint, typecheck, secretos y build | En verde |
+| QA de API contra producción | 80/80 (`docs/QA.md` §4.1) |
+| HEXACO, MBTI continuo, Eneagrama con softmax y entropía | Implementados (Fases 3–5) |
+| `QA.md`, `VALIDACION.md`, `MEDICION.md`, `TRAZABILIDAD.md`, `PREREGISTRO.md` | Existen |
+| Números mágicos de §1 | Cerrados (ADR-034): el operador Φ se eliminó, `selectColor` ya no existe y las bandas 0.45/0.65 de la etiqueta de apego viven en `data/enneagram.json` → `attachment_label` |
+| Rate limit | Fail-open mientras no haya Upstash (`DESPLIEGUE.md`) |
+
+Pendiente solo manual: teléfono real de gama media, TalkBack/VoiceOver,
+panel admin con sesión y el chat con dos teléfonos reales (`docs/QA.md` §5).
+
+## 1. Salud del repositorio (foto del 2026-11-01)
 
 | Comprobación | Resultado |
 |---|---|
@@ -27,6 +45,12 @@
 | `domain/psychometrics` → `attachmentProfileFor` | Umbrales 0.45 y 0.65 de extraversión | Ninguno |
 
 Todos estos valores deben pasar a `data/*.json`, cada uno con su etiqueta, o desaparecer si el nuevo modelo los deja sin uso.
+
+**Cerrado (ADR-034, 2026-11-04):** las matrices y pesos de la primera fila se
+eliminaron con el operador Φ, que ya no usaba ningún flujo; `selectColor` se
+había retirado en la Fase 5 (el color sale del Eneagrama); los umbrales
+0.45/0.65 pasaron a `data/enneagram.json` → `attachment_label` como
+`supuesto_diseno`.
 
 ## 2. Deriva entre la documentación y el código
 
