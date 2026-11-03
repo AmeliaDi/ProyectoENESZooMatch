@@ -115,7 +115,21 @@ HSS...BHHB...SSH
 | Regresión detectada en el camino | Con las siluetas nuevas, 112 combinaciones colisionaban: la marca de subtipo «so» caía en una celda vacía. Se corrigió, y el test ahora recorre las 77 especies (antes solo una por pool) |
 | Contrato del motor (ojos, rubor, corazones, simetría, esquinas) | 258 tests de avatares y UI en verde |
 
+## 4.1 Chat, dorado y física (2026-11-04, `97a1a97`)
+
+| Comprobación | Resultado |
+|---|---|
+| `npm run check` (tests, lint, typecheck, secretos) | 822 tests en verde |
+| QA de API contra producción (`scripts/qa/qa-api.mjs`) | **80/80 OK** (16 nuevas del chat: señal invisible, apertura mutua, candado, rondas ocultas, sin chat libre antes, retirada, aviso sin contenido) |
+| Base tras el QA | 71 perfiles; 0 filas en `chat_interests`, `conversations`, `conversation_*`, `chat_pins` |
+| LCP / CLS (Edge headless, sesión QA) | `/resultado` 868 ms / 0.000; `/chats` 896 ms / 0.006 |
+| Física móvil 120 estrellas, paso medio | 3.39 → 1.52 ms (40.7 → 18.3 % del cuadro) |
+| Dorado con afinidades reales | romance 5/90, amistad 4/237 (antes 0) |
+
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
+
+- **Chat en dos teléfonos reales**: el flujo se probó por API y con tests de componentes;
+  falta recorrerlo a mano con dos personas (rondas, invitación, chat libre, retirarse).
 
 - **Teléfono real de gama media.** Los FPS medidos son de Chromium con CPU
   ×4 (`docs/FISICA.md`). Falta abrir `/resultado` en un teléfono y anotar la

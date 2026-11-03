@@ -146,6 +146,14 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | 6. Validación y preregistro | Cerrada | `docs/PREREGISTRO.md`, `docs/VALIDACION.md`, `docs/VALIDACION_RESULTADOS.md`, `docs/TRAZABILIDAD.md`, `docs/META_ANALISIS.md`, ADR-020, `scripts/validation/` |
 | 7. Producto | Cerrada | ADR-021, `src/domain/explainability/layered.ts`, `src/application/refine-profile.ts`, `/afinar`, `/evidencia`, `data/explanation-copy.json`, `data/evidence-summary.json` |
 | Cierre: QA y revisión de sprites | Cerrada | `docs/QA.md`, `scripts/qa/`, `docs/AVATARES.md` §5 (siluetas propias) |
+| Pulido visual, perfil de afinidades y guía | Cerrada | `docs/AUDITORIA_VISUAL.md`, ADR-027/028/030 |
+| Candado PIN | Cerrada | `docs/CHAT.md` §1–9, ADR-029 |
+| Chat entre matches | Cerrada (2026-11-04) | `docs/CHAT.md` §10, ADR-032, migración `20261104000000_conversations.sql` (aplicada) |
+| Sonido, háptica, 404 y easter egg | Cerrada | ADR-033, `src/ui/feedback/` |
+| Dorado por pista y física de cielos llenos | Cerrada | ADR-031, `docs/FISICA.md` |
+
+**Pendiente solo manual** (no automatizable aquí, ver `docs/QA.md` §5): teléfono real de gama
+media, TalkBack/VoiceOver y panel admin con sesión.
 
 Cambio de base aplicado en Supabase el 2026-11-02 (aditivo, sin tocar datos):
 columna `profiles.completed_modules` y parámetro `p_completed_modules` en
