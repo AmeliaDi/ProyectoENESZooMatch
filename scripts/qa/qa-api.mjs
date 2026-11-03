@@ -19,7 +19,8 @@ const post = (path, body, cookie) =>
 
 async function enter(m, cookie) {
   const r = await post("/api/enter", { matricula: m }, cookie);
-  return { status: r.status, cookie: r.headers.getSetCookie().map((c) => c.split(";")[0]).join("; "), setCookie: r.headers.getSetCookie() };
+  const live = r.headers.getSetCookie().map((c) => c.split(";")[0]).filter((c) => !c.endsWith("="));
+  return { status: r.status, cookie: live.join("; "), setCookie: r.headers.getSetCookie() };
 }
 
 for (const p of ["/", "/cuestionario", "/resultado", "/perfil", "/ajustes", "/afinar?modulo=intereses", "/evidencia", "/admin/login"]) {
@@ -85,11 +86,47 @@ const hidden = !JSON.stringify(resAfter).includes(JSON.stringify(resJson.matches
 row("perfil pausado deja de aparecer", hidden ? "sí" : "no", hidden || !resJson.matches?.romance?.length);
 const notif = await get("/api/notifications", a);
 row("GET /api/notifications", notif.status, notif.status === 200);
+
+// PIN del chat (ADR-029): candado por persona, sin datos sin candado.
+const withLock = (s, lock) => ({ cookie: [s.cookie, lock].filter(Boolean).join("; ") });
+const lockCookie = (r) => r.headers.getSetCookie().map((c) => c.split(";")[0]).find((c) => /lock/i.test(c) && !/=$/.test(c)) ?? "";
+const st0 = await (await get("/api/chat/status", a)).json();
+row("chat status sin PIN", `hasPin=${st0.hasPin}`, st0.hasPin === false && st0.unlocked === false);
+const inbox0 = await get("/api/chat/inbox", a);
+const inbox0Body = await inbox0.text();
+row("inbox sin candado: bloqueado y sin datos", inbox0.status, inbox0.status === 423 && !inbox0Body.includes("conversations"));
+const weak = await post("/api/chat/pin", { pin: "1234", confirm: "1234" }, a.cookie);
+row("PIN trivial rechazado", weak.status, weak.status === 400 || weak.status === 422);
+const mismatch = await post("/api/chat/pin", { pin: "4817", confirm: "4871" }, a.cookie);
+row("PIN sin confirmar igual", mismatch.status, mismatch.status === 400 || mismatch.status === 422);
+const created = await post("/api/chat/pin", { pin: "4817", confirm: "4817" }, a.cookie);
+const createdRaw = await created.text();
+row("crear PIN", created.status, created.status === 200 && !createdRaw.includes("4817") && !/hash|salt/i.test(createdRaw));
+const lock1 = lockCookie(created);
+const inbox1 = await get("/api/chat/inbox", withLock(a, lock1));
+row("inbox con candado abierto", inbox1.status, inbox1.status === 200);
+const stolen = await get("/api/chat/inbox", withLock(b, lock1));
+row("cookie de candado de otra cuenta", stolen.status, stolen.status === 423);
+const tampered = await get("/api/chat/inbox", withLock(a, lock1.replace(/.$/, (ch) => (ch === "A" ? "B" : "A"))));
+row("cookie de candado manipulada", tampered.status, tampered.status === 423);
+const wrong = await post("/api/chat/unlock", { pin: "9051" }, a.cookie);
+const wrongBody = await wrong.json();
+row("PIN incorrecto: error genérico", `${wrong.status} ${wrongBody.code}`, wrong.status >= 400 && !JSON.stringify(wrongBody).includes("9051"));
+const unlocked = await post("/api/chat/unlock", { pin: "4817" }, a.cookie);
+row("desbloquear con PIN correcto", unlocked.status, unlocked.status === 200 && Boolean(lockCookie(unlocked)));
+const activity = await (await get("/api/chat/activity", a)).text();
+row("actividad sin PIN ni hash", activity.includes("4817") || /hash|salt/i.test(activity) ? "fuga" : "limpia", !activity.includes("4817") && !/hash|salt/i.test(activity));
+const badRecovery = await post("/api/chat/recovery", { matricula: "426144899" }, a.cookie);
+row("recuperación con matrícula ajena", badRecovery.status, badRecovery.status >= 400);
 for (const s of [a, b]) {
   const d = await fetch(BASE + "/api/privacy", { method: "DELETE", headers: { origin: BASE, cookie: s.cookie } });
   row("DELETE borrar mis datos", d.status, d.status === 200);
 }
 const gone = await get("/api/profile", a);
 row("perfil tras borrar", gone.status, gone.status === 401 || gone.status === 404);
+const pinAfter = await (await enter("426144891")).cookie;
+const stAfter = await (await fetch(BASE + "/api/chat/status", { headers: { cookie: pinAfter } })).json();
+row("borrar datos elimina el PIN", `hasPin=${stAfter.hasPin}`, stAfter.hasPin === false);
+await fetch(BASE + "/api/privacy", { method: "DELETE", headers: { origin: BASE, cookie: pinAfter } });
 
 console.log("| Comprobación | Resultado | Estado |\n|---|---|---|\n" + rows.join("\n"));

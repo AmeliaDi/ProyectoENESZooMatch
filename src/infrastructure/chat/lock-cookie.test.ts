@@ -18,6 +18,12 @@ const T0 = new Date("2026-11-02T12:00:00.000Z");
 const session = openLockSession("user-1", T0, CHAT_CONFIG.lock);
 
 describe("lock-session cookie", () => {
+  it("skips a cleared duplicate and reads the live value", () => {
+    const request = new Request("https://x.test/api/chat/inbox", {
+      headers: { cookie: `${LOCK_COOKIE}=; other=1; ${LOCK_COOKIE}=live.sig` },
+    });
+    expect(readCookie(request, LOCK_COOKIE)).toBe("live.sig");
+  });
   it("round-trips a signed payload", () => {
     expect(decodeLockSession(encodeLockSession(session, PEPPER), PEPPER)).toEqual(session);
   });

@@ -58,11 +58,13 @@ export function decodeLockSession(value: string | undefined, pepper: string): Lo
   return parsePayload(body);
 }
 
+/** First non-empty value: a cleared duplicate (`name=`) must not hide a live one. */
 export function readCookie(request: Request, name: string): string | undefined {
   const header = request.headers.get("cookie") ?? "";
   for (const part of header.split(";")) {
     const [key, ...rest] = part.trim().split("=");
-    if (key === name) return rest.join("=");
+    const value = rest.join("=");
+    if (key === name && value) return value;
   }
   return undefined;
 }
