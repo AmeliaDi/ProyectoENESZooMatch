@@ -75,7 +75,7 @@ describe("base migration", () => {
       expect(PUBLIC_FUNCTIONS.get(name), name).toContain("SECURITY DEFINER");
     }
     expect(SQL).toContain("CREATE TABLE private.access_guard");
-    expect(SQL).toMatch(/access_key_hash TEXT CHECK/);
+    expect(SQL).toContain("CHECK (access_key_hash IS NULL OR access_key_hash LIKE 'scrypt$%')");
     expect(SQL).not.toMatch(/GRANT[^;]*access_guard[^;]*TO (anon|authenticated)/);
   });
 

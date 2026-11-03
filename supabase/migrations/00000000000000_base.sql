@@ -86,7 +86,9 @@ CREATE TABLE public.profiles (
   matricula_hash TEXT NOT NULL UNIQUE CHECK (matricula_hash ~ '^[0-9a-f]{64}$'),
   -- scrypt hash of the personal key (ADR-023). NULL only until the first
   -- entry after the key was introduced. Service-role only, never in a DTO.
-  access_key_hash TEXT CHECK (access_key_hash IS NULL OR access_key_hash ~ '^scrypt\$'),
+  -- LIKE, not a regex: `$` inside a dollar-quoted SQL API payload is easy to
+  -- lose, and a regex `^scrypt$` silently rejects every real hash.
+  access_key_hash TEXT CHECK (access_key_hash IS NULL OR access_key_hash LIKE 'scrypt$%'),
   alias TEXT UNIQUE,
   animal_id TEXT REFERENCES public.animals(id),
   color_id TEXT REFERENCES public.colors(id),
