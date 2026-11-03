@@ -119,7 +119,7 @@ export async function submitQuiz(
     ok: true,
     recomputePending: !recomputed.ok,
     profile: {
-      alias: identity.alias,
+      alias: saved.value.alias,
       animal: identity.animalId,
       color: identity.colorId,
       mark: identity.mark,

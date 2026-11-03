@@ -542,3 +542,18 @@ clave ella. Mitigación: avisar a quienes ya hicieron el test que entren pronto;
 reclamo, el admin puede poner `access_key_hash = NULL` para ese perfil y la dueña la vuelve a
 fijar. Olvidar la clave tiene el mismo remedio manual (no hay correo para recuperarla, por
 diseño anónimo). Upstash sigue siendo opcional para el límite genérico por ruta.
+
+## ADR-024 · El alias no cambia una vez asignado
+
+**Contexto.** El alias se deriva de animal + color + id. Al rehacer el test o afinar módulos,
+el avatar puede cambiar y con él el alias, lo que confunde a quien ya conocía a esa persona por
+su nombre en la constelación.
+
+**Decisión.** `submit_quiz_result` guarda `alias = COALESCE(public.profiles.alias, p_alias)` y
+devuelve el alias efectivo (`RETURNS TEXT`); la aplicación muestra ese valor en la revelación,
+nunca el recién generado. La única asignación es la primera, cuya colisión `UNIQUE` ya se
+resuelve de forma determinista al generarlo.
+
+**Consecuencias.** Tras rehacer el test, el alias puede no coincidir con el animal o color
+actuales: es decisión de producto (identidad estable por encima de coherencia literal). Borrar
+los datos (`/api/privacy`) es el único modo de obtener un alias nuevo.

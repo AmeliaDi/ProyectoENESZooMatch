@@ -159,7 +159,8 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
           p_completed_modules: completedModules,
         }),
       );
-      return res && !res.error ? ok(undefined) : failed;
+      if (!res || res.error) return failed;
+      return ok({ alias: typeof res.data === "string" ? res.data : identity.alias });
     },
 
     async setInclusiveMode(userId, mode) {

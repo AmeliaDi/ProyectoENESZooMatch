@@ -335,11 +335,13 @@ CREATE FUNCTION public.submit_quiz_result(
   p_avatar_mark TEXT,
   p_completed_modules TEXT[]
 )
-RETURNS void
+RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+DECLARE
+  v_alias TEXT;
 BEGIN
   PERFORM private.assert_service_role();
 
@@ -359,8 +361,9 @@ BEGIN
     RAISE EXCEPTION 'Latent profile must carry theta and se objects' USING ERRCODE = '22023';
   END IF;
 
+  -- The alias is fixed at first assignment (ADR-024): retakes never rename.
   UPDATE public.profiles SET
-    alias = p_alias,
+    alias = COALESCE(public.profiles.alias, p_alias),
     animal_id = p_animal_id,
     color_id = p_color_id,
     avatar_mark = p_avatar_mark,
@@ -375,7 +378,8 @@ BEGIN
     latent_profile = p_latent_profile,
     completed_modules = COALESCE(p_completed_modules, '{}'),
     quiz_completed_at = now()
-  WHERE user_id = p_user_id;
+  WHERE user_id = p_user_id
+  RETURNING public.profiles.alias INTO v_alias;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Profile not initialized: enter with matricula first' USING ERRCODE = 'P0002';
@@ -391,6 +395,8 @@ BEGIN
       THEN ARRAY(SELECT jsonb_array_elements_text(answer -> 'selected'))
     END
   FROM jsonb_array_elements(p_answers) AS answer;
+
+  RETURN v_alias;
 END;
 $$;
 

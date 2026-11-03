@@ -77,6 +77,20 @@ describe("submitQuiz", () => {
     expect(store.notifications.filter((n) => n.type === "welcome")).toHaveLength(1);
   });
 
+  it("keeps the first alias when the profile is retaken (ADR-024)", async () => {
+    const store = new MemoryStore();
+    const deps = wire(store);
+    const first = await submitQuiz({ userId: USER_A, submission: submission(5) }, deps);
+    const second = await submitQuiz({ userId: USER_A, submission: submission(1) }, deps);
+    if (!first.ok || !second.ok) throw new Error("submit failed");
+    // Opposite answers change the avatar, which would otherwise yield a new alias.
+    expect(second.value.profile.animal + second.value.profile.color).not.toBe(
+      first.value.profile.animal + first.value.profile.color,
+    );
+    expect(second.value.profile.alias).toBe(first.value.profile.alias);
+    expect(store.results.get(USER_A)?.identity.alias).toBe(first.value.profile.alias);
+  });
+
   it("is deterministic for the same user and answers", async () => {
     const first = await submitQuiz({ userId: USER_A, submission: submission(5) }, wire(new MemoryStore()));
     const second = await submitQuiz({ userId: USER_A, submission: submission(5) }, wire(new MemoryStore()));

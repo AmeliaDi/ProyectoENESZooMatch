@@ -74,7 +74,8 @@ export interface ProfileRepository {
   setShowAvatarDetail(userId: string, show: boolean): Promise<Result<void, StorageError>>;
   /** Deletes the auth user; every participant row cascades from it. */
   deleteAccount(userId: string): Promise<Result<void, StorageError>>;
-  saveQuizResult(record: QuizResultRecord): Promise<Result<void, StorageError>>;
+  /** Resolves to the effective alias: the first one ever assigned is kept. */
+  saveQuizResult(record: QuizResultRecord): Promise<Result<{ alias: string }, StorageError>>;
   /** Cosmetic preference; best-effort. */
   setInclusiveMode(userId: string, mode: InclusiveMode): Promise<void>;
   /** Completed and not paused: the only profiles that take part in matching. */

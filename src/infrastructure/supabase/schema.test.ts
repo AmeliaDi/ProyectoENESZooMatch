@@ -53,6 +53,13 @@ describe("base migration", () => {
     expect(PUBLIC_FUNCTIONS.get("submit_quiz_result")).toContain("p_completed_modules TEXT[]");
   });
 
+  it("never renames an alias once assigned (ADR-024)", () => {
+    const body = PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "";
+    expect(body).toContain("alias = COALESCE(public.profiles.alias, p_alias)");
+    expect(body).toContain("RETURNS TEXT");
+    expect(body).toContain("RETURNING public.profiles.alias INTO v_alias");
+  });
+
   it("pins search_path on every function", () => {
     const all = [...SQL.matchAll(/CREATE FUNCTION [\s\S]*?\$\$;/g)].map((m) => m[0]);
     expect(all.length).toBeGreaterThan(10);

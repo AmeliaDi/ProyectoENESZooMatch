@@ -78,9 +78,10 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
     },
     async saveQuizResult(record) {
       if (store.faults.save) return failed;
-      store.results.set(record.userId, record);
+      const alias = store.results.get(record.userId)?.identity.alias ?? record.identity.alias;
+      store.results.set(record.userId, { ...record, identity: { ...record.identity, alias } });
       store.version += 1;
-      return ok(undefined);
+      return ok({ alias });
     },
     async setInclusiveMode(userId, mode) {
       store.inclusiveModes.set(userId, mode);
