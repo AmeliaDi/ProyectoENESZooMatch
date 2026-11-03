@@ -4,17 +4,10 @@ import { CATALOG_ANIMALS } from "@/config";
 import {
   ENNEAGRAM_CURATED_ASSIGNMENTS,
   ENNEAGRAM_WING_CODES,
-  attachmentCompatibility,
   cognitiveProfileFor,
   deriveAnimalPsychometricProfile,
   derivePsychometricProfile,
-  enneagramCompatibility,
-  functionAffinity,
-  mbtiCompatibility,
-  psychometricCompatibility,
 } from "@/domain/psychometrics/psychometrics";
-import type { EnneagramType, PsychometricProfile } from "@/domain/psychometrics/psychometrics";
-
 
 const animals = CATALOG_ANIMALS;
 const animalProfiles = animals.map((animal) => ({
@@ -52,22 +45,6 @@ describe("cognitive functions", () => {
     }
   });
 
-  it("keeps function affinity symmetric and bounded", () => {
-    const functions = ["Ne", "Ni", "Se", "Si", "Fe", "Fi", "Te", "Ti"] as const;
-    for (const first of functions) {
-      for (const second of functions) {
-        const forward = functionAffinity(first, second);
-        const reverse = functionAffinity(second, first);
-        expect(forward).toBeCloseTo(reverse, 12);
-        expect(forward).toBeGreaterThanOrEqual(0);
-        expect(forward).toBeLessThanOrEqual(1);
-      }
-    }
-    expect(functionAffinity("Ne", "Ni")).toBe(1);
-    expect(functionAffinity("Fe", "Ti")).toBe(1);
-    expect(functionAffinity("Ne", "Se")).toBe(0.7);
-    expect(functionAffinity("Ne", "Fe")).toBe(0.5);
-  });
 });
 
 describe("Enneagram with wings", () => {
@@ -119,30 +96,9 @@ describe("Enneagram with wings", () => {
     }
   });
 
-  it("uses the documented integration and stress lines", () => {
-    const base = derivePsychometricProfile(null, "INFP");
-    const profileForType = (type: number): PsychometricProfile => {
-      const wing = (type === 1 ? 9 : type - 1) as EnneagramType;
-      return {
-        ...base,
-        enneagram: {
-          ...base.enneagram,
-          type: type as EnneagramType,
-          wing,
-          code: `${type}w${wing}`,
-        },
-      };
-    };
-    const integration: Array<[number, number]> = [
-      [1, 7], [2, 4], [3, 6], [4, 1], [5, 8], [6, 9], [7, 5], [8, 2], [9, 3],
-    ];
-    for (const [type, target] of integration) {
-      expect(enneagramCompatibility(profileForType(type), profileForType(target))).toBe(1);
-    }
-  });
 });
 
-describe("attachment and psychometric operator", () => {
+describe("attachment style", () => {
   const secure = derivePsychometricProfile(
     {
       personalidad_amabilidad: 0.9,
@@ -182,30 +138,19 @@ describe("attachment and psychometric operator", () => {
     expect(avoidant.attachment.style).toBe("evitativo");
   });
 
-  it("punishes the anxious-avoidant pair more than two secure profiles", () => {
-    expect(attachmentCompatibility(secure, secure)).toBe(1);
-    expect(attachmentCompatibility(anxious, avoidant)).toBeLessThan(0.5);
-  });
-
-  it("returns a symmetric overall operator in [0, 1]", () => {
-    for (const first of [secure, anxious, avoidant]) {
-      for (const second of [secure, anxious, avoidant]) {
-        const forward = psychometricCompatibility(first, second);
-        const reverse = psychometricCompatibility(second, first);
-        expect(forward.overall).toBeCloseTo(reverse.overall, 12);
-        expect(forward.overall).toBeGreaterThanOrEqual(0);
-        expect(forward.overall).toBeLessThanOrEqual(1);
-        expect(forward.mbti).toBeCloseTo(reverse.mbti, 12);
-        expect(forward.enneagram).toBeCloseTo(reverse.enneagram, 12);
-        expect(forward.attachment).toBeCloseTo(reverse.attachment, 12);
-      }
-    }
-  });
-
-  it("is symmetric for MBTI compatibility", () => {
-    expect(mbtiCompatibility(secure, anxious)).toBeCloseTo(
-      mbtiCompatibility(anxious, secure),
-      12,
+  it("flavours only the secure label with the configured extraversion bands", () => {
+    expect(secure.attachment.label).toBe("Seguro introspectivo");
+    const expansive = derivePsychometricProfile(
+      {
+        personalidad_amabilidad: 0.9,
+        personalidad_estabilidad_emocional: 0.9,
+        personalidad_extraversion: 0.9,
+        intimidad_apertura_emocional: 0.9,
+        intimidad_limites_respeto: 0.9,
+      },
+      "ENFP",
     );
+    expect(expansive.attachment.label).toBe("Seguro expansivo");
+    expect(anxious.attachment.label).toBe("Ansioso");
   });
 });

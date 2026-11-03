@@ -235,9 +235,8 @@
     "8": 5,
     "9": 6
   },
-  "operator_weights": {
-    "mbti": 0.4,
-    "enneagram": 0.35,
-    "attachment": 0.25
+  "attachment_label": {
+    "introspective_below": 0.45,
+    "expansive_above": 0.65
   }
 }

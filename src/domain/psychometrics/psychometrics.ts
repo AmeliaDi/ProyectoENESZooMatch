@@ -62,13 +62,6 @@ export interface PsychometricProfile {
   attachment: AttachmentProfile;
 }
 
-export interface PsychometricCompatibility {
-  mbti: number;
-  enneagram: number;
-  attachment: number;
-  overall: number;
-}
-
 interface EnneagramData {
   readonly types: Readonly<Record<string, EnneagramTypeMeta>>;
   readonly wings: Readonly<Record<string, EnneagramWingMeta>>;
@@ -78,8 +71,8 @@ interface EnneagramData {
 }
 
 const DATA: EnneagramData = ENNEAGRAM_DATA;
-const OPERATOR_WEIGHTS = ENNEAGRAM_DATA.operator_weights;
 const CURATED_ASSIGNMENTS = ENNEAGRAM_ASSIGNMENTS;
+const ATTACHMENT_LABEL = ENNEAGRAM_DATA.attachment_label;
 
 const TYPE_NUMBERS: readonly EnneagramType[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -133,29 +126,6 @@ const COGNITIVE_BY_MBTI: Record<string, readonly [CognitiveFunction, CognitiveFu
   ESFJ: ["Fe", "Si"],
   ISTJ: ["Si", "Te"],
   ESTJ: ["Te", "Si"],
-};
-
-const PERCEIVING = new Set<CognitiveFunction>(["Ne", "Ni", "Se", "Si"]);
-const MIRROR_PAIRS = new Set([
-  "Ne|Ni",
-  "Se|Si",
-  "Fe|Fi",
-  "Te|Ti",
-  "Fe|Ti",
-  "Fi|Te",
-]);
-const AXIS_PAIRS = new Set(["Ne|Si", "Ni|Se"]);
-
-const ATTACHMENT_MATRIX: Record<string, number> = {
-  "seguro|seguro": 1,
-  "seguro|ansioso": 0.92,
-  "ansioso|seguro": 0.92,
-  "seguro|evitativo": 0.9,
-  "evitativo|seguro": 0.9,
-  "ansioso|ansioso": 0.72,
-  "evitativo|evitativo": 0.72,
-  "ansioso|evitativo": 0.3,
-  "evitativo|ansioso": 0.3,
 };
 
 function clamp01(value: number): number {
@@ -268,6 +238,13 @@ export function enneagramProfileFor(
   return enneagramProfileFromType(type, wing);
 }
 
+/** Only flavours the secure label; it never changes the style itself. */
+function secureFlavor(extraversion: number): string {
+  if (extraversion < ATTACHMENT_LABEL.introspective_below) return " introspectivo";
+  if (extraversion > ATTACHMENT_LABEL.expansive_above) return " expansivo";
+  return "";
+}
+
 export function attachmentProfileFor(
   scores: Partial<Record<Dimension, number>> | Record<string, number> | null | undefined,
 ): AttachmentProfile {
@@ -287,8 +264,7 @@ export function attachmentProfileFor(
   if (anxious > secure && anxious >= avoidant) style = "ansioso";
   else if (avoidant > secure && avoidant > anxious) style = "evitativo";
 
-  const flavor =
-    style === "seguro" ? (E < 0.45 ? " introspectivo" : E > 0.65 ? " expansivo" : "") : "";
+  const flavor = style === "seguro" ? secureFlavor(E) : "";
   return {
     style,
     label: `${style.charAt(0).toUpperCase()}${style.slice(1)}${flavor}`,
@@ -306,76 +282,6 @@ export function derivePsychometricProfile(
     cognitive: cognitiveProfileFor(code),
     enneagram: enneagramProfileFor(scores),
     attachment: attachmentProfileFor(scores),
-  };
-}
-
-/** Affinity between two Jungian functions, symmetric and bounded in [0, 1]. */
-export function functionAffinity(first: CognitiveFunction, second: CognitiveFunction): number {
-  if (first === second) return 0.6;
-  const key = [first, second].sort().join("|");
-  if (MIRROR_PAIRS.has(key)) return 1;
-  if (AXIS_PAIRS.has(key)) return 0.9;
-  const firstIsPerceiving = PERCEIVING.has(first);
-  if (firstIsPerceiving !== PERCEIVING.has(second)) return 0.5;
-  const sameAttitude = first[1] === second[1];
-  return sameAttitude ? 0.7 : 0.6;
-}
-
-export function mbtiCompatibility(
-  first: PsychometricProfile,
-  second: PsychometricProfile,
-): number {
-  const dominant = functionAffinity(first.cognitive.dominant, second.cognitive.dominant);
-  const auxiliary = functionAffinity(first.cognitive.auxiliary, second.cognitive.auxiliary);
-  return clamp01(0.6 * dominant + 0.4 * auxiliary);
-}
-
-export function enneagramCompatibility(
-  first: PsychometricProfile,
-  second: PsychometricProfile,
-): number {
-  const a = first.enneagram;
-  const b = second.enneagram;
-  if (a.code === b.code) return 0.85;
-  if (a.type === b.type) return 0.78;
-  if (DATA.integration[String(a.type)] === b.type || DATA.integration[String(b.type)] === a.type) {
-    return 1;
-  }
-  if (DATA.stress[String(a.type)] === b.type || DATA.stress[String(b.type)] === a.type) {
-    return 0.4;
-  }
-  if (a.type === b.wing || b.type === a.wing) return 0.82;
-  if (a.triada === b.triada) return 0.72;
-  return 0.62;
-}
-
-export function attachmentCompatibility(
-  first: PsychometricProfile,
-  second: PsychometricProfile,
-): number {
-  return ATTACHMENT_MATRIX[`${first.attachment.style}|${second.attachment.style}`] ?? 0.7;
-}
-
-/** Weighted psychometric operator Φ ∈ [0, 1]. */
-export function psychometricCompatibility(
-  first: PsychometricProfile,
-  second: PsychometricProfile,
-): PsychometricCompatibility {
-  const mbti = mbtiCompatibility(first, second);
-  const enneagram = enneagramCompatibility(first, second);
-  const attachment = attachmentCompatibility(first, second);
-  const totalWeight =
-    OPERATOR_WEIGHTS.mbti + OPERATOR_WEIGHTS.enneagram + OPERATOR_WEIGHTS.attachment;
-  return {
-    mbti,
-    enneagram,
-    attachment,
-    overall: clamp01(
-      (mbti * OPERATOR_WEIGHTS.mbti +
-        enneagram * OPERATOR_WEIGHTS.enneagram +
-        attachment * OPERATOR_WEIGHTS.attachment) /
-        totalWeight,
-    ),
   };
 }
 
@@ -458,4 +364,3 @@ export const ENNEAGRAM_CURATED_ASSIGNMENTS: Readonly<Record<string, string>> =
 /** Wing codes covered by the canonical Enneagram data, in display order. */
 export const ENNEAGRAM_WING_CODES: readonly string[] = Object.keys(DATA.wings);
 
-export const ENNEAGRAM_OPERATOR_WEIGHTS = OPERATOR_WEIGHTS;

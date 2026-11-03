@@ -109,7 +109,7 @@ efecto (literal del abstract) | fuerza | límite | verificación.
 
 **Conclusión 2.3.**
 - El MBTI se mide como **4 ejes continuos**, con incertidumbre. El código de 4 letras se usa **solo para mostrar** y para el avatar (EV-30, EV-31). Como sus ejes son prácticamente redundantes con E, O, A y C (EV-30), sumarlo al Big Five **cuenta dos veces** los mismos rasgos. Las opciones son dos: un peso numérico ≈ 0, o descorrelacionarlo con Mahalanobis (fase 3).
-- El código actual da **40 % de Φ** a `functionAffinity`, con valores de 0.6, 0.7, 0.9 y 1.0 elegidos a mano. Eso es **heurística sin respaldo** (EV-35): debe salir del puntaje o quedar etiquetado como `supuesto` con peso mínimo, sujeto a la ablación de la fase 4.
+- El código de la auditoría inicial daba **40 % de Φ** a `functionAffinity`, con valores de 0.6, 0.7, 0.9 y 1.0 elegidos a mano. Eso era **heurística sin respaldo** (EV-35). **Resuelto (ADR-034):** el operador Φ (`functionAffinity`, `mbtiCompatibility`, `enneagramCompatibility`, `attachmentCompatibility`, `operator_weights`) se eliminó del código; el matching usa el modelo por capas y MBTI/Eneagrama quedan como identidad y narrativa.
 
 ### 2.4 Eneagrama
 
@@ -223,8 +223,8 @@ están en `docs/CAPAS_EVIDENCIA.md`.
 | 10 ítems `fuente_id: big-five-inventory` | 2 por rasgo | Atribución incorrecta: el BFI no es de dominio público. 2 ítems no permiten estimar ω | — | Sustituir por IPIP, 4 por rasgo y ≥ 1 inverso (EV-11, EV-12) |
 | 7 ítems `love-languages` y 5 dimensiones de intimidad en romance | 25 % del peso de romance (compartido) | EV-60: sin apoyo fuerte | — | Sacarlos del puntaje |
 | `psychometric_mix` 0.15 · Φ = MBTI 40 % + Eneagrama 35 % + apego 25 % | — | EV-35, EV-42: heurística; EV-30: redundante con Big Five | `supuesto` | Reducir a ≈ 0 y decidir con ablación |
-| `functionAffinity` (espejo = 1, eje = 0.9…) | — | Ninguno | `supuesto` | Solo narrativa |
-| `enneagramCompatibility` (integración = 1.0) | — | Ninguno | `supuesto` | Solo narrativa |
+| `functionAffinity` (espejo = 1, eje = 0.9…) | — | Ninguno | `supuesto` | Eliminado (ADR-034) |
+| `enneagramCompatibility` (integración = 1.0) | — | Ninguno | `supuesto` | Eliminado (ADR-034) |
 | `attachmentProfileFor`, inferido de Big Five y otras dimensiones | — | No validado (EV-53 pide medirlo) | `supuesto` | Medir con ítems originales en 2 dimensiones |
 | Coseno centrado sobre vectores en [0,1] | — | No tiene en cuenta la correlación entre rasgos (EV-90) ni la incertidumbre (EV-12) | `supuesto` | Mahalanobis/Bhattacharyya sobre θ̂ y Σ̂ (fase 3) |
 | Umbral romance 0.78 · tope de cobertura 6 % | — | Ninguno | `supuesto` | Cuantil de la distribución nula por permutación + cobertura objetivo en config (fase 3) |

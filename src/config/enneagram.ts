@@ -5,7 +5,6 @@ import rawEnneagram from "../../data/enneagram.json";
 import { loadConfig } from "./load";
 
 const TYPE_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
-const WEIGHT_SUM_TOLERANCE = 1e-9;
 
 const triad = z.enum(["emocional", "mental", "instintiva"]);
 const typeKey = z.enum(TYPE_KEYS);
@@ -27,16 +26,13 @@ const enneagramSchema = z.strictObject({
   prototypes: z.record(typeKey, z.record(z.string(), z.number().min(0).max(1))),
   integration: z.record(typeKey, typeNumber),
   stress: z.record(typeKey, typeNumber),
-  operator_weights: z
+  /** supuesto_diseno: bands that only flavour the secure-attachment label. */
+  attachment_label: z
     .strictObject({
-      mbti: z.number().min(0).max(1),
-      enneagram: z.number().min(0).max(1),
-      attachment: z.number().min(0).max(1),
+      introspective_below: z.number().min(0).max(1),
+      expansive_above: z.number().min(0).max(1),
     })
-    .refine(
-      (w) => Math.abs(w.mbti + w.enneagram + w.attachment - 1) <= WEIGHT_SUM_TOLERANCE,
-      "operator weights must sum to 1",
-    ),
+    .refine((band) => band.introspective_below < band.expansive_above, "bands must not overlap"),
 });
 
 const assignmentsSchema = z
