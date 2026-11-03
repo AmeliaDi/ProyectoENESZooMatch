@@ -10,6 +10,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { getTrackThreshold } from "@/domain/constellation";
 import type { MatchTrack } from "@/types/microtest";
+import { emitFeedback } from "@/ui/feedback/feedback";
 
 import { ConstellationCanvas } from "./ConstellationCanvas";
 import { useReducedMotionPreference } from "./hooks";
@@ -63,8 +64,12 @@ export function ConstellationView({
   );
 
   const handleSelect = useCallback(
-    (nodeId: string) => setSelection((current) => (current?.id === nodeId ? null : { id: nodeId, track })),
-    [track],
+    (nodeId: string) => {
+      // A still sky never chimes a union, so the touch itself answers (sound only).
+      if (motionReduced) emitFeedback("tap");
+      setSelection((current) => (current?.id === nodeId ? null : { id: nodeId, track }));
+    },
+    [track, motionReduced],
   );
   const handleClose = useCallback(() => setSelection(null), []);
 

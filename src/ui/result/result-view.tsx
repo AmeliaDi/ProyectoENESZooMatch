@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { EXPERIENCE } from "@/config";
 import type { MatchTrack } from "@/types/microtest";
@@ -69,7 +69,36 @@ function useResult(attempt: number) {
       controller.abort();
     };
   }, [attempt]);
+  useRefreshOnReturn(state.result, (result) => setState({ result, error: null, loading: false }));
   return state;
+}
+
+/**
+ * Silent re-read when the tab comes back (ADR-034): a layer someone stopped
+ * sharing, or a recompute, shows up without a reload. No loading state, and
+ * nothing changes unless the payload did, so the sky keeps its place.
+ */
+function useRefreshOnReturn(current: PublicResult | null, apply: (result: PublicResult) => void) {
+  const latest = useRef({ current, apply, at: 0 });
+  useEffect(() => {
+    latest.current = { ...latest.current, current, apply };
+    if (latest.current.at === 0 && current) latest.current.at = Date.now();
+  }, [current, apply]);
+  useEffect(() => {
+    async function refresh() {
+      const { current: shown, at } = latest.current;
+      if (document.visibilityState !== "visible" || !shown) return;
+      if (Date.now() - at < EXPERIENCE.result.refreshOnReturnMs) return;
+      latest.current.at = Date.now();
+      const response = await fetch("/api/result", { cache: "no-store" }).catch(() => null);
+      if (!response?.ok) return;
+      const next = parsePublicResult(await response.json().catch(() => null));
+      if (next && JSON.stringify(next) !== JSON.stringify(latest.current.current)) latest.current.apply(next);
+    }
+    const onVisible = () => void refresh();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
 }
 
 export function PublicResultView() {

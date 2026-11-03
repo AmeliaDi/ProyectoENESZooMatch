@@ -25,6 +25,11 @@ const TONE: Record<string, ToastTone> = {
  */
 const UNCOUNTED = new Set(["chat"]);
 
+/** Where a toast can take the person; content-free, never a specific chat. */
+const ACTION: Record<string, NonNullable<ToastData["action"]>> = {
+  chat: { href: "/chats", label: "Ir a tus chats" },
+};
+
 function foldedBody(type: string, body: string, extra: number): string {
   if (extra <= 0 || UNCOUNTED.has(type) || !body) return body;
   return `${body} (y ${extra} ${extra === 1 ? "aviso más" : "avisos más"})`;
@@ -57,6 +62,7 @@ export function groupNotifications(
       tone: TONE[type] ?? "neutral",
       title: head.title,
       body: foldedBody(type, head.body, sorted.length - 1),
+      ...(ACTION[type] ? { action: ACTION[type] } : {}),
     });
   }
   return toasts.slice(0, Math.max(0, maxVisible));

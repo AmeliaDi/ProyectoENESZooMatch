@@ -12,7 +12,13 @@ import { getFeedbackPrefsSnapshot, type FeedbackPrefs } from "./feedback-prefs";
 import { vibrate } from "./haptics";
 import { createLimiter, type Limiter } from "./throttle";
 
-export type FeedbackKind = "answer" | "join";
+export type FeedbackKind = "answer" | "join" | "tap";
+
+/** Kinds that never vibrate (`tap` is sound-only by design). */
+type VibratingKind = keyof typeof EXPERIENCE.feedback.vibration;
+function vibrationFor(kind: FeedbackKind, config: typeof EXPERIENCE.feedback): readonly number[] | null {
+  return kind in config.vibration ? config.vibration[kind as VibratingKind] : null;
+}
 
 export interface FeedbackDeps {
   prefs: () => FeedbackPrefs;
@@ -26,11 +32,13 @@ export interface FeedbackDeps {
 /** Pure core: returns what fired, so tests can assert without WebAudio. */
 export function runFeedback(kind: FeedbackKind, deps: FeedbackDeps): { sound: boolean; haptics: boolean } {
   const prefs = deps.prefs();
-  if (!prefs.sound && !prefs.haptics) return { sound: false, haptics: false };
+  const pattern = vibrationFor(kind, deps.config);
+  const haptics = prefs.haptics && pattern !== null;
+  if (!prefs.sound && !haptics) return { sound: false, haptics: false };
   if (!deps.limiter.tryFire(deps.now())) return { sound: false, haptics: false };
   if (prefs.sound) deps.sound(deps.config.sounds[kind]);
-  if (prefs.haptics) deps.vibrate(deps.config.vibration[kind]);
-  return { sound: prefs.sound, haptics: prefs.haptics };
+  if (haptics && pattern) deps.vibrate(pattern);
+  return { sound: prefs.sound, haptics };
 }
 
 let defaults: FeedbackDeps | null = null;

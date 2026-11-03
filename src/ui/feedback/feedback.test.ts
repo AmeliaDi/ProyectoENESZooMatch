@@ -134,6 +134,18 @@ describe("runFeedback", () => {
     runFeedback("answer", d);
     expect(d.sound).toHaveBeenCalledTimes(2);
   });
+
+  it("plays the tap chip without vibrating, and stays silent with sound off", () => {
+    const on = deps({ sound: true, haptics: true }, () => 0);
+    expect(runFeedback("tap", on)).toEqual({ sound: true, haptics: false });
+    expect(on.sound).toHaveBeenCalledWith(EXPERIENCE.feedback.sounds.tap);
+    expect(on.vibrate).not.toHaveBeenCalled();
+
+    const hapticsOnly = deps({ sound: false, haptics: true }, () => 0);
+    expect(runFeedback("tap", hapticsOnly)).toEqual({ sound: false, haptics: false });
+    expect(hapticsOnly.sound).not.toHaveBeenCalled();
+    expect(hapticsOnly.vibrate).not.toHaveBeenCalled();
+  });
 });
 
 describe("haptics", () => {

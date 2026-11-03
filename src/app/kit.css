@@ -239,6 +239,11 @@
 .zm-toast--romance { --box-rim: var(--zm-romance); }
 .zm-toast--amistad { --box-rim: var(--zm-amistad); }
 .zm-toast__title { margin: 0; font-family: var(--font-pixel); font-size: 0.9375rem; color: var(--zm-fg); }
+.zm-toast__action {
+  display: inline-flex; align-items: center; min-height: 44px;
+  font-family: var(--font-pixel); font-size: 0.875rem; color: var(--zm-gold);
+  text-decoration: underline; text-underline-offset: calc(var(--zm-px) * 2);
+}
 .zm-toast__body { margin: calc(var(--zm-px) * 2) 0 0; font-size: 0.875rem; color: var(--zm-fg-muted); }
 
 /* ─── Sheet & modal (native <dialog>) ─────────────────────── */

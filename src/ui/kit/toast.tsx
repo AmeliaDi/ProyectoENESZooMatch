@@ -1,5 +1,8 @@
 "use client";
 
+import type { Route } from "next";
+import Link from "next/link";
+
 import type { IconName } from "@/ui/design/icons";
 
 import { IconButton } from "./button";
@@ -12,6 +15,8 @@ export interface ToastData {
   tone: ToastTone;
   title: string;
   body?: string;
+  /** Optional in-app link; following it also dismisses the toast. */
+  action?: { href: Route; label: string };
 }
 
 const TONE_ICON: Record<ToastTone, IconName> = {
@@ -39,6 +44,11 @@ export function ToastStack({ toasts, onDismiss }: ToastStackProps) {
           <div>
             <p className="zm-toast__title">{toast.title}</p>
             {toast.body ? <p className="zm-toast__body">{toast.body}</p> : null}
+            {toast.action ? (
+              <Link href={toast.action.href} className="zm-toast__action" onClick={() => onDismiss(toast.id)}>
+                {toast.action.label}
+              </Link>
+            ) : null}
           </div>
           <IconButton icon="close" label="Descartar aviso" onClick={() => onDismiss(toast.id)} />
         </div>

@@ -31,6 +31,7 @@
   "result": {
     "minimumLoadingMs": 1200,
     "timeoutMs": 9000,
+    "refreshOnReturnMs": 30000,
     "fewPeopleThreshold": 12,
     "detailBreakdownMax": 5,
     "radiantPercent": { "romance": 63, "amistad": 61 }
@@ -58,7 +59,8 @@
     "throttleMs": 120,
     "sounds": {
       "answer": { "wave": "square", "startHz": 880, "endHz": 1175, "durationMs": 45, "attackMs": 3, "volume": 0.035 },
-      "join": { "wave": "triangle", "startHz": 660, "endHz": 1320, "durationMs": 90, "attackMs": 5, "volume": 0.05 }
+      "join": { "wave": "triangle", "startHz": 660, "endHz": 1320, "durationMs": 90, "attackMs": 5, "volume": 0.05 },
+      "tap": { "wave": "square", "startHz": 990, "endHz": 990, "durationMs": 30, "attackMs": 3, "volume": 0.025 }
     },
     "vibration": {
       "answer": [8],

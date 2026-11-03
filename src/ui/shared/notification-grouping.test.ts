@@ -35,11 +35,13 @@ describe("groupNotifications", () => {
     const toasts = groupNotifications([chat("1", "2026-01-01"), chat("2", "2026-01-02"), chat("3", "2026-01-03")], new Set(), 3);
     expect(toasts).toHaveLength(1);
     expect(toasts[0]).toMatchObject({ id: "3", tone: "neutral", title: "Tienes novedades en tus chats", body: "", ids: ["3", "2", "1"] });
+    expect(toasts[0]?.action).toEqual({ href: "/chats", label: "Ir a tus chats" });
   });
 
   it("never invents urgency: bodies are passed through unchanged", () => {
     const [toast] = groupNotifications([n("1", "match_amistad", "1")], new Set(), 3);
     expect(toast?.body).toBe("b-1");
     expect(toast?.body).not.toMatch(/prisa|ahora mismo|solo hoy/i);
+    expect(toast?.action).toBeUndefined();
   });
 });

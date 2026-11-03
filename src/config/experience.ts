@@ -75,6 +75,11 @@ export const experienceSchema = z.strictObject({
     /** Floor for the loading state so it never flashes. */
     minimumLoadingMs: z.number().int().nonnegative(),
     timeoutMs: positiveInt,
+    /**
+     * Silent re-read when the tab becomes visible again, at most this often,
+     * so a layer someone stops sharing disappears without a reload (ADR-034).
+     */
+    refreshOnReturnMs: z.number().int().min(5000),
     /** Below this many active profiles the empty state says "somos pocxs". */
     fewPeopleThreshold: positiveInt,
     /** Areas listed under "lo que más conecta" (the rest are summed). */
@@ -125,7 +130,9 @@ export const experienceSchema = z.strictObject({
   feedback: z.strictObject({
     storageKey: z.string().regex(/:v\d+$/, "versioned key, e.g. zoomatch:feedback:v1"),
     throttleMs: positiveInt,
-    sounds: z.strictObject({ answer: chipTone, join: chipTone }),
+    /** `tap`: opening a star with reduced motion, where no union ever chimes (ADR-034). */
+    sounds: z.strictObject({ answer: chipTone, join: chipTone, tap: chipTone }),
+    /** `tap` has no pattern on purpose: a still sky stays silent to the touch. */
     vibration: z.strictObject({ answer: vibrationPattern, join: vibrationPattern }),
   }),
   /** Illustrated 404: the lost little animal and its discreet easter egg. */
