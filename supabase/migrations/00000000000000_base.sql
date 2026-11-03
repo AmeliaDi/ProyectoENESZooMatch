@@ -342,6 +342,8 @@ SET search_path = ''
 AS $$
 DECLARE
   v_alias TEXT;
+  v_candidate TEXT := p_alias;
+  v_attempt INTEGER := 0;
 BEGIN
   PERFORM private.assert_service_role();
 
@@ -361,9 +363,20 @@ BEGIN
     RAISE EXCEPTION 'Latent profile must carry theta and se objects' USING ERRCODE = '22023';
   END IF;
 
+  -- A new alias that another profile already holds gets a deterministic
+  -- suffix derived from the user id, so the UNIQUE constraint never blocks
+  -- a submission (ADR-034). Existing aliases are untouched.
+  WHILE v_candidate IS NOT NULL
+        AND v_attempt < 8
+        AND EXISTS (SELECT 1 FROM public.profiles
+                    WHERE alias = v_candidate AND user_id <> p_user_id) LOOP
+    v_attempt := v_attempt + 1;
+    v_candidate := p_alias || '-' || upper(substr(md5(p_user_id::TEXT || v_attempt::TEXT), 1, 3));
+  END LOOP;
+
   -- The alias is fixed at first assignment (ADR-024): retakes never rename.
   UPDATE public.profiles SET
-    alias = COALESCE(public.profiles.alias, p_alias),
+    alias = COALESCE(public.profiles.alias, v_candidate),
     animal_id = p_animal_id,
     color_id = p_color_id,
     avatar_mark = p_avatar_mark,

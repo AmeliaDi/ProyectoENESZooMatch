@@ -28,6 +28,8 @@ const SHARING_MIGRATION = "20261103000000_shared_layers.sql";
 const SHARING_SQL = readFileSync(resolve(MIGRATIONS_DIR, SHARING_MIGRATION), "utf8");
 const CONVERSATIONS_MIGRATION = "20261104000000_conversations.sql";
 const CONVERSATIONS_SQL = readFileSync(resolve(MIGRATIONS_DIR, CONVERSATIONS_MIGRATION), "utf8");
+const ALIAS_MIGRATION = "20261105000000_alias_collision.sql";
+const ALIAS_SQL = readFileSync(resolve(MIGRATIONS_DIR, ALIAS_MIGRATION), "utf8");
 const CONVERSATION_TABLES = ["chat_interests", "conversations", "conversation_answers", "conversation_messages"] as const;
 const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
@@ -38,6 +40,7 @@ describe("base migration", () => {
       CHAT_MIGRATION,
       SHARING_MIGRATION,
       CONVERSATIONS_MIGRATION,
+      ALIAS_MIGRATION,
     ]);
   });
 
@@ -80,9 +83,18 @@ describe("base migration", () => {
 
   it("never renames an alias once assigned (ADR-024)", () => {
     const body = PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "";
-    expect(body).toContain("alias = COALESCE(public.profiles.alias, p_alias)");
+    expect(body).toContain("alias = COALESCE(public.profiles.alias, v_candidate)");
     expect(body).toContain("RETURNS TEXT");
     expect(body).toContain("RETURNING public.profiles.alias INTO v_alias");
+  });
+
+  it("resolves alias collisions with a deterministic suffix in base and migration (ADR-034)", () => {
+    const body = lf(PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "");
+    expect(body).toContain("WHERE alias = v_candidate AND user_id <> p_user_id");
+    expect(body).toContain("md5(p_user_id::TEXT || v_attempt::TEXT)");
+    const replaced = lf(ALIAS_SQL).replace("CREATE OR REPLACE FUNCTION", "CREATE FUNCTION");
+    expect(replaced).toContain(body);
+    expect(ALIAS_SQL).not.toMatch(/(DROP|TRUNCATE|DELETE FROM|GRANT|REVOKE)/);
   });
 
   it("pins search_path on every function", () => {
