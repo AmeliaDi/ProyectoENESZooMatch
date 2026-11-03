@@ -37,7 +37,7 @@ export function WhyBars({
             <div className="zm-why__head">
               <Icon name={categoryIcon(entry.icon || entry.category)} filled />
               <span className="zm-why__label">{entry.label}</span>
-              <span className="zm-why__value">+{formatPoints(entry.points)} pts</span>
+              <span className="zm-why__value zm-num">+{formatPoints(entry.points)} pts</span>
             </div>
             <svg
               className="zm-why__stars zm-crisp"

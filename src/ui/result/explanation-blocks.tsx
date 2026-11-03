@@ -40,7 +40,7 @@ export function ExplanationBlocks({
           <WhyBars entries={connects} max={connects.length} tone={track} />
           {otherPoints > 0 ? (
             <p className="zm-detail__fine">
-              {EXPLANATION_COPY_UI.others} +{formatPoints(otherPoints)} pts
+              {EXPLANATION_COPY_UI.others} <span className="zm-num">+{formatPoints(otherPoints)} pts</span>
             </p>
           ) : null}
         </section>

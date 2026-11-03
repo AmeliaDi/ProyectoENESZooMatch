@@ -13,6 +13,7 @@ import { EXPERIENCE, MATCHING_CONFIG } from "@/config";
 import { parseAdminMetrics, type AdminMetrics } from "@/contracts/admin-metrics";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
+import { PixelNumber } from "@/ui/kit/pixel-number";
 import { EmptyState } from "@/ui/kit/states";
 import { Frame } from "@/ui/kit/surfaces";
 
@@ -193,7 +194,9 @@ export function AdminDashboard({ initialData }: { initialData: AdminMetrics | nu
 
         <div className="zm-admin__grid">
           <Frame title="Perfiles activos" coord="Σ">
-            <p className="zm-admin__big">{data.totalProfiles.toLocaleString("es-MX")}</p>
+            <p className="zm-admin__big">
+              <PixelNumber value={data.totalProfiles.toLocaleString("es-MX")} size="lg" />
+            </p>
             <p className="zm-detail__muted">Sin matrículas, hashes, vectores ni respuestas.</p>
           </Frame>
           <Frame title="Cobertura por pista" coord="%">
@@ -206,8 +209,9 @@ export function AdminDashboard({ initialData }: { initialData: AdminMetrics | nu
               data={[{ label: "Amistad", value: Math.round(trackCoverageRate(data.usersWithAmistadMatch, data.totalProfiles)) }]}
             />
             <p className="zm-detail__muted">
-              % de personas con al menos una afinidad. Umbral: romance {Math.round(data.romanceThreshold * 100)} %, amistad{" "}
-              {Math.round(data.amistadThreshold * 100)} %.
+              % de personas con al menos una afinidad. Umbral: romance{" "}
+              <span className="zm-num">{Math.round(data.romanceThreshold * 100)} %</span>, amistad{" "}
+              <span className="zm-num">{Math.round(data.amistadThreshold * 100)} %</span>.
             </p>
           </Frame>
         </div>

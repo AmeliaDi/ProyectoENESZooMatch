@@ -323,3 +323,92 @@ En noche AC, el mínimo de texto es `danger` sobre `nebula-2` con 7.90. En día 
 | ennea-9-w8 | #62733A | 3.42 | 2.09 | 6.17 | 4.35 | 7.13 | 2.41 |
 | ennea-9-w1 | #628A46 | 4.44 | 2.55 | 7.18 | 3.35 | 5.84 | 2.07 |
 | ennea-neblina | #77728C | 3.87 | 2.28 | 6.66 | 3.84 | 6.52 | 2.23 |
+
+## Después (Fases 1–2)
+
+- Fecha: 2026-11-03, sobre el árbol de trabajo (sin commit). Mismo método que arriba: WCAG 2.x;
+  las opacidades se componen sobre el cielo; las cifras salen de `src/ui/design/contrast-audit.ts`,
+  que es el mismo código que ejecuta `contrast-audit.test.ts` en `npm run check` y que muestra
+  `/dev/ui` («Antes y ahora»).
+- Decisiones: ADR-027 (contraste, dorado y sprites) y ADR-028 (números).
+
+### D.1 Huecos de §2.2 y §3
+
+| Par | Noche antes → ahora | Día antes → ahora | Umbral | ¿Pasa? |
+|---|---|---|---|---|
+| `fg` sobre una estrella brillante (con velo) | 2.80 → **11.44** | 4.04 → **12.51** | 4.5 | ✅ |
+| `fg-muted` sobre una estrella (con velo) | 1.90 → **8.24** | 2.11 → **7.14** | 4.5 | ✅ |
+| `gold` sobre una estrella (con velo) | 1.74 → **6.87** | 1.81 → **5.24** | 4.5 | ✅ |
+| `romance` / `amistad` sobre una estrella (con velo) | — → 5.53 / 7.50 | — → 4.84 / 4.68 | 4.5 | ✅ |
+| `star` sobre `raised` | 3.76 → 3.76 | 2.92 → **3.21** | 3 | ✅ (nuevo par declarado) |
+| Línea `rim` a opacidad mínima | 2.31 → **4.16** | 1.78 → **3.28** | 3 | ✅ |
+| Línea dorada a opacidad mínima | 2.78 → **5.59** | 2.01 → **3.53** | 3 | ✅ |
+| % en nodo atenuado o débil (`fg`@0.8 mín.) | 5.16 → **10.00** | 3.49 → **8.02** | 4.5 | ✅ |
+| % dorado (≥ 95 %, siempre opaco) | 9.10 → 9.10 | 5.96 → 5.96 | 4.5 | ✅ |
+| Anillo de selección (dorado) | — → 9.10 | — → 5.96 | 3 | ✅ |
+| Foco de teclado sobre `raised` | 9.00 → 9.00 | 11.78 (`fg`) → **7.49** (oro-700) | 3 | ✅ dorado en ambos |
+
+En alto contraste, `fg` sobre una estrella con velo pasa de 3.45 a **21.00** (noche) y de 4.56 a
+**21.00** (día). Las líneas a la opacidad mínima dan 11.42 y 10.37. Los halos están apagados
+(opacidad 0, lo exige el esquema).
+
+Cambios que lo explican: velo del color del cielo detrás del texto largo (`--zm-veil` 0.8 de
+noche, 0.88 de día, 1 en alto contraste); `fg` y `fg-muted` más contrastados (noche
+15.14 / 10.91; día 14.22 / 8.12); la opacidad de las líneas pasó de `0.18 + 0.54·sim` a
+`0.75 + 0.20·sim` sobre `rim`; el % tiene un piso de 0.8; `star` de día `#857860` y `rim` de día
+`#5E5A7A`.
+
+### D.2 Sprites (§4)
+
+| Tono contra el cielo | Noche antes → ahora | Día antes → ahora | Umbral 3:1 |
+|---|---|---|---|
+| **Contorno** `#6A6790` (nuevo, ocupa todo el borde) | — → **3.35** | — → **4.44** | ✅ en ambos (AC: 3.96 / 5.31) |
+| Base | 3.37–4.44 | 3.35–4.41 | ✅ (interior) |
+| Sombra (×0.7 → ×0.78) | 2.02–2.55 → 2.32–2.97 | 5.84–7.35 → 5.01–6.40 | interior: ya no toca el cielo |
+| Brillo (+30 % a blanco → +30 % a `#FFF3D1`) | 5.44–7.18 → 5.25–6.93 | 2.07–2.74 → 2.14–2.83 | interior: ya no toca el cielo |
+| *Rim light* (base +50 % a `#FFF3D1`) | — → 7.33–9.06 | — → 1.64–2.03 | interior, bajo el contorno superior |
+
+El contorno es interior: reemplaza las celdas del borde de la silueta porque las plantillas
+16×16 ya tocan las columnas 0/15 y las filas 0/15, así que no hay margen para un anillo
+exterior. Así la máscara de cada especie no cambia y la distinguibilidad por silueta se
+mantiene. Un test verifica que ninguna celda de base, sombra o brillo quede en el borde, y otro
+que el contorno pase 3:1 en ambos cielos.
+
+### D.3 Escala de oro por modo (contraste con `sky`)
+
+| Paso | Noche | Día | Noche AC | Día AC |
+|---|---|---|---|---|
+| oro-100 | 2.19 | 1.07 | 3.14 | 1.99 |
+| oro-200 | 3.77 | 1.40 | 5.37 | 3.63 |
+| oro-300 (UI) | 6.26 | 3.45 | 8.66 | 6.12 |
+| oro-400 | 9.10 (`gold`) | 5.08 | 12.10 | 10.09 (`gold`, `focus`) |
+| oro-500 | 12.49 (`focus`) | 5.96 (`gold`) | 14.75 (`gold`, `focus`) | 11.74 |
+| oro-600 | 14.30 | 7.09 | 17.29 | 13.86 |
+| oro-700 | 16.09 | 8.44 (`focus`) | 19.48 | 16.25 |
+
+Los pasos 400–700 son texto (≥ 4.5 sobre `sky`, `frame` y `raised`, y ≥ 7 en AC; el mínimo es
+oro-400 de día sobre `raised` con 4.51). oro-300 es UI (≥ 3). oro-100 y oro-200 son rellenos y
+halos.
+
+### D.4 Dorado (§6)
+
+El dorado pasa de 13 tipos de elemento a 6: tu nodo (`glow-foco`, el único que respira), el
+match ≥ 95 % (`glow-hito`), la línea y el destello al unirse, los badges, las cifras clave
+(% ≥ 95 en el atlas) y el foco. También se conserva la estrella actual del progreso. En la
+pantalla de resultado, el título, la tab y el botón ya no compiten con el nodo «tú». No se
+midió de nuevo la superficie dorada en píxeles; la estimación visual es menos del 10 %.
+
+### D.5 Números (§5)
+
+Comparación en `/dev/numeros`. Decisión (ADR-028):
+- **C, atlas 5×7 propio**, para las cifras destacadas: % en la lista de matches (×3, 42 px),
+  % del detalle (×2), % de la carta (×1) y el total del panel. Es tabular por construcción,
+  con el cero barrado y escala entera de `--zm-px`.
+- **B, Atkinson + `tabular-nums`**, para las cifras chicas: progreso, «Pregunta N de M»,
+  `+N pts`, barras, tablas y umbrales del admin, contadores y la etiqueta % del lienzo. En el
+  lienzo el texto vive en unidades del mundo que cambian con el zoom, así que el atlas caería en
+  fracciones de px.
+- **A, Pixelify + `tabular-nums`:** descartada, porque no tiene efecto (no trae `tnum`).
+
+Pendiente de revisión humana: la inspección visual a 12–32 px en un navegador real (este pase
+midió contraste y geometría, no capturas).

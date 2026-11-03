@@ -492,10 +492,11 @@ el atlas de iconos y la galería `/dev/ui`.
 
 | Qué | Dónde | Cómo se protege |
 |---|---|---|
-| Tokens (paleta por modo, píxel, contraste, movimiento, z-index, cielo) | `data/design-tokens.json` | Esquema Zod en `src/config/design.ts` (hex en mayúsculas, 20 roles por modo, táctil ≥ 44 y múltiplo del píxel) |
-| Variables CSS para el primer pintado | `src/app/atlas.css`, entre `/* mode:X */ … /* end:X */` | `design.test.ts` compara cada bloque (y el fallback `prefers-color-scheme: light`) con el JSON |
+| Tokens (paleta por modo, efectos por modo, píxel, contraste, movimiento, z-index, cielo) | `data/design-tokens.json` | Esquema Zod en `src/config/design.ts` (hex en mayúsculas, 27 roles por modo, `effects` por modo, halos en múltiplos del píxel y apagados en alto contraste, táctil ≥ 44 y múltiplo del píxel) |
+| Variables CSS para el primer pintado | `src/app/atlas.css`, entre `/* mode:X */ … /* end:X */` | `design.test.ts` compara cada bloque (y el fallback `prefers-color-scheme: light`) con el JSON: colores y efectos |
 | Tiles de dithering `--zm-dither-25/50/75` | `atlas.css` | Igualdad exacta con `bayerMaskDataUri()` |
 | Contraste | `contrastPairs` en el JSON | Test por modo: texto ≥ 4.5 y UI ≥ 3; en alto contraste, texto ≥ 7 y UI ≥ 4.5 |
+| Contraste fuera de los tokens (texto sobre estrella con velo, líneas, % atenuado, contorno de sprites, escala de oro) | `src/ui/design/contrast-audit.ts` | `contrast-audit.test.ts` en `npm run test` (y por tanto en `npm run check`); texto 4.5, texto grande 3, UI 3 |
 
 **Para cambiar un color:** edita el JSON, copia el valor al bloque del modo en
 `atlas.css` (y al fallback si es `day`) y corre `npm test`. Si el contraste no
@@ -505,9 +506,10 @@ pasa, el test dice qué par falla y con qué razón.
 
 Cuatro paletas diseñadas por separado, ninguna invertida:
 
-- **Noche** (`night`): azul tinta `#101826` con dorado de latón `#E8B04A`.
-- **Día** (`day`): papel cálido `#F3EAD7` con tinta `#1B2233`. Dorado y texto
-  secundario se oscurecieron (`#7A4F00`, `#525A70`) para pasar AA también sobre `raised`.
+- **Noche** (`night`): azul tinta `#101826` con dorado de latón `#E8B04A`; texto
+  `#F4ECDC` (15.14:1, AAA) y secundario `#C3CBDB` (10.91:1).
+- **Día** (`day`): papel cálido `#F3EAD7` con tinta `#161C2B` (14.22:1). Dorado y texto
+  secundario se oscurecieron (`#7A4F00`, `#3D4457`) para pasar AA también sobre `raised`.
 - **Noche y día de alto contraste** (`night-hc`, `day-hc`): mismas formas,
   razón ≥ 7 en texto y ≥ 4.5 en UI.
 
@@ -515,14 +517,15 @@ Cuatro paletas diseñadas por separado, ninguna invertida:
 `sky` (≥ 3:1), pero con a lo más el 50 % del contraste del texto. Así el fondo
 se queda atrás:
 
-| Modo | `star` | star/sky | fg/star |
-|---|---|---|---|
-| night | `#7E8BAA` | 5.22 | 2.80 |
-| day | `#8C7F66` | 3.29 | 4.04 |
-| night-hc | `#8A8A8A` | 6.08 | 3.45 |
-| day-hc | `#757575` | 4.61 | 4.56 |
+| Modo | `star` | star/sky | fg/star (sin velo) | fg/star con velo |
+|---|---|---|---|---|
+| night | `#7E8BAA` | 5.22 | 2.90 | 11.44 |
+| day | `#857860` | 3.62 | 3.93 | 12.51 |
+| night-hc | `#8A8A8A` | 6.08 | 3.45 | 21.00 |
+| day-hc | `#6A6A6A` | 5.41 | 3.88 | 21.00 |
 
-El texto suelto sobre el cielo lleva un contorno duro de 1 px lógico en `sky`.
+El texto suelto sobre el cielo lleva un contorno duro de 1 px lógico en `sky`;
+el texto largo, además, el velo (ver 7.8).
 
 La elección se guarda por dispositivo (`localStorage: zoomatch:theme`). Un
 script inline la aplica antes del primer pintado, así que no hay destello del
@@ -568,14 +571,67 @@ comprueba que son exactamente 32, todos de 12×12 y sin duplicados.
 ### 7.6 Galería
 
 `/dev/ui` (responde 404 en producción) muestra todos los componentes y estados,
-el selector de los 4 modos, los iconos a ×1, ×2 y ×3 y una tabla de contraste
-calculada en vivo con `contrastRatio`.
+el selector de los 4 modos, los iconos a ×1, ×2 y ×3, la tabla de pares, la matriz
+completa (cada rol contra cada superficie), la auditoría antes/ahora y los halos del
+lienzo en cada estado. `/dev/numeros` compara las cifras.
 
 ### 7.7 Pendiente para la Fase 3
 
 Las pantallas actuales siguen usando las clases heredadas (`text-ink`, radiales,
 `backdrop-blur`, `rounded-*` y emojis en los avisos). Se migran al kit en la
 Fase 3 y después se borran los tokens viejos.
+
+### 7.8 Contraste, dorado y halos (ADR-027)
+
+**Tokens nuevos por modo** (`data/design-tokens.json` → `atlas.css`):
+
+| Token | Noche | Día | Noche AC | Día AC | Uso |
+|---|---|---|---|---|---|
+| `oro-100…700` | `#6B4914` → `#FFF3D1` | `#F6E2B0` → `#5C3B00` | `#7A5516` → `#FFF6DD` | `#D9B354` → `#2E1D00` | Luz de estrella, ámbar, oro viejo; el paso alto siempre contrasta más con el cielo |
+| `gold` / `focus` | oro-400 / oro-500 | oro-500 / oro-700 | oro-500 / oro-500 | oro-400 / oro-400 | El foco de día es dorado oscuro (8.44:1) |
+| `--zm-veil` | 0.8 | 0.88 | 1 | 1 | Opacidad del velo del color del cielo detrás del texto largo |
+| `--zm-text-outline` | `shadow` | `frame` | `sky` | `sky` | Contorno de 1 px lógico de los títulos |
+| `glow-suave` | `rim`, 6 px, 0.34 | `rim`, 6 px, 0.28 | 0 | 0 | Halo de los matches (3 escalones Bayer por afinidad) |
+| `glow-foco` | oro-500, 10 px, 0.5 | oro-300, 10 px, 0.46 | 0 | 0 | Tu nodo (respira) |
+| `glow-hito` | oro-400, 12 px, 0.56 | oro-300, 12 px, 0.52 | 0 | 0 | Match ≥ 95 % |
+
+**Regla del dorado.** Solo es dorado: tu nodo, el match top o ≥ 95 % (ADR-025), la
+línea y el destello al unirse, los badges (`Chip tone="gold"`), las cifras clave
+(el % ≥ 95 en el atlas pixel) y el foco de teclado. También se conserva la estrella
+actual del progreso. Todo lo demás (títulos, botón primario, tab elegida, chips de
+confianza, Likert, carga, virtudes, resúmenes, bordes de narrativa, selección de
+texto) usa `fg`, `fg-muted` o `rim`. Los estados se distinguen por forma, no solo por
+color: el hover levanta (desplazamiento y sombra dura más larga), al presionar se
+hunde, la tab elegida lleva un subrayado y la opción elegida tiene un borde doble.
+
+**Texto pixel-friendly.** Los títulos (`.zm-pixel-title` y los títulos de marco,
+diálogo, entrada y carta) llevan un contorno duro en 8 direcciones más un halo de
+acento de desplazamientos de 2 px a baja opacidad, sin radio de blur. El texto
+largo sobre el cielo usa `.zm-veil` (o una de las clases que ya lo incluyen) y
+siempre `--font-read`.
+
+**Lienzo.** Halos pre-renderizados (`GlowDefs`) con Bayer 25/50/75 % según el
+escalón de afinidad; nada de `filter` ni cálculo por frame. Solo respira un
+elemento (tu nodo; el top si no estás), 4.8 s y de 1 a 0.72 de opacidad, y nunca
+con `prefers-reduced-motion` ni en alto contraste. Las líneas usan `rim` con una
+opacidad mínima de 0.75 (≥ 3:1 en los cuatro modos). El % nunca baja de 0.8 de
+opacidad y el dorado va siempre opaco. La selección es un anillo dorado discontinuo.
+
+**Alto contraste.** Sin halos (opacidad 0 en los tokens, verificado en el
+esquema), sin respiración y con bordes de caja y foco de 2 px lógicos.
+
+**Sprites.** Contorno interior de 1 px en `#6A6790` (3.35:1 noche, 4.44:1 día) y
+*rim light* arriba; sombra ×0.78 y brillo hacia `#FFF3D1`. Ver ADR-027.
+
+### 7.9 Números (ADR-028)
+
+- Pixelify Sans solo se usa para letras.
+- **Cifras destacadas:** `PixelNumber` (atlas 5×7 propio, escalas enteras de
+  `--zm-px`, texto real oculto para lectores de pantalla). Se usa en el % de la lista
+  de matches, el detalle, la carta y el total del panel admin.
+- **Cifras chicas:** `.zm-num` (Atkinson + `tabular-nums`) en el progreso, `+N pts`,
+  barras y tablas del admin, umbrales, contadores y la etiqueta % del lienzo.
+- Comparación visual en `/dev/numeros` (A, B y C a 12/14/16/24/32 px, claro y oscuro).
 
 ## Anexo: verificación de licencias tipográficas
 

@@ -8,9 +8,9 @@
 
 import { memo, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 
-import { GLOW_PATTERN_ID } from "./glow";
+import { FOCO_PATTERN_ID, GLOW_REACH, suavePatternId } from "./glow";
 import { PixelAnimal } from "./PixelAnimal";
-import { affinityLabelY, HIT_RADIUS_PADDING, round2 } from "./render-helpers";
+import { affinityLabelOpacity, affinityLabelY, DIMMED_OPACITY, HIT_RADIUS_PADDING, round2 } from "./render-helpers";
 import { RadiantAura } from "./RadiantAura";
 import { OrbitingHearts } from "./RomanceHearts";
 import type { RenderNode } from "./types";
@@ -28,6 +28,8 @@ export interface StarNodeProps {
   romance: boolean;
   dimmed: boolean;
   ringed: boolean;
+  /** The single priority element that breathes (never under reduced motion). */
+  breathing: boolean;
   showTag: boolean;
   reducedMotion: boolean;
   /** Dense skies paint a flat glow instead of the dither pattern. */
@@ -35,15 +37,28 @@ export interface StarNodeProps {
   handlers: StarHandlers;
 }
 
+/** % label size in world units (Atkinson, tabular figures; see ADR-028). */
+const AFFINITY_FONT_SIZE = 10;
+const TAG_FONT_SIZE = 10;
+/** Alias baseline below the star, in world units. */
+const TAG_OFFSET = 16;
+/** Selection ring: gap to the sprite edge and stroke, in world units. */
+const RING_GAP = 5;
+const RING_STROKE = 2;
+const RING_DASH = "4 3";
+
 function onActivateKey(event: ReactKeyboardEvent<SVGGElement>, select: () => void): void {
   if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") return;
   event.preventDefault();
   select();
 }
 
-function StarNodeImpl({ node, happy, romance, dimmed, ringed, showTag, reducedMotion, flatGlow, handlers }: StarNodeProps) {
+function StarNodeImpl({ node, happy, romance, dimmed, ringed, breathing, showTag, reducedMotion, flatGlow, handlers }: StarNodeProps) {
   const interactive = !node.isGhost && !node.isLeaving;
   const clickable = interactive && !node.isSelf;
+  const bodyOpacity = dimmed ? DIMMED_OPACITY : node.opacity;
+  const spriteHalf = node.displaySize / 2;
+  const breathClass = breathing && !reducedMotion ? " zm-canvas__breath" : "";
   return (
     <g
       data-node-id={node.id}
@@ -52,6 +67,7 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, showTag, reducedMo
       tabIndex={clickable ? 0 : undefined}
       aria-label={interactive ? node.ariaLabel : undefined}
       aria-hidden={interactive ? undefined : true}
+      className={clickable ? "zm-canvas__star" : undefined}
       style={{ cursor: clickable ? "grab" : "default" }}
       onPointerDown={interactive ? (event) => handlers.pointerDown(event, node.id) : undefined}
       onPointerEnter={interactive ? () => handlers.hover(node.id) : undefined}
@@ -61,31 +77,35 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, showTag, reducedMo
       onKeyDown={clickable ? (event) => onActivateKey(event, () => handlers.select(node.id)) : undefined}
     >
       <g data-body-id={node.id} opacity={1}>
-        <g opacity={dimmed ? 0.55 : node.opacity}>
-          {!node.isGhost ? (
+        <g opacity={bodyOpacity}>
+          {!node.isGhost && !node.isSelf && !node.radiant ? (
             <circle
-              r={node.radius * 2.2}
-              fill={flatGlow ? node.colorHex : `url(#${GLOW_PATTERN_ID})`}
-              color={node.colorHex}
-              className={flatGlow ? "zm-canvas__glow zm-canvas__glow--flat" : "zm-canvas__glow"}
+              r={round2(spriteHalf + GLOW_REACH.suave)}
+              fill={flatGlow ? "currentColor" : `url(#${suavePatternId(node.glowLevel)})`}
+              className={`zm-canvas__glow zm-canvas__glow--suave${flatGlow ? " zm-canvas__glow--flat" : ""}`}
+              data-level={node.glowLevel}
             />
           ) : null}
           {interactive && node.radiant ? (
-            <RadiantAura radius={node.radius} size={node.displaySize} flat={flatGlow} />
+            <RadiantAura size={node.displaySize} flat={flatGlow} breathing={breathing && !reducedMotion} />
           ) : null}
           {node.isSelf ? (
-            <g className={reducedMotion ? undefined : "zm-canvas__halo"}>
-              <circle r={node.radius * 1.9} fill={node.colorHex} opacity={0.12} />
-              <circle r={node.radius * 1.4} fill="none" stroke={node.colorHex} strokeWidth={1.5} strokeDasharray="3 5" opacity={0.6} />
+            <g className={`zm-canvas__self${breathClass}`}>
+              <circle
+                r={round2(spriteHalf + GLOW_REACH.foco)}
+                fill={flatGlow ? "currentColor" : `url(#${FOCO_PATTERN_ID})`}
+                className={`zm-canvas__glow zm-canvas__glow--foco${flatGlow ? " zm-canvas__glow--flat" : ""}`}
+              />
             </g>
           ) : null}
           {interactive && ringed ? (
             <circle
-              r={node.radius + 5}
+              r={round2(spriteHalf + RING_GAP)}
               fill="none"
               className="zm-canvas__ring"
-              strokeWidth={2.5}
-              strokeDasharray={node.isSelf ? undefined : "5 4"}
+              strokeWidth={RING_STROKE}
+              strokeDasharray={node.isSelf ? undefined : RING_DASH}
+              shapeRendering="crispEdges"
             />
           ) : null}
           <PixelAnimal
@@ -93,29 +113,30 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, showTag, reducedMo
             colorId={node.colorId}
             mark={node.mark}
             size={node.displaySize}
-            x={-node.displaySize / 2}
-            y={-node.displaySize / 2}
+            x={-spriteHalf}
+            y={-spriteHalf}
             happy={happy}
             romance={romance}
             animated={!reducedMotion && interactive}
             opacity={1}
           />
           {romance ? <OrbitingHearts size={node.displaySize} animated={!reducedMotion} /> : null}
-          {interactive && node.affinityLabel ? (
-            <text
-              y={round2(affinityLabelY(node.displaySize, romance))}
-              textAnchor="middle"
-              className={node.radiant ? "zm-canvas__affinity zm-canvas__affinity--radiant" : "zm-canvas__affinity"}
-              fontSize={9}
-              aria-hidden="true"
-            >
-              {node.affinityLabel}
-            </text>
-          ) : null}
         </g>
+        {interactive && node.affinityLabel ? (
+          <text
+            y={round2(affinityLabelY(node.displaySize, romance))}
+            textAnchor="middle"
+            className={node.radiant ? "zm-canvas__affinity zm-canvas__affinity--radiant" : "zm-canvas__affinity"}
+            fontSize={AFFINITY_FONT_SIZE}
+            opacity={affinityLabelOpacity(bodyOpacity, node.radiant)}
+            aria-hidden="true"
+          >
+            {node.affinityLabel}
+          </text>
+        ) : null}
         <circle r={node.radius + HIT_RADIUS_PADDING} fill="transparent" style={{ pointerEvents: interactive ? "all" : "none" }} />
         {showTag && node.alias ? (
-          <text y={node.radius + 16} textAnchor="middle" className="zm-canvas__tag" fontSize={10} opacity={0.82}>
+          <text y={node.radius + TAG_OFFSET} textAnchor="middle" className="zm-canvas__tag" fontSize={TAG_FONT_SIZE}>
             {node.alias}
           </text>
         ) : null}

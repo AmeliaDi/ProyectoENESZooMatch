@@ -15,11 +15,12 @@ import { categoryIcon } from "@/ui/design/category-icons";
 import { Chip } from "@/ui/kit/surfaces";
 import { Dialog } from "@/ui/kit/dialog";
 import { Icon } from "@/ui/kit/icon";
+import { PixelNumber } from "@/ui/kit/pixel-number";
 import { EXPLANATION_COPY_UI, ExplanationBlocks } from "@/ui/result/explanation-blocks";
 
 import { PixelAnimal } from "./PixelAnimal";
 import { RomanceDuo } from "./RomanceHearts";
-import { formatAffinityPercent, sliceBadges } from "./render-helpers";
+import { formatAffinityPercent, isRadiantAffinity, sliceBadges } from "./render-helpers";
 import { CONSTELLATION_COPY, type NodeDetailSheetProps } from "./types";
 
 export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: NodeDetailSheetProps) {
@@ -56,10 +57,13 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
               </p>
               <p className="zm-detail__identity">{identity}</p>
               <p className="zm-detail__affinity">
-                <strong>{formatAffinityPercent(node.similarity)} %</strong> de afinidad estimada
+                <strong>
+                  <PixelNumber value={`${formatAffinityPercent(node.similarity)} %`} size="md" gold={isRadiantAffinity(node.similarity)} />
+                </strong>{" "}
+                de afinidad estimada
               </p>
               {confidence ? (
-                <Chip tone="gold" icon="confidence">
+                <Chip icon="confidence">
                   {confidence.label}
                 </Chip>
               ) : null}

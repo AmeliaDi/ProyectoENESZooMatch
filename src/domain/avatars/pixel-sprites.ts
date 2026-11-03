@@ -67,6 +67,24 @@ export const HALF_WIDTH = GRID_SIZE / 2;
 /** Soft charcoal used for every eye pixel (never absolute black). */
 export const EYE_COLOR = "#2B2A33";
 
+/**
+ * Silhouette outline ink (ADR-027). One tone has to separate the sprite from
+ * BOTH skies, so it sits in the narrow luminance band that clears 3:1 against
+ * the night sky (#101826 → 3.35) and the day paper (#F3EAD7 → 4.44); a test
+ * re-measures it against the design tokens.
+ */
+export const OUTLINE_COLOR = "#6A6790";
+
+/** Warm star-light every rim light and highlight leans towards. */
+export const STARLIGHT_COLOR = "#FFF3D1";
+
+/** Shadow = base × this factor (kept inside the outline, so it never meets the sky). */
+export const SHADOW_FACTOR = 0.78;
+/** Highlight = base mixed this far towards `STARLIGHT_COLOR`. */
+export const HIGHLIGHT_MIX = 0.3;
+/** Rim light (1 px under the top outline) = base mixed this far towards star-light. */
+export const RIM_MIX = 0.5;
+
 /** Mandatory kawaii blush under each eye. */
 export const BLUSH_COLOR = "#FFAAA6";
 
@@ -110,7 +128,10 @@ export type AnimationFrame = "idle_1" | "idle_2" | "happy" | "romance_pulse";
 export interface SpriteData {
   /** 16×16 matrix of `"#RRGGBB"` strings; `""` means transparent. */
   grid: string[][];
-  /** At most five tones: base, shadow, highlight, eyes and blush. */
+  /**
+   * Base, shadow, highlight, eyes, blush, the optional Enneagram emblem, then
+   * the outline ink and the rim light (at most eight tones).
+   */
   palette: string[];
   /** Silhouette family used for this animal. */
   family: ShapeFamily;
@@ -1736,7 +1757,8 @@ function applyTail(grid: CharGrid, spec: TailSpec): void {
   }
   for (const [r, c] of cells) {
     if (c >= GRID_SIZE || cellAt(grid, r, c) !== ".") continue;
-    writeCell(grid, r, c, "S");
+    // The tail sits on the sky, so it is drawn in outline ink like every edge.
+    writeCell(grid, r, c, OUTLINE_CHAR);
   }
 }
 
@@ -2125,6 +2147,8 @@ interface Tones {
   shadow: string;
   highlight: string;
   eyes: string;
+  outline: string;
+  rim: string;
 }
 
 interface ResolvedColor {
@@ -2159,7 +2183,7 @@ function rgbToHex(r: number, g: number, b: number): string {
   );
 }
 
-/** Base / shadow (×0.7) / highlight (30% toward white) / eyes. */
+/** Base / shadow / highlight / eyes / outline / rim light. */
 function deriveTones(baseHex: string): Tones {
   const rgb = hexToRgb(baseHex);
   if (!rgb) {
@@ -2174,16 +2198,29 @@ function deriveTones(baseHex: string): Tones {
   };
 }
 
+const STARLIGHT_RGB = hexToRgb(STARLIGHT_COLOR) as [number, number, number];
+
+function towardStarlight(rgb: readonly [number, number, number], amount: number): string {
+  const [r, g, b] = rgb;
+  const [sr, sg, sb] = STARLIGHT_RGB;
+  return rgbToHex(r + (sr - r) * amount, g + (sg - g) * amount, b + (sb - b) * amount);
+}
+
+/**
+ * Shading inside the outline. Since the outline ink now owns the silhouette
+ * edge, shadow and highlight no longer have to clear the sky themselves: the
+ * shadow is a softer ×0.78 (was ×0.7, which sank into the night sky) and the
+ * highlight leans to warm star-light instead of white (which melted into the
+ * day paper). A brighter rim light marks the top edge.
+ */
 function shadeTones(rgb: [number, number, number]): Omit<Tones, "base"> {
   const [r, g, b] = rgb;
   return {
-    shadow: rgbToHex(r * 0.7, g * 0.7, b * 0.7),
-    highlight: rgbToHex(
-      r + (255 - r) * 0.3,
-      g + (255 - g) * 0.3,
-      b + (255 - b) * 0.3,
-    ),
+    shadow: rgbToHex(r * SHADOW_FACTOR, g * SHADOW_FACTOR, b * SHADOW_FACTOR),
+    highlight: towardStarlight(rgb, HIGHLIGHT_MIX),
     eyes: EYE_COLOR,
+    outline: OUTLINE_COLOR,
+    rim: towardStarlight(rgb, RIM_MIX),
   };
 }
 
@@ -2377,9 +2414,74 @@ function charToHex(cell: string, tones: Tones): string {
       return HEART_COLOR;
     case EMBLEM_CHAR:
       return EMBLEM_COLOR;
+    case OUTLINE_CHAR:
+      return tones.outline;
+    case RIM_CHAR:
+      return tones.rim;
     default:
       return "";
   }
+}
+
+// ─── Outline and rim light (full grid) ────────────────────────────────────────
+
+/** Grid chars of the outline ink and the rim light. */
+const OUTLINE_CHAR = "O";
+const RIM_CHAR = "L";
+/** Body tones the outline / rim may repaint; eyes, blush, emblem and hearts never change. */
+const BODY_CHARS = new Set(["B", "S", "H"]);
+/** Cells that count as "outside" the silhouette: empty sky and the floating hearts. */
+const OUTSIDE_CHARS = new Set([".", "R"]);
+const NEIGHBOURS: ReadonlyArray<readonly [number, number]> = [
+  [-1, 0],
+  [1, 0],
+  [0, -1],
+  [0, 1],
+];
+
+function isOutside(grid: CharGrid, r: number, c: number): boolean {
+  return OUTSIDE_CHARS.has(cellAt(grid, r, c));
+}
+
+/**
+ * Repaints the silhouette edge with the outline ink and the body cells right
+ * under the top outline with the rim light. The outline is drawn INSIDE the
+ * mask: the 16×16 templates already reach columns 0/15 and rows 0/15, so
+ * there is no margin for an outer ring, and an inner one keeps every
+ * silhouette (and therefore the mask-distinctness guarantee) untouched.
+ * The rim only lights the top edge so the sprite stays mirror-symmetric.
+ *
+ * `keep` lists cells that must keep their frame tone (the idle eyes), so a
+ * blink only ever changes eye pixels.
+ */
+function applyOutlineAndRim(grid: CharGrid, keep: ReadonlySet<string>): void {
+  const outline: Array<readonly [number, number]> = [];
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (!BODY_CHARS.has(cellAt(grid, r, c)) || keep.has(`${r},${c}`)) continue;
+      if (NEIGHBOURS.some(([dr, dc]) => isOutside(grid, r + dr, c + dc))) outline.push([r, c]);
+    }
+  }
+  for (const [r, c] of outline) writeCell(grid, r, c, OUTLINE_CHAR);
+  for (let r = 1; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (!BODY_CHARS.has(cellAt(grid, r, c)) || keep.has(`${r},${c}`)) continue;
+      if (cellAt(grid, r - 1, c) === OUTLINE_CHAR) writeCell(grid, r, c, RIM_CHAR);
+    }
+  }
+}
+
+/** Full-grid positions of the half's eye cells (both sides of the mirror). */
+function eyePositions(half: HalfGrid): Set<string> {
+  const out = new Set<string>();
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < HALF_WIDTH; c++) {
+      if (cellAt(half, r, c) !== "E") continue;
+      out.add(`${r},${c}`);
+      out.add(`${r},${GRID_SIZE - 1 - c}`);
+    }
+  }
+  return out;
 }
 
 function renderHexGrid(grid: CharGrid, tones: Tones): string[][] {
@@ -2392,6 +2494,7 @@ function buildPalette(tones: Tones, emblem: boolean): string[] {
   // Enneagram emblem tone comes sixth, only when the colour carries one.
   const ordered = [tones.base, tones.shadow, tones.highlight, tones.eyes, BLUSH_COLOR];
   if (emblem) ordered.push(EMBLEM_COLOR);
+  ordered.push(tones.outline, tones.rim);
   const unique: string[] = [];
   for (const entry of ordered) {
     if (!unique.includes(entry)) unique.push(entry);
@@ -2399,7 +2502,7 @@ function buildPalette(tones: Tones, emblem: boolean): string[] {
   return unique;
 }
 
-/** Half → texture → frame → mirror → tail. */
+/** Half → texture → frame → mirror → outline + rim → tail. */
 function buildCharGrid(
   animalId: string,
   resolved: ResolvedColor,
@@ -2411,18 +2514,25 @@ function buildCharGrid(
     // Unreachable for registered ids; kept so the function is total.
     const half = baseTemplate(animalId, resolveFamily(animalId));
     applyBlushHalf(half);
+    const eyes = eyePositions(half);
     applyFrameHalf(half, frame);
     clearOuterCorners(half);
-    return mirrorHalf(half);
+    const grid = mirrorHalf(half);
+    applyOutlineAndRim(grid, eyes);
+    return grid;
   }
   const half = cloneHalf(pattern.half);
   applyTexture(half, resolved.textura, resolved.key);
   // Emblem/mark repaint ≤ 7 filled half-cells and never the mask, so the
   // silhouette distinctness (MIN_MASK_HALF_DISTANCE) still separates animals.
   stampEmblem(half, emblemForColor(resolved.key), mark);
+  const eyes = eyePositions(half);
   applyFrameHalf(half, frame);
   clearOuterCorners(half);
   const grid = mirrorHalf(half);
+  // Outline before the tail: the tail is the only asymmetric element, and it
+  // is drawn in outline ink so it never shifts the symmetric edge around it.
+  applyOutlineAndRim(grid, eyes);
   applyTail(grid, pattern.tail);
   return grid;
 }

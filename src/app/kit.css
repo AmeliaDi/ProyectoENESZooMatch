@@ -38,22 +38,32 @@
   touch-action: manipulation;
   transition: transform var(--zm-dur-tap) var(--zm-steps), filter var(--zm-dur-tap) var(--zm-steps);
 }
-.zm-btn--primary { --box-fill: var(--zm-gold); --box-rim: var(--zm-gold); color: var(--zm-on-gold); }
+/* Primary = fg on a raised plate with a fg frame (gold is reserved, ADR-027). */
+.zm-btn--primary { --box-fill: var(--zm-raised); --box-rim: var(--zm-fg); color: var(--zm-fg); }
 .zm-btn--danger { --box-fill: var(--zm-danger); --box-rim: var(--zm-danger); color: var(--zm-on-danger); }
 .zm-btn--ghost { --box-fill: transparent; --box-rim: transparent; --box-lift: 0px; }
 .zm-btn--icon { padding: calc(var(--zm-px) * 4); }
 
+/* States never rely on colour alone: hover lifts (offset + longer hard
+   shadow), press sinks into the shadow, ghost hover gains a dashed underline. */
 @media (hover: hover) {
   .zm-btn:hover:not(:disabled) {
     --box-lift: var(--zm-step-2);
     transform: translate(calc(var(--zm-px) * -1), calc(var(--zm-px) * -1));
   }
-  .zm-btn--ghost:hover:not(:disabled) { --box-lift: 0px; --box-rim: var(--zm-rim); transform: none; }
+  .zm-btn--ghost:hover:not(:disabled) {
+    --box-lift: 0px;
+    --box-rim: var(--zm-rim);
+    transform: none;
+    text-decoration: underline dashed var(--zm-px);
+    text-underline-offset: calc(var(--zm-px) * 3);
+  }
 }
 .zm-btn:active:not(:disabled) {
   --box-lift: 0px;
   transform: translate(var(--zm-px), var(--zm-px));
 }
+.zm-btn--ghost:active:not(:disabled) { --box-rim: var(--zm-fg); }
 .zm-btn:disabled,
 .zm-btn[aria-disabled="true"] {
   --box-lift: 0px;
@@ -78,6 +88,7 @@
 }
 .zm-chip--romance { --box-rim: var(--zm-romance); color: var(--zm-romance); }
 .zm-chip--amistad { --box-rim: var(--zm-amistad); color: var(--zm-amistad); }
+/* Gold chips are badges only (ADR-027); everything else is neutral or a track tone. */
 .zm-chip--gold { --box-rim: var(--zm-gold); color: var(--zm-gold); }
 .zm-chip > span { color: var(--zm-fg); }
 
@@ -104,7 +115,14 @@
   font-size: 1rem;
   cursor: pointer;
 }
-.zm-tab[aria-selected="true"] { color: var(--tab-on, var(--zm-on-gold)); --box-fill: var(--tab-tone, var(--zm-gold)); --box-rim: var(--tab-tone, var(--zm-gold)); }
+/* Selected tab: fg plate with a hard underline bar, so it reads without colour. */
+.zm-tab[aria-selected="true"] {
+  color: var(--tab-on, var(--zm-sky));
+  --box-fill: var(--tab-tone, var(--zm-fg));
+  --box-rim: var(--tab-tone, var(--zm-fg));
+  text-decoration: underline solid var(--zm-px);
+  text-underline-offset: calc(var(--zm-px) * 3);
+}
 .zm-tab[data-tone="romance"] { --tab-tone: var(--zm-romance); --tab-on: var(--zm-on-romance); }
 .zm-tab[data-tone="amistad"] { --tab-tone: var(--zm-amistad); --tab-on: var(--zm-on-amistad); }
 @media (hover: hover) {
@@ -128,7 +146,7 @@
 }
 .zm-frame__title {
   margin: 0 0 calc(var(--zm-px) * 6);
-  color: var(--zm-gold);
+  color: var(--zm-fg);
   font-family: var(--font-pixel);
   font-size: 1.25rem;
   font-weight: 600;
@@ -173,7 +191,8 @@
   padding: calc(var(--zm-px) * 2);
 }
 .zm-likert__gem { width: calc(var(--zm-px) * var(--gem, 12)); height: calc(var(--zm-px) * var(--gem, 12)); }
-.zm-likert__option[aria-checked="true"] { color: var(--zm-gold); }
+/* The chosen gem fills (shape, not hue) and takes the fg tone. */
+.zm-likert__option[aria-checked="true"] { color: var(--zm-fg); }
 .zm-likert__option[aria-checked="true"] .zm-likert__gem { animation: zm-star-on var(--zm-dur-emphasis) var(--zm-steps); }
 @media (hover: hover) {
   .zm-likert__option:hover:not([aria-checked="true"]) { color: var(--zm-fg); }
@@ -193,7 +212,7 @@
 .zm-progress__star { fill: var(--zm-grid); }
 .zm-progress__star[data-on="true"] { fill: var(--zm-star); }
 .zm-progress__star[data-current="true"] { fill: var(--zm-gold); animation: zm-blink 1.2s steps(1) infinite; }
-.zm-progress__label { font-family: var(--font-pixel); font-size: 0.75rem; color: var(--zm-fg-muted); }
+.zm-progress__label { font-family: var(--font-read); font-size: 0.8125rem; font-variant-numeric: tabular-nums; color: var(--zm-fg-muted); }
 
 /* ─── Toast ───────────────────────────────────────────────── */
 .zm-toast-region {
@@ -251,7 +270,7 @@
   gap: calc(var(--zm-px) * 4);
   padding: calc(var(--zm-px) * 12) calc(var(--zm-px) * 8) calc(var(--zm-px) * 4);
 }
-.zm-dialog__title { margin: 0; font-family: var(--font-pixel); font-size: 1.125rem; color: var(--zm-gold); }
+.zm-dialog__title { margin: 0; font-family: var(--font-pixel); font-size: 1.125rem; color: var(--zm-fg); }
 .zm-dialog__body { overflow: auto; padding: 0 calc(var(--zm-px) * 8) calc(var(--zm-px) * 10); }
 
 .zm-sheet[open] {
@@ -319,10 +338,33 @@
 .zm-state__title { margin: 0; font-family: var(--font-pixel); font-size: 1.125rem; color: var(--zm-fg); }
 .zm-state__body { margin: 0; max-width: 32ch; color: var(--zm-fg-muted); }
 .zm-state--error .zm-state__title { color: var(--zm-danger); }
-.zm-loading-stars { display: flex; gap: calc(var(--zm-px) * 6); color: var(--zm-gold); }
+.zm-loading-stars { display: flex; gap: calc(var(--zm-px) * 6); color: var(--zm-rim); }
 .zm-loading-stars > * { animation: zm-blink 1.2s steps(1) infinite; }
 .zm-loading-stars > :nth-child(2) { animation-delay: 0.4s; }
 .zm-loading-stars > :nth-child(3) { animation-delay: 0.8s; }
+
+/* ─── Numbers (ADR-028) ─────────────────────────────────────────────── */
+/* Small figures: Atkinson with tabular digits (all ten advance 632/1000). */
+.zm-num {
+  font-family: var(--font-read);
+  font-variant-numeric: tabular-nums;
+}
+/* Highlighted figures: the 5×7 atlas, integer scale on the --zm-px grid. */
+.zm-pixnum {
+  display: inline-flex;
+  align-items: flex-end;
+  vertical-align: baseline;
+  color: inherit;
+}
+.zm-pixnum__svg {
+  display: block;
+  width: calc(var(--zm-px) * var(--pixnum-w) * var(--pixnum-scale));
+  height: calc(var(--zm-px) * var(--pixnum-h) * var(--pixnum-scale));
+  fill: currentColor;
+  shape-rendering: crispEdges;
+  filter: drop-shadow(var(--zm-px) var(--zm-px) 0 var(--zm-shadow));
+}
+.zm-pixnum--gold { color: var(--zm-gold); }
 
 /* ─── Sky ─────────────────────────────────────────────────── */
 .zm-sky {
@@ -362,3 +404,15 @@
   padding: var(--zm-px) calc(var(--zm-px) * 4);
   outline: var(--zm-px) solid var(--zm-grid);
 }
+
+/* ─── Dev gallery: /dev/numeros ──────────────────────────────── */
+.zm-numeros { display: grid; gap: calc(var(--zm-px) * 8); }
+@media (min-width: 1100px) { .zm-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.zm-numeros__panel { display: grid; gap: calc(var(--zm-px) * 8); padding: calc(var(--zm-px) * 8); border: var(--zm-px) solid var(--zm-grid); }
+.zm-numeros__size { display: grid; gap: calc(var(--zm-px) * 4); }
+.zm-numeros__h { margin: 0; color: var(--zm-fg-muted); font-family: var(--font-read); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+.zm-numeros__row { display: grid; gap: calc(var(--zm-px) * 2); }
+.zm-numeros__label { color: var(--zm-fg-muted); font-size: 0.75rem; }
+.zm-numeros__cells { display: flex; flex-wrap: wrap; align-items: flex-end; gap: calc(var(--zm-px) * 6); }
+.zm-numeros__sample { color: var(--zm-fg); line-height: 1.1; white-space: pre; }
+.zm-numeros__na { color: var(--zm-fg-muted); font-size: 0.75rem; }

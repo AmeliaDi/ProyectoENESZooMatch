@@ -11,7 +11,6 @@ import { GRID_SIZE, getAllAnimalIds, getAllColorIds } from "@/domain/avatars/pix
 import { buildScene, createWorld, getTrackThreshold, settle, type World } from "@/domain/constellation";
 
 import {
-  EDGE_NEUTRAL_COLOR,
   GHOST_META,
   buildNodeMeta,
   structureFromWorld,
@@ -201,15 +200,19 @@ describe("structureFromWorld", () => {
     }
   });
 
-  it("gives every line a unique key and tints spokes with the match colour", () => {
+  it("gives every line a unique key and only gilds spokes to radiant stars", () => {
     expect(new Set(structure.edges.map((e) => e.key)).size).toBe(structure.edges.length);
+    const radiant = new Set(structure.nodes.filter((n) => n.radiant).map((n) => n.id));
     for (const edge of structure.edges) {
-      if (edge.kind === "spoke") {
-        const other = edge.source === "me" ? edge.target : edge.source;
-        expect(edge.color).toBe(meta.get(other)?.colorHex);
-      } else {
-        expect(edge.color).toBe(EDGE_NEUTRAL_COLOR);
-      }
+      const other = edge.source === "me" ? edge.target : edge.source;
+      expect(edge.radiant).toBe(edge.kind === "spoke" && radiant.has(other));
+    }
+  });
+
+  it("steps match halos with affinity and leaves you and ghosts at the base step", () => {
+    for (const node of structure.nodes) {
+      if (node.isSelf || node.isGhost) expect(node.glowLevel).toBe(0);
+      else expect([0, 1, 2]).toContain(node.glowLevel);
     }
   });
 

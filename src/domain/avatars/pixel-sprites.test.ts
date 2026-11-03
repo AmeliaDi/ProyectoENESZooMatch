@@ -19,8 +19,13 @@ import {
   GRID_SIZE,
   HALF_WIDTH,
   HEART_COLOR,
+  HIGHLIGHT_MIX,
   INTENSE_BLUSH_COLOR,
+  OUTLINE_COLOR,
+  RIM_MIX,
+  SHADOW_FACTOR,
   SPARKLE_COLOR,
+  STARLIGHT_COLOR,
   getAnimalFamily,
   getAllAnimalIds,
   getAllColorIds,
@@ -39,8 +44,8 @@ const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 /** Colour ids used throughout the suite; both exist in the catalogue. */
 const PRIMARY_COLOR = "ennea-6";
 const SECONDARY_COLOR = "ennea-2-w3";
-/** Base + shadow + highlight + eyes + blush + Enneagram emblem tone. */
-const MAX_PALETTE = 6;
+/** Base + shadow + highlight + eyes + blush + Enneagram emblem + outline + rim light. */
+const MAX_PALETTE = 8;
 
 const FRAMES: readonly AnimationFrame[] = ALL_FRAMES;
 
@@ -250,7 +255,7 @@ describe("horizontal symmetry", () => {
 // ─── 5 & 6. Palette ───────────────────────────────────────────────────────────
 
 describe("palette", () => {
-  it("never exceeds six entries (five tones + the emblem)", () => {
+  it("never exceeds eight entries (five tones, the emblem, outline and rim light)", () => {
     for (const animalId of ALL_IDS) {
       for (const colorId of getAllColorIds()) {
         const { palette } = getSprite(animalId, colorId);
@@ -279,18 +284,24 @@ describe("palette", () => {
       expect(blush, `${color.id} blush`).toBe(BLUSH_COLOR);
       expect(palette, `${color.id} palette`).toHaveLength(MAX_PALETTE);
       expect(palette[5], `${color.id} emblem`).toBe(EMBLEM_COLOR);
+      expect(palette[6], `${color.id} outline`).toBe(OUTLINE_COLOR);
+      const rim = palette[7] ?? "";
 
       const channel = (hex: string, offset: number): number =>
         parseInt(hex.slice(1 + offset * 2, 3 + offset * 2), 16);
 
       for (let i = 0; i < 3; i++) {
         const value = channel(color.hex, i);
-        // shadow = base × 0.7 (rounded), highlight = base + 30% of the way to white.
+        const light = channel(STARLIGHT_COLOR, i);
+        // shadow = base × SHADOW_FACTOR; highlight / rim = base mixed towards star-light.
         expect(channel(shadow, i), `${color.id} shadow channel ${i}`).toBe(
-          Math.round(value * 0.7),
+          Math.round(value * SHADOW_FACTOR),
         );
         expect(channel(highlight, i), `${color.id} highlight channel ${i}`).toBe(
-          Math.round(value + (255 - value) * 0.3),
+          Math.round(value + (light - value) * HIGHLIGHT_MIX),
+        );
+        expect(channel(rim, i), `${color.id} rim channel ${i}`).toBe(
+          Math.round(value + (light - value) * RIM_MIX),
         );
       }
     }

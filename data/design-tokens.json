@@ -10,34 +10,58 @@
     "atlasTickEvery": 8
   },
   "touchTargetMin": 44,
-  "contrast": { "text": 4.5, "ui": 3, "textHighContrast": 7, "uiHighContrast": 4.5, "starMaxShareOfText": 0.5 },
+  "contrast": { "text": 4.5, "textLarge": 3, "ui": 3, "textHighContrast": 7, "uiHighContrast": 4.5, "starMaxShareOfText": 0.5 },
   "modes": {
     "night": {
       "highContrast": false,
       "colors": {
         "sky": "#101826", "frame": "#18233A", "raised": "#22305A",
-        "fg": "#F2E8D5", "fg-muted": "#B9C2D4",
+        "fg": "#F4ECDC", "fg-muted": "#C3CBDB",
         "gold": "#E8B04A", "on-gold": "#101826",
         "romance": "#F08A7E", "on-romance": "#101826",
         "amistad": "#7FD1B9", "on-amistad": "#101826",
         "danger": "#FF8A80", "on-danger": "#101826",
         "rim": "#8B9BC4", "focus": "#FFD27A",
         "shadow": "#05080F", "grid": "#3A4A6B", "star": "#7E8BAA",
-        "nebula-1": "#1C2846", "nebula-2": "#221E3A"
+        "nebula-1": "#1C2846", "nebula-2": "#221E3A",
+        "oro-100": "#6B4914", "oro-200": "#9A6A1E", "oro-300": "#C98E2E", "oro-400": "#E8B04A",
+        "oro-500": "#FFD27A", "oro-600": "#FFE4A3", "oro-700": "#FFF3D1"
+      },
+      "effects": {
+        "veil": 0.8,
+        "textOutline": "shadow",
+        "titleGlow": "rim",
+        "glow": {
+          "suave": { "color": "rim", "radiusPx": 6, "opacity": 0.34 },
+          "foco": { "color": "oro-500", "radiusPx": 10, "opacity": 0.5 },
+          "hito": { "color": "oro-400", "radiusPx": 12, "opacity": 0.56 }
+        }
       }
     },
     "day": {
       "highContrast": false,
       "colors": {
         "sky": "#F3EAD7", "frame": "#FBF6EA", "raised": "#E9DDC2",
-        "fg": "#1B2233", "fg-muted": "#474E63",
+        "fg": "#161C2B", "fg-muted": "#3D4457",
         "gold": "#7A4F00", "on-gold": "#FBF6EA",
         "romance": "#A8342A", "on-romance": "#FBF6EA",
         "amistad": "#1F6B57", "on-amistad": "#FBF6EA",
         "danger": "#A3201B", "on-danger": "#FBF6EA",
-        "rim": "#6E6A8A", "focus": "#1B2233",
-        "shadow": "#BFAF8C", "grid": "#C9BC9F", "star": "#8C7F66",
-        "nebula-1": "#EADFC6", "nebula-2": "#EEE4D0"
+        "rim": "#5E5A7A", "focus": "#5C3B00",
+        "shadow": "#BFAF8C", "grid": "#C9BC9F", "star": "#857860",
+        "nebula-1": "#EADFC6", "nebula-2": "#EEE4D0",
+        "oro-100": "#F6E2B0", "oro-200": "#E9C46E", "oro-300": "#A07612", "oro-400": "#855A00",
+        "oro-500": "#7A4F00", "oro-600": "#6B4500", "oro-700": "#5C3B00"
+      },
+      "effects": {
+        "veil": 0.88,
+        "textOutline": "frame",
+        "titleGlow": "rim",
+        "glow": {
+          "suave": { "color": "rim", "radiusPx": 6, "opacity": 0.28 },
+          "foco": { "color": "oro-300", "radiusPx": 10, "opacity": 0.46 },
+          "hito": { "color": "oro-300", "radiusPx": 12, "opacity": 0.52 }
+        }
       }
     },
     "night-hc": {
@@ -51,7 +75,19 @@
         "danger": "#FFA39B", "on-danger": "#000000",
         "rim": "#FFFFFF", "focus": "#FFD27A",
         "shadow": "#3A3A3A", "grid": "#4D4D4D", "star": "#8A8A8A",
-        "nebula-1": "#1C1C1C", "nebula-2": "#262626"
+        "nebula-1": "#1C1C1C", "nebula-2": "#262626",
+        "oro-100": "#7A5516", "oro-200": "#A87822", "oro-300": "#D69C33", "oro-400": "#F2BC55",
+        "oro-500": "#FFD27A", "oro-600": "#FFE7AE", "oro-700": "#FFF6DD"
+      },
+      "effects": {
+        "veil": 1,
+        "textOutline": "sky",
+        "titleGlow": "sky",
+        "glow": {
+          "suave": { "color": "rim", "radiusPx": 0, "opacity": 0 },
+          "foco": { "color": "oro-500", "radiusPx": 0, "opacity": 0 },
+          "hito": { "color": "oro-500", "radiusPx": 0, "opacity": 0 }
+        }
       }
     },
     "day-hc": {
@@ -63,9 +99,21 @@
         "romance": "#7D1E17", "on-romance": "#FFFFFF",
         "amistad": "#0A4A3B", "on-amistad": "#FFFFFF",
         "danger": "#7A1210", "on-danger": "#FFFFFF",
-        "rim": "#000000", "focus": "#000000",
-        "shadow": "#000000", "grid": "#BDBDBD", "star": "#757575",
-        "nebula-1": "#EDEDED", "nebula-2": "#E3E3E3"
+        "rim": "#000000", "focus": "#5C3B00",
+        "shadow": "#000000", "grid": "#BDBDBD", "star": "#6A6A6A",
+        "nebula-1": "#EDEDED", "nebula-2": "#E3E3E3",
+        "oro-100": "#D9B354", "oro-200": "#A9801C", "oro-300": "#7F5C00", "oro-400": "#5C3B00",
+        "oro-500": "#4F3200", "oro-600": "#3F2800", "oro-700": "#2E1D00"
+      },
+      "effects": {
+        "veil": 1,
+        "textOutline": "sky",
+        "titleGlow": "sky",
+        "glow": {
+          "suave": { "color": "rim", "radiusPx": 0, "opacity": 0 },
+          "foco": { "color": "oro-400", "radiusPx": 0, "opacity": 0 },
+          "hito": { "color": "oro-400", "radiusPx": 0, "opacity": 0 }
+        }
       }
     }
   },
@@ -82,7 +130,12 @@
     { "fg": "on-danger", "bg": ["danger"], "kind": "text" },
     { "fg": "rim", "bg": ["sky", "frame", "raised"], "kind": "ui" },
     { "fg": "focus", "bg": ["sky", "frame", "raised"], "kind": "ui" },
-    { "fg": "star", "bg": ["sky"], "kind": "ui" }
+    { "fg": "star", "bg": ["sky", "raised"], "kind": "ui" },
+    { "fg": "oro-300", "bg": ["sky", "frame", "raised"], "kind": "ui" },
+    { "fg": "oro-400", "bg": ["sky", "frame", "raised", "nebula-1", "nebula-2"], "kind": "text" },
+    { "fg": "oro-500", "bg": ["sky", "frame", "raised", "nebula-1", "nebula-2"], "kind": "text" },
+    { "fg": "oro-600", "bg": ["sky", "frame", "raised", "nebula-1", "nebula-2"], "kind": "text" },
+    { "fg": "oro-700", "bg": ["sky", "frame", "raised", "nebula-1", "nebula-2"], "kind": "text" }
   ],
   "motion": {
     "durationsMs": { "tap": 120, "exit": 180, "enter": 240, "emphasis": 360, "reveal": 900 },

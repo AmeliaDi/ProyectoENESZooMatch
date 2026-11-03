@@ -90,7 +90,7 @@ export function RefineQuiz({ module }: { module: QuizModuleId }) {
           <ConstellationProgress total={items.length} answered={answered} current={index} />
           <p className="zm-quiz__meta">
             <span>{info.titulo}</span>
-            <span aria-live="polite">
+            <span aria-live="polite" className="zm-num">
               Pregunta {index + 1} de {items.length}
             </span>
           </p>

@@ -1,26 +1,24 @@
 /**
  * Golden aura for a match whose shown affinity is at least
- * `RADIANT_AFFINITY_PERCENT`. Pixel language only: a dithered gold disc, a
- * dashed corona and four plus-shaped sparkles that blink out of phase. No blur,
- * no gradients; motion is CSS and is suppressed by the reduced-motion rule.
- * Rendered inside the node's translated `<g>`, so coordinates are relative to
- * the node centre.
+ * `RADIANT_AFFINITY_PERCENT` (ADR-025, `glow-hito` since ADR-027). Pixel
+ * language only: a pre-rendered Bayer gold disc, a dashed stepped corona and
+ * four static plus-shaped sparkles. No blur, no gradients and no blinking:
+ * only the priority element of the sky breathes (slowly), and never under
+ * `prefers-reduced-motion`. Rendered inside the node's translated `<g>`, so
+ * coordinates are relative to the node centre.
  */
 
-import { RADIANT_PATTERN_ID } from "./glow";
+import { GLOW_REACH, HITO_PATTERN_ID } from "./glow";
+import { round2 } from "./render-helpers";
 
-/** Aura disc radius, as a multiple of the physics radius (normal glow is 2.2). */
-const AURA_RADIUS_FACTOR = 2.6;
-/** Dashed corona radius, as a multiple of the physics radius. */
-const CORONA_RADIUS_FACTOR = 1.55;
+/** Dashed corona sits this far outside the sprite edge, in world units. */
+const CORONA_GAP = 2;
 const CORONA_STROKE = 1.5;
 const CORONA_DASH = "2 4";
 /** Sparkles sit on the diagonals, this fraction of the sprite size from the centre. */
 const SPARK_OFFSET_RATIO = 0.62;
 /** Edge length of one sparkle pixel, in user units. */
 const SPARK_PIXEL = 1.5;
-/** Phase step between sparkles so they never blink together. */
-const SPARK_DELAY_STEP_S = 0.35;
 const DIAGONALS: ReadonlyArray<readonly [number, number]> = [
   [-1, -1],
   [1, -1],
@@ -36,9 +34,9 @@ const PLUS_CELLS: ReadonlyArray<readonly [number, number]> = [
   [0, 1],
 ];
 
-function Sparkle({ x, y, delay }: { x: number; y: number; delay: number }) {
+function Sparkle({ x, y }: { x: number; y: number }) {
   return (
-    <g transform={`translate(${x} ${y})`} className="zm-canvas__radiant-spark" style={{ animationDelay: `-${delay}s` }}>
+    <g transform={`translate(${round2(x)} ${round2(y)})`} className="zm-canvas__radiant-spark">
       {PLUS_CELLS.map(([dx, dy]) => (
         <rect
           key={`${dx}:${dy}`}
@@ -53,24 +51,25 @@ function Sparkle({ x, y, delay }: { x: number; y: number; delay: number }) {
   );
 }
 
-export function RadiantAura({ radius, size, flat }: { radius: number; size: number; flat: boolean }) {
-  const offset = (size / 2) * SPARK_OFFSET_RATIO * Math.SQRT2;
+export function RadiantAura({ size, flat, breathing }: { size: number; flat: boolean; breathing: boolean }) {
+  const half = size / 2;
+  const offset = half * SPARK_OFFSET_RATIO;
   return (
-    <g aria-hidden="true" className="zm-canvas__radiant">
+    <g aria-hidden="true" className={breathing ? "zm-canvas__radiant zm-canvas__breath" : "zm-canvas__radiant"}>
       <circle
-        r={radius * AURA_RADIUS_FACTOR}
-        fill={flat ? "currentColor" : `url(#${RADIANT_PATTERN_ID})`}
-        className={flat ? "zm-canvas__radiant-glow zm-canvas__radiant-glow--flat" : "zm-canvas__radiant-glow"}
+        r={round2(half + GLOW_REACH.hito)}
+        fill={flat ? "currentColor" : `url(#${HITO_PATTERN_ID})`}
+        className={flat ? "zm-canvas__glow zm-canvas__glow--hito zm-canvas__glow--flat" : "zm-canvas__glow zm-canvas__glow--hito"}
       />
       <circle
-        r={radius * CORONA_RADIUS_FACTOR}
+        r={round2(half + CORONA_GAP)}
         className="zm-canvas__radiant-corona"
         strokeWidth={CORONA_STROKE}
         strokeDasharray={CORONA_DASH}
         shapeRendering="crispEdges"
       />
       {DIAGONALS.map(([sx, sy], i) => (
-        <Sparkle key={i} x={(sx * offset) / Math.SQRT2} y={(sy * offset) / Math.SQRT2} delay={i * SPARK_DELAY_STEP_S} />
+        <Sparkle key={i} x={sx * offset} y={sy * offset} />
       ))}
     </g>
   );

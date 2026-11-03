@@ -9,7 +9,7 @@ import { designTokensSchema } from "@/config/design";
 
 import { BAYER_4, bayerMaskDataUri, bayerTileCells, DITHER_LEVELS } from "./bayer";
 import { contrastRatio, parseHex } from "./contrast";
-import { modeVariables } from "./css-tokens";
+import { effectVariables, modeVariables } from "./css-tokens";
 import { ICON_GRID, ICON_NAMES, iconDrawing, iconPaths } from "./icons";
 import { diamondPath, likertGemSizes, progressStars } from "./shapes";
 import { generateNebula, generateStars, twinkleLevel } from "./sky";
@@ -17,7 +17,7 @@ import { generateNebula, generateStars, twinkleLevel } from "./sky";
 // Raw JSON read from disk (not imported) so the schema can be fed corrupt copies.
 const rawTokens = JSON.parse(readFileSync(join(process.cwd(), "data/design-tokens.json"), "utf8")) as {
   touchTargetMin: number;
-  modes: Record<string, { colors: Record<string, string> }>;
+  modes: Record<string, { colors: Record<string, string>; effects: { glow: Record<string, { radiusPx: number; opacity: number }> } }>;
 };
 
 const ATLAS_CSS = readFileSync(join(process.cwd(), "src/app/atlas.css"), "utf8").replace(/\r/g, "");
@@ -34,6 +34,11 @@ function declarations(block: string): Record<string, string> {
 function roleDeclarations(block: string): Record<string, string> {
   const roles = new Set(COLOR_ROLES.map((role) => `--zm-${role}`));
   return Object.fromEntries(Object.entries(declarations(block)).filter(([name]) => roles.has(name)));
+}
+
+function effectDeclarations(block: string, mode: (typeof THEME_MODES)[number]): Record<string, string> {
+  const names = new Set(Object.keys(effectVariables(DESIGN_TOKENS, mode)));
+  return Object.fromEntries(Object.entries(declarations(block)).filter(([name]) => names.has(name)));
 }
 
 function modeBlock(mode: string): string {
@@ -70,6 +75,16 @@ describe("design tokens", () => {
     const dayColors = missingRole.modes.day?.colors;
     if (dayColors) delete dayColors.star;
     expect(designTokensSchema.safeParse(missingRole).success).toBe(false);
+
+    const hcHalo = structuredClone(rawTokens);
+    const hcGlow = hcHalo.modes["night-hc"]?.effects.glow.foco;
+    if (hcGlow) hcGlow.opacity = 0.4;
+    expect(designTokensSchema.safeParse(hcHalo).success).toBe(false);
+
+    const offGridHalo = structuredClone(rawTokens);
+    const nightGlow = offGridHalo.modes.night?.effects.glow.suave;
+    if (nightGlow) nightGlow.radiusPx = 5;
+    expect(designTokensSchema.safeParse(offGridHalo).success).toBe(false);
   });
 
   it.each(THEME_MODES)("%s meets every declared contrast pair", (mode) => {
@@ -117,6 +132,7 @@ describe("contrast", () => {
 describe("atlas.css stays in sync with design-tokens.json", () => {
   it.each(THEME_MODES)("mode block %s", (mode) => {
     expect(roleDeclarations(modeBlock(mode))).toEqual(modeVariables(DESIGN_TOKENS, mode));
+    expect(effectDeclarations(modeBlock(mode), mode)).toEqual(effectVariables(DESIGN_TOKENS, mode));
   });
 
   it("prefers-color-scheme: light fallback equals the day mode", () => {
@@ -124,6 +140,7 @@ describe("atlas.css stays in sync with design-tokens.json", () => {
     expect(start).toBeGreaterThanOrEqual(0);
     const block = ATLAS_CSS.slice(start, ATLAS_CSS.indexOf("}\n}", start));
     expect(roleDeclarations(block)).toEqual(modeVariables(DESIGN_TOKENS, "day"));
+    expect(effectDeclarations(block, "day")).toEqual(effectVariables(DESIGN_TOKENS, "day"));
   });
 
   it.each(DITHER_LEVELS)("--zm-dither-%i is the generated Bayer tile", (level) => {

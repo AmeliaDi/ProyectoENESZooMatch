@@ -10,9 +10,11 @@ import { useEffect, useState } from "react";
 import type { ProfileDto } from "@/contracts/profile";
 import { EXPERIENCE } from "@/config";
 import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
+import { RADIANT_AFFINITY_PERCENT } from "@/ui/constellation/render-helpers";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { Icon } from "@/ui/kit/icon";
+import { PixelNumber } from "@/ui/kit/pixel-number";
 import { ExitButton } from "@/ui/shared/exit-button";
 import { ErrorState, LoadingState } from "@/ui/kit/states";
 import { Chip, Frame } from "@/ui/kit/surfaces";
@@ -88,11 +90,11 @@ function Hero({ profile }: { profile: ProfileDto }) {
           {profile.animal.name} {profile.color.name.toLowerCase()}
         </p>
         <div className="zm-card__chips">
-          <Chip tone="gold" icon="personalidad">
+          <Chip icon="personalidad">
             {mbti.code}
             {mbti.balancedAxes > 0 ? ` · ${mbti.balancedAxes} ${mbti.balancedAxes === 1 ? "eje" : "ejes"} en equilibrio` : ""}
           </Chip>
-          <Chip tone="gold" icon="valores_relacionales">
+          <Chip icon="valores_relacionales">
             {enneagram.exploring ? "Eneagrama en exploración" : `Eneagrama ${enneagram.code} · ${enneagram.archetype}`}
           </Chip>
         </div>
@@ -138,7 +140,7 @@ function Affinities({ profile }: { profile: ProfileDto }) {
         {tracks.map((t) => (
           <section key={t.key} className="zm-card__track" data-tone={t.key}>
             <h3 className="zm-detail__h">
-              <Icon name={t.key} filled /> {t.label} · {t.data.count}
+              <Icon name={t.key} filled /> {t.label} · <span className="zm-num">{t.data.count}</span>
             </h3>
             {t.data.top.length === 0 ? (
               <p className="zm-detail__muted">Todavía nadie cruza el umbral aquí. Tu cielo sigue abierto.</p>
@@ -147,7 +149,9 @@ function Affinities({ profile }: { profile: ProfileDto }) {
                 {t.data.top.map((m) => (
                   <li key={m.alias}>
                     <span>{m.alias}</span>
-                    <span className="zm-card__pct">{m.percent} %</span>
+                    <span className="zm-card__pct">
+                      <PixelNumber value={`${m.percent} %`} size="sm" gold={m.percent >= RADIANT_AFFINITY_PERCENT} />
+                    </span>
                   </li>
                 ))}
               </ul>

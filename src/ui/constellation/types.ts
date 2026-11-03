@@ -23,6 +23,8 @@ import type { LinkKind, PairSimilarity } from "@/domain/constellation";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 import type { CSSProperties, RefObject } from "react";
 
+import type { GlowLevel } from "./render-helpers";
+
 // ─── Node input (the unified shape) ──────────────────────────────────────────
 
 /**
@@ -269,6 +271,8 @@ export interface RenderNode {
   affinityLabel: string | null;
   /** Very high estimated affinity: the star is painted golden. Never you or ghosts. */
   radiant: boolean;
+  /** Dithered halo density step (0-2), rising with affinity. Matches only. */
+  glowLevel: GlowLevel;
   /** Fully-formed es-MX accessible name. */
   ariaLabel: string;
   /** 0-1 body opacity, scaled by similarity for real matches. */
@@ -290,11 +294,12 @@ export interface RenderEdge {
   similarity: number;
   /** Stroke width in user units, proportional to similarity. */
   width: number;
-  /** 0-1 stroke opacity, proportional to similarity. */
+  /** 0-1 stroke opacity: a 3:1 floor plus a similarity bonus. */
   opacity: number;
-  /** Stroke colour (the outer node's hex for self-edges, ink for the rest). */
-  color: string;
-  /** Spoke to a golden (radiant) match: drawn in gold. */
+  /**
+   * Spoke to a golden (radiant) match: drawn in gold. Every other line uses
+   * the theme `rim` token (CSS class), whose contrast is audited per mode.
+   */
   radiant: boolean;
 }
 

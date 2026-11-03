@@ -15,8 +15,14 @@ export const COLOR_ROLES = [
   "rim", "focus",
   "shadow", "grid", "star",
   "nebula-1", "nebula-2",
+  // Gold scale, designed per mode: a higher step always contrasts more with the sky.
+  "oro-100", "oro-200", "oro-300", "oro-400", "oro-500", "oro-600", "oro-700",
 ] as const;
 export type ColorRole = (typeof COLOR_ROLES)[number];
+
+/** Halo tiers of the constellation and of highlighted UI. */
+export const GLOW_TIERS = ["suave", "foco", "hito"] as const;
+export type GlowTier = (typeof GLOW_TIERS)[number];
 
 export const THEME_MODES = ["night", "day", "night-hc", "day-hc"] as const;
 export type ThemeMode = (typeof THEME_MODES)[number];
@@ -30,7 +36,24 @@ const palette = z.strictObject(
   Object.fromEntries(COLOR_ROLES.map((name) => [name, hex])) as Record<ColorRole, typeof hex>,
 );
 
-const mode = z.strictObject({ highContrast: z.boolean(), colors: palette });
+const glow = z.strictObject({
+  color: role,
+  /** Halo reach beyond the element, in CSS px (multiple of the logical pixel; 0 = no halo). */
+  radiusPx: z.number().int().min(0),
+  opacity: unit,
+});
+
+const effects = z.strictObject({
+  /** Opacity of the sky-coloured veil laid behind long copy that sits on the sky. */
+  veil: unit,
+  /** Role of the hard 1-logical-pixel outline around pixel titles. */
+  textOutline: role,
+  /** Role of the faint offset halo around pixel titles. */
+  titleGlow: role,
+  glow: z.strictObject({ suave: glow, foco: glow, hito: glow }),
+});
+
+const mode = z.strictObject({ highContrast: z.boolean(), colors: palette, effects });
 
 const cubicBezier = z.tuple([unit, z.number(), unit, z.number()]);
 
@@ -62,6 +85,8 @@ export const designTokensSchema = z
     touchTargetMin: z.number().int().min(44),
     contrast: z.strictObject({
       text: z.number().min(4.5),
+      /** WCAG large text (≥ 24 px, or ≥ 18.66 px bold). */
+      textLarge: z.number().min(3),
       ui: z.number().min(3),
       textHighContrast: z.number().min(7),
       uiHighContrast: z.number().min(3),
@@ -94,7 +119,21 @@ export const designTokensSchema = z
       nebula: z.array(nebulaBlob).min(1).max(4),
     }),
   })
-  .refine((t) => t.touchTargetMin % t.pixel.logicalPx === 0, "touch target must sit on the pixel grid");
+  .refine((t) => t.touchTargetMin % t.pixel.logicalPx === 0, "touch target must sit on the pixel grid")
+  .refine(
+    (t) =>
+      Object.values(t.modes).every((m) =>
+        Object.values(m.effects.glow).every((g) => g.radiusPx % t.pixel.logicalPx === 0),
+      ),
+    "glow radii must sit on the pixel grid",
+  )
+  .refine(
+    (t) =>
+      Object.values(t.modes).every(
+        (m) => !m.highContrast || Object.values(m.effects.glow).every((g) => g.opacity === 0),
+      ),
+    "high-contrast modes carry no halos",
+  );
 
 export type DesignTokens = z.output<typeof designTokensSchema>;
 

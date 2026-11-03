@@ -2,8 +2,10 @@
 
 import { useId, useState } from "react";
 
+import { isRadiantAffinity } from "@/ui/constellation/render-helpers";
 import { categoryIcon } from "@/ui/design/category-icons";
 import { Button } from "@/ui/kit/button";
+import { PixelNumber } from "@/ui/kit/pixel-number";
 import { Chip, Frame } from "@/ui/kit/surfaces";
 import type { MatchTrack } from "@/types/microtest";
 
@@ -29,12 +31,14 @@ export function MatchCard({ match, track }: { match: ResultMatch; track: MatchTr
           </p>
         </div>
         <p className="zm-match__affinity" aria-label={`${percent} % de afinidad estimada`}>
-          <strong>{percent}</strong>
+          <strong>
+            <PixelNumber value={`${percent}`} size="lg" gold={isRadiantAffinity(match.similarity)} />
+          </strong>
           <span>% afinidad estimada</span>
         </p>
       </div>
       {explanation ? (
-        <Chip tone="gold" icon="confidence">
+        <Chip icon="confidence">
           {explanation.confidence.label}
         </Chip>
       ) : null}

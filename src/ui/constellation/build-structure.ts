@@ -17,6 +17,7 @@ import {
   edgeStrokeOpacity,
   edgeStrokeWidth,
   formatAffinityPercent,
+  glowLevel,
   isRadiantAffinity,
   matchAriaLabel,
   nodeOpacity,
@@ -31,8 +32,6 @@ import type {
   RenderNode,
 } from "./types";
 
-/** Neutral thread colour for match↔match links (the ink token). */
-export const EDGE_NEUTRAL_COLOR = "#c9d4ff";
 
 /** Adapts the view-model matches to the scene's minimal input (no names). */
 export function toSceneMatches(matches: readonly ConstellationMatchInput[]): SceneMatch[] {
@@ -134,6 +133,7 @@ export function structureFromWorld(
       alias: info.alias,
       affinityLabel: isGhost || isSelf ? null : `${formatAffinityPercent(body.similarity)}%`,
       radiant: !isGhost && !isSelf && !body.leaving && isRadiantAffinity(body.similarity),
+      glowLevel: isGhost || isSelf ? 0 : glowLevel(body.similarity, world.threshold),
       ariaLabel,
       opacity: isGhost ? GHOST_OPACITY : isSelf ? 1 : nodeOpacity(body.similarity, world.threshold),
       initialX: body.x,
@@ -141,7 +141,6 @@ export function structureFromWorld(
     };
   });
 
-  const colorById = new Map(nodes.map((node) => [node.id, node.colorHex]));
   const radiantIds = new Set(nodes.filter((node) => node.radiant).map((node) => node.id));
   const edges: RenderEdge[] = world.links.map((link) => {
     const a = world.bodies[link.a]!;
@@ -155,7 +154,6 @@ export function structureFromWorld(
       similarity: link.similarity,
       width: edgeStrokeWidth(link.similarity),
       opacity: edgeStrokeOpacity(link.similarity),
-      color: link.kind === "spoke" ? (colorById.get(other) ?? EDGE_NEUTRAL_COLOR) : EDGE_NEUTRAL_COLOR,
       radiant: link.kind === "spoke" && radiantIds.has(other),
     };
   });

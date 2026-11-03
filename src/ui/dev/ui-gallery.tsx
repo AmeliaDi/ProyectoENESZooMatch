@@ -8,8 +8,15 @@
 
 import { useId, useState, type ReactNode } from "react";
 
-import { DESIGN_TOKENS, THEME_MODES, type ThemeMode } from "@/config";
+import { COLOR_ROLES, DESIGN_TOKENS, THEME_MODES, type ColorRole, type ThemeMode } from "@/config";
+import { OUTLINE_COLOR } from "@/domain/avatars/pixel-sprites";
+import { GlowDefs } from "@/ui/constellation/GlowDefs";
+import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
+import { RadiantAura } from "@/ui/constellation/RadiantAura";
+import { FOCO_PATTERN_ID, GLOW_REACH, suavePatternId } from "@/ui/constellation/glow";
+import { AFFINITY_LABEL_MIN_OPACITY, EDGE_OPACITY_MIN, type GlowLevel } from "@/ui/constellation/render-helpers";
 import { contrastRatio } from "@/ui/design/contrast";
+import { auditMode } from "@/ui/design/contrast-audit";
 import { ICON_NAMES } from "@/ui/design/icons";
 import { useThemeMode } from "@/ui/design/theme";
 import { Button, IconButton } from "@/ui/kit/button";
@@ -48,9 +55,151 @@ const SAMPLE_TOASTS: readonly ToastData[] = [
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="grid gap-4">
-      <h2 className="font-pixel text-xl text-atlas-gold">{title}</h2>
+      <h2 className="zm-pixel-title font-pixel text-xl">{title}</h2>
       {children}
     </section>
+  );
+}
+
+const AUDIT_INPUTS = { lineOpacityMin: EDGE_OPACITY_MIN, labelOpacityMin: AFFINITY_LABEL_MIN_OPACITY, spriteOutline: OUTLINE_COLOR };
+
+function StatusChip({ ok }: { ok: boolean }) {
+  return (
+    <Chip tone={ok ? "amistad" : "romance"} icon={ok ? "check" : "alert"}>
+      {ok ? "pasa" : "falla"}
+    </Chip>
+  );
+}
+
+/** Every colour role against every surface of the mode (full matrix). */
+function ContrastMatrix({ mode }: { mode: ThemeMode }) {
+  const { colors } = DESIGN_TOKENS.modes[mode];
+  const surfaces: readonly ColorRole[] = ["sky", "frame", "raised", "nebula-1", "nebula-2"];
+  const roles = COLOR_ROLES.filter((role) => !surfaces.includes(role));
+  return (
+    <div className="overflow-x-auto">
+      <table className="zm-contrast-table">
+        <caption className="zm-sr-only">Matriz completa de contraste del modo {MODE_LABEL[mode]}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Rol \ fondo</th>
+            {surfaces.map((surface) => (
+              <th key={surface} scope="col">{surface}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {roles.map((role) => (
+            <tr key={role}>
+              <th scope="row">
+                <span className="zm-swatch" style={{ background: colors[role] }} aria-hidden="true">
+                  {" "}
+                </span>{" "}
+                {role}
+              </th>
+              {surfaces.map((surface) => (
+                <td key={surface} className="zm-num">
+                  {contrastRatio(colors[role], colors[surface]).toFixed(2)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** The gaps the token pairs cannot see, before (audit, Fase 0) vs now. */
+function AuditTable({ mode }: { mode: ThemeMode }) {
+  const rows = auditMode(mode, AUDIT_INPUTS);
+  return (
+    <div className="overflow-x-auto">
+      <table className="zm-contrast-table">
+        <caption className="zm-sr-only">Auditoría de contraste, antes y ahora, modo {MODE_LABEL[mode]}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Grupo</th>
+            <th scope="col">Par</th>
+            <th scope="col">Muestra</th>
+            <th scope="col">Antes</th>
+            <th scope="col">Ahora</th>
+            <th scope="col">Mínimo</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={`${row.group}/${row.label}`}>
+              <td>{row.group}</td>
+              <td>{row.label}</td>
+              <td>
+                <span className="zm-swatch" style={{ color: row.fg, background: row.bg }}>
+                  87 % Ñandú
+                </span>
+              </td>
+              <td className="zm-num">{row.before === undefined ? "—" : row.before.toFixed(2)}</td>
+              <td className="zm-num">{row.ratio.toFixed(2)}</td>
+              <td className="zm-num">{row.min}</td>
+              <td>
+                <StatusChip ok={row.ratio >= row.min} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const HALO_SPRITE = 36;
+const HALO_BOX = 96;
+const SUAVE_LEVELS: readonly GlowLevel[] = [0, 1, 2];
+
+function HaloSample({ label, children }: { label: string; children: ReactNode }) {
+  const half = HALO_BOX / 2;
+  return (
+    <figure className="grid justify-items-center gap-1">
+      <svg width={HALO_BOX} height={HALO_BOX} viewBox={`${-half} ${-half} ${HALO_BOX} ${HALO_BOX}`} className="zm-crisp" aria-hidden="true">
+        {children}
+        <PixelAnimal animalId="gatito" colorId="ennea-6" size={HALO_SPRITE} x={-HALO_SPRITE / 2} y={-HALO_SPRITE / 2} animated={false} />
+      </svg>
+      <figcaption className="text-xs text-atlas-muted">{label}</figcaption>
+    </figure>
+  );
+}
+
+/** Every halo state, rendered with the canvas's own patterns and classes. */
+function HaloStates() {
+  const half = HALO_SPRITE / 2;
+  return (
+    <div className="flex flex-wrap gap-4">
+      <svg width={0} height={0} aria-hidden="true">
+        <GlowDefs />
+      </svg>
+      {SUAVE_LEVELS.map((level) => (
+        <HaloSample key={level} label={`glow-suave · escalón ${level + 1}`}>
+          <circle r={half + GLOW_REACH.suave} fill={`url(#${suavePatternId(level)})`} className="zm-canvas__glow zm-canvas__glow--suave" />
+        </HaloSample>
+      ))}
+      <HaloSample label="glow-foco · tú (respira)">
+        <g className="zm-canvas__breath">
+          <circle r={half + GLOW_REACH.foco} fill={`url(#${FOCO_PATTERN_ID})`} className="zm-canvas__glow zm-canvas__glow--foco" />
+        </g>
+      </HaloSample>
+      <HaloSample label="glow-hito · ≥ 95 %">
+        <RadiantAura size={HALO_SPRITE} flat={false} breathing={false} />
+      </HaloSample>
+      <HaloSample label="selección · anillo dorado">
+        <circle r={half + GLOW_REACH.suave} fill={`url(#${suavePatternId(1)})`} className="zm-canvas__glow zm-canvas__glow--suave" />
+        <circle r={half + 5} fill="none" className="zm-canvas__ring" strokeWidth={2} strokeDasharray="4 3" shapeRendering="crispEdges" />
+      </HaloSample>
+      <HaloSample label="atenuado">
+        <g opacity={0.55}>
+          <circle r={half + GLOW_REACH.suave} fill={`url(#${suavePatternId(0)})`} className="zm-canvas__glow zm-canvas__glow--suave" />
+        </g>
+      </HaloSample>
+    </div>
   );
 }
 
@@ -97,9 +246,7 @@ function ContrastTable({ mode }: { mode: ThemeMode }) {
               <td>{row.ratio.toFixed(2)}</td>
               <td>{row.min}</td>
               <td>
-                <Chip tone={row.ok ? "amistad" : "romance"} icon={row.ok ? "check" : "alert"}>
-                  {row.ok ? "pasa" : "falla"}
-                </Chip>
+                <StatusChip ok={row.ok} />
               </td>
             </tr>
           ))}
@@ -163,7 +310,7 @@ export function UiGallery() {
             <Chip>Neutral</Chip>
             <Chip tone="romance" icon="romance">Romance</Chip>
             <Chip tone="amistad" icon="amistad">Amistad</Chip>
-            <Chip tone="gold" icon="confidence">Mismo humor</Chip>
+            <Chip tone="gold" icon="confidence">Badge dorado</Chip>
             <Tooltip id="tip-demo" text="Afinidad estimada, no destino.">
               <IconButton icon="info" label="Qué significa" aria-describedby="tip-demo" />
             </Tooltip>
@@ -273,8 +420,31 @@ export function UiGallery() {
           ))}
         </Section>
 
+        <Section title="Halos del lienzo">
+          <p className="zm-veil max-w-prose text-atlas-muted">
+            Pre-renderizados con dithering Bayer; la densidad sube por escalones con la afinidad. Solo un elemento respira
+            y nada pulsa con movimiento reducido. En alto contraste no hay halos.
+          </p>
+          <HaloStates />
+        </Section>
+
+        <Section title="Texto sobre el cielo">
+          <p className="zm-pixel-title font-pixel text-2xl">Título con contorno de 1 px lógico</p>
+          <p className="zm-veil max-w-prose">
+            Texto largo con velo: las estrellas del fondo no pasan detrás de las letras y la lectura usa Atkinson.
+          </p>
+        </Section>
+
         <Section title={`Contraste · ${MODE_LABEL[activeMode]}`}>
           <ContrastTable mode={activeMode} />
+        </Section>
+
+        <Section title={`Antes y ahora · ${MODE_LABEL[activeMode]}`}>
+          <AuditTable mode={activeMode} />
+        </Section>
+
+        <Section title={`Matriz completa · ${MODE_LABEL[activeMode]}`}>
+          <ContrastMatrix mode={activeMode} />
         </Section>
       </main>
     </div>

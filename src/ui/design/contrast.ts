@@ -37,6 +37,18 @@ export function relativeLuminance(hex: string): number {
   return LUMA_R * channel(r) + LUMA_G * channel(g) + LUMA_B * channel(b);
 }
 
+/**
+ * `fg` painted at `alpha` over an opaque `bg` (straight alpha compositing in
+ * sRGB, which is what browsers do for opacity), as `#RRGGBB`.
+ */
+export function mixHex(fg: string, bg: string, alpha: number): string {
+  const a = Math.min(1, Math.max(0, alpha));
+  const f = parseHex(fg);
+  const b = parseHex(bg);
+  const out = f.map((value, i) => Math.round(value * a + (b[i] ?? 0) * (1 - a)));
+  return `#${out.map((value) => value.toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+}
+
 /** Contrast ratio in [1, 21]; symmetric in its arguments. */
 export function contrastRatio(a: string, b: string): number {
   const la = relativeLuminance(a);

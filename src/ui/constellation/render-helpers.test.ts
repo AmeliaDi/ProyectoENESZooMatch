@@ -20,8 +20,14 @@ import {
   buildDataKey,
   clamp,
   connectionsLabel,
+  AFFINITY_LABEL_MIN_OPACITY,
+  DIMMED_OPACITY,
+  EDGE_OPACITY_MIN,
+  EDGE_OPACITY_SPAN,
+  affinityLabelOpacity,
   edgeStrokeOpacity,
   edgeStrokeWidth,
+  glowLevel,
   formatAffinityPercent,
   matchAriaLabel,
   matchesForTrack,
@@ -134,8 +140,13 @@ describe("edge stroke mapping", () => {
   it("scales width and opacity with similarity", () => {
     expect(edgeStrokeWidth(0)).toBeCloseTo(1, 10);
     expect(edgeStrokeWidth(1)).toBeCloseTo(2.6, 10);
-    expect(edgeStrokeOpacity(0)).toBeCloseTo(0.18, 10);
-    expect(edgeStrokeOpacity(1)).toBeCloseTo(0.72, 10);
+    expect(edgeStrokeOpacity(0)).toBeCloseTo(EDGE_OPACITY_MIN, 10);
+    expect(edgeStrokeOpacity(1)).toBeCloseTo(EDGE_OPACITY_MIN + EDGE_OPACITY_SPAN, 10);
+    expect(edgeStrokeOpacity(0.5)).toBeGreaterThan(edgeStrokeOpacity(0));
+  });
+
+  it("never drops under the contrast floor", () => {
+    for (const s of [-1, 0, 0.3, 0.7, 1, 2]) expect(edgeStrokeOpacity(s)).toBeGreaterThanOrEqual(EDGE_OPACITY_MIN);
   });
 
   it("never exceeds full opacity, so lines stay under the sprites", () => {
@@ -145,6 +156,26 @@ describe("edge stroke mapping", () => {
   it("clamps out-of-range similarity", () => {
     expect(edgeStrokeWidth(-3)).toBeCloseTo(1, 10);
     expect(edgeStrokeWidth(9)).toBeCloseTo(2.6, 10);
+  });
+});
+
+describe("affinity label and halo tiers", () => {
+  it("keeps the % label above its floor on weak and dimmed stars", () => {
+    expect(affinityLabelOpacity(DIMMED_OPACITY)).toBe(AFFINITY_LABEL_MIN_OPACITY);
+    expect(affinityLabelOpacity(nodeOpacity(ROMANCE_THRESHOLD, ROMANCE_THRESHOLD))).toBe(AFFINITY_LABEL_MIN_OPACITY);
+    expect(affinityLabelOpacity(1)).toBe(1);
+    expect(affinityLabelOpacity(DIMMED_OPACITY, true)).toBe(1);
+  });
+
+  it("steps the halo with affinity, never down", () => {
+    expect(glowLevel(ROMANCE_THRESHOLD, ROMANCE_THRESHOLD)).toBe(0);
+    expect(glowLevel(1, ROMANCE_THRESHOLD)).toBe(2);
+    let previous = 0;
+    for (let s = ROMANCE_THRESHOLD; s <= 1.0001; s += 0.01) {
+      const level = glowLevel(Math.min(1, s), ROMANCE_THRESHOLD);
+      expect(level).toBeGreaterThanOrEqual(previous);
+      previous = level;
+    }
   });
 });
 

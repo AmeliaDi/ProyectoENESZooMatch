@@ -16,7 +16,7 @@ export function cellsFor(value: number, max: number, cells = CELLS): number {
   return Math.max(1, Math.round((value / max) * cells));
 }
 
-export function PixelBars({ data, tone = "gold" }: { data: readonly BarDatum[]; tone?: "gold" | "romance" | "amistad" }) {
+export function PixelBars({ data, tone = "neutral" }: { data: readonly BarDatum[]; tone?: "neutral" | "romance" | "amistad" }) {
   const max = Math.max(0, ...data.map((d) => d.value));
   return (
     <ul className="zm-bars" data-tone={tone} aria-hidden="true">
@@ -30,7 +30,7 @@ export function PixelBars({ data, tone = "gold" }: { data: readonly BarDatum[]; 
                 <rect key={i} x={i * 2} y={0} width={1} height={2} data-on={i < on} />
               ))}
             </svg>
-            <span className="zm-bars__value">{d.value}</span>
+            <span className="zm-bars__value zm-num">{d.value}</span>
           </li>
         );
       })}

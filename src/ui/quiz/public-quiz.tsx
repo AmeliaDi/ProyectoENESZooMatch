@@ -190,7 +190,7 @@ export function PublicQuiz() {
           <ConstellationProgress total={TOTAL} answered={answered} current={index} />
           <p className="zm-quiz__meta">
             <span>{CATEGORY_LABELS[item.categoria] ?? item.categoria}</span>
-            <span aria-live="polite">
+            <span aria-live="polite" className="zm-num">
               Pregunta {index + 1} de {TOTAL}
             </span>
           </p>

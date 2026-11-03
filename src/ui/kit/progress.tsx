@@ -48,7 +48,7 @@ export function ConstellationProgress({ total, answered, current, label = "Tu co
           />
         ))}
       </svg>
-      <p className="zm-progress__label" aria-hidden="true">
+      <p className="zm-progress__label zm-num" aria-hidden="true">
         {lit} / {total}
       </p>
     </div>

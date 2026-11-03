@@ -102,9 +102,49 @@ export function edgeStrokeWidth(similarity: number): number {
   return 1 + clamp(similarity, 0, 1) * 1.6;
 }
 
-/** Connection stroke opacity, proportional to similarity (0.18 – 0.72). */
+/**
+ * Lowest stroke opacity of a constellation line. Lines are painted with the
+ * `rim` token (gold when radiant); at this opacity they still clear 3:1
+ * against the sky in every mode (`contrast-audit.test.ts`). Was 0.18.
+ */
+export const EDGE_OPACITY_MIN = 0.75;
+/** Opacity added by similarity on top of the floor (max 0.95, under the sprites). */
+export const EDGE_OPACITY_SPAN = 0.2;
+/** Extra opacity of the lines touching the hovered / focused star. */
+export const EDGE_LIT_BOOST = 0.25;
+
+/** Connection stroke opacity: never under the 3:1 floor, brighter with similarity. */
 export function edgeStrokeOpacity(similarity: number): number {
-  return 0.18 + clamp(similarity, 0, 1) * 0.54;
+  return EDGE_OPACITY_MIN + clamp(similarity, 0, 1) * EDGE_OPACITY_SPAN;
+}
+
+/** Opacity of a star whose neighbourhood is not in focus (sprite and halo only). */
+export const DIMMED_OPACITY = 0.55;
+
+/**
+ * The % label never fades below this opacity, even on weak or dimmed stars,
+ * so it keeps ≥ 4.5:1 on the day sky (was 0.55 → 3.49:1).
+ */
+export const AFFINITY_LABEL_MIN_OPACITY = 0.8;
+
+/** The gold % (≥ 95 %) is a key figure under the gold rule: always fully opaque. */
+export function affinityLabelOpacity(bodyOpacity: number, radiant = false): number {
+  if (radiant) return 1;
+  return Math.max(AFFINITY_LABEL_MIN_OPACITY, Math.min(1, bodyOpacity));
+}
+
+/**
+ * Halo tiers by normalised affinity: a match's dithered halo gets denser in
+ * steps (Bayer 25 % → 50 % → 75 %), never continuously, so it is pre-rendered
+ * as three shared patterns.
+ */
+export const GLOW_STEPS: readonly number[] = [1 / 3, 2 / 3];
+export type GlowLevel = 0 | 1 | 2;
+
+export function glowLevel(similarity: number, threshold: number): GlowLevel {
+  const norm = normalizeSimilarity(similarity, threshold);
+  const [low = 1, high = 1] = GLOW_STEPS;
+  return norm >= high ? 2 : norm >= low ? 1 : 0;
 }
 
 /** Decorative ghosts never take part in interactions. */

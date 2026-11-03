@@ -15,8 +15,8 @@
   --zm-sky: #101826;
   --zm-frame: #18233A;
   --zm-raised: #22305A;
-  --zm-fg: #F2E8D5;
-  --zm-fg-muted: #B9C2D4;
+  --zm-fg: #F4ECDC;
+  --zm-fg-muted: #C3CBDB;
   --zm-gold: #E8B04A;
   --zm-on-gold: #101826;
   --zm-romance: #F08A7E;
@@ -32,6 +32,25 @@
   --zm-star: #7E8BAA;
   --zm-nebula-1: #1C2846;
   --zm-nebula-2: #221E3A;
+  --zm-oro-100: #6B4914;
+  --zm-oro-200: #9A6A1E;
+  --zm-oro-300: #C98E2E;
+  --zm-oro-400: #E8B04A;
+  --zm-oro-500: #FFD27A;
+  --zm-oro-600: #FFE4A3;
+  --zm-oro-700: #FFF3D1;
+  --zm-veil: 0.8;
+  --zm-text-outline: var(--zm-shadow);
+  --zm-title-glow: var(--zm-rim);
+  --zm-glow-suave: var(--zm-rim);
+  --zm-glow-suave-r: 6px;
+  --zm-glow-suave-o: 0.34;
+  --zm-glow-foco: var(--zm-oro-500);
+  --zm-glow-foco-r: 10px;
+  --zm-glow-foco-o: 0.5;
+  --zm-glow-hito: var(--zm-oro-400);
+  --zm-glow-hito-r: 12px;
+  --zm-glow-hito-o: 0.56;
   --zm-scheme: dark;
 }
 /* end:night */
@@ -41,8 +60,8 @@
   --zm-sky: #F3EAD7;
   --zm-frame: #FBF6EA;
   --zm-raised: #E9DDC2;
-  --zm-fg: #1B2233;
-  --zm-fg-muted: #474E63;
+  --zm-fg: #161C2B;
+  --zm-fg-muted: #3D4457;
   --zm-gold: #7A4F00;
   --zm-on-gold: #FBF6EA;
   --zm-romance: #A8342A;
@@ -51,13 +70,32 @@
   --zm-on-amistad: #FBF6EA;
   --zm-danger: #A3201B;
   --zm-on-danger: #FBF6EA;
-  --zm-rim: #6E6A8A;
-  --zm-focus: #1B2233;
+  --zm-rim: #5E5A7A;
+  --zm-focus: #5C3B00;
   --zm-shadow: #BFAF8C;
   --zm-grid: #C9BC9F;
-  --zm-star: #8C7F66;
+  --zm-star: #857860;
   --zm-nebula-1: #EADFC6;
   --zm-nebula-2: #EEE4D0;
+  --zm-oro-100: #F6E2B0;
+  --zm-oro-200: #E9C46E;
+  --zm-oro-300: #A07612;
+  --zm-oro-400: #855A00;
+  --zm-oro-500: #7A4F00;
+  --zm-oro-600: #6B4500;
+  --zm-oro-700: #5C3B00;
+  --zm-veil: 0.88;
+  --zm-text-outline: var(--zm-frame);
+  --zm-title-glow: var(--zm-rim);
+  --zm-glow-suave: var(--zm-rim);
+  --zm-glow-suave-r: 6px;
+  --zm-glow-suave-o: 0.28;
+  --zm-glow-foco: var(--zm-oro-300);
+  --zm-glow-foco-r: 10px;
+  --zm-glow-foco-o: 0.46;
+  --zm-glow-hito: var(--zm-oro-300);
+  --zm-glow-hito-r: 12px;
+  --zm-glow-hito-o: 0.52;
   --zm-scheme: light;
 }
 /* end:day */
@@ -84,6 +122,25 @@
   --zm-star: #8A8A8A;
   --zm-nebula-1: #1C1C1C;
   --zm-nebula-2: #262626;
+  --zm-oro-100: #7A5516;
+  --zm-oro-200: #A87822;
+  --zm-oro-300: #D69C33;
+  --zm-oro-400: #F2BC55;
+  --zm-oro-500: #FFD27A;
+  --zm-oro-600: #FFE7AE;
+  --zm-oro-700: #FFF6DD;
+  --zm-veil: 1;
+  --zm-text-outline: var(--zm-sky);
+  --zm-title-glow: var(--zm-sky);
+  --zm-glow-suave: var(--zm-rim);
+  --zm-glow-suave-r: 0px;
+  --zm-glow-suave-o: 0;
+  --zm-glow-foco: var(--zm-oro-500);
+  --zm-glow-foco-r: 0px;
+  --zm-glow-foco-o: 0;
+  --zm-glow-hito: var(--zm-oro-500);
+  --zm-glow-hito-r: 0px;
+  --zm-glow-hito-o: 0;
   --zm-scheme: dark;
 }
 /* end:night-hc */
@@ -104,12 +161,31 @@
   --zm-danger: #7A1210;
   --zm-on-danger: #FFFFFF;
   --zm-rim: #000000;
-  --zm-focus: #000000;
+  --zm-focus: #5C3B00;
   --zm-shadow: #000000;
   --zm-grid: #BDBDBD;
-  --zm-star: #757575;
+  --zm-star: #6A6A6A;
   --zm-nebula-1: #EDEDED;
   --zm-nebula-2: #E3E3E3;
+  --zm-oro-100: #D9B354;
+  --zm-oro-200: #A9801C;
+  --zm-oro-300: #7F5C00;
+  --zm-oro-400: #5C3B00;
+  --zm-oro-500: #4F3200;
+  --zm-oro-600: #3F2800;
+  --zm-oro-700: #2E1D00;
+  --zm-veil: 1;
+  --zm-text-outline: var(--zm-sky);
+  --zm-title-glow: var(--zm-sky);
+  --zm-glow-suave: var(--zm-rim);
+  --zm-glow-suave-r: 0px;
+  --zm-glow-suave-o: 0;
+  --zm-glow-foco: var(--zm-oro-400);
+  --zm-glow-foco-r: 0px;
+  --zm-glow-foco-o: 0;
+  --zm-glow-hito: var(--zm-oro-400);
+  --zm-glow-hito-r: 0px;
+  --zm-glow-hito-o: 0;
   --zm-scheme: light;
 }
 /* end:day-hc */
@@ -117,15 +193,17 @@
 /* Follow the system only while the person has not picked a mode. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --zm-sky: #F3EAD7; --zm-frame: #FBF6EA; --zm-raised: #E9DDC2;
-    --zm-fg: #1B2233; --zm-fg-muted: #474E63;
-    --zm-gold: #7A4F00; --zm-on-gold: #FBF6EA;
-    --zm-romance: #A8342A; --zm-on-romance: #FBF6EA;
-    --zm-amistad: #1F6B57; --zm-on-amistad: #FBF6EA;
-    --zm-danger: #A3201B; --zm-on-danger: #FBF6EA;
-    --zm-rim: #6E6A8A; --zm-focus: #1B2233;
-    --zm-shadow: #BFAF8C; --zm-grid: #C9BC9F; --zm-star: #8C7F66;
-    --zm-nebula-1: #EADFC6; --zm-nebula-2: #EEE4D0;
+    --zm-sky: #F3EAD7; --zm-frame: #FBF6EA; --zm-raised: #E9DDC2; --zm-fg: #161C2B;
+    --zm-fg-muted: #3D4457; --zm-gold: #7A4F00; --zm-on-gold: #FBF6EA; --zm-romance: #A8342A;
+    --zm-on-romance: #FBF6EA; --zm-amistad: #1F6B57; --zm-on-amistad: #FBF6EA; --zm-danger: #A3201B;
+    --zm-on-danger: #FBF6EA; --zm-rim: #5E5A7A; --zm-focus: #5C3B00; --zm-shadow: #BFAF8C;
+    --zm-grid: #C9BC9F; --zm-star: #857860; --zm-nebula-1: #EADFC6; --zm-nebula-2: #EEE4D0;
+    --zm-oro-100: #F6E2B0; --zm-oro-200: #E9C46E; --zm-oro-300: #A07612; --zm-oro-400: #855A00;
+    --zm-oro-500: #7A4F00; --zm-oro-600: #6B4500; --zm-oro-700: #5C3B00;
+    --zm-veil: 0.88; --zm-text-outline: var(--zm-frame); --zm-title-glow: var(--zm-rim);
+    --zm-glow-suave: var(--zm-rim); --zm-glow-suave-r: 6px; --zm-glow-suave-o: 0.28;
+    --zm-glow-foco: var(--zm-oro-300); --zm-glow-foco-r: 10px; --zm-glow-foco-o: 0.46;
+    --zm-glow-hito: var(--zm-oro-300); --zm-glow-hito-r: 12px; --zm-glow-hito-o: 0.52;
     --zm-scheme: light;
   }
 }
@@ -143,6 +221,8 @@
   --zm-dur-enter: 240ms;
   --zm-dur-emphasis: 360ms;
   --zm-dur-reveal: 900ms;
+  --zm-dur-breath: 4800ms;
+  --zm-breath-low: 0.72;
   --zm-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --zm-ease-in: cubic-bezier(0.6, 0, 0.8, 0.2);
   --zm-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -216,6 +296,72 @@
   text-shadow: none;
 }
 
+/*
+ * Pixel titles (ADR-027): a hard 1-logical-pixel outline in 8 directions
+ * (--zm-text-outline, designed per mode: deep shadow at night, paper by day)
+ * plus a faint accent halo made of hard offsets at 2 logical pixels with low
+ * opacity. Zero blur radius everywhere; high contrast zeroes the halo.
+ */
+:root {
+  --zm-title-halo: color-mix(in srgb, var(--zm-title-glow) calc(var(--zm-glow-suave-o) * 100%), transparent);
+  --zm-outline-shadow:
+    var(--zm-px) 0 0 var(--zm-text-outline),
+    calc(var(--zm-px) * -1) 0 0 var(--zm-text-outline),
+    0 var(--zm-px) 0 var(--zm-text-outline),
+    0 calc(var(--zm-px) * -1) 0 var(--zm-text-outline),
+    var(--zm-px) var(--zm-px) 0 var(--zm-text-outline),
+    calc(var(--zm-px) * -1) var(--zm-px) 0 var(--zm-text-outline),
+    var(--zm-px) calc(var(--zm-px) * -1) 0 var(--zm-text-outline),
+    calc(var(--zm-px) * -1) calc(var(--zm-px) * -1) 0 var(--zm-text-outline);
+  --zm-title-shadow:
+    var(--zm-outline-shadow),
+    calc(var(--zm-px) * 2) 0 0 var(--zm-title-halo),
+    calc(var(--zm-px) * -2) 0 0 var(--zm-title-halo),
+    0 calc(var(--zm-px) * 2) 0 var(--zm-title-halo),
+    0 calc(var(--zm-px) * -2) 0 var(--zm-title-halo);
+}
+
+.zm-pixel-title,
+.zm-frame__title,
+.zm-dialog__title,
+.zm-entry__title,
+.zm-reveal__title,
+.zm-onboarding__title,
+.zm-settings__title,
+.zm-evidence__h,
+.zm-card__h,
+.zm-card__alias,
+.zm-result__alias,
+.zm-state__title {
+  color: var(--zm-fg);
+  text-shadow: var(--zm-title-shadow);
+}
+
+/*
+ * Veil behind long copy that sits on the sky: a hard-edged sky-coloured
+ * plate at --zm-veil opacity, so no star passes behind the glyphs (fg on a
+ * bright star: 2.90 → 11.44 at night). Long reading always uses --font-read.
+ */
+.zm-veil,
+.zm-entry__promise,
+.zm-quiz__prompt,
+.zm-quiz__hint,
+.zm-quiz__breath,
+.zm-likert__current,
+.zm-reveal__seen,
+.zm-reveal__note,
+.zm-result__fine,
+.zm-canvas__status,
+.zm-evidence p {
+  font-family: var(--font-read);
+  background: color-mix(in srgb, var(--zm-sky) calc(var(--zm-veil) * 100%), transparent);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+/* Framed surfaces already isolate their copy. */
+.zm-box :is(.zm-veil, .zm-quiz__hint, .zm-likert__current, .zm-reveal__note, .zm-result__fine, .zm-evidence p),
+.zm-box.zm-veil { background: transparent; }
+
 .zm-pixel-type {
   font-family: var(--font-pixel);
   font-weight: 500;
@@ -251,7 +397,7 @@
   content: "";
   pointer-events: none;
   background: var(--box-fill);
-  box-shadow: inset 0 0 0 var(--zm-px) var(--box-rim);
+  box-shadow: inset 0 0 0 var(--zm-rim-width, var(--zm-px)) var(--box-rim);
   clip-path: polygon(
     0 var(--zm-step), var(--zm-step) var(--zm-step), var(--zm-step) 0,
     calc(100% - var(--zm-step)) 0, calc(100% - var(--zm-step)) var(--zm-step), 100% var(--zm-step),
@@ -324,9 +470,16 @@
 .zm-dither-50 { mask-image: var(--zm-dither-50); }
 .zm-dither-75 { mask-image: var(--zm-dither-75); }
 
-/* ─── Focus ───────────────────────────────────────────────── */
+/* ─── High contrast: no halos, no glows, thicker borders ────── */
+[data-theme="night-hc"],
+[data-theme="day-hc"] {
+  --zm-rim-width: calc(var(--zm-px) * 2);
+  --zm-focus-width: calc(var(--zm-px) * 2);
+}
+
+/* ─── Focus (gold ring in every mode; dark gold by day) ──────── */
 .zm-root :focus-visible {
-  outline: var(--zm-px) solid var(--zm-focus);
+  outline: var(--zm-focus-width, var(--zm-px)) solid var(--zm-focus);
   outline-offset: calc(var(--zm-px) * 2);
 }
 
@@ -365,6 +518,19 @@
   50%, 100% { opacity: 0.25; }
 }
 
+/* Slow, low-amplitude breath for the one priority element (ADR-027). */
+@keyframes zm-breath {
+  from { opacity: 1; }
+  to { opacity: var(--zm-breath-low); }
+}
+.zm-breath {
+  animation: zm-breath var(--zm-dur-breath) var(--zm-ease-in-out) infinite alternate;
+}
+[data-theme="night-hc"] .zm-breath,
+[data-theme="day-hc"] .zm-breath {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .zm-root *,
   .zm-root *::before,
@@ -373,4 +539,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  .zm-breath { animation: none; }
 }

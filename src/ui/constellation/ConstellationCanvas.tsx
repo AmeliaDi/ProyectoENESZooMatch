@@ -53,14 +53,16 @@ import {
   type World,
 } from "@/domain/constellation";
 import { mulberry32 } from "@/domain/shared";
+
 import { Button, IconButton } from "@/ui/kit/button";
 
 import { buildNodeMeta, structureFromWorld, toSceneMatches } from "./build-structure";
-import { GLOW_PATTERN_ID, RADIANT_PATTERN_ID } from "./glow";
+import { GlowDefs } from "./GlowDefs";
 import { useElementSize } from "./hooks";
 import {
   GHOST_ANIMAL_ID,
   GHOST_COLOR_ID,
+  EDGE_LIT_BOOST,
   LINE_DASH,
   ROMANCE_SPRITE_THRESHOLD,
   SIZE_DEBOUNCE_MS,
@@ -77,6 +79,8 @@ import type { CanvasMetrics, ConstellationCanvasProps, ConstellationStructure } 
 
 const ZOOM_STEP = 1.25;
 const METRICS_WINDOW_MS = 500;
+/** Lit / hovered lines get one unit thicker. */
+const LIT_STROKE_EXTRA = 1;
 
 interface DragState {
   kind: "node";
@@ -688,6 +692,16 @@ function ConstellationCanvasImpl({
   // ─── Highlight ────────────────────────────────────────────────────────────
   const activeId = selectedNodeId ?? focusId ?? hoverId;
   const ringId = focusId ?? selectedNodeId;
+  // Only one element breathes: your star while nothing is in focus; if your
+  // star is not on the canvas (track switch), the top match. Focus / selection
+  // pause it so the ring is the one thing that moves the eye.
+  const breathId = useMemo(() => {
+    if (!structure || activeId !== null || reducedMotion) return null;
+    const self = structure.nodes.find((node) => node.isSelf && !node.isLeaving);
+    if (self) return self.id;
+    const top = structure.nodes.find((node) => node.radiant);
+    return top?.id ?? null;
+  }, [structure, activeId, reducedMotion]);
   const focusSet = useMemo(() => {
     const set = new Set<string>();
     if (!structure || !activeId) return set;
@@ -732,17 +746,8 @@ function ConstellationCanvasImpl({
             onPointerCancel={(event) => handlePointerEnd(event, true)}
             onDragStart={(event) => event.preventDefault()}
           >
-            <defs>
-              {/* One shared 50 % Bayer pattern for every glow: no per-star mask. */}
-              <pattern id={GLOW_PATTERN_ID} width={2} height={2} patternUnits="userSpaceOnUse">
-                <rect width={1} height={1} fill="currentColor" />
-                <rect x={1} y={1} width={1} height={1} fill="currentColor" />
-              </pattern>
-              <pattern id={RADIANT_PATTERN_ID} width={2} height={2} patternUnits="userSpaceOnUse">
-                <rect width={1} height={1} className="zm-canvas__radiant-dot" />
-                <rect x={1} y={1} width={1} height={1} className="zm-canvas__radiant-dot" />
-              </pattern>
-            </defs>
+            {/* Pre-rendered Bayer halos: three affinity steps plus the two gold ones. */}
+            <GlowDefs />
             <g ref={skyRef}>
               {/* ── Group figures ── */}
               <g aria-hidden="true" fill="none">
@@ -766,10 +771,9 @@ function ConstellationCanvasImpl({
                     <line
                       key={edge.key}
                       data-line-key={edge.key}
-                      className={edge.radiant ? "zm-canvas__line--radiant" : undefined}
-                      stroke={edge.color}
-                      strokeWidth={lit ? edge.width + 1 : edge.width}
-                      strokeOpacity={lit ? Math.min(1, edge.opacity + 0.25) : edge.opacity}
+                      className={edge.radiant ? "zm-canvas__line zm-canvas__line--radiant" : "zm-canvas__line"}
+                      strokeWidth={lit ? edge.width + LIT_STROKE_EXTRA : edge.width}
+                      strokeOpacity={lit ? Math.min(1, edge.opacity + EDGE_LIT_BOOST) : edge.opacity}
                       strokeDasharray={`${LINE_DASH[0]} ${LINE_DASH[1]}`}
                     />
                   );
@@ -804,6 +808,7 @@ function ConstellationCanvasImpl({
                       happy={!romance && (focusSet.has(node.id) || happyIds.has(node.id))}
                       dimmed={activeId !== null && interactive && !node.isSelf && !focusSet.has(node.id)}
                       ringed={ringId === node.id}
+                      breathing={breathId === node.id}
                       showTag={interactive && (node.isSelf || node.id === activeId)}
                       reducedMotion={reducedMotion}
                       flatGlow={structure.nodes.length > cfg.scene.denseSkyStars}
