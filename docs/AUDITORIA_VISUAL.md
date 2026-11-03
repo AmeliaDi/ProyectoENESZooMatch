@@ -412,3 +412,102 @@ Comparación en `/dev/numeros`. Decisión (ADR-028):
 
 Pendiente de revisión humana: la inspección visual a 12–32 px en un navegador real (este pase
 midió contraste y geometría, no capturas).
+
+## Después (Fases 3–5)
+
+- Fecha: 2026-11-03, producción (`af7d906`). ADR-030 (perfil de afinidades). Scripts de
+  medición en `.qa/` (no versionados): `bundle-measure.mjs`, `physics-bench.ts`,
+  `gold-estimate.ts`, `css-audit.mjs`, `lcp.mjs`.
+- No hay capturas: este pase mide (CDP, geometría, bundles), no sustituye la revisión a ojo.
+
+### E.1 Antes/después anti-genérico por pantalla
+
+| Pantalla | Antes | Ahora | Por qué no parece plantilla |
+|---|---|---|---|
+| Resultado / constelación | Sin guía; % global y explicación | Guía de 4 pasos anclada abajo (no modal, `pointer-events: none` fuera de la tarjeta), atenuado con Bayer 25 % y hueco sobre el elemento, mano pixel de 3 fotogramas con `steps()`; botón `?` para reabrirla | No hay tour de burbujas redondeadas ni overlay negro con blur: el atenuado es tramado y el halo es un contorno duro dorado |
+| Detalle de un nodo | Explicación + badges | + «Por capa» (líneas pixel cuyo grosor 1–3 es la contribución real; dorado solo en la más fuerte) y «Lo que eligió compartir» (bandas en palabras) | Sin barras de progreso redondeadas ni radar genérico: líneas de constelación de 1–3 px lógicos |
+| Tu carta | Barras por escala | HEXACO como hexágono de seis estrellas con tramo de incertidumbre, chips para leer cada rasgo y tabla alternativa; placa de eneagrama con «aún afinando»; «Cómo leer esto» / «Qué no sabemos todavía» | No es un radar chart de librería: retícula de 64 celdas, coordenadas enteras, `crispEdges` |
+| Ajustes | Pausa, detalle del ala, borrar | + «Lo que compartes»: 8 interruptores con casilla pixel, todos apagados por defecto | Interruptores como cajas de 1 px lógico con relleno sólido, sin toggles tipo iOS |
+
+### E.2 Superficie dorada (medida)
+
+Método: escena real (`buildScene` + `settle`) en 390×844 con las constantes de render; halos
+como discos Bayer 75 % menos la parte opaca del sprite (70,9 % de la rejilla en promedio).
+
+| Pantalla / escenario | Dorado geométrico | % del viewport | Ponderado por opacidad |
+|---|---|---|---|
+| Resultado, 12 matches reales (ninguno ≥ 95 %) | halo del nodo propio | **0,63 %** | 0,32 % |
+| Resultado, 1 match ≥ 95 % | + halo hito, corona, destellos, %, línea | **1,24 %** | 0,69 % |
+| Resultado, 3 matches ≥ 95 % | — | **2,47 %** | 1,43 % |
+| Carta, una estrella HEXACO elegida | estrella + borde de la chip | **0,22 %** | — |
+| Detalle, línea más fuerte | 96 × 4–12 px | **0,16–0,35 %** | — |
+
+El máximo medido es ≈ 2,5 %, muy por debajo del 10 % acordado. Nota: con la calibración
+estricta (ADR-022) las afinidades reales rondan el 46–59 %, así que el brillo de ≥ 95 % es
+excepcional por diseño; la regla no se cambió.
+
+### E.3 Coherencia del píxel lógico
+
+| Hallazgo | Estado |
+|---|---|
+| `border-radius`, `blur(`, `radial-gradient` en `src/app/*.css` | 0 casos |
+| `linear-gradient` | 5, todos duros (color sólido o paradas repetidas) |
+| `stroke-width: 3px` en las etiquetas del lienzo (`screens.css:327, 329`) | **Corregido** a `calc(var(--zm-px) * 2)`: con `paint-order: stroke` quedan exactamente 2 px visibles |
+| Escala de sprite 2,4× en el lienzo (4,2 y 2,4 px por píxel) y trazos 1,5 de corona | Pendiente: el lienzo vive en unidades del mundo con zoom continuo, así que no hay escala entera estable; un cambio afectaría la física de colisión (radio) |
+| `min-height` en `em` (3 casos) | Aceptado: depende del texto |
+
+### E.4 Rendimiento
+
+**Bundle (gzip, `zlib`, JS eager por ruta, Turbopack):**
+
+| Ruta | Antes | Ahora | Cambio |
+|---|---|---|---|
+| `/` | 243,2 KB | **202,5 KB** | −40,7 |
+| `/cuestionario` | 242,7 KB | 236,2 KB | −6,5 |
+| `/resultado` | 248,1 KB (+22,7 diferido) | **232,1 KB** (+lienzo diferido) | −16,0 |
+| `/perfil` | 245,6 KB | 239,3 KB | −6,3 |
+| `/ajustes` | 240,2 KB | **199,3 KB** | −40,9 |
+| `/chats` | 231,7 KB | **185,5 KB** | −46,2 |
+
+Causa: el layout importaba `THEME_MODES` desde el barrel `@/config`, y como el paquete no
+declaraba `sideEffects`, todos los JSON validados con zod viajaban en un chunk compartido de
+82,6 KB gzip. Ahora `THEME_MODES` vive en `src/config/theme-modes.ts` (sin dependencias) y
+`package.json` declara `"sideEffects": ["*.css"]`. El chunk compartido bajó a 32 KB y cada
+ruta carga solo la configuración que usa. El lienzo sigue con `dynamic(..., { ssr: false })`.
+
+**LCP / CLS** (Edge headless por CDP, 390×844 a DPR 3, 150 ms RTT, 1,6 Mbps de bajada, CPU ×4,
+caché vacía, mediana de 3, producción):
+
+| Ruta | FCP | LCP | CLS | Transferido |
+|---|---|---|---|---|
+| `/` | 892 ms | **892 ms** | 0,000 | 325 KB |
+| `/evidencia` | 924 ms | 924 ms | 0,000 | 318 KB |
+| `/ajustes` | 976 ms | 976 ms | 0,000 | 391 KB |
+| `/perfil` (con sesión) | 868 ms | **868 ms** | 0,000 | 346 KB |
+| `/resultado` (con sesión) | 872 ms | **872 ms** | 0,000 | 437 KB |
+
+Todas por debajo de 2,5 s. Con una cuenta recién creada, el LCP de `/resultado` lo marcaba el
+aviso de bienvenida (toast, ~2,9 s), no el contenido. Ese aviso y la guía compartían la
+esquina inferior; ahora, mientras la guía está abierta, los avisos suben arriba
+(`coach.css`).
+
+**Física** (`src/domain/constellation`, 120 Hz fijos = 2 pasos por frame a 60 fps; CPU de
+escritorio, no móvil):
+
+| Nodos | ms/paso (media / p95) | % de 16,7 ms (2 pasos) |
+|---|---|---|
+| 50 | 0,48 / 0,81 (entrada) · 0,11 / 0,12 (reposo) | 5,8 % · 1,3 % |
+| 100 | 2,69 / 2,96 | 32 % |
+| 120 | 3,33 / 3,60 | 40 % |
+
+Producción limita a 24 matches reales (más 8 de relleno), así que el caso real está muy por
+debajo de 50 nodos. Con 100–120 nodos en un móvil de gama media no está garantizado llegar a
+60 fps (meta acordada: > 30 fps). `buildScene` con 100–120 nodos es una tarea de 36–62 ms que
+solo se ejecuta una vez.
+
+### E.5 Pendientes
+
+- Revisión a ojo en un móvil real (sin capturas en este entorno).
+- Escala entera de los sprites en el lienzo (ver E.3).
+- Si algún día sube el tope de matches por encima de ~50: reducir iteraciones de proyección o
+  la frecuencia de paso con muchos nodos.

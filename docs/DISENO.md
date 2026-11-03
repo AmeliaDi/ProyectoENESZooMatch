@@ -633,6 +633,23 @@ esquema), sin respiración y con bordes de caja y foco de 2 px lógicos.
   barras y tablas del admin, umbrales, contadores y la etiqueta % del lienzo.
 - Comparación visual en `/dev/numeros` (A, B y C a 12/14/16/24/32 px, claro y oscuro).
 
+### 7.10 Perfil de afinidades y guía rápida (ADR-030)
+
+- **HEXACO** como hexágono de seis estrellas (`hexaco-geometry.ts`): retícula de 64
+  celdas, coordenadas enteras, estrella de 3×3 en la estimación y tramo tenue (`rim` al
+  38 %) para la banda ±1·SE. La estrella elegida es la única dorada. Tabla alternativa
+  plegable y descripción en `figcaption` para lectores de pantalla.
+- **Detalle de un nodo:** «Por capa» con líneas de 1–3 px lógicos (grosor = contribución
+  real), dorado solo en la más fuerte; «Lo que eligió compartir» en palabras.
+- **Ajustes → Lo que compartes:** casillas de 6 px lógicos con borde de 1 px; rellenas
+  cuando la capa se comparte. Todo apagado por defecto.
+- **Guía rápida** (`src/ui/coach/`): tarjeta anclada abajo en móvil, tooltip mínimo en
+  escritorio, atenuado Bayer 25 % con hueco por `clip-path`, halo = contorno dorado duro,
+  mano pixel con `steps()`. Sin animación con `prefers-reduced-motion`. Mientras está
+  abierta, los avisos suben al borde superior.
+- **Superficie dorada medida:** 0,6–2,5 % del viewport en el resultado (ver
+  `docs/AUDITORIA_VISUAL.md` §E.2).
+
 ## Anexo: verificación de licencias tipográficas
 
 Verificadas el 2026-10-31 en `github.com/google/fonts` (`ofl/<familia>/METADATA.pb`

@@ -153,3 +153,6 @@
   .zm-coach-finger__grab--moving { animation: none; }
   .zm-coach-halo { transition: none; }
 }
+
+/* While the guide card sits at the bottom, toasts move to the top so neither hides the other. */
+body:has(.zm-coach-card) .zm-toast-region { top: calc(var(--zm-px) * 8); bottom: auto; }
