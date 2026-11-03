@@ -10,7 +10,7 @@ import { memo, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as Re
 
 import { GLOW_PATTERN_ID } from "./glow";
 import { PixelAnimal } from "./PixelAnimal";
-import { HIT_RADIUS_PADDING, round2 } from "./render-helpers";
+import { affinityLabelY, HIT_RADIUS_PADDING, round2 } from "./render-helpers";
 import { OrbitingHearts } from "./RomanceHearts";
 import type { RenderNode } from "./types";
 
@@ -97,6 +97,17 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, showTag, reducedMo
             opacity={1}
           />
           {romance ? <OrbitingHearts size={node.displaySize} animated={!reducedMotion} /> : null}
+          {interactive && node.affinityLabel ? (
+            <text
+              y={round2(affinityLabelY(node.displaySize, romance))}
+              textAnchor="middle"
+              className="zm-canvas__affinity"
+              fontSize={9}
+              aria-hidden="true"
+            >
+              {node.affinityLabel}
+            </text>
+          ) : null}
         </g>
         <circle r={node.radius + HIT_RADIUS_PADDING} fill="transparent" style={{ pointerEvents: interactive ? "all" : "none" }} />
         {showTag && node.alias ? (

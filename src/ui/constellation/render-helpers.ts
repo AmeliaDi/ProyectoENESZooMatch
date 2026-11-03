@@ -24,6 +24,17 @@ export const SPRITE_SIZE_FACTOR = 2.4;
 /** Minimum pointer/touch target radius padding, in world units (≥ 44 px targets). */
 export const HIT_RADIUS_PADDING = 8;
 
+/** Gap (user units) between the sprite top, or its orbiting hearts, and the affinity label. */
+export const AFFINITY_LABEL_GAP = 5;
+/** Hearts orbit this fraction of the sprite size above it (see `OrbitingHearts`). */
+export const HEART_LIFT_RATIO = 0.42;
+
+/** `y` of the affinity label baseline, relative to the node centre. */
+export function affinityLabelY(displaySize: number, romance: boolean): number {
+  const top = -displaySize / 2 - (romance ? displaySize * HEART_LIFT_RATIO : 0);
+  return top - AFFINITY_LABEL_GAP;
+}
+
 /** Idle sprite frame period, in milliseconds (2-frame blink loop). */
 export const IDLE_FRAME_INTERVAL_MS = 600;
 

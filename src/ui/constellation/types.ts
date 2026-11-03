@@ -265,6 +265,8 @@ export interface RenderNode {
   colorId: string;
   colorHex: string;
   alias: string;
+  /** Small visible affinity (`"87%"`) for real matches; `null` for you and ghosts. */
+  affinityLabel: string | null;
   /** Fully-formed es-MX accessible name. */
   ariaLabel: string;
   /** 0-1 body opacity, scaled by similarity for real matches. */

@@ -308,6 +308,7 @@
   gap: calc(var(--zm-px) * 2);
 }
 .zm-canvas__tag { pointer-events: none; fill: var(--zm-fg); font-family: var(--font-pixel); }
+.zm-canvas__affinity { pointer-events: none; fill: var(--zm-fg); font-family: var(--font-pixel); stroke: var(--zm-sky); stroke-width: 3px; stroke-linejoin: miter; paint-order: stroke; }
 .zm-canvas__overlay { position: absolute; inset: 0; display: grid; place-items: center; }
 .zm-canvas__status { color: var(--zm-fg-muted); font-family: var(--font-pixel); font-size: 0.875rem; }
 .zm-canvas__empty { position: absolute; inset: auto 0 calc(var(--zm-px) * 8); display: flex; justify-content: center; padding: 0 calc(var(--zm-px) * 8); pointer-events: none; }

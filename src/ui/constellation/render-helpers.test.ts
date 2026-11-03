@@ -9,6 +9,7 @@ import type { CompatibilityBadge } from "@/types/microtest";
 
 import {
   BADGE_LIMITS,
+  affinityLabelY,
   GHOST_ANIMAL_ID,
   GHOST_COLOR_ID,
   GHOST_OPACITY,
@@ -318,5 +319,14 @@ describe("matchesForTrack", () => {
     matchesForTrack(input, "romance", ROMANCE_THRESHOLD);
     expect(input).toHaveLength(matches.length);
     expect(input.map((match) => match.id)).toEqual(matches.map((match) => match.id));
+  });
+});
+
+describe("affinityLabelY", () => {
+  it("sits above the sprite, and above the hearts in romance", () => {
+    const plain = affinityLabelY(40, false);
+    const withHearts = affinityLabelY(40, true);
+    expect(plain).toBeLessThan(-20);
+    expect(withHearts).toBeLessThan(plain);
   });
 });

@@ -10,6 +10,7 @@
 import { HEART_COLOR } from "@/domain/avatars/pixel-sprites";
 
 import { PixelAnimal } from "./PixelAnimal";
+import { HEART_LIFT_RATIO } from "./render-helpers";
 import type { SpriteMark } from "./types";
 
 const HEART_CELLS: ReadonlyArray<readonly [number, number]> = [
@@ -68,7 +69,7 @@ export function OrbitingHearts({
   animated?: boolean;
 }) {
   return (
-    <g aria-hidden="true" transform={`translate(${-size / 2} ${-size / 2 - size * 0.42})`}>
+    <g aria-hidden="true" transform={`translate(${-size / 2} ${-size / 2 - size * HEART_LIFT_RATIO})`}>
       <PixelHeart
         size={2.6}
         color="#FF6B6B"

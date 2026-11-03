@@ -158,6 +158,18 @@ describe("structureFromWorld", () => {
     expect(match?.ariaLabel).toMatch(/^Lobito azul zafiro, \d{2} % de afinidad estimada en romance$/);
   });
 
+  it("labels only real matches with their rounded affinity", () => {
+    for (const node of structure.nodes) {
+      if (node.isSelf || node.isGhost) {
+        expect(node.affinityLabel).toBeNull();
+        continue;
+      }
+      const similarity = meta.get(node.id)!.similarity;
+      expect(node.affinityLabel).toBe(`${Math.round(similarity * 100)}%`);
+      expect(node.ariaLabel).toContain(`${Math.round(similarity * 100)} %`);
+    }
+  });
+
   it("scales match brightness with similarity", () => {
     for (const node of structure.nodes) {
       if (node.isSelf || node.isGhost) continue;
