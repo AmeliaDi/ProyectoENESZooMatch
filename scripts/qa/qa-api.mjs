@@ -68,6 +68,9 @@ for (const s of [a, b]) {
   const r = await post("/api/quiz", { likert: likert(2), filters }, s.cookie);
   row("quiz completo", r.status, r.status === 200);
 }
+const firstAlias = (await (await post("/api/quiz", { likert: likert(0), filters }, a.cookie)).json()).profile?.alias;
+const retake = (await (await post("/api/quiz", { likert: likert(2), filters }, a.cookie)).json()).profile?.alias;
+row("alias fijo al rehacer el test (ADR-024)", retake === firstAlias ? "igual" : "cambió", Boolean(firstAlias) && retake === firstAlias);
 const get = (p, s) => fetch(BASE + p, { headers: { cookie: s.cookie } });
 const res = await get("/api/result", a);
 const resJson = await res.json();
