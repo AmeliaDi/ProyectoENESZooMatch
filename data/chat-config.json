@@ -31,22 +31,24 @@
   },
   "addressGuard": { "limit": 30, "windowSeconds": 600, "lockSeconds": 900 },
   "conversation": {
-    "rounds": {
-      "romance": [
-        "¿Qué plan pequeño te alegra una semana pesada?",
-        "¿Qué te hace sentir en confianza con alguien?",
-        "¿Qué te gustaría que alguien supiera de ti desde el principio?"
-      ],
-      "amistad": [
-        "¿Qué te gusta hacer en un hueco entre clases?",
-        "¿De qué tema podrías platicar por horas?",
-        "¿Cómo es para ti una buena amistad?"
-      ]
-    },
-    "answerChars": 280,
-    "messageChars": 800,
-    "messagesPage": 200,
+    "answerChars": 300,
+    "messageChars": 300,
+    "customQuestionChars": 200,
+    "messagesPage": 50,
     "pollSeconds": 8,
-    "inboxPollSeconds": 30
+    "pollMaxSeconds": 60,
+    "inboxPollSeconds": 30,
+    "signals": { "expireDays": 7, "maxOpen": 5, "cooldownDays": 14 },
+    "rounds": {
+      "minForFree": 3,
+      "suggestions": 3,
+      "revealHours": 48,
+      "levelFromRound": [0, 2, 4],
+      "maxRounds": 60
+    },
+    "limits": { "messagesPerMinute": 8, "messagesPerDay": 300, "repeatWindow": 3 },
+    "retention": { "messageDays": 30, "inactiveDays": 30 },
+    "reactions": ["❤️", "😂", "😮", "🤗", "✨", "👏"],
+    "reportSnapshot": 20
   }
 }

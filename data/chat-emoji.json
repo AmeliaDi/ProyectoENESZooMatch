@@ -1,0 +1,77 @@
+{
+  "version": "chat-emoji-1",
+  "fuente": "Emojis Unicode del sistema (docs/CHAT.md §12.6). Nombres en es-MX para búsqueda y lectores de pantalla.",
+  "recentes_max": 8,
+  "grupos": [
+    {
+      "id": "caras",
+      "nombre": "Caras",
+      "emojis": [
+        ["😀", "cara feliz", "sonrisa alegre"],
+        ["😂", "risa con lágrimas", "carcajada jaja"],
+        ["🥹", "cara conmovida", "ternura"],
+        ["😊", "sonrisa tímida", "sonrojo"],
+        ["😉", "guiño", "complicidad"],
+        ["😍", "ojos de corazón", "me encanta"],
+        ["🥰", "cara con corazones", "cariño"],
+        ["😌", "cara tranquila", "calma alivio"],
+        ["🤔", "cara pensativa", "pensar duda"],
+        ["😮", "sorpresa", "asombro wow"],
+        ["😅", "risa nerviosa", "sudor"],
+        ["🙃", "cara al revés", "ironía"],
+        ["😴", "cara dormida", "sueño cansancio"],
+        ["🤓", "cara de estudio", "nerd lentes"],
+        ["😎", "lentes de sol", "cool"],
+        ["🥲", "sonrisa con lágrima", "agridulce"],
+        ["😢", "cara triste", "lágrima"],
+        ["🫶", "manos de corazón", "cariño"]
+      ]
+    },
+    {
+      "id": "gestos",
+      "nombre": "Gestos",
+      "emojis": [
+        ["👍", "pulgar arriba", "bien ok"],
+        ["👏", "aplausos", "bravo"],
+        ["🙌", "manos arriba", "celebrar"],
+        ["🤗", "abrazo", "amistad cariño"],
+        ["🙏", "manos juntas", "gracias por favor"],
+        ["✌️", "amor y paz", "victoria"],
+        ["🤝", "apretón de manos", "trato acuerdo"],
+        ["👋", "mano saludando", "hola adiós"]
+      ]
+    },
+    {
+      "id": "corazones",
+      "nombre": "Corazones",
+      "emojis": [
+        ["❤️", "corazón rojo", "amor"],
+        ["🧡", "corazón naranja", "cariño"],
+        ["💛", "corazón amarillo", "amistad"],
+        ["💚", "corazón verde", "calma"],
+        ["💙", "corazón azul", "confianza"],
+        ["💜", "corazón morado", "ternura"],
+        ["✨", "destellos", "brillo estrellas"],
+        ["🌟", "estrella brillante", "estrella"]
+      ]
+    },
+    {
+      "id": "campus",
+      "nombre": "Campus y planes",
+      "emojis": [
+        ["📚", "libros", "estudiar clase"],
+        ["☕", "café", "cafecito"],
+        ["🎧", "audífonos", "música"],
+        ["🎮", "control de videojuego", "gaming jugar"],
+        ["🎨", "paleta de pintura", "arte dibujo"],
+        ["🌮", "taco", "comida"],
+        ["🍕", "pizza", "comida"],
+        ["🌳", "árbol", "naturaleza islas"],
+        ["⚽", "balón de futbol", "deporte"],
+        ["🎬", "claqueta de cine", "película serie"],
+        ["🐾", "huellas", "animal mascota"],
+        ["🌙", "luna", "noche"]
+      ]
+    }
+  ]
+}

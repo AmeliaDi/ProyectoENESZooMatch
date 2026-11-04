@@ -1,0 +1,1223 @@
+{
+  "version": "chat-prompts-1",
+  "etiqueta": "supuesto_diseno",
+  "fuente": "Banco propio para romper el hielo (docs/CHAT.md §11). No es un instrumento psicométrico ni alimenta el modelo.",
+  "preguntas": [
+    {
+      "id": "p001",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "humor",
+      "texto": "¿Qué meme o chiste interno te sigue haciendo reír aunque ya te lo sepas?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": [
+        "¿Qué meme te sigue haciendo reír?"
+      ]
+    },
+    {
+      "id": "p002",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué canción te regresa a un momento exacto de tu vida?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p003",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Qué rutina pequeña te hace sentir en casa?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p004",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "campus",
+      "texto": "¿Cuál es tu rincón favorito del campus para respirar un rato?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": [
+        "¿Tu rincón favorito del campus?"
+      ]
+    },
+    {
+      "id": "p005",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué comida te levanta el ánimo en un día gris?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p006",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "curiosidad",
+      "texto": "¿Sobre qué tema podrías ver videos durante horas sin aburrirte?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p007",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "humor",
+      "texto": "¿Cuál es la idea más absurda y divertida que se te ocurrió últimamente?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p008",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Eres más de mañanas tranquilas o de noches con energía?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p009",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué película o serie le recomendarías a todo el mundo?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": [
+        "¿Qué serie recomiendas siempre?"
+      ]
+    },
+    {
+      "id": "p010",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "campus",
+      "texto": "¿Qué plan entre clases te salva el día?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p011",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "curiosidad",
+      "texto": "¿Qué te gustaría aprender este semestre por puro gusto?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p012",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué juego, de mesa o digital, saca tu lado competitivo?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p013",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "humor",
+      "texto": "¿Qué frase dices tanto que ya es parte de tu personalidad?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p014",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Cómo se ve tu domingo ideal?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p015",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué olor te transporta a otro lugar?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p016",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "curiosidad",
+      "texto": "Si pudieras hablar otro idioma mañana, ¿cuál elegirías y por qué?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p017",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "campus",
+      "texto": "¿Qué es lo más curioso que has visto en un día normal de clases?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p018",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué artista descubriste hace poco y no dejas de escuchar?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p019",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "humor",
+      "texto": "¿Qué emoji usas más y qué dice eso de ti?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p020",
+      "track": "ambos",
+      "nivel": 1,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Qué gustito te das cuando terminas algo difícil?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a001",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "campus",
+      "texto": "¿Qué te gusta hacer en un hueco entre clases?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a002",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué plan te late para una tarde sin pendientes?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a003",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "humor",
+      "texto": "¿Cuál es tu talento más inútil, pero divertido?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a004",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "curiosidad",
+      "texto": "¿De qué tema podrías platicar por horas?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a005",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Prefieres planes con mucha gente o con pocas personas?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a006",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué botana no puede faltar en un maratón de series?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a007",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "campus",
+      "texto": "¿Qué actividad del campus te gustaría probar en compañía?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a008",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "humor",
+      "texto": "¿Qué te hace reír aunque no deberías?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a009",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué videojuego, libro o cómic te gustaría compartir con alguien?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a010",
+      "track": "amistad",
+      "nivel": 1,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Qué pasatiempo retomarías si tuvieras más tiempo?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r001",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Cómo sería para ti una primera cita sin nervios?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r002",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Qué plan pequeño te alegra una semana pesada?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r003",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué canción pondrías en una caminata al atardecer?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r004",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "humor",
+      "texto": "¿Qué detalle chiquito te saca una sonrisa sin esfuerzo?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r005",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "curiosidad",
+      "texto": "¿Qué lugar te gustaría descubrir en compañía?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r006",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Café, té, chocolate o algo más para una plática larga?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r007",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Eres más de planes improvisados o de planes con calma?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r008",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "humor",
+      "texto": "¿Cuál es tu frase favorita para romper el hielo?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r009",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "gustos",
+      "texto": "¿Qué película verías en una tarde de lluvia?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r010",
+      "track": "romance",
+      "nivel": 1,
+      "categoria": "campus",
+      "texto": "¿Qué rincón del campus te parece ideal para platicar?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p021",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "valores",
+      "texto": "¿Qué cosa pequeña dice mucho de una persona para ti?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p022",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "comunicacion",
+      "texto": "¿Cómo prefieres que te digan algo que no te gustó?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p023",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "suenos",
+      "texto": "¿Qué te gustaría estar haciendo dentro de cinco años, si todo sale bien?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p024",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "curiosidad",
+      "texto": "¿Qué idea te cambió la forma de ver algo?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p025",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "valores",
+      "texto": "¿Qué te hace sentir en confianza con alguien?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p026",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Cómo recargas energía después de una semana intensa?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p027",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "comunicacion",
+      "texto": "¿Prefieres platicar por mensajes largos, por audios o en persona?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p028",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "suenos",
+      "texto": "¿Qué proyecto personal te emociona aunque nadie lo sepa todavía?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p029",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "valores",
+      "texto": "¿Qué te mueve a echarle la mano a alguien?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p030",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "curiosidad",
+      "texto": "¿Qué pregunta te gustaría que te hicieran más seguido?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p031",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "comunicacion",
+      "texto": "¿Qué haces cuando necesitas tiempo para ti?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p032",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "gustos",
+      "texto": "¿Qué libro, canción o película te acompañó en una etapa importante?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p033",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Qué hábito nuevo te ha hecho bien este año?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p034",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "humor",
+      "texto": "¿Cuál ha sido el malentendido más divertido que te ha pasado?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p035",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "valores",
+      "texto": "¿Qué aprendiste de alguien a quien admiras?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p036",
+      "track": "ambos",
+      "nivel": 2,
+      "categoria": "suenos",
+      "texto": "Si tuvieras un año libre, ¿qué harías con él?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a011",
+      "track": "amistad",
+      "nivel": 2,
+      "categoria": "valores",
+      "texto": "¿Cómo es para ti una buena amistad?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a012",
+      "track": "amistad",
+      "nivel": 2,
+      "categoria": "comunicacion",
+      "texto": "¿Cómo te gusta que te apoyen cuando tienes un mal día?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a013",
+      "track": "amistad",
+      "nivel": 2,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Cada cuánto te gusta ver a tus amistades cercanas?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a014",
+      "track": "amistad",
+      "nivel": 2,
+      "categoria": "suenos",
+      "texto": "¿Qué aventura te gustaría vivir con un grupo de amistades?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a015",
+      "track": "amistad",
+      "nivel": 2,
+      "categoria": "valores",
+      "texto": "¿Qué te hace confiar en alguien nuevo?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a016",
+      "track": "amistad",
+      "nivel": 2,
+      "categoria": "comunicacion",
+      "texto": "¿Qué haces cuando una amistad y tú no están de acuerdo?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a017",
+      "track": "amistad",
+      "nivel": 2,
+      "categoria": "curiosidad",
+      "texto": "¿Qué habilidad podrías enseñarle a alguien en una tarde?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a018",
+      "track": "amistad",
+      "nivel": 2,
+      "categoria": "humor",
+      "texto": "¿Qué anécdota cuentas siempre en las reuniones?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r011",
+      "track": "romance",
+      "nivel": 2,
+      "categoria": "comunicacion",
+      "texto": "¿Qué te gustaría que alguien supiera de ti desde el principio?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional",
+        "afecto"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r012",
+      "track": "romance",
+      "nivel": 2,
+      "categoria": "comunicacion",
+      "texto": "¿Cómo demuestras cariño sin decirlo con palabras?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional",
+        "afecto"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r013",
+      "track": "romance",
+      "nivel": 2,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Cuánto tiempo a solas necesitas aunque tengas pareja?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r014",
+      "track": "romance",
+      "nivel": 2,
+      "categoria": "valores",
+      "texto": "¿Qué hace que una relación se sienta tranquila para ti?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "apego"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r015",
+      "track": "romance",
+      "nivel": 2,
+      "categoria": "comunicacion",
+      "texto": "¿Qué gesto te hace sentir que alguien de verdad te escucha?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional",
+        "afecto"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r016",
+      "track": "romance",
+      "nivel": 2,
+      "categoria": "suenos",
+      "texto": "¿Qué plan te gustaría hacer con alguien especial algún día?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad",
+        "afecto"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r017",
+      "track": "romance",
+      "nivel": 2,
+      "categoria": "gustos",
+      "texto": "¿Qué tipo de detalle te parece más bonito de recibir?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r018",
+      "track": "romance",
+      "nivel": 2,
+      "categoria": "curiosidad",
+      "texto": "¿Qué te gustaría descubrir de alguien poco a poco?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p037",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "valores",
+      "texto": "¿Qué valor no negociarías aunque fuera más fácil hacerlo?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p038",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "suenos",
+      "texto": "¿Qué te gustaría que dijeran de ti las personas que te conocen bien?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p039",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "comunicacion",
+      "texto": "¿Qué aprendiste de un desacuerdo que terminó bien?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p040",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "valores",
+      "texto": "¿Qué significa para ti tratar bien a las personas?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p041",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "curiosidad",
+      "texto": "¿Qué opinión tuya ha cambiado con el tiempo y por qué?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p042",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "suenos",
+      "texto": "¿Qué sueño de infancia todavía te acompaña de alguna forma?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p043",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Qué te ayuda a volver a tu centro cuando todo se mueve?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p044",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "comunicacion",
+      "texto": "¿Qué te cuesta pedir, aunque lo necesites?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p045",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "valores",
+      "texto": "¿Qué te gustaría cuidar siempre en tus relaciones?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p046",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "suenos",
+      "texto": "¿Qué te gustaría intentar aunque saliera mal?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p047",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "curiosidad",
+      "texto": "¿Qué te sorprendió aprender de ti en este último año?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "p048",
+      "track": "ambos",
+      "nivel": 3,
+      "categoria": "humor",
+      "texto": "¿Qué tropiezo de hace tiempo hoy te da risa recordar?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a019",
+      "track": "amistad",
+      "nivel": 3,
+      "categoria": "valores",
+      "texto": "¿Qué amistad te enseñó algo que hoy agradeces?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a020",
+      "track": "amistad",
+      "nivel": 3,
+      "categoria": "comunicacion",
+      "texto": "¿Cómo te gusta arreglar las cosas después de un malentendido?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a021",
+      "track": "amistad",
+      "nivel": 3,
+      "categoria": "suenos",
+      "texto": "¿Qué te gustaría construir con tus amistades en los próximos años?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a022",
+      "track": "amistad",
+      "nivel": 3,
+      "categoria": "valores",
+      "texto": "¿Qué significa para ti estar para alguien?",
+      "dimensiones_relacionadas": [
+        "valores"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a023",
+      "track": "amistad",
+      "nivel": 3,
+      "categoria": "estilo_de_vida",
+      "texto": "¿Qué tradición propia te gustaría compartir con alguien?",
+      "dimensiones_relacionadas": [
+        "estilo"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "a024",
+      "track": "amistad",
+      "nivel": 3,
+      "categoria": "curiosidad",
+      "texto": "¿Qué pregunta le harías a tu yo de hace cinco años?",
+      "dimensiones_relacionadas": [
+        "personalidad",
+        "big_five"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r019",
+      "track": "romance",
+      "nivel": 3,
+      "categoria": "valores",
+      "texto": "¿Qué necesitas para sentir que una relación es un lugar de calma?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "apego"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r020",
+      "track": "romance",
+      "nivel": 3,
+      "categoria": "comunicacion",
+      "texto": "¿Cómo te gustaría resolver un desacuerdo con alguien que quieres?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional",
+        "afecto"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r021",
+      "track": "romance",
+      "nivel": 3,
+      "categoria": "suenos",
+      "texto": "¿Qué te ilusiona de compartir el día a día con alguien?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad",
+        "afecto"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r022",
+      "track": "romance",
+      "nivel": 3,
+      "categoria": "valores",
+      "texto": "¿Qué significa para ti cuidar a alguien sin dejar de cuidarte?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "apego"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r023",
+      "track": "romance",
+      "nivel": 3,
+      "categoria": "comunicacion",
+      "texto": "¿Qué te gustaría que alguien te preguntara antes de conocerte bien?",
+      "dimensiones_relacionadas": [
+        "conflicto",
+        "relacional",
+        "afecto"
+      ],
+      "sensible": false,
+      "variantes": []
+    },
+    {
+      "id": "r024",
+      "track": "romance",
+      "nivel": 3,
+      "categoria": "suenos",
+      "texto": "¿Cómo imaginas una relación que te haga crecer?",
+      "dimensiones_relacionadas": [
+        "valores",
+        "personalidad",
+        "afecto"
+      ],
+      "sensible": false,
+      "variantes": []
+    }
+  ]
+}

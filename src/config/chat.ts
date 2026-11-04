@@ -9,9 +9,10 @@ const MAX_PIN_LENGTH = 8;
 /** scrypt needs 128·N·r bytes; below N = 2^14 it is too cheap to matter. */
 const MIN_LOG2N = 14;
 const MAX_LOG2N = 20;
-const MAX_ROUNDS = 6;
 const MIN_TEXT_CHARS = 40;
-const MAX_TEXT_CHARS = 2000;
+/** Hard ceiling shared with the SQL CHECKs (graphemes ≤ code points ≤ this margin). */
+export const MAX_TEXT_CHARS = 300;
+const MAX_REACTIONS = 12;
 
 /**
  * Chat PIN lock (docs/CHAT.md, ADR-029). A light lock against someone holding
@@ -55,19 +56,52 @@ export const chatConfigSchema = z
       windowSeconds: positiveInt,
       lockSeconds: positiveInt,
     }),
-    /** Chat between matches (docs/CHAT.md §10): question rounds, then free chat. */
+    /** Chat between matches (docs/CHAT.md §10–13): signals, guided rounds, free chat. */
     conversation: z.strictObject({
-      rounds: z.strictObject({
-        romance: z.array(z.string().min(1)).min(1).max(MAX_ROUNDS),
-        amistad: z.array(z.string().min(1)).min(1).max(MAX_ROUNDS),
-      }),
+      /** Limits counted in graphemes (Intl.Segmenter), same on client, API and DB. */
       answerChars: z.number().int().min(MIN_TEXT_CHARS).max(MAX_TEXT_CHARS),
       messageChars: z.number().int().min(MIN_TEXT_CHARS).max(MAX_TEXT_CHARS),
-      /** Newest free-chat messages returned per read. */
+      customQuestionChars: z.number().int().min(MIN_TEXT_CHARS).max(MAX_TEXT_CHARS),
+      /** Newest free-chat messages returned per read; older ones page by cursor. */
       messagesPage: positiveInt,
-      /** Client polling while a conversation / the inbox is visible. */
+      /** Client polling while visible; backs off up to `pollMaxSeconds` when idle. */
       pollSeconds: positiveInt,
+      pollMaxSeconds: positiveInt,
       inboxPollSeconds: positiveInt,
+      signals: z.strictObject({
+        /** A signal nobody answered simply expires (the sender is never told). */
+        expireDays: positiveInt,
+        /** Open (unanswered) signals one person may have at once. */
+        maxOpen: positiveInt,
+        /** After a close or block, that pair cannot signal again for this long. */
+        cooldownDays: positiveInt,
+      }),
+      rounds: z.strictObject({
+        /** Completed rounds before either side may invite to free chat. */
+        minForFree: positiveInt,
+        /** Question cards offered per turn. */
+        suggestions: positiveInt,
+        /** Sealed answers are revealed when both answered or after this wait. */
+        revealHours: positiveInt,
+        /** Round index from which level 1, 2 and 3 questions are offered. */
+        levelFromRound: z.tuple([z.literal(0), z.number().int().positive(), z.number().int().positive()]),
+        maxRounds: positiveInt,
+      }),
+      limits: z.strictObject({
+        messagesPerMinute: positiveInt,
+        messagesPerDay: positiveInt,
+        /** Identical consecutive messages refused (basic spam guard). */
+        repeatWindow: positiveInt,
+      }),
+      retention: z.strictObject({
+        messageDays: positiveInt,
+        /** A conversation with no activity for this long closes by itself. */
+        inactiveDays: positiveInt,
+      }),
+      /** Quick reactions to a revealed answer (system emoji). */
+      reactions: z.array(z.string().min(1)).min(1).max(MAX_REACTIONS),
+      /** Newest messages copied into a report snapshot for moderation. */
+      reportSnapshot: positiveInt,
     }),
   })
   .refine((c) => c.pin.blocklist.every((pin) => pin.length === c.pin.length), {
@@ -75,6 +109,16 @@ export const chatConfigSchema = z
   })
   .refine((c) => c.lock.idleMinutes <= c.lock.maxMinutes, {
     message: "lock.idleMinutes must not exceed lock.maxMinutes",
+  })
+  .refine(
+    (c) => {
+      const [, two, three] = c.conversation.rounds.levelFromRound;
+      return two < three && c.conversation.rounds.minForFree <= c.conversation.rounds.maxRounds;
+    },
+    { message: "rounds.levelFromRound must increase and minForFree must fit maxRounds" },
+  )
+  .refine((c) => c.conversation.pollSeconds <= c.conversation.pollMaxSeconds, {
+    message: "pollSeconds must not exceed pollMaxSeconds",
   });
 
 export type ChatConfig = z.output<typeof chatConfigSchema>;

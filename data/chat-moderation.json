@@ -1,0 +1,60 @@
+{
+  "version": "chat-moderation-1",
+  "etiqueta": "supuesto_diseno",
+  "fuente": "Lista propia es-MX, revisada a mano (docs/CHAT.md §12.4). Se compara por palabra completa, sin acentos ni mayúsculas, para no bloquear palabras como «computadora».",
+  "revision": {
+    "fecha": "2026-11-03",
+    "falsos_positivos_revisados": [
+      "computadora",
+      "disputa",
+      "reputación",
+      "pendiente",
+      "culebra",
+      "joyería",
+      "zorro"
+    ]
+  },
+  "ofensivo": [
+    "pendejo",
+    "pendeja",
+    "pendejos",
+    "pendejas",
+    "puto",
+    "puta",
+    "putos",
+    "putas",
+    "culero",
+    "culera",
+    "culeros",
+    "culeras",
+    "cabron",
+    "cabrona",
+    "zorra",
+    "zorras",
+    "maricon",
+    "maricones",
+    "joto",
+    "jotos",
+    "retrasado",
+    "retrasada",
+    "mongolo",
+    "mongola",
+    "idiota",
+    "imbecil",
+    "estupido",
+    "estupida",
+    "pinche",
+    "verga",
+    "mamon",
+    "mamona",
+    "nudes"
+  ],
+  "frases": [
+    "chinga tu madre",
+    "hijo de puta",
+    "hija de puta",
+    "vete a la verga",
+    "pasame el pack",
+    "manda nudes"
+  ]
+}

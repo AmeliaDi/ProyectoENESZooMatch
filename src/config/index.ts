@@ -9,6 +9,11 @@ export { AVATAR_CONFIG } from "./avatars";
 export type { AvatarConfig } from "./avatars";
 export { CHAT_CONFIG } from "./chat";
 export type { ChatConfig } from "./chat";
+export { CHAT_SOCIAL_NETWORKS } from "./chat-contact";
+export { CHAT_EMOJI } from "./chat-emoji";
+export type { ChatEmoji, ChatEmojiCatalog } from "./chat-emoji";
+
+
 export { CATALOG, CATALOG_ANIMALS, CATALOG_COLORS, MBTI_CODES } from "./catalog";
 export { COLOR_ROLES, DESIGN_TOKENS, GLOW_TIERS, THEME_MODES } from "./design";
 export type { ColorRole, DesignTokens, GlowTier, ThemeMode } from "./design";

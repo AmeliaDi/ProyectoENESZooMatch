@@ -1,0 +1,19 @@
+{
+  "version": "chat-contact-1",
+  "fuente": "Nombres de redes sociales para el aviso amable de anonimato (docs/CHAT.md §12.4). Puede viajar al cliente: no contiene la lista de lenguaje ofensivo.",
+  "redes": [
+    "instagram",
+    "insta",
+    "ig",
+    "whatsapp",
+    "wa",
+    "telegram",
+    "snapchat",
+    "snap",
+    "tiktok",
+    "twitter",
+    "facebook",
+    "face",
+    "discord"
+  ]
+}
