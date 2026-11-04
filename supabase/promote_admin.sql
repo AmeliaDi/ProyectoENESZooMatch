@@ -1,19 +1,21 @@
--- Ejecutar en el SQL Editor de Supabase, no es una migración.
--- 1. Crea el usuario con email y contraseña en Authentication > Users.
--- 2. Cambia el correo de abajo y ejecuta el bloque.
-
+-- Ejecutar en el SQL Editor de Supabase, no es una migración (ADR-036).
+-- El observatorio entra con matrícula + PIN administrativo. La matrícula solo
+-- existe como HMAC y el PIN como hash scrypt con un secreto del servidor, así
+-- que ambos se calculan FUERA de la base, en la máquina de quien opera, con un
+-- script local que lee MATRICULA_HMAC_SECRET y CHAT_PIN_PEPPER de .env.local.
+-- Ese script hace lo equivalente a este bloque; nunca se versiona.
+--
+-- Este archivo solo sirve para REVOCAR a un administrador conociendo su alias:
 do $$
 declare
-  admin_email text := 'admin@example.com';
+  admin_alias text := 'alias de la cuenta';
   admin_id uuid;
 begin
-  select id into admin_id from auth.users where email = lower(admin_email);
-
+  select user_id into admin_id from public.profiles where alias = admin_alias;
   if admin_id is null then
-    raise exception 'No existe un usuario de Auth con el correo %', admin_email;
+    raise exception 'No existe un perfil con el alias %', admin_alias;
   end if;
 
-  insert into public.user_roles (user_id, role)
-  values (admin_id, 'admin')
-  on conflict (user_id) do update set role = 'admin';
+  delete from public.admin_credentials where user_id = admin_id;
+  delete from public.user_roles where user_id = admin_id;
 end $$;

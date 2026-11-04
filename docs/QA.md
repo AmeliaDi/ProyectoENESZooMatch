@@ -169,13 +169,29 @@ se usan sus ítems) y los originales de Bhattacharyya 1943 y Mahalanobis 1936.
 | Base tras el QA | Cuentas QA borradas (`chat_blocks` 0). 111 perfiles: el nuevo es una persona real que entró durante la prueba |
 | LCP / CLS | `/resultado` 948 ms / 0.000; `/chats` 876 ms / 0.006 |
 
+## 4.5 Observatorio administrativo (2026-11-07, `dfd5caf`, ADR-036)
+
+| Prueba | Resultado |
+|---|---|
+| `npm run check` (secretos, lint, typecheck, tests) y `next build` | **889 tests** en verde; build OK; nada de `pin_hash`, `matricula_hash` ni `admin_credentials` en `.next/static` |
+| Migración `20261107000000_admin_panel.sql` en producción | Aplicada: `admin_credentials`, `admin_audit`, 4 RPC, `admin_address` en el guard |
+| `scripts/qa/qa-admin.mjs` contra producción | **25/25 OK** tras corregir el contrato de métricas (umbral de amistad < 0.5 → 503) |
+| Sin cookie / cookie falsificada | 401 en `session`, `users`, `audit`, `reports` y `metrics` |
+| Matrícula desconocida o login mal formado | 401 `admin.invalid` (mismo mensaje) |
+| Cookie | `HttpOnly`, `SameSite=Strict`, `Path=/api/admin`; `logout` la borra |
+| Cuenta de QA desechable (`426144891`) | pausar, reactivar y borrar → 200; actuar después de borrar → 404; acción desconocida → 400 |
+| Auditoría | `login`, `pause_user`, `resume_user`, `delete_user`, `logout`; sin matrícula ni PIN |
+| Listado de personas | sin `matricula`, `hash`, `latent` ni `theta` en el JSON |
+
+El QA usa cuentas falsas `42614489x`: se promueve una a admin y se borra la otra. Nunca se usa
+la matrícula maestra.
+
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
 
 - **Chat en dos teléfonos reales:** el flujo se probó por API (85/85) y con tests de casos de
   uso; falta recorrerlo a mano con dos personas: señal, invitación, tarjetas, respuestas
   selladas, chat libre, selector de emojis, menú de seguridad y línea dorada en la
   constelación.
-- **Moderación de reportes:** sin pantalla; se revisan con SQL (`service_role`).
 
 - **Teléfono real de gama media.** Los FPS medidos son de Chromium con CPU
   ×4 (`docs/FISICA.md`). Falta abrir `/resultado` en un teléfono y anotar la

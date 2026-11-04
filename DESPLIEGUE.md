@@ -9,8 +9,7 @@ Todo vive en la rama `main`; Vercel debe desplegar desde ella.
    - SQL Editor → pega y ejecuta `supabase/seed.sql` (103 animales, 55 colores,
      60 ítems; se puede re-ejecutar sin duplicar).
    - Authentication → Providers → **Email** habilitado.
-   - Opcional: crea tu usuaria admin en Authentication → Users y ejecuta
-     `supabase/promote_admin.sql` con tu correo.
+   - Opcional: da de alta un admin (ver el paso 5 de la guía detallada).
    - Alternativa por CLI: `supabase link --project-ref <REF>` + `supabase db push`
      y luego el seed con `psql` (ver abajo).
 2. **Vercel**: importa el repo, rama de producción `main`, Node 24, y
@@ -18,7 +17,7 @@ Todo vive en la rama `main`; Vercel debe desplegar desde ella.
    `SUPABASE_SERVICE_ROLE_KEY` y `MATRICULA_HMAC_SECRET` (≥ 32 caracteres).
    Upstash es opcional para pruebas y obligatorio para el evento.
 3. Despliega y recorre: `/` (matrícula) → `/cuestionario` → `/resultado`;
-   `/admin/login` con la cuenta admin.
+   `/admin/login` con matrícula + PIN administrativo.
 
 La migración y el seed se verificaron sobre PostgreSQL (PGlite) con un
 `auth` simulado: alta de perfiles, `submit_quiz_result`, `replace_matches`
@@ -63,10 +62,16 @@ un proyecto Supabase real.
 
    También puedes ejecutar el contenido del archivo en el SQL Editor. El archivo
    `supabase/config.toml` aplica esta misma semilla en los resets locales.
-5. Crea la cuenta administrativa inicial desde **Authentication → Users** con correo y
-   contraseña institucionales. Edita `admin_email` en `supabase/promote_admin.sql` y
-   ejecuta el archivo en SQL Editor para asignarle el rol `admin`. El acceso de
-   administración sigue siendo separado del formulario público por matrícula.
+5. Alta del admin (ADR-036):
+   - Entra una vez en `/` con la matrícula de la persona administradora.
+   - Desde tu máquina, con `.env.local` (`MATRICULA_HMAC_SECRET` y `CHAT_PIN_PEPPER`), corre un
+     script local **no versionado** que:
+     - calcula el HMAC de la matrícula;
+     - inserta `(user_id, 'admin')` en `user_roles`;
+     - guarda en `admin_credentials` el hash scrypt de `HMAC(pepper, "admin:<user_id>:<PIN>")`
+       (el mismo `createPinHasher` del servidor, con sujeto `admin:<user_id>`).
+   - Nunca escribas la matrícula ni el PIN en el repo ni en el SQL Editor.
+   - `supabase/promote_admin.sql` solo sirve para **revocar** por alias.
 
 6. Verifica los permisos de las RPC internas en el SQL Editor. El resultado debe ser
    `false` para `anon`:

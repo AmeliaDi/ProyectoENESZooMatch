@@ -45,8 +45,17 @@ Este es un resumen para orientarse. El detalle y los motivos están en los ADR e
     los lee con `service_role` después de verificar la sesión.
 - Toda función `SECURITY DEFINER` fija `search_path = ''`. Las RPC de servicio exigen el rol
   con `private.assert_service_role()`.
-- **Admin:** solo ve agregados, con un piso de k-anonimato (`admin.kAnonymity`); las celdas
-  pequeñas se muestran como «< k» (ADR-012).
+- **Admin (ADR-036):**
+  - Las **métricas** son agregadas, con un piso de k-anonimato (`admin.kAnonymity`); las celdas
+    pequeñas se muestran como «< k» (ADR-012).
+  - La pestaña **Personas** sí lista cuentas individuales, por decisión explícita de la usuaria.
+    Muestra alias, animalito, estado y conteos. Nunca muestra matrícula, hash, respuestas,
+    vectores, θ ni filtros duros, y solo se busca por alias.
+  - Los **reportes** muestran su instantánea mínima a la administración.
+  - **Toda acción queda auditada** en `admin_audit` (quién, qué, sobre qué alias, cuándo), sin
+    matrícula, PIN, IP ni contenido. El registro sobrevive al borrado de la cuenta afectada.
+  - El PIN administrativo se guarda como hash scrypt con pepper. La sesión es una cookie firmada
+    `httpOnly` limitada a `/api/admin`.
 
 ## 4. Candado de chats (ADR-029)
 

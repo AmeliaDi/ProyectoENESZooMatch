@@ -47,39 +47,38 @@ El sistema reconoce **dos roles**, y cada uno entra por una puerta distinta:
 
 | Rol | Quién es | Cómo se autentica | Puerta de entrada |
 |---|---|---|---|
-| **Administrador** | Personal que consulta el panel de métricas | Correo administrativo + contraseña (sesión individual) | `/admin/login` |
-| **Estudiante / participante** | Persona que responde el cuestionario y ve sus coincidencias | Solo su **matrícula** (sin nombre, sin correo, sin contraseña propia) | Pantalla principal (`/`) y reingreso (`/login`) |
+| **Administrador** | Persona que opera el observatorio | Su **matrícula** + un **PIN administrativo** de 4 dígitos | `/admin/login` |
+| **Estudiante / participante** | Persona que responde el cuestionario y ve sus coincidencias | Solo su **matrícula** (sin nombre, sin correo, sin contraseña propia) | Pantalla principal (`/`) |
 
 Detalles importantes de cada rol:
 
-- **Administrador.** No existe una "contraseña compartida" del panel: cada administrador tiene
-  su propio correo y contraseña. Además de iniciar sesión, el sistema comprueba que la cuenta
-  tenga asignado el **rol administrativo**; si no lo tiene, no lo deja pasar aunque la contraseña
-  sea correcta. El panel está protegido en dos niveles: primero la sesión y después el rol.
+- **Administrador.** Es una cuenta de participante normal (entra con matrícula) a la que se le
+  asignó el **rol administrativo** y un **PIN administrativo**. El PIN se guarda solo como hash
+  (scrypt + secreto del servidor); nunca en claro, ni en el repositorio ni en los logs. La
+  sesión del observatorio es independiente de la sesión de estudiante.
 - **Estudiante.** La matrícula **nunca se guarda ni se muestra tal cual**: se transforma en un
   valor irreversible antes de almacenarse. Por eso el estudiante **no tiene contraseña que
-  recordar**; para volver a entrar solo escribe de nuevo su matrícula (ver [1.4](#14-reabrir-o-recuperar-la-sesión-del-estudiante)).
+  recordar**; para volver a entrar solo escribe de nuevo su matrícula.
 
 ### 1.3 Cómo iniciar sesión en el panel de administración
 
-1. Abre la dirección del panel: `/admin/login`.
-2. En el formulario **Identificación**, escribe:
-   - **Correo administrativo** (por ejemplo, el correo institucional del administrador).
-   - **Contraseña**.
-3. Pulsa el botón **"Abrir observatorio"**.
-4. Si las credenciales son válidas **y** la cuenta tiene rol administrativo, entrarás al panel
-   en `/admin`.
+1. Abre `/admin/login` (una ventana propia, separada de la experiencia de estudiante).
+2. Escribe tu **matrícula / número de cuenta UNAM** y tu **PIN administrativo**.
+3. Pulsa **"Entrar"**. Si la matrícula pertenece a una cuenta con rol administrativo **y** el PIN
+   es correcto, entras a `/admin`.
 
 Consideraciones:
 
-- **Límite de intentos.** El acceso está limitado a **5 intentos cada 15 minutos**. Si te pasas,
-  verás el mensaje *"Demasiados intentos. Espera antes de volver a intentar."* Debes esperar a
-  que pase la ventana antes de reintentar.
-- **Mensajes de acceso fallido.** Si el correo o la contraseña no coinciden, o si la cuenta no
-  tiene rol administrativo, verás *"No se pudo verificar el acceso administrativo."* (el sistema
-  no revela cuál de las dos causas fue, por seguridad).
-- Si el servicio de autenticación no está disponible en ese momento, aparecerá
-  *"El servicio de acceso no está disponible en este momento."*
+- **Mensaje único de error.** Si la matrícula no existe, no es administrativa o el PIN no
+  coincide, verás siempre *"No pudimos verificar el acceso administrativo."*: el sistema no
+  revela cuál de las tres causas fue.
+- **Pausas por intentos.** Tras 5 PIN incorrectos seguidos, la cuenta espera 1 minuto; luego 5,
+  15 y 60 minutos (`data/admin-config.json`). Además, cada red tiene un tope de 20 intentos en
+  15 minutos. Durante la pausa verás *"Demasiados intentos. Vuelve a intentar en N min."*
+- **Sesión.** Dura hasta 4 horas y se cierra sola tras 30 minutos sin actividad. **"Salir"** la
+  termina al instante. Si alguien retira el rol administrativo, la sesión deja de valer de
+  inmediato.
+- Cada entrada, salida y PIN incorrecto queda en la **auditoría** (sin la matrícula ni el PIN).
 
 ### 1.4 Entrada y recuperación de la sesión del estudiante
 
@@ -104,25 +103,17 @@ Mensajes posibles:
 
 ### 1.5 Requisitos de acceso (antes de que alguien pueda entrar)
 
-Para que la plataforma funcione y se pueda entrar, se necesita:
-
-- **Supabase configurado.** La aplicación depende de un proyecto Supabase (base de datos +
-  autenticación). Si las credenciales de Supabase no están configuradas, el panel **redirige a
-  `/admin/login`** y las operaciones del estudiante responden como "no disponible".
-- **Base de datos preparada.** Aplicar la migración base y la semilla de datos
-  (`supabase/migrations/00000000000000_base.sql` → `seed.sql`). Esto crea las tablas, los
-  catálogos de animales/colores y los cuestionarios.
-- **Promoción del primer administrador.** No hay una pantalla para "dar de alta administradores".
-  El alta se hace manualmente con el archivo `supabase/promote_admin.sql`:
-  1. Crea al usuario (correo y contraseña) en el gestor de autenticación de Supabase
-     (sección *Authentication → Users*).
-  2. Edita el correo dentro de `promote_admin.sql` y ejecuta ese bloque en el *SQL Editor* de
-     Supabase. El bloque asigna el **rol administrativo** a esa cuenta.
-  - Si el correo no existe como usuario, el bloque falla con un aviso claro ("No existe un
-    usuario de Auth con el correo …").
-- **Variables de entorno.** Deben estar definidas en el archivo de entorno (ver
-  [4.2](#42-variables-de-entorno-para-el-operador)). Sin ellas, el sistema degrada con gracia
-  pero no permite operaciones reales.
+- **Supabase configurado** y la migración base + semilla aplicadas
+  (`supabase/migrations/00000000000000_base.sql` → `seed.sql`), más las incrementales.
+- **Variables de entorno** del servidor, incluida `CHAT_PIN_PEPPER` (el PIN administrativo usa
+  el mismo secreto, con un sujeto distinto). Sin ella, el observatorio responde "no disponible".
+- **Alta de un administrador.** No hay pantalla para nombrar administradores (a propósito). La
+  persona entra una vez con su matrícula en `/` y luego quien opera el servidor ejecuta, en su
+  máquina, un script local que: calcula el HMAC de la matrícula, asigna el rol en
+  `user_roles` y guarda el hash del PIN en `admin_credentials`. Ese script lee la matrícula y
+  el PIN de variables de entorno y **no se sube al repositorio**.
+- Para **retirar** a un administrador basta con borrar su fila de `user_roles` (y de
+  `admin_credentials`); su sesión deja de valer en la siguiente petición.
 
 ---
 
@@ -130,61 +121,68 @@ Para que la plataforma funcione y se pueda entrar, se necesita:
 
 ### 2.1 Cómo está protegida y organizada la zona de administración
 
-- Toda la zona que empieza con `/admin` está **vigilada**: si no hay sesión válida con rol
-  administrativo, el sistema **redirige a `/admin/login`**. Si ya iniciaste sesión y entras a
-  `/admin/login`, te lleva directo al panel.
-- El panel es una **única pantalla** ("Observatorio vivo · ZooMatch / Control de hábitat").
-  **No hay un menú lateral ni varias secciones navegables**: todo lo visible son las métricas,
-  agrupadas en tarjetas, más tres botones de acción en el encabezado.
+- La página `/admin` no muestra nada hasta confirmar la sesión con `/api/admin/session`; sin
+  sesión válida, regresa a `/admin/login`.
+- Toda ruta `/api/admin/*` exige la cookie firmada del observatorio (`httpOnly`,
+  `SameSite=Strict`, limitada a `/api/admin`) **y** que el rol siga existiendo. Además pasa por
+  el filtro de origen y el límite de frecuencia de `withApiSecurity`.
+- El observatorio tiene **cuatro pestañas**:
 
-### 2.2 Encabezado del panel y sus botones
-
-En la parte superior del panel hay tres botones:
-
-| Botón | Qué hace |
+| Pestaña | Qué contiene |
 |---|---|
-| **Refrescar** | Vuelve a leer las métricas en ese momento. Mientras trabaja muestra "Actualizando". |
-| **Exportar CSV** | Descarga un archivo `.csv` con los agregados visibles. El archivo se llama `zoomatch-agregados-AAAA-MM-DD.csv`. |
-| **Cerrar sesión** | Termina tu sesión de administrador y regresa a `/admin/login`. |
+| **Personas** | Lista paginada de cuentas registradas, búsqueda por alias y detalle con acciones |
+| **Reportes** | Reportes de chat por estado (abiertos, revisados, cerrados) con su instantánea mínima |
+| **Auditoría** | Registro de todas las acciones administrativas |
+| **Agregados** | Métricas con k-anonimato, recálculo de afinidades y exportación CSV |
 
-Debajo del encabezado hay una **barra de estado** que muestra:
+En el encabezado: tu alias de administrador y el botón **"Salir"**.
 
-- **"Última lectura · <fecha y hora> UTC"** — cuándo se midieron los datos por última vez.
-- **"Polling visible · 60 s / umbral > X%"** — el panel **se actualiza solo cada 60 segundos**
-  mientras la pestaña esté visible, y muestra el **umbral de compatibilidad activo** (en
-  porcentaje) con el que se está midiendo.
-- Si la lectura se interrumpe, la barra cambia a *"Lectura interrumpida; conserva el último
-  agregado"* (es decir, sigue mostrando la última medición buena).
+### 2.2 Pestaña Personas
 
-### 2.3 Qué significa cada tarjeta, gráfica o tabla del panel
+- Cada fila muestra: alias, animalito y color, si completó el cuestionario, si está pausada,
+  número de afinidades (romance / amistad), reportes recibidos y fecha de alta.
+- **Nunca** se muestran la matrícula (no existe en claro), su hash, las respuestas, los
+  vectores, la lectura latente (θ) ni los filtros duros (orientación, identidad, tipo de
+  relación).
+- **Búsqueda:** por alias (sin distinguir mayúsculas). No se puede buscar por matrícula.
+- **"Ver detalle"** abre una ficha con más datos (MBTI, módulos extra, conversaciones, PIN de
+  chats creado o no, mayoría de edad declarada) y las acciones:
 
-> **Principio de privacidad:** el panel **solo muestra agregados** (conteos y porcentajes).
-> **Nunca** muestra matrículas, nombres, correos, vectores ni respuestas individuales. Esto está
-> reforzado en el pie de página del panel: *"Solo agregados · sin identificadores · sin vectores ·
-> sin respuestas"* y *"Autorización doble: servidor + RPC"*.
+| Acción | Qué hace | Confirmación |
+|---|---|---|
+| **Reiniciar cuestionario** | Borra respuestas, lectura, animalito, color y afinidades. **Conserva** el alias, los chats, el PIN y los reportes. La persona vuelve a `/cuestionario` al entrar. | Escribir `REINICIAR` |
+| **Pausar / Reactivar perfil** | Saca o regresa a la persona del cálculo de afinidades. No borra nada. | Un clic |
+| **Restablecer PIN de chats** | Borra su PIN de chats; creará uno nuevo al abrirlos. Los mensajes no se tocan. | Escribir `PIN` |
+| **Borrar cuenta** | Elimina la cuenta y todo lo asociado en cascada (respuestas, afinidades, chats, reportes, PIN). Irreversible. No disponible para cuentas administrativas. | Escribir `BORRAR` |
 
-| Elemento visible | Qué representa (en lenguaje de operador) |
-|---|---|
-| **Perfiles totales** | Cantidad de registros anónimos que existen en el sistema (cada estudiante que completó su registro/cuestionario). |
-| **Usuarios con al menos un match** (`X%` + "N distintos") | Porcentaje y número de estudiantes distintos que tienen **al menos una coincidencia** por encima del umbral activo. La tarjeta aclara: *"Similitud estrictamente mayor al umbral activo."* |
-| **Barra de progreso** debajo del porcentaje | Representación visual del porcentaje de usuarios con coincidencia. |
-| **Distribución MBTI completa** ("Dieciséis señales", `n = total`) | Gráfica de barras con cuántos perfiles corresponden a cada uno de los **16 tipos MBTI**. `n` es la suma de todos. |
-| **Conteo MBTI accesible** (tabla *Tipo / Perfiles*) | La misma distribución anterior en formato de tabla (fila por tipo, con su conteo), para lectura accesible. |
-| **Top 5 animalitos** ("Taxonomía agregada", gráfica) | Los **cinco animalitos más frecuentes** entre los perfiles, por cantidad. |
-| **Ranking accesible** (tabla *Animalito / Perfiles*) | El mismo top de animalitos en formato de tabla. |
-| **Pie de página** | Recordatorio de que la vista solo expone agregados y de que la autorización se valida en dos capas. |
+- Reiniciar, pausar, reactivar y borrar **recalculan las afinidades** de todo el cielo al
+  momento. Si el recálculo no se puede completar, la acción queda hecha igual y se avisa.
 
-### 2.4 Estados especiales del panel
+### 2.3 Pestaña Reportes
 
-- **Hábitat vacío.** Si todavía no hay perfiles (`Perfiles totales = 0`), aparece un aviso:
-  *"Hábitat sin perfiles todavía"* y las tablas/gráficas se muestran en cero, a la espera de la
-  primera medición.
-- **Sin especies asignadas.** Si aún no hay animalitos que rankear, el bloque del top muestra
-  *"Sin especies asignadas"* / *"Sin datos agregados"*.
+- Filtra por **Abiertos / Revisados / Cerrados**. Cada tarjeta muestra el motivo, la pista, los
+  alias de quien reporta y de la persona reportada, y la **instantánea mínima** (los últimos
+  mensajes y respuestas de esa conversación, etiquetados como "reporta" / "reportada").
+- **"Marcar revisado"** y **"Cerrar reporte"** cambian el estado y lo registran tanto en
+  `chat_report_audit` como en la auditoría general. La persona reportada nunca se entera.
+- Si hace falta actuar sobre la cuenta reportada, búscala por alias en **Personas**.
 
-> **Sobre el umbral mostrado:** el umbral que ves en la barra de estado proviene de la
-> configuración vigente (ver [4.3](#43-gestión-de-catálogos-umbrales-y-contenido)). No se edita
-> desde el panel; se cambia en los archivos de datos del sistema.
+### 2.4 Pestaña Auditoría
+
+- Lista, de lo más reciente a lo más antiguo: fecha (UTC), alias del administrador, acción,
+  alias de la cuenta afectada y detalle (por ejemplo, número de parejas recalculadas).
+- Acciones registradas: entrar, salir, PIN incorrecto, borrar cuenta, reiniciar cuestionario,
+  pausar, reactivar, restablecer PIN de chats, recalcular afinidades y revisar/cerrar reportes.
+- El registro **sobrevive al borrado** de la cuenta afectada (guarda el alias, no depende de la
+  cuenta). No guarda matrículas, PIN, direcciones IP ni contenido de chats.
+
+### 2.5 Pestaña Agregados
+
+- **Refrescar**, **Recalcular afinidades** (queda en la auditoría) y **Exportar CSV**.
+- Perfiles activos, cobertura por pista (porcentaje de personas con al menos una afinidad y el
+  umbral vigente), distribución MBTI y los animalitos y colores más frecuentes.
+- Las celdas con menos de k personas (`admin.kAnonymity`) se muestran como "< k"; si el cielo
+  tiene menos de k perfiles, los desgloses se ocultan.
 
 ---
 
@@ -194,35 +192,17 @@ A continuación se describe cada módulo **real** del sistema. Para cada uno se 
 sirve, si permite crear registros (y con qué campos), cómo se edita/desactiva/elimina (borrado
 lógico vs físico) y qué filtros o búsquedas ofrece.
 
-> **Regla general e importante:** el sistema **no tiene pantallas administrativas de captura o
-> edición de datos** (no hay "altas/bajas/cambios" de estudiantes, coincidencias ni catálogos
-> desde el panel). El panel de administración es de **solo lectura** (métricas + exportar + salir).
-> El contenido (catálogos, cuestionarios, umbrales) se administra **editando los archivos de datos
+> **Regla general e importante:** el observatorio permite **bajas, reinicios y pausas** de
+> cuentas y la moderación de reportes (todo auditado), pero **no** la captura o edición de
+> catálogos, cuestionario o umbrales. El contenido (catálogos, cuestionarios, umbrales) se administra **editando los archivos de datos
 > del sistema y volviéndolos a cargar en la base**, no desde una pantalla. Cada módulo detalla su
 > caso.
 
-### 3.1 Módulo: Panel de métricas / analítica
+### 3.1 Módulo: Observatorio
 
-- **¿Para qué sirve?** Mostrar, de un vistazo, el estado agregado del "hábitat": cuántos perfiles
-  hay, qué porcentaje tiene al menos una coincidencia, cómo se distribuyen los 16 tipos MBTI y
-  cuáles son los 5 animalitos más frecuentes.
-- **¿Se pueden crear registros?** **No.** Este módulo es **de solo lectura**. No existe un
-  formulario para crear, editar ni borrar métricas.
-- **Acciones disponibles:** **Refrescar** (releer), **Exportar CSV** (descargar agregados) y
-  **Cerrar sesión**.
-- **Filtros y búsquedas:** **No hay.** Las tablas (MBTI y ranking de animalitos) son fijas y no
-  permiten filtrar, ordenar ni buscar.
-- **Contenido del CSV exportado:** columnas `section, label, value, percentage`, con filas de
-  resumen (`total_profiles`, `users_with_match_above_threshold`, `active_threshold_exclusive`),
-  la distribución MBTI y el top de animalitos. El archivo se genera protegido contra fórmulas de
-  hoja de cálculo y en codificación compatible con Excel.
-
-> **Transparencia sobre una capacidad interna no visible:** el sistema cuenta con un cálculo
-> agregado **dual (romance + amistad)** que también contempla un **top de colores**, pero
-> **no está expuesto en ninguna pantalla del panel**. Lo que el administrador ve hoy en `/admin`
-> son los agregados descritos arriba (totales, % con match, MBTI y top de animalitos). La división
-> romance/amistad sí la ve el **estudiante** en su propia pantalla de resultado
-> (ver [3.6](#36-módulo-perfiles-y-resultados)).
+Ver [sección 2](#2-navegación-global-y-dashboard): personas, reportes, auditoría y agregados.
+Desde ahí sí se puede **borrar**, **reiniciar** y **pausar** cuentas (siempre auditado). Lo que
+sigue sin pantalla: catálogos, cuestionario y umbrales (se editan en `data/*.json`).
 
 ### 3.2 Módulo: Coincidencias (matches)
 
@@ -246,8 +226,8 @@ lógico vs físico) y qué filtros o búsquedas ofrece.
   Identidad y compromiso), un resumen de personalidad y un titular poético.
 - **Cuando no hay coincidencias:** se muestra un mensaje tranquilizador predefinido (no se
   corrige su redacción ni sus emoticones; está fijado tal cual en el sistema).
-- **Eliminación:** las coincidencias de una persona se eliminan **en cascada** si su cuenta llega
-  a eliminarse en el gestor de autenticación (no hay botón de borrado dentro de la app).
+- **Eliminación:** las coincidencias de una persona se eliminan **en cascada** al borrar su cuenta
+  (desde Ajustes por la propia persona, o desde **Personas** en el observatorio).
 
 ### 3.3 Módulo: Notificaciones
 
@@ -418,16 +398,15 @@ Notas para el operador:
 
 ### 4.4 Gestión de permisos y accesos de otros administradores
 
-- **No existe una pantalla de administración de roles.** No hay un menú para "listar
-  administradores", "promover" ni "revocar" desde la interfaz.
-- **Promover a un nuevo administrador** se hace de forma manual:
-  1. Crea la cuenta (correo + contraseña) en el gestor de autenticación de Supabase.
-  2. Ejecuta `supabase/promote_admin.sql` con ese correo (en el *SQL Editor* de Supabase). Esto
-     registra el **rol administrativo** en la tabla de roles.
-- **Revocar el acceso** de un administrador implica quitarle el rol en la base de datos (tarea de
-  quien administra Supabase), fuera de la interfaz de la aplicación.
-- La **doble validación** (sesión + rol) ocurre tanto al iniciar sesión como al consultar el
-  panel: si a una cuenta se le quita el rol, perderá el acceso aunque conserve la sesión.
+- **No existe una pantalla para nombrar administradores** (a propósito: nadie puede escalar
+  privilegios desde la interfaz).
+- **Promover:** la persona entra una vez con su matrícula en `/`; luego quien opera el
+  servidor ejecuta un script local (no versionado) que asigna el rol en `user_roles` y guarda el
+  hash del PIN administrativo en `admin_credentials`. Ver [1.5](#15-requisitos-de-acceso-antes-de-que-alguien-pueda-entrar).
+- **Revocar:** borrar su fila de `user_roles` (y de `admin_credentials`). Cada petición del
+  observatorio vuelve a comprobar el rol, así que la sesión deja de valer de inmediato.
+- Las cuentas administrativas **no se pueden borrar desde el observatorio**; primero se revoca
+  el rol.
 
 ### 4.5 Mantenimiento y verificación
 
@@ -494,22 +473,19 @@ Los siguientes casos están tomados de los **mensajes y validaciones reales** de
 - **Qué hacer:** verificar que las **variables de entorno de Supabase** estén correctamente
   configuradas y que el proyecto esté activo. Reintentar más tarde.
 
-### 5.6 Administrador: "No se pudo verificar el acceso administrativo" (401/403)
+### 5.6 Administrador: "No pudimos verificar el acceso administrativo" (401)
 
-- **Qué significa:** el correo o la contraseña no coinciden, **o** la cuenta no tiene rol
-  administrativo (el mensaje no distingue la causa, por seguridad).
-- **Qué hacer:**
-  - Confirmar correo y contraseña.
-  - Si las credenciales son correctas, verificar que la cuenta esté **promovida como
-    administrador** (ver [4.4](#44-gestión-de-permisos-y-accesos-de-otros-administradores) y
-    `supabase/promote_admin.sql`).
-  - Si ya tenías sesión y te expulsó a `/admin/login`, vuelve a iniciar sesión.
+- **Qué significa:** la matrícula no existe, no tiene rol administrativo **o** el PIN no coincide
+  (el mensaje no distingue la causa, por seguridad).
+- **Qué hacer:** confirmar matrícula y PIN; si son correctos, verificar que la cuenta esté
+  promovida (ver [4.4](#44-gestión-de-permisos-y-accesos-de-otros-administradores)). Si el
+  observatorio te regresó a `/admin/login`, la sesión expiró (30 min sin actividad o 4 h).
 
-### 5.7 Administrador: "Demasiados intentos. Espera antes de volver a intentar." (429)
+### 5.7 Administrador: "Demasiados intentos" (429)
 
-- **Qué significa:** se alcanzó el **límite de 5 intentos en 15 minutos** para iniciar sesión.
-- **Qué hacer:** esperar a que transcurra la ventana de 15 minutos y reintentar. Evitar múltiples
-  intentos seguidos.
+- **Qué significa:** 5 PIN incorrectos seguidos (pausa de 1, 5, 15 y luego 60 min) o 20 intentos
+  desde la misma red en 15 minutos.
+- **Qué hacer:** esperar el tiempo indicado. Un PIN correcto reinicia el contador.
 
 ### 5.8 "Demasiadas peticiones" / límite de frecuencia en operaciones del estudiante
 
@@ -538,10 +514,9 @@ Los siguientes casos están tomados de los **mensajes y validaciones reales** de
 Con base en el comportamiento real del sistema, **no existen** las siguientes capacidades (se
 documentan para evitar suposiciones):
 
-- **No hay** pantalla para **crear, editar, desactivar o eliminar estudiantes/usuarios** desde el
-  panel. El panel es de **solo lectura** (métricas, exportar CSV y cerrar sesión).
-- **No hay** buscadores, filtros ni ordenamiento en las tablas del panel (MBTI y top de
-  animalitos son tablas fijas).
+- **No hay** pantalla para **crear** estudiantes ni para **editar** sus respuestas o su alias;
+  el observatorio sí permite **borrar**, **reiniciar el cuestionario** y **pausar** (auditado).
+- **No hay** búsqueda por matrícula (solo por alias), porque la matrícula no existe en claro.
 - **No hay** pantalla administrativa para **crear, enviar, editar o eliminar notificaciones**; son
   generadas automáticamente por el sistema.
 - **No hay** pantalla para **administrar coincidencias** (crearlas, aprobarlas o borrarlas); se
@@ -550,13 +525,11 @@ documentan para evitar suposiciones):
   **cuestionario**; se editan archivos de datos y se recargan.
 - **No hay** pantalla para **editar umbrales/pesos**; se cambian en los archivos de datos.
 - **No hay** pantalla para **gestionar roles/permisos de administradores**; la promoción es manual
-  mediante SQL (`promote_admin.sql`).
+  con un script local (ver [4.4](#44-gestión-de-permisos-y-accesos-de-otros-administradores)).
 - **No hay** recuperación de contraseña para el estudiante (no usa contraseña; reingresa con su
   matrícula).
-- **No se muestran** coincidencias, perfiles individuales, matrículas, vectores ni respuestas en el
-  panel (solo agregados).
-- La división de métricas **romance/amistad y el top de colores** existen como cálculo interno,
-  pero **no están expuestos en la pantalla visible del panel**.
+- **No se muestran** matrículas, hashes, vectores, lectura latente, filtros duros ni respuestas
+  individuales en ninguna pestaña del observatorio.
 - El **borrador del cuestionario** se guarda solo en el dispositivo del estudiante, no en el
   servidor.
 - Las rutas **`/dev/*`** no están disponibles en producción (devuelven 404).

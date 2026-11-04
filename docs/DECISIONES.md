@@ -911,3 +911,53 @@ de 300 grafemas, anti-abuso y salvaguardas de edad.
 - La edad es declarada, no verificada.
 - La moderación de reportes no tiene pantalla todavía: se revisan con SQL (`service_role`).
 - Queda propuesto, sin implementar, un intercambio de contacto con consentimiento mutuo.
+
+## ADR-036 · Observatorio administrativo: matrícula + PIN, control de cuentas y auditoría
+
+**Contexto.** El panel admin entraba con correo y contraseña de Supabase Auth, era de solo
+lectura (agregados) y no había ningún admin en producción. La usuaria pidió ver a las personas
+registradas, borrar cuentas, reiniciar cuestionarios y dejar auditoría, con una cuenta maestra
+identificada por matrícula y un PIN, en una ventana propia.
+
+**Decisión.**
+- **Acceso.** `/admin/login` pide matrícula + PIN administrativo de 4 dígitos.
+  - La cuenta admin es una cuenta de participante con fila `role='admin'` en `user_roles`.
+  - El PIN vive en `admin_credentials` como scrypt sobre `HMAC(CHAT_PIN_PEPPER, "admin:<id>:<pin>")`
+    con sal propia; el sujeto `admin:` lo separa del PIN de chats.
+  - Cualquier fallo (matrícula desconocida, sin rol o PIN incorrecto) responde el mismo
+    `admin.invalid`; una matrícula desconocida también paga una derivación (tiempo uniforme).
+  - Pausas crecientes por cuenta (5 fallos → 1, 5, 15, 60 min) con compare-and-swap, y un tope por
+    red (`admin_address` en `access_guard`, fail-closed). Valores en `data/admin-config.json`.
+- **Sesión propia.** Cookie firmada `zm_admin_session` (`httpOnly`, `SameSite=Strict`,
+  `Path=/api/admin`), 30 min de inactividad y 4 h máximo, firmada con una etiqueta de clave
+  distinta a la del candado de chats (una no valida como la otra). `requireAdmin` revalida el rol
+  en cada petición: revocar el rol corta la sesión al instante. Sale `src/proxy.ts` (la página
+  `/admin` confirma la sesión con `/api/admin/session` y no pinta datos en el servidor).
+- **Personas.** Lista paginada con búsqueda por alias y conteos (afinidades, conversaciones,
+  reportes). **Excepción explícita a ADR-012**, aprobada por la usuaria: el observatorio ve filas
+  individuales. Aun así nunca recibe la matrícula (no existe en claro), su hash, respuestas,
+  vectores, θ ni filtros duros.
+- **Acciones**, todas auditadas y con el alias capturado antes de actuar:
+  - reiniciar cuestionario (`admin_reset_quiz`: conserva alias, chats, PIN y reportes);
+  - pausar / reactivar;
+  - restablecer PIN de chats (los mensajes no se tocan);
+  - borrar cuenta (`auth.admin.deleteUser`, cascada). Las cuentas admin no se borran desde aquí.
+  - Las que cambian el pool republican las afinidades.
+- **Reportes.** `admin_list_reports` con la instantánea mínima y `admin_review_report`
+  (revisado/cerrado) que escribe también en `chat_report_audit`. Cierra el pendiente de ADR-035.
+- **Auditoría.** `admin_audit` con `admin_id` (`ON DELETE SET NULL`), alias del admin, acción,
+  `target_user` **sin FK** y `target_alias`, para que el registro sobreviva al borrado.
+  Nunca guarda matrícula, PIN, IP ni contenido.
+- **Alta.** Sin pantalla (nadie escala privilegios desde la UI): un script local, no versionado,
+  calcula el HMAC y el hash y escribe `user_roles` + `admin_credentials`.
+- `get_admin_dashboard` acepta también al `service_role` (la consola ya no usa sesión de Supabase).
+
+**Consecuencias.**
+- El PIN de 4 dígitos tiene 10 000 combinaciones; lo mitigan el pepper del servidor, las pausas
+  por cuenta, el tope por red y el rate limit de la ruta.
+- Quien tenga el observatorio puede borrar cualquier cuenta no administrativa. Queda auditado,
+  pero no hay deshacer.
+- La lista individual reduce el anonimato frente a la administración; la búsqueda solo por alias
+  y la ausencia de matrículas en claro limitan la reidentificación.
+- Al calibrar los umbrales, amistad quedó en ≈ 0.46. El contrato de métricas exigía ≥ 0.5, así que
+  la pestaña de agregados respondía 503. Ahora el contrato acepta [0, 1).

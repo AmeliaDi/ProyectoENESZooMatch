@@ -145,7 +145,9 @@ Rutas de desarrollo (404 en producción): `/dev/ui`, `/dev/numeros`, `/dev/sprit
     mensajes.
 - **API:** todas las rutas pasan por `withApiSecurity` (origen, rate limit, `no-store`). CSP y
   HSTS se definen en `next.config.ts`.
-- **Admin:** solo ve agregados, con k-anonimato.
+- **Admin** (`/admin`, matrícula + PIN administrativo): agregados con k-anonimato, lista de
+  personas sin matrícula ni respuestas, reportes y control de cuentas (borrar, reiniciar test,
+  pausar, restablecer PIN de chats). Todo queda auditado (ADR-036).
 
 Detalle en [`docs/PRIVACIDAD.md`](./docs/PRIVACIDAD.md).
 
@@ -154,7 +156,7 @@ Detalle en [`docs/PRIVACIDAD.md`](./docs/PRIVACIDAD.md).
 | Documento | Para qué |
 |---|---|
 | [`docs/ESTADO_ACTUAL.md`](./docs/ESTADO_ACTUAL.md) | Estado del proyecto, fases y pendientes (empieza aquí) |
-| [`docs/ARQUITECTURA.md`](./docs/ARQUITECTURA.md) · [`docs/DECISIONES.md`](./docs/DECISIONES.md) | Capas y ADRs (ADR-001 … ADR-035) |
+| [`docs/ARQUITECTURA.md`](./docs/ARQUITECTURA.md) · [`docs/DECISIONES.md`](./docs/DECISIONES.md) | Capas y ADRs (ADR-001 … ADR-036) |
 | [`docs/DECISION_MODELO_RASGOS.md`](./docs/DECISION_MODELO_RASGOS.md) · [`docs/CAPAS_EVIDENCIA.md`](./docs/CAPAS_EVIDENCIA.md) | HEXACO como núcleo y evidencia por capa |
 | [`docs/MATCHING.md`](./docs/MATCHING.md) · [`docs/SCORING.md`](./docs/SCORING.md) · [`docs/MEDICION.md`](./docs/MEDICION.md) | Modelo de afinidad, scoring y medición |
 | [`docs/EVIDENCIA.md`](./docs/EVIDENCIA.md) · [`docs/LITERATURA.md`](./docs/LITERATURA.md) · [`docs/META_ANALISIS.md`](./docs/META_ANALISIS.md) | Matriz de evidencia y pipeline de literatura |

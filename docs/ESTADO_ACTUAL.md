@@ -226,9 +226,31 @@ hay que volver a correrlo: un test compara el hash del banco con el de
 
 - No se pueden impedir las capturas de pantalla.
 - La edad es declarada, no verificada.
-- La moderación de reportes no tiene pantalla.
 - El intercambio de contacto con consentimiento mutuo está propuesto, pero sin implementar.
 - El rate limit sigue en fail-open hasta configurar Upstash.
+
+## 9. Changelog del observatorio administrativo (2026-11-07)
+
+**Archivos tocados**
+
+| Área | Archivos |
+|---|---|
+| Datos | `data/admin-config.json` (PIN, pausas, sesión, guard, páginas) |
+| Configuración | `src/config/admin.ts` |
+| Contrato | `src/contracts/admin.ts`; `admin-metrics.ts` acepta umbrales < 0.5 |
+| Aplicación | `src/application/admin/` → `login.ts`, `users.ts`, `ports.ts` (+ tests); `errors.ts` (`admin.*`); fake en `application/testing/memory-admin.ts` |
+| Infraestructura | `src/infrastructure/admin/` → `console-repository.ts`, `admin-session.server.ts`, `admin-route.server.ts`; `composition.server.ts`, `access-guard.server.ts`, `lock-cookie.server.ts` (etiqueta de clave), `responses.ts`, `shared.ts` |
+| Rutas | `/api/admin/{login,logout,session,users,users/[id],reports,reports/[id],audit,metrics,recompute}`; sale `src/proxy.ts` |
+| Base | `supabase/migrations/20261107000000_admin_panel.sql` y la base; `promote_admin.sql` solo revoca |
+| UI | `src/ui/admin/` → consola con pestañas Personas, Reportes, Auditoría y Agregados; login con matrícula + PIN |
+| QA | `scripts/qa/qa-admin.mjs` |
+| Documentos | `DECISIONES.md` ADR-036, `PRIVACIDAD.md`, `QA.md` §4.5, `MANUAL_ADMINISTRADOR.md`, `DESPLIEGUE.md`, `README.md` |
+
+**Riesgos pendientes**
+
+- El PIN admin tiene 4 dígitos; lo mitigan el pepper, las pausas y el tope por red.
+- Borrar desde el observatorio no tiene deshacer (queda auditado).
+- La lista individual es una excepción consciente al principio de «solo agregados».
 
 ## 7. Lo que no se puede afirmar (se mantiene)
 
