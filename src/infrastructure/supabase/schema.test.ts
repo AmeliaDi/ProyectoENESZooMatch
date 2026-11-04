@@ -38,6 +38,10 @@ const SAFETY_TABLES = [
   "chat_closures", "chat_reports", "chat_report_audit",
 ] as const;
 const SAFETY_RPCS = ["express_chat_interest", "leave_conversation", "block_chat_user", "report_conversation", "record_round_feedback", "purge_chat"] as const;
+const ADMIN_MIGRATION = "20261107000000_admin_panel.sql";
+const ADMIN_SQL = readFileSync(resolve(MIGRATIONS_DIR, ADMIN_MIGRATION), "utf8");
+const ADMIN_TABLES = ["admin_credentials", "admin_audit"] as const;
+const ADMIN_RPCS = ["admin_list_users", "admin_reset_quiz", "admin_list_reports", "admin_review_report"] as const;
 const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
 describe("base migration", () => {
@@ -49,6 +53,7 @@ describe("base migration", () => {
       CONVERSATIONS_MIGRATION,
       ALIAS_MIGRATION,
       SAFETY_MIGRATION,
+      ADMIN_MIGRATION,
     ]);
   });
 
@@ -341,8 +346,74 @@ describe("chat PIN migration (ADR-029)", () => {
   });
 
   it("lets the access guard accept the chat PIN kind", () => {
-    expect(SQL).toContain("CHECK (kind IN ('address_attempt', 'chat_pin_address'))");
+    expect(SQL).toContain("CHECK (kind IN ('address_attempt', 'chat_pin_address', 'admin_address'))");
     expect(CHAT_SQL).toContain("DROP CONSTRAINT IF EXISTS access_guard_kind_check");
     expect(CHAT_SQL).toContain("CHECK (kind IN ('address_attempt', 'chat_pin_address'))");
+  });
+});
+
+describe("admin console migration (ADR-036)", () => {
+  const fn = (sql: string, name: string) =>
+    lf(sql).match(new RegExp(`CREATE (?:OR REPLACE )?FUNCTION public\\.${name}\\([\\s\\S]*?\\$\\$;`))?.[0] ?? "";
+
+  it("is idempotent and never drops or truncates tables", () => {
+    const sql = lf(ADMIN_SQL);
+    expect(sql).not.toMatch(/\/\*|\*\//);
+    expect(sql).not.toMatch(/^CREATE TABLE (?!IF NOT EXISTS)/m);
+    expect(sql).not.toMatch(/^CREATE (UNIQUE )?(INDEX|FUNCTION|POLICY) (?!IF NOT EXISTS|OR REPLACE)/m);
+    for (const [, name] of sql.matchAll(/^CREATE TRIGGER (\w+)/gm)) expect(sql).toContain(`DROP TRIGGER IF EXISTS ${name} ON`);
+    expect(sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
+  });
+
+  it("matches the base migration table by table and RPC by RPC", () => {
+    for (const table of ADMIN_TABLES) {
+      const body = (sql: string, head: string) => lf(sql).match(new RegExp(`${head}public\\.${table} \\(([\\s\\S]*?)\\n\\);`))?.[1];
+      const incremental = body(ADMIN_SQL, "CREATE TABLE IF NOT EXISTS ");
+      expect(incremental, table).toBeTruthy();
+      expect(body(SQL, "CREATE TABLE "), table).toBe(incremental);
+    }
+    for (const name of [...ADMIN_RPCS, "get_admin_dashboard"]) {
+      expect(fn(SQL, name).replace("CREATE FUNCTION", ""), name).toBe(fn(ADMIN_SQL, name).replace("CREATE OR REPLACE FUNCTION", ""));
+    }
+  });
+
+  it("keeps admin tables server-only and the audit independent of the target account", () => {
+    for (const sql of [SQL, ADMIN_SQL]) {
+      for (const table of ADMIN_TABLES) {
+        expect(sql).toContain(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY;`);
+        expect(sql).not.toMatch(new RegExp(`CREATE POLICY \\w+ ON public\\.${table}\\b`));
+      }
+      expect(sql).not.toMatch(/GRANT [^;]*admin_[^;]* TO (anon|authenticated)/);
+      const audit = lf(sql).match(/public\.admin_audit \(([\s\S]*?)\n\);/)?.[1] ?? "";
+      expect(audit).toContain("admin_id UUID REFERENCES auth.users(id) ON DELETE SET NULL");
+      expect(audit).toMatch(/target_user UUID,\n/);
+      expect(audit).not.toMatch(/\b(pin|matricula|ip|address)\b/i);
+    }
+  });
+
+  it("guards every console RPC and never returns hashes, answers or θ", () => {
+    for (const name of ADMIN_RPCS) {
+      const body = PUBLIC_FUNCTIONS.get(name) ?? "";
+      expect(body, name).toContain("PERFORM private.assert_service_role();");
+      expect(body, name).toContain("SECURITY DEFINER");
+      expect(body, name).toContain("SET search_path = ''");
+    }
+    const list = PUBLIC_FUNCTIONS.get("admin_list_users") ?? "";
+    for (const secret of ["matricula_hash", "latent_profile", "romance_vector", "dimension_scores", "orientacion_sexual", "quiz_responses"]) {
+      expect(list, secret).not.toContain(secret);
+    }
+  });
+
+  it("resets a quiz keeping the alias and satisfying profiles_completed_is_whole", () => {
+    const reset = lf(PUBLIC_FUNCTIONS.get("admin_reset_quiz") ?? "");
+    expect(reset).toContain("quiz_completed_at = NULL");
+    expect(reset).not.toMatch(/\balias\s*=/);
+    expect(reset).toContain("DELETE FROM public.quiz_responses WHERE user_id = p_user;");
+    expect(reset).toContain("DELETE FROM public.matches WHERE p_user IN (user_a, user_b);");
+  });
+
+  it("lets the dashboard answer the service role and the guard accept admin_address", () => {
+    expect(PUBLIC_FUNCTIONS.get("get_admin_dashboard")).toContain("COALESCE(auth.jwt() ->> 'role', '') <> 'service_role' AND NOT private.is_admin(auth.uid())");
+    for (const sql of [SQL, ADMIN_SQL]) expect(sql).toContain("'address_attempt', 'chat_pin_address', 'admin_address'");
   });
 });

@@ -5,6 +5,8 @@
  */
 export { ACCESS_CONFIG } from "./access";
 export type { AccessConfig } from "./access";
+export { ADMIN_CONFIG } from "./admin";
+export type { AdminConfig } from "./admin";
 export { AVATAR_CONFIG } from "./avatars";
 export type { AvatarConfig } from "./avatars";
 export { CHAT_CONFIG } from "./chat";

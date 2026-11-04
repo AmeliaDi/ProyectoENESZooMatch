@@ -1,0 +1,16 @@
+{
+  "version": "admin-1",
+  "pin": { "length": 4 },
+  "attempts": {
+    "perStep": 5,
+    "waitMinutes": [1, 5, 15, 60]
+  },
+  "session": {
+    "idleMinutes": 30,
+    "maxMinutes": 240
+  },
+  "addressGuard": { "limit": 20, "windowSeconds": 900, "lockSeconds": 900 },
+  "users": { "pageSize": 25, "searchMaxChars": 40 },
+  "reports": { "pageSize": 25 },
+  "audit": { "pageSize": 50 }
+}
