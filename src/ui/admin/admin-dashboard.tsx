@@ -6,17 +6,16 @@
  * cannot be re-identified from the counts (k-anonymity floor from config).
  */
 
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { EXPERIENCE, MATCHING_CONFIG } from "@/config";
-import { parseAdminMetrics, type AdminMetrics } from "@/contracts/admin-metrics";
-import { AtlasShell } from "@/ui/kit/atlas-shell";
+import type { AdminMetrics } from "@/contracts/admin-metrics";
 import { Button } from "@/ui/kit/button";
 import { PixelNumber } from "@/ui/kit/pixel-number";
 import { EmptyState } from "@/ui/kit/states";
 import { Frame } from "@/ui/kit/surfaces";
 
+import { adminApi } from "./admin-api";
 import { MBTI_CODES, adminMetricsToCsv, trackCoverageRate } from "./metrics-export";
 import { PixelBars } from "./pixel-bars";
 
@@ -77,10 +76,10 @@ function CountTable({ caption, rows }: { caption: string; rows: ReadonlyArray<{ 
   );
 }
 
-export function AdminDashboard({ initialData }: { initialData: AdminMetrics | null }) {
-  const router = useRouter();
-  const [metrics, setMetrics] = useState<AdminMetrics | null>(initialData);
-  const [status, setStatus] = useState<"idle" | "refreshing" | "error">(initialData ? "idle" : "error");
+/** Aggregates tab of the console; `onUnauthorized` sends back to the login. */
+export function AdminDashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
+  const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
+  const [status, setStatus] = useState<"idle" | "refreshing" | "error">("refreshing");
   const [recomputing, setRecomputing] = useState(false);
   const inFlight = useRef(false);
   const data = metrics ?? emptyMetrics();
@@ -90,30 +89,25 @@ export function AdminDashboard({ initialData }: { initialData: AdminMetrics | nu
       if (inFlight.current) return;
       inFlight.current = true;
       if (!silent) setStatus("refreshing");
-      try {
-        const response = await fetch("/api/admin/metrics", { cache: "no-store", signal: AbortSignal.timeout(10000) });
-        if (response.status === 401 || response.status === 403) {
-          router.replace("/admin/login");
-          return;
-        }
-        const parsed = response.ok ? parseAdminMetrics(await response.json()) : null;
-        if (!parsed) throw new Error("metrics_unavailable");
-        setMetrics(parsed);
-        setStatus("idle");
-      } catch {
-        setStatus("error");
-      } finally {
-        inFlight.current = false;
-      }
+      const result = await adminApi.metrics();
+      inFlight.current = false;
+      if (!result.ok && result.reason === "unauthorized") return onUnauthorized();
+      if (!result.ok) return setStatus("error");
+      setMetrics(result.value);
+      setStatus("idle");
     },
-    [router],
+    [onUnauthorized],
   );
 
   useEffect(() => {
+    const first = window.setTimeout(() => void refresh(false), 0);
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") void refresh(true);
     }, EXPERIENCE.admin.pollMs);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(timer);
+    };
   }, [refresh]);
 
   function downloadCsv() {
@@ -129,25 +123,11 @@ export function AdminDashboard({ initialData }: { initialData: AdminMetrics | nu
   async function recompute() {
     if (recomputing) return;
     setRecomputing(true);
-    try {
-      const response = await fetch("/api/admin/recompute", { method: "POST", signal: AbortSignal.timeout(120000) });
-      if (response.status === 401 || response.status === 403) {
-        router.replace("/admin/login");
-        return;
-      }
-      if (!response.ok) throw new Error("recompute_unavailable");
-      await refresh(false);
-    } catch {
-      setStatus("error");
-    } finally {
-      setRecomputing(false);
-    }
-  }
-
-  async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" }).catch(() => undefined);
-    router.replace("/admin/login");
-    router.refresh();
+    const result = await adminApi.recompute();
+    setRecomputing(false);
+    if (!result.ok && result.reason === "unauthorized") return onUnauthorized();
+    if (!result.ok) return setStatus("error");
+    await refresh(false);
   }
 
   const mbti = MBTI_CODES.map((code) => ({ label: code, count: data.mbtiDistribution[code] ?? 0 }));
@@ -156,17 +136,8 @@ export function AdminDashboard({ initialData }: { initialData: AdminMetrics | nu
   const tooFew = data.totalProfiles > 0 && data.totalProfiles < K_FLOOR;
 
   return (
-    <AtlasShell
-      plate="Observatorio · solo agregados"
-      actions={
-        <Button variant="ghost" icon="logout" onClick={() => void logout()}>
-          Salir
-        </Button>
-      }
-    >
-      <main className="zm-admin">
+      <div className="zm-admin__panel">
         <header className="zm-admin__head">
-          <h1 className="zm-settings__title">Observatorio</h1>
           <div className="zm-admin__actions">
             <Button variant="secondary" icon="recenter" busy={status === "refreshing"} onClick={() => void refresh(false)}>
               Refrescar
@@ -232,7 +203,6 @@ export function AdminDashboard({ initialData }: { initialData: AdminMetrics | nu
             </Frame>
           </div>
         )}
-      </main>
-    </AtlasShell>
+      </div>
   );
 }

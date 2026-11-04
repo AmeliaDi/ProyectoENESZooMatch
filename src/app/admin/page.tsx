@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 
-import { loadAdminMetrics } from "@/application/admin-metrics";
-import { AdminDashboard } from "@/ui/admin/admin-dashboard";
-import { adminContext } from "@/infrastructure/composition.server";
+import { AdminConsole } from "@/ui/admin/admin-console";
 
 export const metadata: Metadata = {
   title: "Observatorio administrativo · ZooMatch",
@@ -12,10 +9,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
-  const context = await adminContext();
-  if (!context.ok) redirect("/admin/login");
-
-  const metrics = await loadAdminMetrics(context.value);
-  return <AdminDashboard initialData={metrics.ok ? metrics.value : null} />;
+/**
+ * The console session cookie is scoped to `/api/admin` (never sent to pages),
+ * so the console checks it client-side through `/api/admin/session` and sends
+ * anyone without it to `/admin/login`. No data is rendered on the server.
+ */
+export default function AdminPage() {
+  return <AdminConsole />;
 }

@@ -10,6 +10,10 @@ import { describe, expect, it } from "vitest";
 
 import { EXPERIENCE } from "@/config";
 
+import { ADMIN_COPY, ADMIN_REASON_LABELS, AUDIT_LABELS, REPORT_STATUS_LABELS, TAB_LABELS, USER_ACTION_COPY, confirmMatches } from "./admin/admin-copy";
+import { pageCount } from "./admin/pager";
+import { availableActions } from "./admin/user-detail";
+
 import { cellsFor } from "./admin/pixel-bars";
 import { categoryIcon } from "./design/category-icons";
 import { dawnStars, sparkleCells } from "./design/dawn";
@@ -91,6 +95,12 @@ describe("copy", () => {
     attemptsMessage(1),
     attemptsMessage(4),
     pausedMessage(300),
+    ...Object.values(ADMIN_COPY),
+    ...Object.values(TAB_LABELS),
+    ...Object.values(AUDIT_LABELS),
+    ...Object.values(REPORT_STATUS_LABELS),
+    ...Object.values(ADMIN_REASON_LABELS),
+    ...Object.values(USER_ACTION_COPY).flatMap((a) => [a.label, a.body]),
   ];
 
   it("has no forbidden words or emojis", () => {
@@ -200,5 +210,31 @@ describe("pure helpers", () => {
     const first = order[0] ?? 0;
     const [x, y] = [first % 16, Math.floor(first / 16)];
     expect(Math.abs(x - 7.5) + Math.abs(y - 7.5)).toBeLessThan(6);
+  });
+});
+
+describe("admin console helpers (ADR-036)", () => {
+  const user = {
+    id: "aaaaaaaa-0000-4000-8000-000000000001", alias: "Nube", animal: null, color: null, colorHex: null, mbti: null,
+    createdAt: "2026-11-01T00:00:00.000Z", quizCompletedAt: null, paused: false, adult: false, modules: 0,
+    isAdmin: false, hasChatPin: false, romanceMatches: 0, amistadMatches: 0, conversations: 0, reportsReceived: 0,
+  };
+
+  it("requires the exact confirm word for destructive actions only", () => {
+    expect(confirmMatches("delete", "borrar")).toBe(false);
+    expect(confirmMatches("delete", " BORRAR ")).toBe(true);
+    expect(confirmMatches("reset_quiz", "REINICIAR")).toBe(true);
+    expect(confirmMatches("pause", "")).toBe(true);
+  });
+
+  it("offers only the actions that make sense and never deletes an admin", () => {
+    expect(availableActions(user)).toEqual(["pause", "delete"]);
+    expect(availableActions({ ...user, quizCompletedAt: "x", paused: true, hasChatPin: true })).toEqual(["reset_quiz", "resume", "reset_chat_pin", "delete"]);
+    expect(availableActions({ ...user, isAdmin: true })).not.toContain("delete");
+  });
+
+  it("counts at least one page", () => {
+    expect(pageCount(0, 25)).toBe(1);
+    expect(pageCount(51, 25)).toBe(3);
   });
 });
