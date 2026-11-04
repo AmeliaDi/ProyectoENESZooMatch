@@ -158,10 +158,24 @@ con Europe PMC, OpenAlex, Open Library y Firecrawl (5 créditos). Siguen `[VERIF
 el origen de la muestra de Gonzaga 2010, las licencias de BFI y PVQ (sin impacto: no
 se usan sus ítems) y los originales de Bhattacharyya 1943 y Mahalanobis 1936.
 
+## 4.4 Chat con señales, rondas guiadas y seguridad (2026-11-06, `245a6f2`, ADR-035)
+
+| Comprobación | Resultado |
+|---|---|
+| `npm run check` (secretos, lint, typecheck, tests) y `next build` | **867 tests** en verde; build OK |
+| Migración `20261106000000_chat_safety.sql` en producción | Aplicada; *backfill* de 1 conversación existente (1 respuesta → 1 ronda). Se retiró la función puente de 3 argumentos tras el despliegue |
+| QA de API contra producción | **85/85 OK**. Las 21 del chat cubren: invitación visible para quien recibe, «ahora no» silencioso, el mismo gesto abre el chat, 3 tarjetas solo para quien pregunta, «otras tres», sin pregunta propia antes del chat libre, 301 grafemas → 400, 300 grafemas con ZWJ aceptados, respuestas reveladas juntas, respuesta sellada, «Pasar», sin chat libre antes de 3 rondas, bloqueo silencioso, el bloqueo se ve como match que ya no está, aviso sin contenido |
+| La lista ofensiva y el banco de preguntas fuera del *bundle* | Cero coincidencias en `.next/static` |
+| Base tras el QA | Cuentas QA borradas (`chat_blocks` 0). 111 perfiles: el nuevo es una persona real que entró durante la prueba |
+| LCP / CLS | `/resultado` 948 ms / 0.000; `/chats` 876 ms / 0.006 |
+
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
 
-- **Chat en dos teléfonos reales**: el flujo se probó por API y con tests de componentes;
-  falta recorrerlo a mano con dos personas (rondas, invitación, chat libre, retirarse).
+- **Chat en dos teléfonos reales:** el flujo se probó por API (85/85) y con tests de casos de
+  uso; falta recorrerlo a mano con dos personas: señal, invitación, tarjetas, respuestas
+  selladas, chat libre, selector de emojis, menú de seguridad y línea dorada en la
+  constelación.
+- **Moderación de reportes:** sin pantalla; se revisan con SQL (`service_role`).
 
 - **Teléfono real de gama media.** Los FPS medidos son de Chromium con CPU
   ×4 (`docs/FISICA.md`). Falta abrir `/resultado` en un teléfono y anotar la

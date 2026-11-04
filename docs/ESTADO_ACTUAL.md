@@ -3,7 +3,7 @@
 > Fase 0 del prompt de afinado (2026-11-01). Si el contexto se reinicia, se
 > retoma desde aquí.
 
-## Estado vigente (2026-11-04)
+## Estado vigente (2026-11-06)
 
 Todas las fases de todos los prompts están cerradas (tabla «Avance» en §6).
 Las secciones §1–§4 son la **foto histórica** de la auditoría inicial del
@@ -11,9 +11,10 @@ Las secciones §1–§4 son la **foto histórica** de la auditoría inicial del
 
 | Comprobación | Hoy |
 |---|---|
-| Tests | 820 en verde (`npm run check`) |
+| Tests | 867 en verde (`npm run check`) |
 | Lint, typecheck, secretos y build | En verde |
-| QA de API contra producción | 80/80 (`docs/QA.md` §4.2) |
+| QA de API contra producción | 85/85 (`docs/QA.md` §4.4) |
+| Chat completo (señales, rondas guiadas selladas, seguridad, emojis) | Implementado y en producción (ADR-035, `docs/CHAT.md` §10–14) |
 | HEXACO, MBTI continuo, Eneagrama con softmax y entropía | Implementados (Fases 3–5) |
 | `QA.md`, `VALIDACION.md`, `MEDICION.md`, `TRAZABILIDAD.md`, `PREREGISTRO.md` | Existen |
 | Números mágicos de §1 | Cerrados (ADR-034): el operador Φ se eliminó, `selectColor` ya no existe y las bandas 0.45/0.65 de la etiqueta de apego viven en `data/enneagram.json` → `attachment_label` |
@@ -21,6 +22,7 @@ Las secciones §1–§4 son la **foto histórica** de la auditoría inicial del
 
 Pendiente solo manual: teléfono real de gama media, TalkBack/VoiceOver,
 panel admin con sesión y el chat con dos teléfonos reales (`docs/QA.md` §5).
+Pendiente operativo: Upstash para el rate limit (sigue en fail-open).
 
 ## 1. Salud del repositorio (foto del 2026-11-01)
 
@@ -173,6 +175,7 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | Pulido visual, perfil de afinidades y guía | Cerrada | `docs/AUDITORIA_VISUAL.md`, ADR-027/028/030 |
 | Candado PIN | Cerrada | `docs/CHAT.md` §1–9, ADR-029 |
 | Chat entre matches | Cerrada (2026-11-04) | `docs/CHAT.md` §10, ADR-032, migración `20261104000000_conversations.sql` (aplicada) |
+| Chat: señales, rondas guiadas, seguridad (fases 0–4 del prompt de chat) | Cerrada (2026-11-06) | `docs/CHAT.md` §10–14, ADR-035, migración `20261106000000_chat_safety.sql` (aplicada), changelog §8 |
 | Sonido, háptica, 404 y easter egg | Cerrada | ADR-033, `src/ui/feedback/` |
 | Cierre de pendientes (Φ, alias, avisos, docs) | Cerrada (2026-11-04) | ADR-034, migración `20261105000000_alias_collision.sql` (aplicada) |
 | Dorado por pista y física de cielos llenos | Cerrada | ADR-031, `docs/FISICA.md` |
@@ -200,6 +203,32 @@ Para rehacer los datos de la Fase 3: `npm run data:psychometrics` (requiere
 `.venv-psy`, ver `scripts/psychometrics/requirements.txt`). Tras editar ítems,
 hay que volver a correrlo: un test compara el hash del banco con el de
 `data/psychometric-params.json`.
+
+## 8. Changelog del chat completo (2026-11-06)
+
+**Archivos tocados**
+
+| Área | Archivos |
+|---|---|
+| Datos | `data/chat-prompts.json` (96 preguntas), `chat-moderation.json`, `chat-contact.json`, `chat-emoji.json`; `chat-config.json` → `conversation` |
+| Configuración | `src/config/chat.ts`, `chat-prompts.ts` (+ test linter), `chat-moderation.ts`, `chat-contact.ts`, `chat-emoji.ts` |
+| Dominio | `src/domain/chat/` → `text.ts`, `guard.ts`, `conversation.ts`, `prompt-selection.ts`, `signals.ts` (+ tests) |
+| Aplicación | `src/application/chat/` → `actions.ts`, `conversation.ts`, `conversation-view.ts`, `interest.ts`, `invitations.ts`, `prompts.ts`, `settings.ts`, `text-policy.ts`, `conversation-ports.ts`; fakes en `application/testing/` |
+| Infraestructura | `conversation-repository.ts`, `conversation-writes.ts`, `conversation-route.server.ts`, `interest-route.server.ts`, `composition.server.ts`, `responses.ts`, `shared.ts` |
+| Rutas | `/api/interest`, `/api/interest/decline`, `/api/interest/adult`; `/api/chat/conversations/[id]/{ask,answer,react,feedback,free,messages,pause,mute,mine,block,report}` (sale `accept`) |
+| Base | `supabase/migrations/20261106000000_chat_safety.sql` y la base |
+| UI | `src/ui/chat/` → tarjetas de preguntas, invitaciones, menú de seguridad, guía, selector de emojis, puerta 18+, composer por grafemas; constelación → línea dorada y globo de invitación |
+| Documentos | `docs/CHAT.md` §10–14, `DECISIONES.md` ADR-035, `PRIVACIDAD.md` §4.1, `QA.md` §4.4, `README.md` |
+
+**Decisiones:** ADR-035.
+
+**Riesgos pendientes**
+
+- No se pueden impedir las capturas de pantalla.
+- La edad es declarada, no verificada.
+- La moderación de reportes no tiene pantalla.
+- El intercambio de contacto con consentimiento mutuo está propuesto, pero sin implementar.
+- El rate limit sigue en fail-open hasta configurar Upstash.
 
 ## 7. Lo que no se puede afirmar (se mantiene)
 
