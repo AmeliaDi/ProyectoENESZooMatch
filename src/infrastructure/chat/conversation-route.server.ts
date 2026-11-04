@@ -4,13 +4,15 @@
  * which only forwards the request) and the uniform result → response mapping.
  */
 import type { NextResponse } from "next/server";
+import type { z } from "zod";
 
+import type { ConversationDeps } from "@/application/chat";
 import type { AppError, AppFailure } from "@/application/errors";
 import { conversationIdSchema } from "@/application/validation/chat";
-import type { Result } from "@/domain/shared";
+import { err, ok, type Result } from "@/domain/shared";
 import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
 
-import { requireChatLock, type OpenChat } from "./chat-route.server";
+import { parseChatBody, requireChatLock, type OpenChat } from "./chat-route.server";
 
 const SEGMENT = "conversations";
 
@@ -20,6 +22,10 @@ export function conversationIdOf(request: Request): string | null {
   const at = parts.indexOf(SEGMENT);
   const id = at >= 0 ? parts[at + 1] : undefined;
   return id && conversationIdSchema.safeParse(id).success ? id : null;
+}
+
+export function conversationDeps(open: OpenChat): ConversationDeps {
+  return { conversations: open.context.conversations, clock: open.context.deps.clock };
 }
 
 /**
@@ -36,4 +42,22 @@ export async function withConversation<T>(
   if (!id) return open.value.renew(errorResponse("chat.not_found"));
   const result = await run(open.value, id);
   return open.value.renew(result.ok ? jsonResponse(result.value ?? { ok: true }) : errorResponse(result.error));
+}
+
+/** `void` success → `{ ok: true }` body. */
+export function okBody(result: Result<void, AppError>): Result<{ ok: true }, AppError> {
+  return result.ok ? ok({ ok: true }) : result;
+}
+
+/** POST body → use case, with the conversation deps; invalid body → `request.invalid`. */
+export function conversationAction<S extends z.ZodType, T>(
+  schema: S,
+  run: (id: string, viewer: string, body: z.output<S>, deps: ConversationDeps) => Promise<Result<T, AppError>>,
+) {
+  return (request: Request) =>
+    withConversation(request, async (open, id) => {
+      const body = await parseChatBody(request, schema);
+      if (body === null) return err("request.invalid" as const);
+      return run(id, open.context.userId, body, conversationDeps(open));
+    });
 }

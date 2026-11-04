@@ -14,6 +14,13 @@ export const TABLE = {
   conversations: "conversations",
   answers: "conversation_answers",
   messages: "conversation_messages",
+  rounds: "conversation_rounds",
+  reactions: "conversation_reactions",
+  feedbackDaily: "chat_feedback_daily",
+  blocks: "chat_blocks",
+  closures: "chat_closures",
+  reports: "chat_reports",
+  reportAudit: "chat_report_audit",
 } as const;
 export const RPC = {
   submit: "submit_quiz_result",
@@ -26,6 +33,10 @@ export const RPC = {
   markRead: "mark_notifications_read",
   expressInterest: "express_chat_interest",
   leaveConversation: "leave_conversation",
+  blockChatUser: "block_chat_user",
+  reportConversation: "report_conversation",
+  roundFeedback: "record_round_feedback",
+  purgeChat: "purge_chat",
 } as const;
 
 export const PROFILE_PAGE_SIZE = 1000;

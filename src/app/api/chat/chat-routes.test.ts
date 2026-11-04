@@ -23,6 +23,7 @@ vi.mock("@/infrastructure/security/api.server", () => ({
 }));
 
 import { POST as answer } from "./conversations/[id]/answer/route";
+import { POST as ask } from "./conversations/[id]/ask/route";
 import { POST as message } from "./conversations/[id]/messages/route";
 import { DELETE as leave, GET as conversation } from "./conversations/[id]/route";
 import { GET as inbox } from "./inbox/route";
@@ -47,6 +48,8 @@ function context(userId = USER): ChatContext {
     userId,
     pepper: PEPPER,
     conversations: memoryConversations(conversations),
+    matches: { listFor: async () => ok([]) },
+    digest: (s) => s,
     deps: {
       pins: memoryChatPins(store),
       hasher: plainPinHasher,
@@ -102,7 +105,7 @@ describe("GET /api/chat/inbox", () => {
     const cookie = await createAndOpen();
     const response = await inbox(request("inbox", { cookie }));
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ conversations: [] });
+    await expect(response.json()).resolves.toEqual({ conversations: [], invitations: [] });
     expect(response.headers.get("set-cookie")).toContain(LOCK_COOKIE);
   });
 
@@ -159,14 +162,34 @@ describe("conversation routes", () => {
     expect(conversations.conversations.size).toBe(1);
   });
 
-  it("serve the conversation and its answers with the lock open", async () => {
+  it("serve the conversation and its sealed answers with the lock open", async () => {
     const id = await seeded();
     const cookie = await createAndOpen();
     const listed = await inbox(request("inbox", { cookie }));
     expect((await listed.json()).conversations).toHaveLength(1);
+    await memoryConversations(conversations).openRound(id, 0, OTHER, { promptId: "p001" }, new Date(now));
     const sent = await answer(request(`conversations/${id}/answer`, { method: "POST", cookie, body: { round: 0, body: "hola" } }));
     expect(sent.status).toBe(200);
-    expect((await sent.json()).rounds[0]).toMatchObject({ mine: "hola", theirs: null });
+    expect((await sent.json()).rounds[0]).toMatchObject({ mine: "hola", theirs: null, revealed: false });
+  });
+
+  it("ask with an unknown card is invalid and an open card is accepted", async () => {
+    const id = await seeded();
+    const cookie = await createAndOpen();
+    let view = await (await conversation(request(`conversations/${id}`, { cookie }))).json();
+    if (!view.ask) {
+      // The other person asks first in this conversation: play their round so it is USER's turn.
+      const repo = memoryConversations(conversations);
+      await repo.openRound(id, 0, OTHER, { promptId: "p001" }, new Date(now));
+      await repo.saveAnswer(id, OTHER, 0, { body: "x" }, new Date(now));
+      await repo.saveAnswer(id, USER, 0, { body: "y" }, new Date(now));
+      view = await (await conversation(request(`conversations/${id}`, { cookie }))).json();
+    }
+    expect(view.ask.suggestions).toHaveLength(CHAT_CONFIG.conversation.rounds.suggestions);
+    const bad = await ask(request(`conversations/${id}/ask`, { method: "POST", cookie, body: { promptId: "p999" } }));
+    expect(bad.status).toBe(400);
+    const good = await ask(request(`conversations/${id}/ask`, { method: "POST", cookie, body: { promptId: view.ask.suggestions[0].id } }));
+    expect(good.status).toBe(200);
   });
 
   it("answer not found for malformed or foreign ids", async () => {

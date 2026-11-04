@@ -12,15 +12,31 @@ export {
   type ChatStatusDto,
   type NewPinInput,
 } from "./pin";
+export { getConversation, getInbox, type ConversationDeps, type ViewOptions } from "./conversation";
 export {
-  acceptFreeChat,
   answerRound,
-  getConversation,
-  getInbox,
+  askQuestion,
+  blockInConversation,
+  deleteMyMessages,
   leaveConversation,
+  reactToAnswer,
+  reportConversation,
+  roundFeedback,
   sendMessage,
-  type ConversationDeps,
-} from "./conversation";
+  setFreeChat,
+  setMuted,
+  setPaused,
+  type AnswerInput,
+  type AskInput,
+} from "./actions";
 export type { ConversationRepository, ConversationRow } from "./conversation-ports";
-export { expressInterest, interestStates, withdrawInterest, type InterestDeps } from "./interest";
+export {
+  confirmAdult,
+  declineInterest,
+  expressInterest,
+  interestStates,
+  withdrawInterest,
+  type InterestDeps,
+} from "./interest";
+export type { InvitationDeps } from "./invitations";
 export { cancelPinRecovery, completePinRecovery, requestPinRecovery, type RecoveryDto } from "./recovery";

@@ -6,12 +6,20 @@ import { createPreflightHandler, withApiSecurity } from "@/infrastructure/securi
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** The viewer's conversations. Without an open lock: `chat.locked` and no data. */
+/**
+ * The viewer's conversations and pending invitations. Without an open lock:
+ * `chat.locked` and no data.
+ */
 async function handleGet(request: Request) {
   const open = await requireChatLock(request);
   if (!open.ok) return open.error;
   const { context } = open.value;
-  const inbox = await getInbox(context.userId, { conversations: context.conversations, clock: context.deps.clock });
+  const inbox = await getInbox(context.userId, {
+    conversations: context.conversations,
+    clock: context.deps.clock,
+    matches: context.matches,
+    digest: context.digest,
+  });
   return open.value.renew(inbox.ok ? jsonResponse(inbox.value) : errorResponse(inbox.error));
 }
 

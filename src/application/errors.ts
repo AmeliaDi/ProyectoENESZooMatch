@@ -31,7 +31,14 @@ export type ChatError =
   | "chat.recovery_invalid"
   | "chat.not_found"
   | "chat.match_gone"
-  | "chat.conflict";
+  | "chat.conflict"
+  | "chat.adult_required"
+  | "chat.cooldown"
+  | "chat.too_many_signals"
+  | "chat.link_blocked"
+  | "chat.offensive"
+  | "chat.slow_down"
+  | "chat.repeated";
 
 /** A failure plus the optional hints a client may show (never PIN details). */
 export interface AppFailure {

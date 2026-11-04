@@ -14,7 +14,7 @@ import type { DimensionScores, ScoredProfile } from "@/types/microtest";
 import { FALLBACK_MBTI, NEUTRAL_SCORE, PROFILE_PAGE_SIZE, RPC, TABLE, attempt, failed, firstJoined } from "./shared";
 
 
-const latentSchema = z
+export const latentSchema = z
   .object({
     theta: z.record(z.string(), z.number()),
     se: z.record(z.string(), z.number().nonnegative()),

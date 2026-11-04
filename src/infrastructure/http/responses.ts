@@ -29,6 +29,13 @@ const STATUS: Record<AppError, number> = {
   "chat.not_found": 404,
   "chat.match_gone": 409,
   "chat.conflict": 409,
+  "chat.adult_required": 403,
+  "chat.cooldown": 409,
+  "chat.too_many_signals": 429,
+  "chat.link_blocked": 422,
+  "chat.offensive": 422,
+  "chat.slow_down": 429,
+  "chat.repeated": 422,
 };
 
 const MESSAGE: Record<AppError, string> = {
@@ -57,6 +64,13 @@ const MESSAGE: Record<AppError, string> = {
   "chat.not_found": "Esta conversación ya no está disponible.",
   "chat.match_gone": "Esta afinidad ya no está en tu cielo.",
   "chat.conflict": "La conversación cambió mientras escribías. Revisa y vuelve a intentarlo.",
+  "chat.adult_required": "Los chats de romance son solo para personas mayores de 18 años.",
+  "chat.cooldown": "Esta conversación se cerró hace poco. Dense un tiempo antes de volver a intentarlo.",
+  "chat.too_many_signals": "Ya tienes varias señales esperando. Retira alguna o espera a que caduquen.",
+  "chat.link_blocked": "Por ahora los enlaces no se pueden enviar. Así cuidamos el anonimato de las dos personas.",
+  "chat.offensive": "Ese mensaje puede lastimar. Intenta decirlo de otra forma.",
+  "chat.slow_down": "Tomemos una pausa corta. Puedes escribir de nuevo en un momento.",
+  "chat.repeated": "Ya enviaste ese mismo mensaje. Prueba con algo distinto.",
 };
 
 /** Single mapping from application errors to HTTP. `code` is stable for clients. */

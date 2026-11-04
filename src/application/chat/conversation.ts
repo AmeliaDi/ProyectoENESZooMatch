@@ -1,190 +1,138 @@
 /**
- * Conversations between matches (docs/CHAT.md §10). Every use case runs only
- * behind an open chat lock (the route enforces it) and first proves the
- * viewer takes part in the conversation; otherwise it answers `chat.not_found`
- * (never "exists but not yours").
+ * Read use cases of the chat between matches (docs/CHAT.md §10–11). Every
+ * one runs behind an open chat lock (the route enforces it) and first proves
+ * the viewer takes part; otherwise it answers `chat.not_found` (never
+ * "exists but not yours").
  */
-import { CHAT_CONFIG } from "@/config";
 import type { ConversationDto, InboxDto, InboxEntryDto } from "@/contracts/chat";
-import {
-  canAcceptFree,
-  canAnswer,
-  cleanChatText,
-  currentRound,
-  isMyTurn,
-  isRoundRevealed,
-  stageOf,
-  visibleRoundCount,
-  type ConversationFacts,
-  type ConversationSide,
-} from "@/domain/chat";
+import { completedRounds, isMyTurn, stageOf } from "@/domain/chat";
 import { err, ok, type Clock, type Result } from "@/domain/shared";
 
 import type { AppError } from "../errors";
-import type { AnswerRow, ChatPeer, ConversationRepository, ConversationRow, MessageRow } from "./conversation-ports";
+import type { ChatPeer, ConversationRepository, ConversationRow, MessageRow, RoundRow } from "./conversation-ports";
+import { factsOf, otherOf, sideOf, toDto, type Loaded } from "./conversation-view";
+import { pendingInvitations, type InvitationDeps } from "./invitations";
 import { toPeerDto } from "./peer-view";
-
-const SETTINGS = CHAT_CONFIG.conversation;
+import { cardsFor, layerWeights, type PromptCard } from "./prompts";
+import { ROUND_POLICY, SETTINGS } from "./settings";
 
 export interface ConversationDeps {
   conversations: ConversationRepository;
   clock: Clock;
 }
 
-const sideOf = (row: ConversationRow, viewer: string): ConversationSide => (row.userA === viewer ? "a" : "b");
-const otherOf = (row: ConversationRow, viewer: string) => (row.userA === viewer ? row.userB : row.userA);
-const questionsOf = (row: ConversationRow) => SETTINGS.rounds[row.track];
-
-function factsOf(row: ConversationRow, answers: readonly AnswerRow[]): ConversationFacts {
-  const own = (user: string) => new Set(answers.filter((x) => x.conversationId === row.id && x.author === user).map((x) => x.round));
-  return {
-    totalRounds: questionsOf(row).length,
-    answered: { a: own(row.userA), b: own(row.userB) },
-    freeReady: { a: row.freeReadyA, b: row.freeReadyB },
-  };
-}
-
-function inboxEntry(row: ConversationRow, viewer: string, answers: readonly AnswerRow[], peers: Map<string, ChatPeer>): InboxEntryDto {
-  const facts = factsOf(row, answers);
+function inboxEntry(row: ConversationRow, viewer: string, loaded: Omit<Loaded, "row" | "facts" | "reactions">, peers: Map<string, ChatPeer>, now: Date): InboxEntryDto {
+  const facts = factsOf(row, loaded.rounds, loaded.answers);
   const side = sideOf(row, viewer);
   const seen = side === "a" ? row.seenA : row.seenB;
-  const round = currentRound(facts);
   const fromOther = row.lastActor !== null && row.lastActor !== viewer;
   return {
     id: row.id,
     track: row.track,
     peer: toPeerDto(peers.get(otherOf(row, viewer))),
     stage: stageOf(facts),
-    ...(round === null ? {} : { round: round + 1 }),
-    totalRounds: facts.totalRounds,
+    completedRounds: completedRounds(facts, now, ROUND_POLICY),
     unread: seen === null || (fromOther && row.updatedAt > seen),
-    myTurn: isMyTurn(facts, side),
+    myTurn: isMyTurn(facts, side, now, ROUND_POLICY),
     updatedAt: row.updatedAt.toISOString(),
   };
 }
 
-async function peerMap(userIds: readonly string[], deps: ConversationDeps): Promise<Result<Map<string, ChatPeer>, AppError>> {
+
+export async function peerMap(userIds: readonly string[], repo: ConversationRepository): Promise<Result<Map<string, ChatPeer>, AppError>> {
   if (userIds.length === 0) return ok(new Map());
-  const peers = await deps.conversations.peers(userIds);
+  const peers = await repo.peers(userIds);
   return peers.ok ? ok(new Map(peers.value.map((p) => [p.userId, p]))) : peers;
 }
 
-export async function getInbox(viewer: string, deps: ConversationDeps): Promise<Result<InboxDto, AppError>> {
+export async function getInbox(viewer: string, deps: ConversationDeps & InvitationDeps): Promise<Result<InboxDto, AppError>> {
   const rows = await deps.conversations.listFor(viewer);
   if (!rows.ok) return rows;
-  const answers = await deps.conversations.answersOf(rows.value.map((r) => r.id), false);
+  const ids = rows.value.map((r) => r.id);
+  const [rounds, answers, invitations] = await Promise.all([
+    deps.conversations.roundsOf(ids),
+    deps.conversations.answersOf(ids, false),
+    pendingInvitations(viewer, deps),
+  ]);
+  if (!rounds.ok) return rounds;
   if (!answers.ok) return answers;
-  const peers = await peerMap(rows.value.map((r) => otherOf(r, viewer)), deps);
+  if (!invitations.ok) return invitations;
+  const peers = await peerMap(rows.value.map((r) => otherOf(r, viewer)), deps.conversations);
   if (!peers.ok) return peers;
+  const now = deps.clock.now();
   const conversations = rows.value
-    .map((row) => inboxEntry(row, viewer, answers.value, peers.value))
+    .map((row) => inboxEntry(row, viewer, { rounds: rounds.value, answers: answers.value }, peers.value, now))
     .sort((x, y) => y.updatedAt.localeCompare(x.updatedAt));
-  return ok({ conversations });
+  return ok({ conversations, invitations: invitations.value });
 }
 
-interface Loaded {
-  row: ConversationRow;
-  answers: AnswerRow[];
-  facts: ConversationFacts;
-}
-
-async function load(id: string, viewer: string, deps: ConversationDeps): Promise<Result<Loaded, AppError>> {
+export async function load(id: string, viewer: string, deps: ConversationDeps): Promise<Result<Loaded, AppError>> {
   const row = await deps.conversations.findFor(id, viewer);
   if (!row.ok) return row;
   if (!row.value) return err("chat.not_found");
-  const answers = await deps.conversations.answersOf([id], true);
+  const [rounds, answers, reactions] = await Promise.all([
+    deps.conversations.roundsOf([id]),
+    deps.conversations.answersOf([id], true),
+    deps.conversations.reactionsOf(id),
+  ]);
+  if (!rounds.ok) return rounds;
   if (!answers.ok) return answers;
-  return ok({ row: row.value, answers: answers.value, facts: factsOf(row.value, answers.value) });
+  if (!reactions.ok) return reactions;
+  const sorted = [...rounds.value].sort((x, y) => x.index - y.index);
+  return ok({ row: row.value, rounds: sorted, answers: answers.value, reactions: reactions.value, facts: factsOf(row.value, sorted, answers.value) });
 }
 
-function roundsView(loaded: Loaded, viewer: string): ConversationDto["rounds"] {
-  const questions = questionsOf(loaded.row);
+const usedPrompts = (rounds: readonly RoundRow[]) => new Set(rounds.flatMap((r) => (r.promptId ? [r.promptId] : [])));
+
+async function suggestionsFor(loaded: Loaded, viewer: string, refresh: number, deps: ConversationDeps): Promise<PromptCard[]> {
   const other = otherOf(loaded.row, viewer);
-  const bodyOf = (author: string, round: number) =>
-    loaded.answers.find((x) => x.author === author && x.round === round)?.body ?? null;
-  return questions.slice(0, visibleRoundCount(loaded.facts)).map((question, index) => ({
-    index,
-    question,
-    mine: bodyOf(viewer, index),
-    theirs: isRoundRevealed(loaded.facts, index) ? bodyOf(other, index) : null,
-  }));
+  const latents = await deps.conversations.latents([viewer, other]);
+  const weights = latents.ok ? layerWeights(loaded.row.track, latents.value.get(viewer), latents.value.get(other)) : {};
+  return cardsFor({
+    conversationId: loaded.row.id,
+    track: loaded.row.track,
+    roundIndex: loaded.rounds.length,
+    used: usedPrompts(loaded.rounds),
+    weights,
+    refresh,
+  });
 }
 
-function toDto(loaded: Loaded, viewer: string, peer: ChatPeer | undefined, messages: MessageRow[]): ConversationDto {
-  const side = sideOf(loaded.row, viewer);
-  const mine = side === "a" ? loaded.row.freeReadyA : loaded.row.freeReadyB;
-  const theirs = side === "a" ? loaded.row.freeReadyB : loaded.row.freeReadyA;
-  return {
-    id: loaded.row.id,
-    track: loaded.row.track,
-    peer: toPeerDto(peer),
-    stage: stageOf(loaded.facts),
-    rounds: roundsView(loaded, viewer),
-    totalRounds: loaded.facts.totalRounds,
-    currentRound: currentRound(loaded.facts),
-    freeReady: { mine, theirs: mine && theirs },
-    messages: messages.map((m) => ({ id: m.id, mine: m.author === viewer, body: m.body, at: m.at.toISOString() })),
-    limits: { answerChars: SETTINGS.answerChars, messageChars: SETTINGS.messageChars },
-  };
+export interface ViewOptions {
+  /** "Otras tres": page of the ranked cards (0 = first offer). */
+  refresh?: number;
+  /** ISO date: older free-chat messages before it. */
+  before?: Date;
+}
+
+async function messagesFor(loaded: Loaded, options: ViewOptions, deps: ConversationDeps): Promise<Result<{ list: MessageRow[]; hasOlder: boolean }, AppError>> {
+  if (!loaded.row.freeReadyA || !loaded.row.freeReadyB) return ok({ list: [], hasOlder: false });
+  const page = await deps.conversations.messages(loaded.row.id, SETTINGS.messagesPage + 1, options.before ?? null);
+  if (!page.ok) return page;
+  const hasOlder = page.value.length > SETTINGS.messagesPage;
+  return ok({ list: hasOlder ? page.value.slice(1) : page.value, hasOlder });
 }
 
 /** Full view of one conversation; marks it as seen by the viewer. */
-export async function getConversation(id: string, viewer: string, deps: ConversationDeps): Promise<Result<ConversationDto, AppError>> {
+export async function getConversation(id: string, viewer: string, deps: ConversationDeps, options: ViewOptions = {}): Promise<Result<ConversationDto, AppError>> {
   const loaded = await load(id, viewer, deps);
   if (!loaded.ok) return loaded;
-  const { row, facts } = loaded.value;
-  const free = stageOf(facts) === "free";
-  const [messages, peers] = await Promise.all([
-    free ? deps.conversations.messages(id, SETTINGS.messagesPage) : Promise.resolve(ok<MessageRow[]>([])),
-    peerMap([otherOf(row, viewer)], deps),
+  const { row } = loaded.value;
+  const refresh = options.refresh ?? 0;
+  const [messages, peers, suggestions] = await Promise.all([
+    messagesFor(loaded.value, options, deps),
+    peerMap([otherOf(row, viewer)], deps.conversations),
+    suggestionsFor(loaded.value, viewer, refresh, deps),
   ]);
   if (!messages.ok) return messages;
   if (!peers.ok) return peers;
-  await deps.conversations.markSeen(id, sideOf(row, viewer), deps.clock.now());
-  return ok(toDto(loaded.value, viewer, peers.value.get(otherOf(row, viewer)), messages.value));
-}
-
-type Action = (loaded: Loaded, side: ConversationSide, now: Date) => Promise<Result<boolean, AppError>> | Result<boolean, AppError>;
-
-/** Shared shape of every write: load, act, notify the other side, return the fresh view. */
-async function act(id: string, viewer: string, deps: ConversationDeps, action: Action): Promise<Result<ConversationDto, AppError>> {
-  const loaded = await load(id, viewer, deps);
-  if (!loaded.ok) return loaded;
-  const written = await action(loaded.value, sideOf(loaded.value.row, viewer), deps.clock.now());
-  if (!written.ok) return written;
-  if (!written.value) return err("chat.conflict");
-  await deps.conversations.notify(otherOf(loaded.value.row, viewer));
-  return getConversation(id, viewer, deps);
-}
-
-export function answerRound(id: string, viewer: string, input: { round: number; body: string }, deps: ConversationDeps) {
-  return act(id, viewer, deps, (loaded, side, now) => {
-    if (!canAnswer(loaded.facts, side, input.round)) return err("chat.conflict");
-    const body = cleanChatText(input.body, SETTINGS.answerChars);
-    if (body === null) return err("request.invalid");
-    return deps.conversations.saveAnswer(id, viewer, input.round, body, now);
-  });
-}
-
-export function acceptFreeChat(id: string, viewer: string, deps: ConversationDeps) {
-  return act(id, viewer, deps, (loaded, side, now) =>
-    canAcceptFree(loaded.facts, side) ? deps.conversations.acceptFree(id, side, viewer, now) : err("chat.conflict"),
-  );
-}
-
-export function sendMessage(id: string, viewer: string, input: { body: string }, deps: ConversationDeps) {
-  return act(id, viewer, deps, (loaded, _side, now) => {
-    if (stageOf(loaded.facts) !== "free") return err("chat.conflict");
-    const body = cleanChatText(input.body, SETTINGS.messageChars);
-    if (body === null) return err("request.invalid");
-    return deps.conversations.addMessage(id, viewer, body, now);
-  });
-}
-
-/** Leaving deletes the conversation for both, silently; the other person is not notified. */
-export async function leaveConversation(id: string, viewer: string, deps: ConversationDeps): Promise<Result<void, AppError>> {
-  const row = await deps.conversations.findFor(id, viewer);
-  if (!row.ok) return row;
-  if (!row.value) return err("chat.not_found");
-  return deps.conversations.leave(id, viewer, otherOf(row.value, viewer), row.value.track);
+  const now = deps.clock.now();
+  await deps.conversations.markSeen(id, sideOf(row, viewer), now);
+  return ok(toDto(loaded.value, viewer, now, {
+    peer: peers.value.get(otherOf(row, viewer)),
+    messages: messages.value.list,
+    hasOlder: messages.value.hasOlder,
+    suggestions,
+    refresh,
+  }));
 }

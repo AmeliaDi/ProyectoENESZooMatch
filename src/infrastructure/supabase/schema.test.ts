@@ -31,6 +31,13 @@ const CONVERSATIONS_SQL = readFileSync(resolve(MIGRATIONS_DIR, CONVERSATIONS_MIG
 const ALIAS_MIGRATION = "20261105000000_alias_collision.sql";
 const ALIAS_SQL = readFileSync(resolve(MIGRATIONS_DIR, ALIAS_MIGRATION), "utf8");
 const CONVERSATION_TABLES = ["chat_interests", "conversations", "conversation_answers", "conversation_messages"] as const;
+const SAFETY_MIGRATION = "20261106000000_chat_safety.sql";
+const SAFETY_SQL = readFileSync(resolve(MIGRATIONS_DIR, SAFETY_MIGRATION), "utf8");
+const SAFETY_TABLES = [
+  "conversation_rounds", "conversation_reactions", "chat_feedback_daily", "chat_blocks",
+  "chat_closures", "chat_reports", "chat_report_audit",
+] as const;
+const SAFETY_RPCS = ["express_chat_interest", "leave_conversation", "block_chat_user", "report_conversation", "record_round_feedback", "purge_chat"] as const;
 const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
 describe("base migration", () => {
@@ -41,6 +48,7 @@ describe("base migration", () => {
       SHARING_MIGRATION,
       CONVERSATIONS_MIGRATION,
       ALIAS_MIGRATION,
+      SAFETY_MIGRATION,
     ]);
   });
 
@@ -182,6 +190,7 @@ describe("conversations migration (ADR-032)", () => {
     expect(outside).not.toMatch(/\bDELETE FROM\b/);
   });
 
+
   it("matches the base migration table by table", () => {
     for (const table of CONVERSATION_TABLES) {
       const body = (sql: string, head: string) => lf(sql).match(new RegExp(`${head}public\\.${table} \\(([\\s\\S]*?)\\n\\);`))?.[1];
@@ -223,6 +232,66 @@ describe("conversations migration (ADR-032)", () => {
   it("accepts the content-free chat notification", () => {
     expect(SQL).toContain("'welcome', 'chat'))");
     expect(CONVERSATIONS_SQL).toContain("DROP CONSTRAINT IF EXISTS notifications_type_check");
+  });
+});
+
+describe("chat safety migration (ADR-035)", () => {
+  const functionBody = (sql: string, name: string) =>
+    lf(sql).match(new RegExp(`CREATE (?:OR REPLACE )?FUNCTION public\\.${name}\\([\\s\\S]*?\\$\\$;`))?.[0] ?? "";
+
+  it("is idempotent and never drops or truncates tables", () => {
+    const sql = lf(SAFETY_SQL);
+    expect(sql).not.toMatch(/\/\*|\*\//);
+    expect(sql).not.toMatch(/^CREATE TABLE (?!IF NOT EXISTS)/m);
+    expect(sql).not.toMatch(/^CREATE (UNIQUE )?(INDEX|FUNCTION|POLICY) (?!IF NOT EXISTS|OR REPLACE)/m);
+    for (const [, name] of sql.matchAll(/^CREATE TRIGGER (\w+)/gm)) expect(sql).toContain(`DROP TRIGGER IF EXISTS ${name} ON`);
+    expect(sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
+    expect(sql).toMatch(/ADD COLUMN IF NOT EXISTS adult_confirmed_at/);
+  });
+
+  it("matches the base migration table by table", () => {
+    for (const table of SAFETY_TABLES) {
+      const body = (sql: string, head: string) => lf(sql).match(new RegExp(`${head}public\\.${table} \\(([\\s\\S]*?)\\n\\);`))?.[1];
+      const incremental = body(SAFETY_SQL, "CREATE TABLE IF NOT EXISTS ");
+      expect(incremental, table).toBeTruthy();
+      expect(body(SQL, "CREATE TABLE "), table).toBe(incremental);
+    }
+    for (const name of SAFETY_RPCS) {
+      expect(functionBody(SQL, name).replace("CREATE FUNCTION", ""), name).toBe(functionBody(SAFETY_SQL, name).replace("CREATE OR REPLACE FUNCTION", ""));
+    }
+  });
+
+  it("keeps chat safety data server-only and cascading from the account", () => {
+    for (const sql of [SQL, SAFETY_SQL]) {
+      for (const table of SAFETY_TABLES) {
+        expect(sql).toContain(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY;`);
+        expect(sql).not.toMatch(new RegExp(`CREATE POLICY \\w+ ON public\\.${table}\\b`));
+        const body = lf(sql).match(new RegExp(`public\\.${table} \\(([\\s\\S]*?)\\n\\);`))?.[1] ?? "";
+        for (const ref of body.match(/REFERENCES [^\n]+/g) ?? []) expect(ref, table).toContain("ON DELETE CASCADE");
+      }
+      expect(sql).not.toMatch(/GRANT [^;]*(chat_|conversation_|purge_chat|report_conversation)[^;]* TO (anon|authenticated)/);
+    }
+  });
+
+  it("guards every RPC and enforces match, block, age and cooldown in the database", () => {
+    for (const name of SAFETY_RPCS) {
+      const body = PUBLIC_FUNCTIONS.get(name) ?? "";
+      expect(body, name).toContain("PERFORM private.assert_service_role();");
+      expect(body, name).toContain("SECURITY DEFINER");
+      expect(body, name).toContain("SET search_path = ''");
+    }
+    const express = PUBLIC_FUNCTIONS.get("express_chat_interest") ?? "";
+    for (const rule of ["FROM public.matches", "FROM public.chat_blocks", "adult_confirmed_at IS NOT NULL", "FROM public.chat_closures", "'too_many'"]) {
+      expect(express, rule).toContain(rule);
+    }
+    expect(PUBLIC_FUNCTIONS.get("report_conversation")).toContain("'reporta' ELSE 'reportada'");
+  });
+
+  it("bounds text by graphemes × the code point margin", () => {
+    for (const sql of [SQL, SAFETY_SQL]) {
+      expect(sql).toContain("char_length(body) BETWEEN 1 AND 2400");
+      expect(sql).toContain("char_length(custom_text) BETWEEN 1 AND 1600");
+    }
   });
 });
 

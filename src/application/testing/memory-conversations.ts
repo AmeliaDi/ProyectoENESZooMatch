@@ -1,132 +1,85 @@
 /**
- * In-memory `ConversationRepository` modelling the SQL contract: a signal
- * opens a conversation only for a current match, answers are unique per
- * round, and leaving removes the conversation, its rows and both signals.
+ * In-memory `ConversationRepository` modelling the SQL contract
+ * (20261106000000_chat_safety.sql): signals open a conversation only for a
+ * current match without a block, romance needs both adult flags, the
+ * open-signal cap and the cooldown apply, rounds/answers are unique, message
+ * delivery is idempotent, and leave/block/report remove everything.
  */
 import { ok } from "@/domain/shared";
-import type { MatchTrack } from "@/types/microtest";
+import type { LatentProfile } from "@/types/latent";
 
-import type { AnswerRow, ChatPeer, ConversationRepository, ConversationRow, MessageRow } from "../chat/conversation-ports";
+import type { ConversationRepository, InterestRow } from "../chat/conversation-ports";
+import { ConversationStore, ordered } from "./memory-conversation-store";
+import { memoryWrites } from "./memory-conversation-writes";
 
-export class ConversationStore {
-  /** Current matches as `${track}:${a}:${b}` with a < b. */
-  readonly matches = new Set<string>();
-  readonly interests = new Set<string>();
-  readonly conversations = new Map<string, ConversationRow>();
-  readonly answers: AnswerRow[] = [];
-  readonly messages: Array<MessageRow & { conversationId: string }> = [];
-  readonly peers = new Map<string, ChatPeer>();
-  readonly notified: string[] = [];
-  private seq = 0;
+export { ConversationStore } from "./memory-conversation-store";
 
-  nextId(): string {
-    this.seq += 1;
-    return `00000000-0000-4000-8000-${String(this.seq).padStart(12, "0")}`;
-  }
+const MS_PER_DAY = 86_400_000;
 
-  addMatch(track: MatchTrack, x: string, y: string): void {
-    const [a, b] = [x, y].sort();
-    this.matches.add(`${track}:${a}:${b}`);
-  }
-}
-
-const ordered = (x: string, y: string) => [x, y].sort() as [string, string];
-const interestKey = (from: string, to: string, track: MatchTrack) => `${track}:${from}:${to}`;
-
-function findPair(store: ConversationStore, a: string, b: string, track: MatchTrack) {
-  return [...store.conversations.values()].find((c) => c.userA === a && c.userB === b && c.track === track);
-}
-
-function openConversation(store: ConversationStore, from: string, to: string, track: MatchTrack): ConversationRow {
-  const [a, b] = ordered(from, to);
-  const row: ConversationRow = {
-    id: store.nextId(), track, userA: a, userB: b, freeReadyA: false, freeReadyB: false,
-    seenA: null, seenB: null, lastActor: null, updatedAt: new Date(0),
-  };
-  store.conversations.set(row.id, row);
-  return row;
-}
-
-function touch(store: ConversationStore, id: string, actor: string, at: Date) {
-  const row = store.conversations.get(id);
-  if (row) store.conversations.set(id, { ...row, lastActor: actor, updatedAt: at });
-}
-
-function interestPart(store: ConversationStore): Pick<ConversationRepository, "interestsFrom" | "expressInterest" | "withdrawInterest"> {
+function signalPart(store: ConversationStore): Pick<ConversationRepository, "interestsOf" | "expressInterest" | "withdrawInterest" | "declineInterest" | "isAdult" | "confirmAdult"> {
   return {
-    interestsFrom: async (userId) =>
-      ok([...store.interests].map((k) => k.split(":")).filter(([, from]) => from === userId)
-        .map(([track, , to]) => ({ to: to!, track: track as MatchTrack }))),
+    interestsOf: async (userId) => ok(store.interests.filter((i) => i.from === userId || i.to === userId).map((i) => ({ ...i }))),
     async expressInterest(from, to, track) {
       const [a, b] = ordered(from, to);
-      if (from === to || !store.matches.has(`${track}:${a}:${b}`)) return ok({ kind: "gone" });
-      const existing = findPair(store, a, b, track);
+      if (from === to || !store.matches.has(`${track}:${a}:${b}`) || store.isBlocked(from, to)) return ok({ kind: "gone" });
+      const existing = store.findPair(a, b, track);
       if (existing) return ok({ kind: "open", conversationId: existing.id });
-      store.interests.add(interestKey(from, to, track));
-      if (!store.interests.has(interestKey(to, from, track))) return ok({ kind: "sent" });
-      return ok({ kind: "open", conversationId: openConversation(store, from, to, track).id });
+      if (track === "romance" && !store.adults.has(from)) return ok({ kind: "adult_required" });
+      const closed = store.closures.get(`${track}:${a}:${b}`);
+      if (closed && store.now().getTime() - closed.getTime() < store.cooldownDays * MS_PER_DAY) return ok({ kind: "cooldown" });
+      store.dropExpired();
+      const mine = store.interests.filter((i) => i.from === from);
+      const already = mine.some((i) => i.to === to && i.track === track);
+      if (!already && mine.length >= store.maxOpen) return ok({ kind: "too_many" });
+      if (!already) store.interests.push({ from, to, track, createdAt: store.now(), declined: false });
+      const back = store.interests.some((i) => i.from === to && i.to === from && i.track === track);
+      if (!back || (track === "romance" && !store.adults.has(to))) return ok({ kind: "sent" });
+      const row = store.open(a, b, track);
+      store.removeSignals(from, to, track);
+      return ok({ kind: "open", conversationId: row.id });
     },
     async withdrawInterest(from, to, track) {
-      store.interests.delete(interestKey(from, to, track));
+      store.interests = store.interests.filter((i) => !(i.from === from && i.to === to && i.track === track));
+      return ok(undefined);
+    },
+    async declineInterest(from, to, track) {
+      store.interests = store.interests.map((i): InterestRow => (i.from === from && i.to === to && i.track === track ? { ...i, declined: true } : i));
+      return ok(undefined);
+    },
+    isAdult: async (userId) => ok(store.adults.has(userId)),
+    async confirmAdult(userId) {
+      store.adults.add(userId);
       return ok(undefined);
     },
   };
 }
 
-function readPart(store: ConversationStore): Pick<ConversationRepository, "listFor" | "answersOf" | "findFor" | "messages" | "peers"> {
+function readPart(store: ConversationStore): Pick<ConversationRepository, "listFor" | "findFor" | "roundsOf" | "answersOf" | "reactionsOf" | "messages" | "recentMessagesBy" | "peers" | "latents"> {
   return {
     listFor: async (userId) => ok([...store.conversations.values()].filter((c) => c.userA === userId || c.userB === userId)),
-    answersOf: async (ids, withBodies) =>
-      ok(store.answers.filter((x) => ids.includes(x.conversationId)).map((x) => (withBodies ? x : { ...x, body: "" }))),
     async findFor(id, userId) {
       const row = store.conversations.get(id);
       return ok(row && (row.userA === userId || row.userB === userId) ? row : null);
     },
-    messages: async (id, limit) => ok(store.messages.filter((m) => m.conversationId === id).slice(-limit)),
+    roundsOf: async (ids) => ok(store.rounds.filter((r) => ids.includes(r.conversationId))),
+    answersOf: async (ids, withBodies) =>
+      ok(store.answers.filter((x) => ids.includes(x.conversationId)).map((x) => (withBodies ? x : { ...x, body: "" }))),
+    reactionsOf: async (id) => ok(store.reactions.filter((r) => r.conversationId === id)),
+    async messages(id, limit, before) {
+      const own = store.messages.filter((m) => m.conversationId === id && (before === null || m.at < before));
+      return ok(own.slice(-limit));
+    },
+    recentMessagesBy: async (author, since, limit) =>
+      ok(store.messages.filter((m) => m.author === author && m.at >= since).reverse().slice(0, limit)),
     peers: async (ids) => ok(ids.flatMap((id) => store.peers.get(id) ?? [])),
-  };
-}
-
-function writePart(store: ConversationStore): Pick<ConversationRepository, "saveAnswer" | "acceptFree" | "addMessage" | "markSeen" | "leave" | "notify"> {
-  return {
-    async saveAnswer(id, author, round, body, at) {
-      if (store.answers.some((x) => x.conversationId === id && x.author === author && x.round === round)) return ok(false);
-      store.answers.push({ conversationId: id, author, round, body });
-      touch(store, id, author, at);
-      return ok(true);
-    },
-    async acceptFree(id, side, actor, at) {
-      const row = store.conversations.get(id);
-      if (!row || (side === "a" ? row.freeReadyA : row.freeReadyB)) return ok(false);
-      store.conversations.set(id, { ...row, ...(side === "a" ? { freeReadyA: true } : { freeReadyB: true }), lastActor: actor, updatedAt: at });
-      return ok(true);
-    },
-    async addMessage(id, author, body, at) {
-      store.messages.push({ conversationId: id, id: store.nextId(), author, body, at });
-      touch(store, id, author, at);
-      return ok(true);
-    },
-    async markSeen(id, side, at) {
-      const row = store.conversations.get(id);
-      if (row) store.conversations.set(id, { ...row, ...(side === "a" ? { seenA: at } : { seenB: at }) });
-      return ok(undefined);
-    },
-    async leave(id) {
-      const row = store.conversations.get(id);
-      if (!row) return ok(undefined);
-      store.conversations.delete(id);
-      store.answers.splice(0, store.answers.length, ...store.answers.filter((x) => x.conversationId !== id));
-      store.messages.splice(0, store.messages.length, ...store.messages.filter((m) => m.conversationId !== id));
-      store.interests.delete(interestKey(row.userA, row.userB, row.track));
-      store.interests.delete(interestKey(row.userB, row.userA, row.track));
-      return ok(undefined);
-    },
-    async notify(userId) {
-      store.notified.push(userId);
-    },
+    latents: async (ids) => ok(new Map(ids.flatMap((id): Array<[string, LatentProfile]> => {
+      const latent = store.latents.get(id);
+      return latent ? [[id, latent]] : [];
+    }))),
   };
 }
 
 export function memoryConversations(store: ConversationStore): ConversationRepository {
-  return { ...interestPart(store), ...readPart(store), ...writePart(store) };
+  return { ...signalPart(store), ...readPart(store), ...memoryWrites(store) };
 }
+

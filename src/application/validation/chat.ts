@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { CHAT_CONFIG } from "@/config";
+import { REPORT_REASONS } from "@/contracts/chat";
 
 import { matriculaSchema } from "./common";
 
@@ -16,22 +17,38 @@ export const changePinSchema = z.strictObject({ current: pinSchema, pin: pinSche
 export const recoveryRequestSchema = z.strictObject({ matricula: matriculaSchema });
 export const recoveryCancelSchema = z.strictObject({ pin: pinSchema });
 
-/** Generous outer bound: the use case cleans and enforces the exact limit. */
-const RAW_TEXT_FACTOR = 2;
+/**
+ * Generous outer bound in UTF-16 units (a grapheme can span several): the use
+ * case cleans the text and enforces the exact grapheme limit.
+ */
+const RAW_TEXT_FACTOR = 8;
 const conversation = CHAT_CONFIG.conversation;
-const maxRounds = Math.max(conversation.rounds.romance.length, conversation.rounds.amistad.length);
+const roundIndex = z.number().int().min(0).max(conversation.rounds.maxRounds - 1);
+const rawText = (graphemes: number) => z.string().min(1).max(graphemes * RAW_TEXT_FACTOR);
 
 export const conversationIdSchema = z.uuid();
-export const answerSchema = z.strictObject({
-  round: z.number().int().min(0).max(maxRounds - 1),
-  body: z.string().min(1).max(conversation.answerChars * RAW_TEXT_FACTOR),
-});
-export const messageSchema = z.strictObject({
-  body: z.string().min(1).max(conversation.messageChars * RAW_TEXT_FACTOR),
-});
-export const acceptSchema = z.strictObject({});
+export const askSchema = z.union([
+  z.strictObject({ promptId: z.string().regex(/^[par][0-9]{3}$/) }),
+  z.strictObject({ customText: rawText(conversation.customQuestionChars) }),
+]);
+export const answerSchema = z.union([
+  z.strictObject({ round: roundIndex, body: rawText(conversation.answerChars) }),
+  z.strictObject({ round: roundIndex, pass: z.literal(true) }),
+]);
+export const reactSchema = z.strictObject({ round: roundIndex, emoji: z.string().min(1).max(16).nullable() });
+export const feedbackSchema = z.strictObject({ round: roundIndex, liked: z.boolean() });
+export const freeSchema = z.strictObject({ ready: z.boolean() });
+export const messageSchema = z.strictObject({ body: rawText(conversation.messageChars), clientKey: z.uuid() });
+export const toggleSchema = z.strictObject({ on: z.boolean() });
+export const reportSchema = z.strictObject({ reason: z.enum(REPORT_REASONS) });
+export const emptySchema = z.strictObject({});
 /** The opaque per-viewer match handle (hex) of the result view. */
 export const interestSchema = z.strictObject({
   match: z.string().regex(/^[0-9a-f]{16}$/),
   track: z.enum(["romance", "amistad"]),
+});
+/** Query of GET .../conversations/[id]: card page and message cursor. */
+export const viewQuerySchema = z.object({
+  refresh: z.coerce.number().int().min(0).max(1000).optional(),
+  before: z.iso.datetime({ offset: true }).optional(),
 });

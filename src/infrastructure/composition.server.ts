@@ -4,7 +4,7 @@
  */
 import { createHash } from "node:crypto";
 
-import type { ChatRecoveryDeps, ConversationRepository, InterestDeps } from "@/application/chat";
+import type { ChatRecoveryDeps, ConversationRepository, InterestDeps, InvitationDeps } from "@/application/chat";
 import type { AppError } from "@/application/errors";
 import type { GetResultDeps } from "@/application/get-result";
 import type { PrivacyDeps } from "@/application/privacy";
@@ -132,6 +132,9 @@ export interface ChatContext {
   deps: ChatRecoveryDeps;
   /** Conversations between matches; only reachable behind `requireChatLock`. */
   conversations: ConversationRepository;
+  /** Current matches (invitations are only shown for a current match). */
+  matches: InvitationDeps["matches"];
+  digest(input: string): string;
   /** Signs the lock-session cookie (key derived from it). */
   pepper: string;
   /** Per-address PIN guard: seconds locked, or `null` when it failed (fail closed). */
@@ -155,6 +158,8 @@ export async function chatContext(): Promise<Result<ChatContext, Failure>> {
     userId: auth.value.userId,
     pepper,
     conversations: supabaseConversationRepository(admin),
+    matches: supabaseMatchRepository(admin),
+    digest: sha256Hex,
     deps: {
       pins: supabaseChatPinRepository(admin),
       hasher: createPinHasher(pepper),
@@ -181,6 +186,7 @@ export async function interestContext(): Promise<Result<{ userId: string; deps: 
       matches: supabaseMatchRepository(admin),
       conversations: supabaseConversationRepository(admin),
       digest: sha256Hex,
+      clock: systemClock,
     },
   });
 }
