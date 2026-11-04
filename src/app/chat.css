@@ -174,7 +174,46 @@
 }
 .zm-composer__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: calc(var(--zm-px) * 4); }
 .zm-composer__count { margin: 0; color: var(--zm-fg-muted); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
-.zm-composer__count[data-over] { color: var(--zm-danger); }
+.zm-composer__count[data-state="near"] { color: var(--zm-gold); }
+.zm-composer__count[data-state="over"] { color: var(--zm-danger); font-weight: 700; }
+
+/* ─── Emoji picker (system emoji, own light panel) ─── */
+.zm-emoji { display: grid; gap: calc(var(--zm-px) * 2); }
+.zm-emoji__panel { --box-lift: 0px; display: grid; gap: calc(var(--zm-px) * 3); max-width: 22rem; padding: calc(var(--zm-px) * 4); }
+.zm-emoji__search { min-height: var(--zm-touch); padding: 0 calc(var(--zm-px) * 4); border: 0; background: var(--zm-raised); color: var(--zm-fg); font-family: var(--font-read); font-size: 1rem; }
+.zm-emoji__grid { display: flex; flex-wrap: wrap; gap: calc(var(--zm-px) * 1); max-height: 12rem; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.zm-emoji__item { display: grid; place-items: center; width: var(--zm-touch); height: var(--zm-touch); border: var(--zm-px) solid transparent; background: none; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-size: 1.375rem; cursor: pointer; }
+.zm-emoji__item:hover, .zm-emoji__item:focus-visible { border-color: var(--zm-gold); outline: none; }
+
+/* ─── Question of the turn: three cards ─── */
+.zm-ask { display: grid; gap: calc(var(--zm-px) * 5); padding: calc(var(--zm-px) * 8); --box-rim: var(--zm-gold); }
+.zm-ask__cards { display: grid; gap: calc(var(--zm-px) * 4); margin: 0; padding: 0; list-style: none; }
+.zm-ask__card { display: flex; align-items: flex-start; gap: calc(var(--zm-px) * 4); width: 100%; min-height: var(--zm-touch); padding: calc(var(--zm-px) * 5) calc(var(--zm-px) * 6); background: var(--zm-raised); color: var(--zm-fg); font-family: var(--font-read); font-size: 1rem; text-align: left; cursor: pointer; }
+.zm-ask__card:hover, .zm-ask__card:focus-visible { --box-rim: var(--zm-gold); outline: none; }
+.zm-ask__card:disabled { cursor: progress; opacity: 0.7; }
+.zm-ask__text { flex: 1; }
+
+/* ─── Reactions and round feedback ─── */
+.zm-round__reactions { display: flex; flex-wrap: wrap; gap: calc(var(--zm-px) * 2); }
+.zm-round__react { --box-lift: 0px; display: grid; place-items: center; width: var(--zm-touch); height: var(--zm-touch); background: var(--zm-sky); font-size: 1.125rem; cursor: pointer; }
+.zm-round__react[aria-pressed="true"] { --box-rim: var(--zm-gold); --zm-rim-width: calc(var(--zm-px) * 2); }
+.zm-round__feedback { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--zm-px) * 3); padding-top: calc(var(--zm-px) * 3); border-top: var(--zm-px) dashed var(--zm-grid); }
+
+/* ─── Free-chat invitation, invitations, first-time guide, 18+ ─── */
+.zm-free-invite { display: grid; gap: calc(var(--zm-px) * 4); justify-items: start; padding: calc(var(--zm-px) * 8); --box-rim: var(--zm-gold); }
+.zm-invite { display: flex; align-items: flex-start; gap: calc(var(--zm-px) * 6); padding: calc(var(--zm-px) * 6); }
+.zm-invite[data-tone="romance"] { --box-rim: var(--zm-romance); }
+.zm-invite[data-tone="amistad"] { --box-rim: var(--zm-amistad); }
+.zm-invite__text { display: grid; flex: 1; gap: calc(var(--zm-px) * 3); min-width: 0; }
+.zm-chat-guide { display: grid; gap: calc(var(--zm-px) * 4); justify-items: start; padding: calc(var(--zm-px) * 8); }
+.zm-chat-guide__list { display: grid; gap: calc(var(--zm-px) * 3); margin: 0; padding-left: calc(var(--zm-px) * 10); font-family: var(--font-read); }
+.zm-adult { --box-lift: 0px; display: grid; gap: calc(var(--zm-px) * 3); justify-items: start; padding: calc(var(--zm-px) * 6); }
+
+/* ─── Safety menu ─── */
+.zm-safety { display: grid; gap: calc(var(--zm-px) * 2); margin: 0; padding: 0; list-style: none; }
+.zm-safety .zm-btn { width: 100%; justify-content: flex-start; }
+.zm-safety__reasons { display: grid; gap: calc(var(--zm-px) * 3); margin: 0; padding: 0; border: 0; }
+.zm-safety__reason { display: flex; align-items: center; gap: calc(var(--zm-px) * 4); min-height: var(--zm-touch); font-family: var(--font-read); }
 
 /* ─── Free chat: pixel-frame bubbles, yours on the right ─── */
 .zm-free { display: grid; gap: calc(var(--zm-px) * 6); }
@@ -188,8 +227,10 @@
   list-style: none;
 }
 .zm-free__end { height: var(--zm-px); }
-.zm-bubble { display: flex; justify-content: flex-start; }
+.zm-bubble { display: flex; align-items: flex-end; justify-content: flex-start; gap: calc(var(--zm-px) * 3); }
 .zm-bubble[data-mine] { justify-content: flex-end; }
+.zm-bubble[data-pending="sending"] .zm-bubble__box { opacity: 0.7; }
+.zm-bubble__state { margin: 0; color: var(--zm-fg-muted); font-size: 0.75rem; }
 .zm-bubble__box {
   --box-lift: 0px;
   display: grid;
@@ -199,7 +240,7 @@
 }
 .zm-bubble[data-mine] .zm-bubble__box { --box-fill: var(--zm-raised); --box-rim: var(--zm-fg); }
 .zm-bubble__who { margin: 0; color: var(--zm-fg-muted); font-family: var(--font-pixel); font-size: 0.75rem; }
-.zm-bubble__text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.zm-bubble__text { margin: 0; font-family: var(--font-read); white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* ─── Interest signal (detail sheet) ─── */
 .zm-interest { display: grid; gap: calc(var(--zm-px) * 4); justify-items: start; margin-top: calc(var(--zm-px) * 6); }

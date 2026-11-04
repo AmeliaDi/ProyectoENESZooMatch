@@ -34,7 +34,31 @@ export interface StarNodeProps {
   reducedMotion: boolean;
   /** Dense skies paint a flat glow instead of the dither pattern. */
   flatGlow: boolean;
+  /** An invitation waits for you from this match: tiny speech mark, never a number. */
+  chatPending?: boolean;
   handlers: StarHandlers;
+}
+
+/** 5×4 speech-bubble mark (pixel cells) drawn above the sprite's top-right corner. */
+const CHAT_MARK_CELLS: ReadonlyArray<readonly [number, number]> = [
+  [0, 0], [1, 0], [2, 0], [3, 0], [4, 0],
+  [0, 1], [4, 1],
+  [0, 2], [1, 2], [2, 2], [3, 2], [4, 2],
+  [1, 3],
+];
+const CHAT_MARK_CELL = 2;
+export const CHAT_PENDING_LABEL = "Tiene una invitación de chat para ti";
+
+function ChatMark({ size }: { size: number }) {
+  const x = size / 2 - CHAT_MARK_CELL * 2;
+  const y = -size / 2 - CHAT_MARK_CELL * 4;
+  return (
+    <g transform={`translate(${round2(x)} ${round2(y)})`} className="zm-canvas__chat-mark" aria-hidden="true">
+      {CHAT_MARK_CELLS.map(([cx, cy]) => (
+        <rect key={`${cx}-${cy}`} x={cx * CHAT_MARK_CELL} y={cy * CHAT_MARK_CELL} width={CHAT_MARK_CELL} height={CHAT_MARK_CELL} shapeRendering="crispEdges" />
+      ))}
+    </g>
+  );
 }
 
 /** % label size in world units (Atkinson, tabular figures; see ADR-028). */
@@ -53,7 +77,7 @@ function onActivateKey(event: ReactKeyboardEvent<SVGGElement>, select: () => voi
   select();
 }
 
-function StarNodeImpl({ node, happy, romance, dimmed, ringed, breathing, showTag, reducedMotion, flatGlow, handlers }: StarNodeProps) {
+function StarNodeImpl({ node, happy, romance, dimmed, ringed, breathing, showTag, reducedMotion, flatGlow, chatPending = false, handlers }: StarNodeProps) {
   const interactive = !node.isGhost && !node.isLeaving;
   const clickable = interactive && !node.isSelf;
   const bodyOpacity = dimmed ? DIMMED_OPACITY : node.opacity;
@@ -65,7 +89,7 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, breathing, showTag
       transform={`translate(${round2(node.initialX)} ${round2(node.initialY)})`}
       role={!interactive ? undefined : node.isSelf ? "img" : "button"}
       tabIndex={clickable ? 0 : undefined}
-      aria-label={interactive ? node.ariaLabel : undefined}
+      aria-label={interactive ? (chatPending ? `${node.ariaLabel}. ${CHAT_PENDING_LABEL}` : node.ariaLabel) : undefined}
       aria-hidden={interactive ? undefined : true}
       className={clickable ? "zm-canvas__star" : undefined}
       style={{ cursor: clickable ? "grab" : "default" }}
@@ -121,6 +145,7 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, breathing, showTag
             opacity={1}
           />
           {romance ? <OrbitingHearts size={node.displaySize} animated={!reducedMotion} /> : null}
+          {interactive && chatPending ? <ChatMark size={node.displaySize} /> : null}
         </g>
         {interactive && node.affinityLabel ? (
           <text

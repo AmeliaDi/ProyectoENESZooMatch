@@ -13,6 +13,8 @@ import type {
   InboxEntryDto,
   InterestStateDto,
   InterestStatesDto,
+  InvitationDto,
+  PromptCardDto,
   RoundDto,
 } from "@/contracts/chat";
 import type { SpriteMark } from "@/contracts/result";
@@ -20,15 +22,13 @@ import type { SpriteMark } from "@/contracts/result";
 type Json = Record<string, unknown>;
 
 const TRACKS: readonly ChatTrack[] = ["romance", "amistad"];
-const STAGES: readonly ConversationStage[] = ["rounds", "invite", "free"];
+const STAGES: readonly ConversationStage[] = ["rounds", "free", "paused"];
 const MARKS: readonly SpriteMark[] = ["sp", "so", "sx"];
 const HEX = /^#[0-9a-f]{6}$/i;
 const INTEREST_KEY = /^(romance|amistad):.+$/;
+const SETTINGS = CHAT_CONFIG.conversation;
 
-/** Inbox entry plus the round progress, if the server ever sends it (optional, 1-based). */
-export interface InboxEntry extends Omit<InboxEntryDto, "round" | "totalRounds"> {
-  progress: { round: number; total: number } | null;
-}
+export type InboxEntry = InboxEntryDto;
 
 export function isRecord(value: unknown): value is Json {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -41,6 +41,8 @@ function oneOf<T extends string>(options: readonly T[], value: unknown): T | nul
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
+
+const maybeText = (value: unknown): string | null => (typeof value === "string" ? value : null);
 
 function count(value: unknown): number | null {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
@@ -61,19 +63,7 @@ export function parsePeer(value: unknown): ChatPeerDto | null {
   const alias = text(value.alias);
   if (alias === null) return null;
   const hex = typeof value.color_hex === "string" && HEX.test(value.color_hex) ? value.color_hex : null;
-  return {
-    alias,
-    animal_id: text(value.animal_id),
-    color_id: text(value.color_id),
-    color_hex: hex,
-    mark: oneOf(MARKS, value.mark),
-  };
-}
-
-function parseProgress(value: Json): InboxEntry["progress"] {
-  const round = positive(value.round);
-  const total = positive(value.totalRounds);
-  return round !== null && total !== null && round <= total ? { round, total } : null;
+  return { alias, animal_id: text(value.animal_id), color_id: text(value.color_id), color_hex: hex, mark: oneOf(MARKS, value.mark) };
 }
 
 export function parseInboxEntry(value: unknown): InboxEntry | null {
@@ -84,20 +74,25 @@ export function parseInboxEntry(value: unknown): InboxEntry | null {
   const peer = parsePeer(value.peer);
   if (id === null || track === null || stage === null || peer === null) return null;
   return {
-    id,
-    track,
-    peer,
-    stage,
+    id, track, peer, stage,
+    completedRounds: count(value.completedRounds) ?? 0,
     unread: value.unread === true,
     myTurn: value.myTurn === true,
     updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : "",
-    progress: parseProgress(value),
   };
 }
 
-export function parseInbox(value: unknown): { conversations: InboxEntry[] } | null {
+export function parseInvitation(value: unknown): InvitationDto | null {
+  if (!isRecord(value)) return null;
+  const match = text(value.match);
+  const track = oneOf(TRACKS, value.track);
+  const peer = parsePeer(value.peer);
+  return match === null || track === null || peer === null ? null : { match, track, peer };
+}
+
+export function parseInbox(value: unknown): { conversations: InboxEntry[]; invitations: InvitationDto[] } | null {
   if (!isRecord(value) || !Array.isArray(value.conversations)) return null;
-  return { conversations: listOf(value.conversations, parseInboxEntry) };
+  return { conversations: listOf(value.conversations, parseInboxEntry), invitations: listOf(value.invitations, parseInvitation) };
 }
 
 export function parseRound(value: unknown): RoundDto | null {
@@ -105,11 +100,20 @@ export function parseRound(value: unknown): RoundDto | null {
   const index = count(value.index);
   const question = text(value.question);
   if (index === null || question === null) return null;
+  const revealsAt = maybeText(value.revealsAt);
   return {
     index,
     question,
-    mine: typeof value.mine === "string" ? value.mine : null,
-    theirs: typeof value.theirs === "string" ? value.theirs : null,
+    askedByMe: value.askedByMe === true,
+    mine: maybeText(value.mine),
+    minePassed: value.minePassed === true,
+    theirs: maybeText(value.theirs),
+    theirsPassed: value.theirsPassed === true,
+    revealed: value.revealed === true,
+    ...(revealsAt ? { revealsAt } : {}),
+    myReaction: maybeText(value.myReaction),
+    theirReaction: maybeText(value.theirReaction),
+    feedbackGiven: value.feedbackGiven === true,
   };
 }
 
@@ -120,12 +124,30 @@ export function parseMessage(value: unknown): ChatMessageDto | null {
   return { id, mine: value.mine === true, body: value.body, at: value.at };
 }
 
+function parseCard(value: unknown): PromptCardDto | null {
+  if (!isRecord(value)) return null;
+  const id = text(value.id);
+  const cardText = text(value.text);
+  return id === null || cardText === null ? null : { id, text: cardText, category: maybeText(value.category) ?? "" };
+}
+
+function parseAsk(value: unknown): ConversationDto["ask"] {
+  if (!isRecord(value)) return null;
+  return { suggestions: listOf(value.suggestions, parseCard), refresh: count(value.refresh) ?? 0, canWriteOwn: value.canWriteOwn === true };
+}
+
 function parseLimits(value: unknown): ConversationDto["limits"] {
   const limits = isRecord(value) ? value : {};
   return {
-    answerChars: positive(limits.answerChars) ?? CHAT_CONFIG.conversation.answerChars,
-    messageChars: positive(limits.messageChars) ?? CHAT_CONFIG.conversation.messageChars,
+    answerChars: positive(limits.answerChars) ?? SETTINGS.answerChars,
+    messageChars: positive(limits.messageChars) ?? SETTINGS.messageChars,
+    customQuestionChars: positive(limits.customQuestionChars) ?? SETTINGS.customQuestionChars,
   };
+}
+
+function parseFree(value: unknown): ConversationDto["free"] {
+  const free = isRecord(value) ? value : {};
+  return { canAccept: free.canAccept === true, mine: free.mine === true, theirs: free.theirs === true };
 }
 
 export function parseConversation(value: unknown): ConversationDto | null {
@@ -135,25 +157,27 @@ export function parseConversation(value: unknown): ConversationDto | null {
   const stage = oneOf(STAGES, value.stage);
   const peer = parsePeer(value.peer);
   if (id === null || track === null || stage === null || peer === null) return null;
-  const rounds = listOf(value.rounds, parseRound);
-  const ready = isRecord(value.freeReady) ? value.freeReady : {};
+  const reactions = listOf(value.reactions, (r) => (typeof r === "string" && r.length > 0 ? r : null));
   return {
-    id,
-    track,
-    peer,
-    stage,
-    rounds,
-    totalRounds: Math.max(count(value.totalRounds) ?? 0, rounds.length),
-    currentRound: count(value.currentRound),
-    freeReady: { mine: ready.mine === true, theirs: ready.theirs === true },
+    id, track, peer, stage,
+    pausedByMe: value.pausedByMe === true,
+    muted: value.muted === true,
+    rounds: listOf(value.rounds, parseRound),
+    completedRounds: count(value.completedRounds) ?? 0,
+    minRoundsForFree: positive(value.minRoundsForFree) ?? SETTINGS.rounds.minForFree,
+    ask: parseAsk(value.ask),
+    free: parseFree(value.free),
     messages: listOf(value.messages, parseMessage),
+    hasOlder: value.hasOlder === true,
     limits: parseLimits(value.limits),
+    reactions: reactions.length > 0 ? reactions : [...SETTINGS.reactions],
   };
 }
 
 export function parseInterestState(value: unknown): InterestStateDto | null {
   if (!isRecord(value)) return null;
   if (value.state === "sent") return { state: "sent" };
+  if (value.state === "invited") return { state: "invited" };
   const conversation = text(value.conversation);
   return value.state === "open" && conversation !== null ? { state: "open", conversation } : null;
 }
@@ -165,7 +189,7 @@ export function parseInterestStates(value: unknown): InterestStatesDto | null {
     const state = parseInterestState(raw);
     if (state !== null && INTEREST_KEY.test(key)) states[key] = state;
   }
-  return { states };
+  return { states, adult: value.adult === true };
 }
 
 export function parseOk(value: unknown): true | null {

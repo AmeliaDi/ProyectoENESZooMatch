@@ -10,6 +10,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { getTrackThreshold } from "@/domain/constellation";
 import type { MatchTrack } from "@/types/microtest";
+import { useChatMarks } from "@/ui/chat/use-chat-marks";
 import { emitFeedback } from "@/ui/feedback/feedback";
 
 import { ConstellationCanvas } from "./ConstellationCanvas";
@@ -72,6 +73,7 @@ export function ConstellationView({
     [track, motionReduced],
   );
   const handleClose = useCallback(() => setSelection(null), []);
+  const chatMarks = useChatMarks(track);
 
   return (
     <section className={`zm-sky-view ${className ?? ""}`.trim()} style={style} aria-label="Tu constelación">
@@ -93,6 +95,7 @@ export function ConstellationView({
           reducedMotion={motionReduced}
           selectedNodeId={selectedId}
           onSelectNode={handleSelect}
+          chatMarks={chatMarks}
           {...(emptyMessage !== undefined ? { emptyMessage } : {})}
           {...extras}
         />

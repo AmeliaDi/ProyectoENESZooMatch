@@ -37,64 +37,8 @@ export const CHAT_COPY = {
   failed: "Algo no salió bien. Intenta de nuevo en un momento.",
 } as const;
 
-/** Copy of the conversations between matches (docs/CHAT.md). Checked by screens.test.ts. */
-export const CONVERSATION_COPY = {
-  inboxTitle: "Tus conversaciones",
-  romance: "Romance",
-  amistad: "Amistad",
-  stageInvite: "Invitación al chat libre",
-  stageFree: "Chat libre",
-  stageRounds: "Rondas de preguntas",
-  unread: "Nuevo",
-  myTurn: "Te toca",
-
-  loading: "Abriendo tus conversaciones…",
-  loadingOne: "Abriendo la conversación…",
-  back: "Volver a tus conversaciones",
-  goneTitle: "Esta conversación ya no está disponible",
-  goneBody: "A veces las conversaciones terminan, y está bien.",
-  roundsIntro: "Cada quien responde a su ritmo. Las respuestas se muestran cuando ambxs respondieron.",
-  yourAnswer: "Tu respuesta",
-  theirAnswer: "Su respuesta",
-  theirPending: "Su respuesta aparece cuando ambxs respondan.",
-  pastRounds: "Ver sus rondas de preguntas",
-  answerLabel: "Escribe tu respuesta",
-  answerSend: "Enviar respuesta",
-  inviteTitle: "¿Quieren seguir platicando con libertad?",
-  inviteBody: "El chat libre se abre solo si las dos personas lo eligen.",
-  inviteAccept: "Sí, quiero seguir",
-  inviteWaiting: "Esperando a que la otra persona también quiera.",
-  freeTitle: "Chat libre",
-  freeEmpty: "Aquí aparecerán sus mensajes. Escribe cuando quieras.",
-  messagesLabel: "Mensajes",
-  mine: "Tú",
-  messageLabel: "Escribe un mensaje",
-  messageSend: "Enviar",
-  leave: "Retirarme",
-  leaveTitle: "¿Quieres retirarte?",
-  leaveBody: "Puedes retirarte sin explicar nada. La conversación desaparecerá para las dos personas.",
-  leaveConfirm: "Sí, retirarme",
-  leaveCancel: "Seguir aquí",
-  tooLong: "Es un poco largo. Intenta acortarlo.",
-  emptyText: "Escribe algo antes de enviarlo.",
-  invalidReply: "No pudimos leer la respuesta. Intenta de nuevo en un momento.",
-  retry: "Intentar de nuevo",
-} as const;
-
-/** Copy of the interest signal in the detail sheet. */
-export const INTEREST_COPY = {
-  send: "Me interesa conocerte",
-  sent: "Tu señal está enviada. Si también le interesa, se abrirá un chat. Nadie ve tu señal si no es mutua.",
-  withdraw: "Retirar señal",
-  withdrawn: "Listo: retiraste tu señal.",
-  open: "¡Se abrió un chat!",
-  openLink: "Ir a tus chats",
-  loading: "Revisando tus señales…",
-  gone: "Esta persona ya no aparece entre tus matches. Así pasa a veces, y está bien.",
-  noSession: "Entra con tu matrícula para enviar una señal.",
-  failed: "No pudimos guardar tu señal. Intenta de nuevo en un momento.",
-  retry: "Intentar de nuevo",
-} as const;
+export { CONVERSATION_COPY, INTEREST_COPY, SAFETY_COPY, errorCopy } from "./conversation-copy";
+import { CONVERSATION_COPY } from "./conversation-copy";
 
 export function roundsStage(round: number, total: number): string {
   return `Ronda ${round} de ${total}`;
@@ -104,11 +48,17 @@ export function trackLabel(track: ChatTrack): string {
   return track === "romance" ? CONVERSATION_COPY.romance : CONVERSATION_COPY.amistad;
 }
 
-/** The stage in words; without progress the rounds stage stays generic. */
-export function stageLabel(stage: ConversationStage, progress: { round: number; total: number } | null): string {
-  if (stage === "invite") return CONVERSATION_COPY.stageInvite;
+/** The stage in words; rounds show how many are already done. */
+export function stageLabel(stage: ConversationStage, completed: number): string {
+  if (stage === "paused") return CONVERSATION_COPY.stagePaused;
   if (stage === "free") return CONVERSATION_COPY.stageFree;
-  return progress ? roundsStage(progress.round, progress.total) : CONVERSATION_COPY.stageRounds;
+  if (completed === 0) return CONVERSATION_COPY.stageRounds;
+  return `${CONVERSATION_COPY.stageRounds} · ${completed} ${completed === 1 ? "ronda" : "rondas"}`;
+}
+
+/** Discreet "X/300" counter, read by screen readers as words. */
+export function charsCounter(used: number, limit: number): { visual: string; spoken: string } {
+  return { visual: `${used}/${limit}`, spoken: `${used} de ${limit} caracteres` };
 }
 
 export function charsLeft(left: number): string {

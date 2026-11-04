@@ -18,12 +18,16 @@ import {
   CHAT_COPY,
   CONVERSATION_COPY,
   INTEREST_COPY,
+  SAFETY_COPY,
   attemptsMessage,
+  charsCounter,
   charsLeft,
+  errorCopy,
   formatCountdown,
   pausedMessage,
   stageLabel,
 } from "./chat/chat-copy";
+import { REPORT_REASON_LABELS } from "./chat/conversation-copy";
 import { CONSTELLATION_COPY } from "./constellation/types";
 import { MATRICULA_COPY } from "./entry/matricula-entry";
 import { FEEDBACK_COPY } from "./feedback/feedback-toggles";
@@ -75,7 +79,10 @@ describe("copy", () => {
     ...Object.values(CHAT_COPY),
     ...Object.values(CONVERSATION_COPY),
     ...Object.values(INTEREST_COPY),
-    stageLabel("rounds", { round: 2, total: 3 }),
+    ...Object.values(SAFETY_COPY),
+    ...Object.values(REPORT_REASON_LABELS),
+    ...["chat.cooldown", "chat.too_many_signals", "chat.link_blocked", "chat.offensive", "chat.slow_down", "chat.repeated"].map((c) => errorCopy(c) ?? ""),
+    stageLabel("rounds", 2),
     charsLeft(1),
     charsLeft(-4),
     ...Object.values(CHAT_EVENT_LABELS),
@@ -127,15 +134,19 @@ describe("chat lock copy", () => {
   });
 
   it("names stages in words and never pressures", () => {
-    expect(stageLabel("rounds", { round: 2, total: 3 })).toBe("Ronda 2 de 3");
-    expect(stageLabel("invite", null)).toBe("Invitación al chat libre");
-    expect(stageLabel("free", null)).toBe("Chat libre");
+    expect(stageLabel("rounds", 0)).toBe("Rondas de preguntas");
+    expect(stageLabel("rounds", 2)).toBe("Rondas de preguntas · 2 rondas");
+    expect(stageLabel("free", 3)).toBe("Chat libre");
+    expect(stageLabel("paused", 3)).toBe("En pausa");
     expect(charsLeft(1)).toBe("1 carácter disponible");
-    expect(CONVERSATION_COPY.leaveBody).toBe(
-      "Puedes retirarte sin explicar nada. La conversación desaparecerá para las dos personas.",
-    );
-    const calm = /prisa|rápido|ahora mismo|no te lo pierdas|solo hoy|urgente/i;
-    for (const text of [...Object.values(CONVERSATION_COPY), ...Object.values(INTEREST_COPY)]) expect(text).not.toMatch(calm);
+    expect(charsCounter(12, 300)).toEqual({ visual: "12/300", spoken: "12 de 300 caracteres" });
+    expect(SAFETY_COPY.closeBody).toBe("Puedes cerrarla sin explicar nada. Desaparecerá para las dos personas.");
+    const calm = /prisa|rápido|ahora mismo|no te lo pierdas|solo hoy|urgente|visto|no respondió|te ignor/i;
+    for (const text of [...Object.values(CONVERSATION_COPY), ...Object.values(INTEREST_COPY), ...Object.values(SAFETY_COPY)]) expect(text).not.toMatch(calm);
+  });
+
+  it("keeps the inclusive x out of text read by screen readers", () => {
+    for (const text of [...Object.values(REPORT_REASON_LABELS), ...Object.values(SAFETY_COPY)]) expect(text).not.toMatch(/\b\w+x\b(?<!\bfax\b)/i);
   });
 
   it("keeps a single numeric input that no password manager claims", () => {

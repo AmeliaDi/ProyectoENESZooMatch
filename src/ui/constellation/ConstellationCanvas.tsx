@@ -138,6 +138,12 @@ function write(t: PaintTargets, el: Element, name: string, value: string): void 
   el.setAttribute(name, value);
 }
 
+/** Gold for a union (open chat) or a radiant match; the theme rim otherwise. */
+function lineClass(radiant: boolean, chatOpen: boolean): string {
+  if (chatOpen) return "zm-canvas__line zm-canvas__line--chat";
+  return radiant ? "zm-canvas__line zm-canvas__line--radiant" : "zm-canvas__line";
+}
+
 function polylineLength(points: { x: number; y: number }[]): number {
   let total = 0;
   for (let i = 0; i < points.length; i++) {
@@ -165,6 +171,7 @@ function ConstellationCanvasImpl({
   maxMatches,
   controlRef,
   thresholdOverride,
+  chatMarks,
 }: ConstellationCanvasProps) {
   const cfg = physics;
   const { ref: surfaceRef, width: measuredWidth, height: measuredHeight } = useElementSize<HTMLDivElement>();
@@ -775,14 +782,16 @@ function ConstellationCanvasImpl({
               <g aria-hidden="true" fill="none" strokeLinecap="butt" shapeRendering="crispEdges">
                 {structure.edges.map((edge) => {
                   const lit = activeId !== null && (edge.source === activeId || edge.target === activeId);
+                  const chatOpen = edge.kind === "spoke" && (chatMarks?.open.has(edge.source) || chatMarks?.open.has(edge.target)) === true;
                   return (
                     <line
                       key={edge.key}
                       data-line-key={edge.key}
-                      className={edge.radiant ? "zm-canvas__line zm-canvas__line--radiant" : "zm-canvas__line"}
-                      strokeWidth={lit ? edge.width + LIT_STROKE_EXTRA : edge.width}
-                      strokeOpacity={lit ? Math.min(1, edge.opacity + EDGE_LIT_BOOST) : edge.opacity}
-                      strokeDasharray={`${LINE_DASH[0]} ${LINE_DASH[1]}`}
+                      data-chat={chatOpen || undefined}
+                      className={lineClass(edge.radiant, chatOpen)}
+                      strokeWidth={lit || chatOpen ? edge.width + LIT_STROKE_EXTRA : edge.width}
+                      strokeOpacity={lit || chatOpen ? Math.min(1, edge.opacity + EDGE_LIT_BOOST) : edge.opacity}
+                      strokeDasharray={chatOpen ? undefined : `${LINE_DASH[0]} ${LINE_DASH[1]}`}
                     />
                   );
                 })}
@@ -812,6 +821,7 @@ function ConstellationCanvasImpl({
                     <StarNode
                       key={node.id}
                       node={node}
+                      chatPending={chatMarks?.pending.has(node.id) === true}
                       romance={romance}
                       happy={!romance && (focusSet.has(node.id) || happyIds.has(node.id))}
                       dimmed={activeId !== null && interactive && !node.isSelf && !focusSet.has(node.id)}

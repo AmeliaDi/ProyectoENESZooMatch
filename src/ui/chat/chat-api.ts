@@ -2,7 +2,7 @@
  * Browser client of `/api/chat/*`. The lock cookie is httpOnly and scoped to
  * `/api/chat`, so the page learns the state only through `/api/chat/status`.
  */
-import type { ConversationDto } from "@/contracts/chat";
+import type { ConversationDto, InvitationDto, ReportReason } from "@/contracts/chat";
 
 import { isRecord, parseConversation, parseInbox, parseOk, type InboxEntry } from "./chat-parse";
 
@@ -29,6 +29,7 @@ export const INVALID_REPLY = "client.invalid_reply";
 export const LOCKED = "chat.locked";
 /** The conversation no longer exists (someone left). */
 export const NOT_FOUND = "chat.not_found";
+export { NETWORK_FAILURE };
 
 /** Shared by the chat and interest clients: same-origin JSON, never cached. */
 export async function request(url: string, method: string, body?: unknown): Promise<ChatReply> {
@@ -64,21 +65,41 @@ export async function parsed<T>(reply: Promise<ChatReply>, parse: (body: unknown
   return data === null ? { ok: false, code: INVALID_REPLY } : { ok: true, data };
 }
 
-const conversationPath = (id: string, action = "") =>
-  `conversations/${encodeURIComponent(id)}${action ? `/${action}` : ""}`;
+const conversationPath = (id: string, action = "") => `conversations/${encodeURIComponent(id)}${action ? `/${action}` : ""}`;
+
+type View = Promise<ApiResult<ConversationDto>>;
+const post = (id: string, action: string, body: unknown): View => parsed(call(conversationPath(id, action), "POST", body), parseConversation);
+
+export interface ViewQuery {
+  refresh?: number;
+  before?: string;
+}
+
+function viewPath(id: string, query: ViewQuery): string {
+  const params = new URLSearchParams();
+  if (query.refresh) params.set("refresh", String(query.refresh));
+  if (query.before) params.set("before", query.before);
+  const search = params.toString();
+  return `${conversationPath(id)}${search ? `?${search}` : ""}`;
+}
 
 /** Conversations between matches; every route requires the lock to be open. */
 export const conversationApi = {
-  inbox: (): Promise<ApiResult<{ conversations: InboxEntry[] }>> => parsed(call("inbox", "GET"), parseInbox),
-  conversation: (id: string): Promise<ApiResult<ConversationDto>> =>
-    parsed(call(conversationPath(id), "GET"), parseConversation),
-  answer: (id: string, round: number, body: string): Promise<ApiResult<ConversationDto>> =>
-    parsed(call(conversationPath(id, "answer"), "POST", { round, body }), parseConversation),
-  accept: (id: string): Promise<ApiResult<ConversationDto>> =>
-    parsed(call(conversationPath(id, "accept"), "POST", {}), parseConversation),
-  send: (id: string, body: string): Promise<ApiResult<ConversationDto>> =>
-    parsed(call(conversationPath(id, "messages"), "POST", { body }), parseConversation),
+  inbox: (): Promise<ApiResult<{ conversations: InboxEntry[]; invitations: InvitationDto[] }>> => parsed(call("inbox", "GET"), parseInbox),
+  conversation: (id: string, query: ViewQuery = {}): View => parsed(call(viewPath(id, query), "GET"), parseConversation),
+  ask: (id: string, question: { promptId: string } | { customText: string }): View => post(id, "ask", question),
+  answer: (id: string, round: number, body: string): View => post(id, "answer", { round, body }),
+  pass: (id: string, round: number): View => post(id, "answer", { round, pass: true }),
+  react: (id: string, round: number, emoji: string | null): View => post(id, "react", { round, emoji }),
+  feedback: (id: string, round: number, liked: boolean): View => post(id, "feedback", { round, liked }),
+  free: (id: string, ready: boolean): View => post(id, "free", { ready }),
+  send: (id: string, body: string, clientKey: string): View => post(id, "messages", { body, clientKey }),
+  pause: (id: string, on: boolean): View => post(id, "pause", { on }),
+  mute: (id: string, on: boolean): View => post(id, "mute", { on }),
+  deleteMine: (id: string): View => post(id, "mine", {}),
   leave: (id: string): Promise<ApiResult<true>> => parsed(call(conversationPath(id), "DELETE"), parseOk),
+  block: (id: string): Promise<ApiResult<true>> => parsed(call(conversationPath(id, "block"), "POST", {}), parseOk),
+  report: (id: string, reason: ReportReason): Promise<ApiResult<true>> => parsed(call(conversationPath(id, "report"), "POST", { reason }), parseOk),
 };
 
 export const chatApi = {
@@ -101,9 +122,7 @@ export function toStatus(body: Record<string, unknown>): ChatStatus {
     resetOnly: body.resetOnly === true,
     recentFailures: typeof body.recentFailures === "number" ? body.recentFailures : 0,
     ...(typeof body.retryAfter === "number" ? { retryAfter: body.retryAfter } : {}),
-    ...(recovery && typeof recovery.readyAt === "string"
-      ? { recovery: { readyAt: recovery.readyAt, ready: recovery.ready === true } }
-      : {}),
+    ...(recovery && typeof recovery.readyAt === "string" ? { recovery: { readyAt: recovery.readyAt, ready: recovery.ready === true } } : {}),
   };
 }
 

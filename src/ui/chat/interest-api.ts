@@ -16,6 +16,10 @@ export const interestApi = {
     parsed(request(INTEREST_URL, "POST", { match, track } satisfies InterestRequestDto), parseInterestState),
   withdraw: (match: string, track: ChatTrack): Promise<ApiResult<true>> =>
     parsed(request(INTEREST_URL, "DELETE", { match, track } satisfies InterestRequestDto), parseOk),
+  /** "Ahora no": silent for the sender. */
+  decline: (match: string, track: ChatTrack): Promise<ApiResult<true>> =>
+    parsed(request(`${INTEREST_URL}/decline`, "POST", { match, track } satisfies InterestRequestDto), parseOk),
+  confirmAdult: (): Promise<ApiResult<true>> => parsed(request(`${INTEREST_URL}/adult`, "POST", {}), parseOk),
 };
 
 export function interestKey(track: ChatTrack, matchId: string): string {
@@ -29,7 +33,7 @@ export function hasInterestHandle(matchId: string | null | undefined, track: Cha
 
 export type InterestSnapshot =
   | { kind: "idle" | "loading" }
-  | { kind: "ready"; states: Record<string, InterestStateDto> }
+  | { kind: "ready"; states: Record<string, InterestStateDto>; adult: boolean }
   | { kind: "error"; code: string };
 
 const IDLE: InterestSnapshot = { kind: "idle" };
@@ -58,7 +62,7 @@ export function loadInterest(force = false): Promise<void> {
   if (snapshot.kind !== "ready") publish({ kind: "loading" });
   inflight = interestApi.states().then((reply) => {
     inflight = null;
-    publish(reply.ok ? { kind: "ready", states: reply.data.states } : { kind: "error", code: reply.code });
+    publish(reply.ok ? { kind: "ready", states: reply.data.states, adult: reply.data.adult } : { kind: "error", code: reply.code });
   });
   return inflight;
 }

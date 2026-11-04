@@ -147,6 +147,11 @@ export interface ConstellationCanvasProps {
   thresholdOverride?: number;
   /** Dev-only: imperative handle for scenario buttons. */
   controlRef?: RefObject<CanvasControl | null>;
+  /**
+   * Chat state per node id: an open chat gilds the spoke; a pending
+   * invitation shows a small speech mark over the star (never a count).
+   */
+  chatMarks?: { open: ReadonlySet<string>; pending: ReadonlySet<string> };
 }
 
 /** Live engine numbers reported to the dev physics panel. */
