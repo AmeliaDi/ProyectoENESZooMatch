@@ -21,6 +21,8 @@ export const TABLE = {
   closures: "chat_closures",
   reports: "chat_reports",
   reportAudit: "chat_report_audit",
+  adminCredentials: "admin_credentials",
+  adminAudit: "admin_audit",
 } as const;
 export const RPC = {
   submit: "submit_quiz_result",
@@ -37,6 +39,10 @@ export const RPC = {
   reportConversation: "report_conversation",
   roundFeedback: "record_round_feedback",
   purgeChat: "purge_chat",
+  adminListUsers: "admin_list_users",
+  adminResetQuiz: "admin_reset_quiz",
+  adminListReports: "admin_list_reports",
+  adminReviewReport: "admin_review_report",
 } as const;
 
 export const PROFILE_PAGE_SIZE = 1000;

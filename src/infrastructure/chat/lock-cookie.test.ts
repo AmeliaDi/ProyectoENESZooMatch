@@ -27,6 +27,12 @@ describe("lock-session cookie", () => {
   it("round-trips a signed payload", () => {
     expect(decodeLockSession(encodeLockSession(session, PEPPER), PEPPER)).toEqual(session);
   });
+  it("never accepts a cookie signed under another key label (admin vs chat)", () => {
+    const admin = encodeLockSession(session, PEPPER, "admin-console-session");
+    expect(decodeLockSession(admin, PEPPER)).toBeNull();
+    expect(decodeLockSession(encodeLockSession(session, PEPPER), PEPPER, "admin-console-session")).toBeNull();
+    expect(decodeLockSession(admin, PEPPER, "admin-console-session")).toEqual(session);
+  });
 
   it("rejects tampered, re-signed with another key or malformed values", () => {
     const value = encodeLockSession(session, PEPPER);

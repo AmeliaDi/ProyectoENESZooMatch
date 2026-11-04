@@ -13,7 +13,15 @@ export type AppError =
   | "quiz.not_completed"
   | "storage.failed"
   | "match.pool_unstable"
+  | AdminError
   | ChatError;
+
+/** Admin console (ADR-036). A failed login never says which part was wrong. */
+export type AdminError =
+  | "admin.invalid"
+  | "admin.paused"
+  | "admin.not_found"
+  | "admin.protected";
 
 /** Chat PIN lock (docs/CHAT.md). Messages never hint at the PIN itself. */
 export type ChatError =

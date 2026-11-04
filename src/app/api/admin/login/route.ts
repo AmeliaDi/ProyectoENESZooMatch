@@ -1,54 +1,48 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { adminLogin } from "@/application/admin";
+import { parseJsonBody, matriculaSchema } from "@/application/validation/common";
+import { ADMIN_CONFIG } from "@/config";
+import { openAdminSession } from "@/infrastructure/admin/admin-session.server";
+import { clientAddress } from "@/infrastructure/auth/access-guard.server";
+import { adminConsoleContext } from "@/infrastructure/composition.server";
+import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
+import { logServerEvent } from "@/infrastructure/observability/log.server";
 import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
-import { createClient } from "@/infrastructure/supabase/server";
-import { parseJsonBody } from "@/application/validation/common";
-
-const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().email().max(254),
-  password: z.string().min(1).max(128),
-});
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
+const loginSchema = z.strictObject({
+  matricula: matriculaSchema,
+  pin: z.string().regex(new RegExp(`^[0-9]{${ADMIN_CONFIG.pin.length}}$`)),
+});
+
+/**
+ * `{ matricula, pin }` → console session cookie. Any wrong part answers the
+ * same `admin.invalid`; a running pause answers `admin.paused` + retryAfter.
+ */
 async function handlePost(request: Request) {
   const parsed = loginSchema.safeParse(await parseJsonBody(request));
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
+  if (!parsed.success) return errorResponse("admin.invalid");
+  const context = await adminConsoleContext();
+  if (!context.ok) return errorResponse(context.error);
+
+  const retryAfter = await context.value.guardAddress(clientAddress(request.headers));
+  if (retryAfter === null) return errorResponse("service.unavailable");
+  if (retryAfter > 0) return errorResponse({ code: "admin.paused", retryAfter });
+
+  const result = await adminLogin(parsed.data.matricula, parsed.data.pin, context.value.login);
+  if (!result.ok) {
+    logServerEvent("warn", "admin.login_refused", { code: result.error.code });
+    return errorResponse(result.error);
   }
-
-  const client = await createClient();
-  if (!client) {
-    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-  }
-
-  const { data: login, error: loginError } = await client.auth.signInWithPassword(parsed.data);
-  if (loginError || !login.user) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-  }
-
-  const { data: role, error: roleError } = await client
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", login.user.id)
-    .eq("role", "admin")
-    .maybeSingle();
-
-  if (roleError || role?.role !== "admin") {
-    await client.auth.signOut();
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-  }
-
-  return NextResponse.json({ ok: true });
+  const response = jsonResponse({ ok: true });
+  openAdminSession(response, result.value.userId, context.value);
+  return response;
 }
 
 const methods = ["POST"] as const;
 
-export const POST = withApiSecurity(handlePost, {
-  name: "admin-login",
-  limit: 5,
-  windowSeconds: 900,
-  methods,
-});
+export const POST = withApiSecurity(handlePost, { name: "admin-login", limit: 10, windowSeconds: 900, methods });
 export const OPTIONS = createPreflightHandler(methods);

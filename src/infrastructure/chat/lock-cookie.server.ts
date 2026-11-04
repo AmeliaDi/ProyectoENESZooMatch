@@ -21,17 +21,18 @@ const sessionSchema = z.strictObject({
   exp: z.number().int().nonnegative(),
 });
 
-function signingKey(pepper: string): Buffer {
-  return createHmac("sha256", pepper).update(KEY_LABEL, "utf8").digest();
+function signingKey(pepper: string, label: string): Buffer {
+  return createHmac("sha256", pepper).update(label, "utf8").digest();
 }
 
-function sign(body: string, pepper: string): string {
-  return createHmac("sha256", signingKey(pepper)).update(body, "utf8").digest("base64url");
+function sign(body: string, pepper: string, label: string): string {
+  return createHmac("sha256", signingKey(pepper, label)).update(body, "utf8").digest("base64url");
 }
 
-export function encodeLockSession(session: LockSession, pepper: string): string {
+/** `label` separates keys: a chat lock cookie never validates as another session. */
+export function encodeLockSession(session: LockSession, pepper: string, label = KEY_LABEL): string {
   const body = Buffer.from(JSON.stringify(session), "utf8").toString("base64url");
-  return `${body}.${sign(body, pepper)}`;
+  return `${body}.${sign(body, pepper, label)}`;
 }
 
 function safeEqual(a: string, b: string): boolean {
@@ -50,11 +51,11 @@ function parsePayload(body: string): LockSession | null {
 }
 
 /** `null` for a missing, malformed or tampered cookie. */
-export function decodeLockSession(value: string | undefined, pepper: string): LockSession | null {
+export function decodeLockSession(value: string | undefined, pepper: string, label = KEY_LABEL): LockSession | null {
   if (!value) return null;
   const [body, signature, extra] = value.split(".");
   if (!body || !signature || extra !== undefined) return null;
-  if (!safeEqual(signature, sign(body, pepper))) return null;
+  if (!safeEqual(signature, sign(body, pepper, label))) return null;
   return parsePayload(body);
 }
 

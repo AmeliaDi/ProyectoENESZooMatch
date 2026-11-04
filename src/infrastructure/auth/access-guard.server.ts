@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { ACCESS_CONFIG, CHAT_CONFIG } from "@/config";
+import { ACCESS_CONFIG, ADMIN_CONFIG, CHAT_CONFIG } from "@/config";
 
 /**
  * Postgres-backed throttle for `/api/enter` (ADR-023, ADR-026). It works with
@@ -10,14 +10,15 @@ import { ACCESS_CONFIG, CHAT_CONFIG } from "@/config";
  * Subjects are HMAC digests keyed with the server secret, so the table never
  * holds a raw IP address or matrícula.
  */
-export type GuardKind = "address_attempt" | "chat_pin_address";
+export type GuardKind = "address_attempt" | "chat_pin_address" | "admin_address";
 
 const RULES = {
   address_attempt: ACCESS_CONFIG.guard.attemptsPerAddress,
   chat_pin_address: CHAT_CONFIG.addressGuard,
+  admin_address: ADMIN_CONFIG.addressGuard,
 } as const satisfies Record<GuardKind, unknown>;
 
-export function guardSubject(kind: "address" | "chat_pin_address", value: string, secret: string): string {
+export function guardSubject(kind: "address" | "chat_pin_address" | "admin_address", value: string, secret: string): string {
   return createHmac("sha256", secret).update(`access-guard:${kind}:${value}`, "utf8").digest("hex");
 }
 

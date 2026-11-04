@@ -4,16 +4,18 @@
  */
 import { createHash } from "node:crypto";
 
+import type { AdminConsoleRepository, AdminDeps, AdminLoginDeps } from "@/application/admin";
 import type { ChatRecoveryDeps, ConversationRepository, InterestDeps, InvitationDeps } from "@/application/chat";
 import type { AppError } from "@/application/errors";
 import type { GetResultDeps } from "@/application/get-result";
 import type { PrivacyDeps } from "@/application/privacy";
-import type { AdminRepository, NotificationRepository, Scheduler } from "@/application/ports";
+import type { AdminRepository, NotificationRepository, PinHasher, Scheduler } from "@/application/ports";
 import type { RecomputeDeps } from "@/application/recompute-matches";
 import type { RefineDeps } from "@/application/refine-profile";
 import type { SubmitQuizDeps } from "@/application/submit-quiz";
 import { err, ok, type Clock, type Result } from "@/domain/shared";
 
+import { supabaseAdminConsoleRepository } from "./admin/console-repository";
 import { createAccessGuard, guardSubject } from "./auth/access-guard.server";
 import { supabaseConversationRepository } from "./chat/conversation-repository";
 import { createPinHasher } from "./chat/pin-hasher.server";
@@ -119,12 +121,51 @@ export async function notificationContext(): Promise<Result<NotificationReposito
   return ok(supabaseNotificationRepository(null, auth.value.session));
 }
 
-/** Resolves the session and checks the admin role. */
-export async function adminContext(): Promise<Result<AdminRepository, Failure>> {
-  const auth = await authenticated();
-  if (!auth.ok) return auth;
-  const repo = supabaseAdminRepository(auth.value.session);
-  return (await repo.isAdmin(auth.value.userId)) ? ok(repo) : err("auth.forbidden");
+/**
+ * Admin console dependencies (ADR-036). Authentication is the console's own
+ * signed session (`requireAdmin`), not a Supabase one, so everything here
+ * runs with the service role and must only be reached behind that gate.
+ * The admin PIN reuses the chat pepper under a separate hashing subject.
+ */
+export interface AdminConsoleContext {
+  console: AdminConsoleRepository;
+  deps: AdminDeps;
+  login: AdminLoginDeps;
+  /** Dashboard aggregates through the same service-role client. */
+  metrics: AdminRepository;
+  clock: Clock;
+  pepper: string;
+  /** Per-address login guard: seconds locked, or `null` when it failed (fail closed). */
+  guardAddress(address: string): Promise<number | null>;
+}
+
+/** Separate subject: an admin PIN digest never equals a chat PIN digest. */
+function adminHasher(pepper: string): PinHasher {
+  const inner = createPinHasher(pepper);
+  const subject = (userId: string) => `admin:${userId}`;
+  return {
+    hash: (userId, pin) => inner.hash(subject(userId), pin),
+    verify: (userId, pin, stored) => inner.verify(subject(userId), pin, stored),
+  };
+}
+
+export async function adminConsoleContext(): Promise<Result<AdminConsoleContext, Failure>> {
+  const pepper = getChatPinPepper();
+  const env = getServerEnv();
+  const admin = createAdminClient();
+  if (!pepper || !env || !admin) return err("service.unavailable");
+  const consoleRepo = supabaseAdminConsoleRepository(admin, env.MATRICULA_HMAC_SECRET);
+  const guard = createAccessGuard(admin);
+  return ok({
+    console: consoleRepo,
+    deps: { console: consoleRepo, profiles: supabaseProfileRepository(admin), matches: supabaseMatchRepository(admin), scheduler: systemScheduler },
+    login: { console: consoleRepo, hasher: adminHasher(pepper), clock: systemClock },
+    metrics: supabaseAdminRepository(admin),
+    clock: systemClock,
+    pepper,
+    guardAddress: (address) =>
+      guard.hit("admin_address", guardSubject("admin_address", address, env.MATRICULA_HMAC_SECRET)),
+  });
 }
 
 export interface ChatContext {
