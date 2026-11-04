@@ -5,6 +5,7 @@ import {
   parseAdminMetrics,
   type AdminMetrics,
 } from "@/contracts/admin-metrics";
+import { getAmistadThreshold, getRomanceThreshold } from "@/domain/matching";
 
 import { adminMetricsToCsv, protectCsvCell, trackCoverageRate } from "./metrics-export";
 
@@ -36,6 +37,10 @@ describe("admin metrics validation", () => {
       parseAdminMetrics({ ...METRICS, totalProfiles: -1 }),
     ).toBeNull();
     expect(parseAdminMetrics({ ...METRICS, topAnimals: "nope" })).toBeNull();
+  });
+
+  it("accepts the calibrated thresholds, which may sit below 0.5", () => {
+    expect(parseAdminMetrics({ ...METRICS, romanceThreshold: getRomanceThreshold(), amistadThreshold: getAmistadThreshold() })).not.toBeNull();
   });
 });
 

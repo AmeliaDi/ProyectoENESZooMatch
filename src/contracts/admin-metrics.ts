@@ -7,8 +7,9 @@ import { z } from "zod";
 
 export const adminMetricsSchema = z.object({
   generatedAt: z.string(),
-  romanceThreshold: z.number().min(0.5).lt(1),
-  amistadThreshold: z.number().min(0.5).lt(1),
+  // Calibrated thresholds may sit below 0.5 (amistad ≈ 0.46); only [0, 1) is a contract.
+  romanceThreshold: z.number().min(0).lt(1),
+  amistadThreshold: z.number().min(0).lt(1),
   totalProfiles: z.number().int().min(0),
   romanceMatches: z.number().int().min(0),
   amistadMatches: z.number().int().min(0),
