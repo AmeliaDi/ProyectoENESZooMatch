@@ -1,7 +1,7 @@
 # Chat entre matches
 
-> **Estado (2026-11-04):** candado de PIN (ADR-029, §1–9) y chat entre matches (ADR-032, §10)
-> implementados.
+> **Estado (2026-11-06):** candado de PIN (ADR-029, §1–9) y chat entre matches con señales,
+> rondas guiadas y seguridad (ADR-032, ADR-035, §10–14) implementados.
 
 ## 1. Candado de PIN: qué es y qué no es
 
@@ -60,7 +60,7 @@ existiendo y la otra persona no se entera.
 - **Bloqueo rápido:** un botón de candado en el chat la cierra al instante.
 - **Notificaciones:** se pueden tocar y llevan a la **pantalla de PIN** y luego a la
   conversación; nunca muestran el texto de un mensaje ni el alias de quien escribe, solo «Tienes
-  mensajes nuevos». Así una notificación no abre el chat saltándose el candado.
+  novedades en tus chats». Así una notificación no abre el chat saltándose el candado.
 
 ## 4. Intentos fallidos
 
@@ -184,58 +184,428 @@ Códigos: `chat.locked` (423), `chat.pin_missing`/`chat.pin_exists` (409), `chat
 haya restablecimiento pendiente y que no esté en modo «solo restablecer». Si falla, borra la
 cookie.
 
-## 10. Chat entre matches (ADR-032)
+## 10. Chat entre matches: flujo y estados (ADR-032, ADR-035)
+
+### 10.0 Principios
+
+1. **Consentimiento propio y mutuo:** el chat solo existe si **ambas** personas lo aceptaron. La
+   regla vive en la base (`express_chat_interest`), no en la UI.
+2. **Anonimato:** dentro del chat solo hay alias y sprite. Ni las notificaciones identifican a
+   nadie.
+3. **Sin presión:** nunca hay «visto» ni avisos de que alguien no respondió, y no se mete prisa.
+   Retirarse siempre es fácil y no pide explicación.
+4. **Estructura que protege:** las preguntas guiadas bajan la ansiedad y limitan el abuso; al
+   chat libre se llega después, no se da por hecho.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Match
+    Match --> Senal: una persona envía su señal
+    Senal --> Match: caduca a los 7 días, «ahora no» o se retira
+    Senal --> Rondas: la otra responde con el mismo gesto
+    Match --> Rondas: las dos señales coinciden
+    Rondas --> Rondas: ronda con respuestas selladas, turno alterno
+    Rondas --> Libre: tras 3 rondas, las dos aceptan
+    Libre --> Rondas: retirar la aceptación
+    Rondas --> Pausa: alguien pausa
+    Libre --> Pausa: alguien pausa
+    Pausa --> Rondas: quien pausó retoma
+    Pausa --> Libre: quien pausó retoma
+    Rondas --> Cerrado: cerrar, bloquear, reportar o 30 días sin actividad
+    Libre --> Cerrado: cerrar, bloquear, reportar o 30 días sin actividad
+    Pausa --> Cerrado: cerrar, bloquear o reportar
+    Cerrado --> [*]
+```
 
 ### 10.1 Señal de interés
 
-- En el detalle de un match: «Me interesa conocerte». La señal es **invisible** para la otra
-  persona mientras no sea mutua; se puede retirar.
-- El cliente solo envía el *handle* opaco del match (`MatchEntryDto.id`) y la pista. El
-  servidor lo resuelve contra los matches **actuales** de quien envía; si ya no es match:
+- En el detalle de un match hay un botón claro por pista: «Abrir un chat de romance» (icono
+  pixel de corazón) o «Abrir un chat de amistad» (icono de abrazo). Debajo dice: «Solo se abre si
+  ambas personas lo aceptan». Se usan los iconos pixel porque el sistema de diseño no admite
+  emojis en las pantallas, y cumplen el papel de ❤️ y 🤗.
+- La señal solo puede ir a un **match vigente de esa pista**. El cliente envía el *handle*
+  opaco y el servidor lo resuelve contra los matches actuales; si no lo es, responde
   `chat.match_gone`.
-- Cuando ambas señales existen, `express_chat_interest` abre una sola conversación (atómico) y
-  la primera persona recibe el aviso sin contenido.
+- **Quien recibe la señal** la ve en el detalle de ese match y en la bandeja de chats como una
+  invitación: «Alguien con quien conectas quiere abrir un chat». Solo muestra el alias y el
+  sprite que ya conocía. Tiene tres opciones:
+  - responder **con el mismo gesto**, y el chat se abre;
+  - **«Ahora no»**: la invitación se oculta para quien la recibió, y quien la envió **nunca**
+    recibe aviso de rechazo;
+  - ignorarla: la señal caduca sola a los `signals.expireDays` = **7 días**.
+- **Señales simultáneas:** si las dos personas envían la señal, el chat se abre directamente. Un
+  `pg_advisory_xact_lock` por pareja garantiza que se abra una sola conversación.
+- **Tope:** cada persona puede tener `signals.maxOpen` = **5** señales abiertas a la vez
+  (`chat.too_many_signals`).
+- **Cooldown:** después de cerrar una conversación, esa pareja no puede volver a enviarse
+  señales durante `signals.cooldownDays` = **14 días** (`chat.cooldown`). Un bloqueo es
+  permanente y se ve igual que un match que ya no está (`chat.match_gone`), nunca como «te
+  bloquearon».
+- **Pista dual:** si el match existe en romance **y** en amistad, cada pista tiene su propia
+  señal y su propia conversación.
 
-### 10.2 Etapas
+### 10.2 Edad (ADR-035, decidido)
 
-| Etapa | Qué pasa | Quién puede actuar |
-|---|---|---|
-| `rounds` | Una pregunta por ronda (`conversation.rounds` en config, 3 por pista). Cada quien responde una vez; la respuesta ajena se ve cuando ambas respondieron. Las preguntas futuras no se envían | Quien no ha respondido la ronda actual |
-| `invite` | «¿Quieren seguir platicando con libertad?» Cada quien acepta; la aceptación ajena no se revela antes de aceptar tú | Quien no ha aceptado |
-| `free` | Chat libre (últimos `messagesPage` = 200 mensajes) | Ambas |
+La matrícula no garantiza la mayoría de edad. Por eso **romance pide que cada persona declare
+tener 18 años o más** (`profiles.adult_confirmed_at`), una sola vez y solo cuando intenta un
+chat de romance:
 
-La etapa se deriva siempre de los hechos guardados (`domain/chat/conversation.ts`).
-Límites: respuestas 280 caracteres, mensajes 800; el texto se normaliza y, si se pasa, se
-rechaza (no se recorta).
+- Sin esa declaración, la persona **no puede enviar** señales de romance
+  (`chat.adult_required`). Amistad queda abierta sin restricciones.
+- Para abrir una conversación de romance, las **dos** personas deben haberlo declarado. Si quien
+  recibe no lo hizo, la señal queda esperando sin que nadie lo vea. Así nunca se revela la edad
+  de otra persona.
+- Hay un motivo de reporte «Creo que es menor de edad».
+- Límite honesto: es una autodeclaración. No verifica la edad; deja una regla clara y una vía
+  para reportar.
 
-### 10.3 Retirarse
+### 10.3 Qué ve cada lado y qué se notifica
 
-`DELETE /api/chat/conversations/{id}` borra la conversación, sus respuestas y mensajes y
-**ambas** señales. La otra persona no recibe aviso ni motivo; al abrirla verá «Esta
-conversación ya no está disponible». Volver a hablar exige dos señales nuevas.
+| Estado | Quien envió | Quien recibió | Notificación |
+|---|---|---|---|
+| Señal enviada | «Tu señal está enviada…», con opción de retirarla | Invitación amable con alias y sprite | Aviso sin contenido a quien la recibe |
+| «Ahora no» | Sigue viendo «enviada» hasta que caduca | La invitación desaparece | Ninguna |
+| Caducada | El botón vuelve a estar disponible | Nada | Ninguna |
+| Chat abierto | Línea dorada en la constelación y «Ir a tus chats» | Lo mismo | Aviso sin contenido a la otra persona |
+| Ronda: falta tu respuesta | «Te toca» en la bandeja | — | Aviso sin contenido |
+| Ronda: falta la otra respuesta | «Su respuesta se mostrará cuando las dos personas respondan» | — | Ninguna; jamás se avisa que alguien no respondió |
+| Propuesta de chat libre | «Esperando a que la otra persona también quiera, a su ritmo» | «Te toca» y el botón para aceptar | Aviso sin contenido |
+| Pausa | Quien pausó ve «Pausaste…» y puede retomar | «La conversación está en pausa por ahora» | Ninguna |
+| Silencio | Quien silenció deja de recibir avisos de esa conversación | — | — |
+| Cerrar, bloquear o reportar | Desaparece para las dos personas | «Esta conversación ya no está disponible» | Ninguna, y sin motivo |
 
-### 10.4 Rutas
+La única notificación del chat es `CHAT_NOTICE`: «Tienes novedades en tus chats / Abre tus chats
+con tu PIN para verlas». Como máximo hay una sin leer por persona. Al tocarla se abre la pantalla
+del PIN.
+
+### 10.4 Rondas guiadas con respuestas selladas
+
+1. Los turnos de preguntar se **alternan**. Quién empieza se decide por un *hash* del id de la
+   conversación, así que no siempre es la misma persona.
+2. A quien le toca se le ofrecen **3 tarjetas** (§11.2). Puede elegir una, pedir «Otras tres»
+   o, **solo en chat libre**, escribir su propia pregunta (máximo 200 grafemas).
+3. **Las dos personas responden** (máximo 300 grafemas, se aceptan emojis) o tocan **«Pasar»**
+   sin dar explicaciones. Mientras tanto, las respuestas quedan **selladas**: el servidor no
+   envía la respuesta ajena.
+4. Las respuestas se **revelan a la vez** cuando las dos contestaron, o cuando pasan
+   `rounds.revealHours` = **48 h**. En ese caso se muestra «Si la otra persona aún no responde,
+   las respuestas se muestran solas en un par de días, a su ritmo».
+5. Después se puede **reaccionar** a la respuesta ajena con uno de los emojis de
+   `conversation.reactions`, y se ofrece la pregunta opcional «¿Te gustó esta ronda?». Esa
+   respuesta solo suma a un contador diario agregado (`chat_feedback_daily`, sin ids), nunca al
+   modelo de afinidad.
+6. A partir de `rounds.minForFree` = **3** rondas completadas, cualquiera puede proponer el
+   **chat libre**. Se abre solo cuando las dos personas aceptan. La aceptación ajena no se
+   revela antes de aceptar tú, y cualquiera puede retirarla para volver a las preguntas. En chat
+   libre se puede seguir abriendo rondas, también con preguntas propias.
+
+### 10.5 Riesgos y mitigaciones
+
+| Riesgo | Mitigación |
+|---|---|
+| Presión o insistencia | Tope de 5 señales abiertas, caducidad de 7 días, «ahora no» silencioso, cooldown de 14 días, ningún «visto» |
+| Acoso | Menú de seguridad a un toque (pausar, bloquear, reportar, cerrar); el bloqueo borra todo de inmediato |
+| Desanonimizar | Aviso amable ante teléfonos, correos y @usuario; enlaces bloqueados; las notificaciones no muestran el alias |
+| Spam | 8 mensajes por minuto, 300 al día, rechazo de repeticiones, rate limit por ruta |
+| Lenguaje ofensivo | Filtro suave es-MX (§12.4): bloquea con una explicación amable y sin mostrar la lista |
+| Menores en romance | Autodeclaración de 18+ en ambos lados y motivo de reporte específico (§10.2) |
+| Capturas de pantalla | **No se pueden impedir.** Se dice con honestidad en Privacidad y en la guía |
+| Quien opera el servidor | Puede leer los mensajes: el PIN no cifra (§1). La retención de 30 días limita la exposición |
+
+## 11. Banco de preguntas guiadas
+
+### 11.1 Estructura y linter
+
+`data/chat-prompts.json` (`chat-prompts-1`, `etiqueta: supuesto_diseno`), validado con Zod en
+`src/config/chat-prompts.ts`. Cada pregunta tiene `id` (`p###` para ambas pistas, `a###` amistad,
+`r###` romance), `track`, `nivel` (1 ligera, 2 media, 3 profunda), `categoria` (humor,
+curiosidad, estilo_de_vida, valores, comunicacion, gustos, suenos, campus), `texto` (≤ 200
+caracteres), `dimensiones_relacionadas` (capas del modelo de `matching-config.json`),
+`sensible: false` y `variantes` cortas. **No es un instrumento:** nunca alimenta el modelo.
+
+El linter (`src/config/chat-prompts.test.ts`) exige:
+
+- 80–120 preguntas y al menos 15 por nivel y pista;
+- una sola pregunta por texto, sin duplicados y con lectura ligera (≤ 26 palabras, palabras de ≤ 16 letras);
+- ningún tema prohibido: sexualidad, dinero, salud, religión, política, trauma, apariencia
+  física o datos identificables;
+- lenguaje neutro en género y sin palabras de destino o presión.
+
+**Banco actual: 96 preguntas.**
+
+| Nivel | Ambas pistas | Solo amistad | Solo romance | Total |
+|---|---|---|---|---|
+| 1 | 20 | 10 | 10 | 40 |
+| 2 | 16 | 8 | 8 | 32 |
+| 3 | 12 | 6 | 6 | 24 |
+
+| Categoría | humor | gustos | estilo_de_vida | campus | curiosidad | valores | comunicacion | suenos |
+|---|---|---|---|---|---|---|---|---|
+| Preguntas | 11 | 15 | 14 | 6 | 12 | 14 | 13 | 11 |
+
+Ejemplos por nivel (el banco completo está en el JSON):
+
+| Nivel | Ejemplos |
+|---|---|
+| 1 | «¿Qué canción te regresa a un momento exacto de tu vida?» · «¿Qué rutina pequeña te hace sentir en casa?» · «¿Qué plan entre clases te salva el día?» |
+| 2 | «¿Cómo sería para ti una primera cita sin nervios?» (romance) · «¿Qué gesto te hace sentir que alguien de verdad te escucha?» (romance) · «¿Cuál ha sido el malentendido más divertido que te ha pasado?» |
+| 3 | «¿Qué proyecto personal te emociona aunque nadie lo sepa todavía?» y preguntas de valores y sueños con un poco más de profundidad |
+
+### 11.2 Selección determinista
+
+`selectPrompts` (`src/domain/chat/prompt-selection.ts`) es una función pura:
+
+1. **Nivel por ronda:** `rounds.levelFromRound` = `[0, 2, 4]`, es decir, nivel 1 en las rondas
+   1–2, nivel 2 en las 3–4 y nivel 3 desde la 5. Si un nivel se agota, se completa con los
+   vecinos.
+2. **Filtros:** solo preguntas de la pista o de «ambos», y nunca una ya usada en la conversación.
+3. **Puntaje:** promedio, sobre las capas en las que se apoya la pregunta, de la **contribución
+   real** de cada capa al `pairScore` de la pareja (`application/chat/prompts.ts`), con un piso de
+   0.05. Se multiplica por un *jitter* de hasta 35 % con semilla `fnv1a32(id:ronda)`.
+4. **Variedad:** elección voraz con categorías distintas.
+5. **«Otras tres»:** pasa a la siguiente página del ranking y vuelve al principio al llegar al
+   final.
+
+El banco nunca sale del servidor; el cliente solo recibe las 3 tarjetas.
+
+### 11.3 Ejemplo completo: señal → aceptación → 3 rondas → chat libre
+
+Se generó con los casos de uso reales y el fake en memoria; las tarjetas son las que el selector
+eligió:
+
+1. Zorro Calmo (A), que declaró 18+, envía la señal de romance → `{"state":"sent"}`.
+2. Nutria Serena (B) ve en el detalle del match `{"state":"invited"}`: «Alguien con quien
+   conectas quiere abrir un chat».
+3. B responde con el mismo gesto → `state: open`. Las dos personas reciben solo «Tienes
+   novedades en tus chats».
+4. **Ronda 1** (elige A). Tarjetas: «¿Cuál es la idea más absurda y divertida que se te ocurrió
+   últimamente?» (p007, humor) · «¿Qué artista descubriste hace poco y no dejas de escuchar?»
+   (p018, gustos) · «¿Cuál es tu rincón favorito del campus para respirar un rato?» (p004,
+   campus). A responde y B sigue viendo `theirs: null, revealed: false`. Cuando B responde, las
+   dos respuestas se revelan juntas.
+5. **Ronda 2** (elige B). Tarjetas: «¿Cómo sería para ti una primera cita sin nervios?» (r001) ·
+   «¿Qué plan entre clases te salva el día?» (p010) · «¿Qué rutina pequeña te hace sentir en
+   casa?» (p003).
+6. **Ronda 3** (elige A). Tarjetas: «¿Qué gesto te hace sentir que alguien de verdad te
+   escucha?» (r015) · «¿Cuál ha sido el malentendido más divertido que te ha pasado?» (p034) ·
+   «¿Qué proyecto personal te emociona aunque nadie lo sepa todavía?» (p028).
+7. Con 3 rondas completas, A propone el chat libre y B ve el botón «Sí, abramos el chat libre»
+   (`free.canAccept: true`).
+8. B acepta → `stage: free`. Escribe «¿Te late un café en las islas el jueves? ☕».
+9. A intenta mandar `www.ejemplo.com` → `chat.link_blocked`: «Por ahora los enlaces no se pueden
+   enviar. Así cuidamos el anonimato de las dos personas».
+
+## 12. Servidor, datos y seguridad
+
+### 12.1 Esquema (`20261106000000_chat_safety.sql`, replicada en la base)
+
+| Tabla o columna | Para qué |
+|---|---|
+| `profiles.adult_confirmed_at` | Autodeclaración de 18+ (§10.2) |
+| `chat_interests.declined_at` | «Ahora no» silencioso |
+| `conversations.paused_by`, `muted_a/b` | Pausa compartida y silencio individual |
+| `conversation_rounds` | Una pregunta por ronda (`prompt_id` **o** `custom_text`), con quién pregunta, `feedback_a/b` |
+| `conversation_answers.passed` | «Pasar»; FK `(conversation_id, round)` hacia la ronda |
+| `conversation_messages.client_key` | Entrega idempotente (índice único por autor) |
+| `conversation_reactions` | Una reacción por persona y ronda |
+| `chat_feedback_daily` | «¿Te gustó?» como conteo diario por pista, sin ids |
+| `chat_blocks` | Bloqueos (permanentes) |
+| `chat_closures` | Fecha del último cierre de la pareja y pista (cooldown) |
+| `chat_reports`, `chat_report_audit` | Reporte con instantánea mínima, y auditoría de quién lo revisó |
+
+Todas las tablas tienen RLS sin políticas, `REVOKE` a `anon`/`authenticated`, `GRANT` solo a
+`service_role` y `ON DELETE CASCADE` desde `profiles`. Las RPC (`express_chat_interest`,
+`leave_conversation`, `block_chat_user`, `report_conversation`, `record_round_feedback`,
+`purge_chat`) son `SECURITY DEFINER`, usan `search_path = ''` y llaman a
+`private.assert_service_role()`.
+
+Al aplicarla en producción había **1** conversación de romance con **1** respuesta. La migración
+la convirtió en una ronda con la pregunta fija original como `custom_text` (bloque `BACKFILL`, que
+solo existe en la incremental). Mientras se despliega el código nuevo, una función puente de 3
+argumentos (`express_chat_interest(UUID, UUID, TEXT)`) mantiene compatible la versión anterior.
+
+### 12.2 Reglas que solo decide el servidor
+
+- La señal exige un match vigente, ningún bloqueo, 18+ en romance, sin cooldown y por debajo del
+  tope. El chat se abre solo con las dos señales vivas (≤ 7 días) **y** 18+ en ambos lados si es
+  romance.
+- Leer o escribir exige candado abierto (`requireChatLock`) y ser participante (`findFor`
+  filtra por `user_a`/`user_b`). Un id ajeno da el mismo `chat.not_found` que uno inexistente.
+- Turnos, respuestas selladas, revelado, chat libre y pausa se derivan en
+  `domain/chat/conversation.ts`, y las inserciones únicas de la base rompen cualquier carrera.
+
+### 12.3 Texto: 300 grafemas
+
+- `cleanChatText` (`domain/chat/text.ts`), compartido por cliente y servidor: normaliza a NFC;
+  quita caracteres de control, de ancho cero (salvo ZWJ, necesario en los emojis) y overrides
+  bidi; colapsa líneas en blanco; rechaza el texto vacío o hecho solo de invisibles. Si el texto
+  se pasa del límite, **no lo recorta: lo rechaza**.
+- El conteo usa grafemas con `Intl.Segmenter`: 👨‍👩‍👧‍👦, 🇲🇽, 👍🏿 o «é» combinada cuentan 1. El
+  composer muestra «X/300» (dorado al 90 %, rojo al pasarse) y lo lee como «X de 300
+  caracteres».
+- La base aplica un CHECK con margen de `char_length ≤ límite × 8` (2400 / 1600) como red de
+  seguridad; la regla exacta vive en la API.
+- Los mensajes se muestran siempre como texto (React escapa todo; no hay
+  `dangerouslySetInnerHTML`).
+
+### 12.4 Anonimato y moderación
+
+- `guardChatText` (`domain/chat/guard.ts`):
+  - **enlaces:** bloqueados (`chat.link_blocked`);
+  - **lenguaje ofensivo:** bloqueado (`chat.offensive`) con la lista versionada en
+    `data/chat-moderation.json`, comparada por palabra completa, sin acentos y con una lista de
+    falsos positivos revisados (computadora, disputa, zorro…);
+  - **teléfono, correo, @usuario o «mi insta»:** el composer muestra «Puedes compartir tus datos
+    más adelante, con calma; por ahora cuida tu anonimato» y la persona puede enviarlo de todos
+    modos.
+- La lista ofensiva **no viaja al navegador**: el cliente solo carga los nombres de redes
+  (`data/chat-contact.json`). Se verificó buscando en `.next/static`.
+- **Propuesta (no implementada):** un paso de intercambio de contacto con consentimiento mutuo,
+  en el que ambas personas pulsan «compartir mi contacto» y el servidor revela los dos a la vez.
+  Queda pendiente de aprobación.
+
+### 12.5 Anti-abuso, bloqueo, reporte y retención
+
+| Medida | Valor (`chat-config.json`) |
+|---|---|
+| Mensajes por minuto y por día | 8 y 300 (`chat.slow_down`) |
+| Repetición | 3 mensajes idénticos seguidos (`chat.repeated`) |
+| Rate limit por ruta | `withApiSecurity` (p. ej. 30/min mensajes, 5/min reportes) |
+| Retención de mensajes | 30 días (`purge_chat`, purga oportunista al abrir una conversación) |
+| Cierre por inactividad | 30 días sin actividad |
+| Instantánea de reporte | Últimos 20 mensajes o respuestas, etiquetados como «reporta» o «reportada», sin ids |
+
+- **Bloquear** es inmediato y silencioso: borra todas las conversaciones y señales de la pareja
+  en las dos pistas e impide nuevas señales.
+- **Reportar** guarda la instantánea mínima en `chat_reports` (visible solo para moderación con
+  `service_role` y auditada en `chat_report_audit`) y bloquea. La otra persona nunca se entera.
+- **Borrar mis mensajes** elimina tus mensajes y el texto de tus respuestas; lo de la otra
+  persona se queda.
+- Eliminar la cuenta borra todo en cascada.
+
+### 12.6 Emojis
+
+Se usan **emojis del sistema** y no un set pixel propio: cubren banderas, tonos de piel y
+secuencias ZWJ sin coste de mantenimiento. Para que se vean parecidos en todas las plataformas,
+el selector usa la pila de fuentes «Apple Color Emoji / Segoe UI Emoji / Noto Color Emoji».
+
+El selector (`ui/chat/emoji-picker.tsx`) es propio y ligero, sin dependencias:
+
+- catálogo de 46 emojis con nombre y palabras clave en español (`data/chat-emoji.json`);
+- búsqueda sin acentos y lista de recientes en `localStorage` (8);
+- cada emoji es un botón de 44 px cuyo nombre se lee en voz alta («risa con lágrimas»).
+
+Las pantallas no llevan emojis literales; el catálogo vive en `data/`.
+
+### 12.7 Entrega
+
+Se usa **polling con *backoff*** en lugar de Supabase Realtime. Las tablas del chat no tienen
+políticas RLS para clientes, que es lo que hace seguras las lecturas, y Realtime exigiría
+abrirlas.
+
+- `useBackoffPoll` empieza en 8 s, se duplica hasta 60 s mientras no hay cambios y se reinicia
+  al volver a la pestaña o recuperar la red. Las pestañas ocultas no consultan.
+- Cada mensaje lleva una `clientKey` (UUID), así que un reintento tras perder la red no lo
+  duplica.
+- Estados de envío: «Enviando…», el mensaje confirmado, o «No se envió. Toca para reintentar».
+  Nunca hay «visto».
+- Paginación: 50 mensajes por página y «Ver mensajes anteriores» (`?before=<iso>`).
+
+### 12.8 Rutas
 
 | Ruta | Candado | Cuerpo | Respuesta |
 |---|---|---|---|
-| `GET /api/interest` | No | — | `{ states: { "track:handle": { state: "sent" } \| { state: "open", conversation } } }` |
+| `GET /api/interest` | No | — | `{ states: { "track:handle": sent \| invited \| open }, adult }` |
 | `POST /api/interest` | No | `{ match, track }` | `{ state: "sent" }` o `{ state: "open", conversation }` |
 | `DELETE /api/interest` | No | `{ match, track }` | `{ ok }` |
-| `GET /api/chat/inbox` | Sí | — | `{ conversations: InboxEntryDto[] }` |
-| `GET /api/chat/conversations/{id}` | Sí | — | `ConversationDto` (marca como vista) |
-| `POST …/{id}/answer` | Sí | `{ round, body }` | `ConversationDto` |
-| `POST …/{id}/accept` | Sí | `{}` | `ConversationDto` |
-| `POST …/{id}/messages` | Sí | `{ body }` | `ConversationDto` |
-| `DELETE /api/chat/conversations/{id}` | Sí | — | `{ ok }` |
+| `POST /api/interest/decline` | No | `{ match, track }` | `{ ok }` (silencioso) |
+| `POST /api/interest/adult` | No | `{}` | `{ ok }` |
+| `GET /api/chat/inbox` | Sí | — | `{ conversations, invitations }` |
+| `GET /api/chat/conversations/{id}` | Sí | `?refresh&before` | `ConversationDto` |
+| `POST …/ask` | Sí | `{ promptId }` o `{ customText }` | `ConversationDto` |
+| `POST …/answer` | Sí | `{ round, body }` o `{ round, pass: true }` | `ConversationDto` |
+| `POST …/react` | Sí | `{ round, emoji \| null }` | `ConversationDto` |
+| `POST …/feedback` | Sí | `{ round, liked }` | `ConversationDto` |
+| `POST …/free` | Sí | `{ ready }` | `ConversationDto` |
+| `POST …/messages` | Sí | `{ body, clientKey }` | `ConversationDto` |
+| `POST …/pause` y `…/mute` | Sí | `{ on }` | `ConversationDto` |
+| `POST …/mine` | Sí | `{}` | `ConversationDto` |
+| `POST …/block` | Sí | `{}` | `{ ok }` |
+| `POST …/report` | Sí | `{ reason }` | `{ ok }` |
+| `DELETE /api/chat/conversations/{id}` | Sí | — | `{ ok }` (cerrar) |
 
-Contratos en `src/contracts/chat.ts`. Códigos nuevos: `chat.not_found` (404, también para
-ids ajenos o mal formados), `chat.match_gone` (409), `chat.conflict` (409: ronda equivocada,
-ya respondida, etapa incorrecta).
+Códigos nuevos: `chat.adult_required` (403), `chat.cooldown` (409), `chat.too_many_signals`
+(429), `chat.link_blocked`, `chat.offensive` y `chat.repeated` (422), y `chat.slow_down` (429).
 
-### 10.5 Datos
+## 13. Pantallas
 
-`chat_interests`, `conversations`, `conversation_answers`, `conversation_messages`
-(`20261104000000_conversations.sql`): RLS sin políticas, `REVOKE` a `anon`/`authenticated`,
-todo en cascada desde `profiles`. Un *trigger* solo acepta escritos de participantes y
-actualiza `updated_at`/`last_actor`. Los DTOs nunca llevan ids de usuario; el compañero se
-muestra con alias y sprite público (ala y marca solo con su opt-in).
+### 13.1 Detalle del match
+
+```
+┌ Nutria Serena · 87 % ───────────────────────┐
+│ …por qué conectan…                           │
+│ [♥ Abrir un chat de romance]                 │
+│ Solo se abre si ambas personas lo aceptan.   │
+└──────────────────────────────────────────────┘
+```
+
+- **Sin 18+:** se muestra una tarjeta «Los chats de romance son para mayores de 18», con el
+  botón «Tengo 18 años o más».
+- **Señal enviada:** «Tu señal está enviada…», con opción de retirarla.
+- **Invitación recibida:** «Alguien con quien conectas quiere abrir un chat», con los botones
+  «Responder con el mismo gesto» y «Ahora no».
+
+### 13.2 Chats
+
+- **Bandeja:** primero las invitaciones (tarjetas con borde del color de la pista); después las
+  conversaciones con sprite, alias, «Romance · Rondas de preguntas · 2 rondas», y las marcas
+  «Nuevo» (estrella pixel más la palabra) y «Te toca». No hay contadores.
+- **Conversación:**
+  1. barra con «Volver», «Opciones de seguridad» y «Cerrar el candado»;
+  2. cabecera con el sprite de 48 px y la pista;
+  3. la guía de primera vez (4 líneas, se puede saltar);
+  4. las rondas en tarjetas de marco: pregunta, «Tu respuesta» (o composer con «Pasar») y «Su
+     respuesta» (sellada, revelada con reacciones, o «Prefirió pasar esta pregunta»);
+  5. **«Te toca elegir la pregunta»**, con 3 tarjetas que llevan el icono de su categoría,
+     «Otras tres» y, en chat libre, «O escribe tu propia pregunta»;
+  6. la invitación al chat libre;
+  7. el chat libre: burbujas en la fuente de lectura con el sprite como avatar, «Tú» marcado
+     también con texto, `role="log"` y `aria-live="polite"`.
+- **Composer:** textarea, «Agregar emoji», contador «X/300» con dígitos tabulares y «Enviar».
+  Atajo Ctrl/⌘ + Enter.
+- **Menú de seguridad** (hoja inferior en móvil): Silenciar avisos · Pausar · Borrar mis
+  mensajes · Bloquear · Reportar (con 6 motivos) · Cerrar conversación. Cada paso destructivo
+  pide una confirmación sin culpa: «Mejor no» o «Sí, continuar».
+
+### 13.3 Constelación
+
+- **Chat abierto:** el *spoke* hacia ese match se vuelve una línea **dorada sólida**, con un
+  destello escalonado de 0,9 s al aparecer. Sin destello con `prefers-reduced-motion` o con un
+  tema de alto contraste («reducir brillos»).
+- **Invitación pendiente:** un pequeño globo de diálogo pixel dorado sobre la estrella, **sin
+  número**. Su nombre accesible añade «Tiene una invitación de chat para ti».
+
+### 13.4 Accesibilidad
+
+- Objetivos táctiles de ≥ 44 px, foco visible y diálogos nativos (`<dialog>`, con trampa de foco
+  y Escape).
+- Los avisos se anuncian por `aria-live="polite"` y los emojis tienen nombre en español.
+- El contador se lee en palabras y no se anuncia en cada tecla.
+- La «x» inclusiva solo aparece en copy de marca, nunca en los motivos de reporte ni en la
+  seguridad; un test lo comprueba.
+
+## 14. Pruebas
+
+| Archivo | Qué cubre |
+|---|---|
+| `domain/chat/text.test.ts` | Grafemas (ZWJ, banderas, tonos, combinados), NFC, invisibles, 300 exactos, margen de la base |
+| `domain/chat/guard.test.ts` | Enlaces, teléfono, correo, @usuario, falsos positivos, acentos y ñ |
+| `domain/chat/conversation.test.ts` | Turnos, sellado, revelado a 48 h, «Pasar», reacciones, chat libre tras 3 rondas, pausa |
+| `domain/chat/prompt-selection.test.ts` | Determinismo, niveles, sin repetir, variedad, peso por capa, «otras tres» |
+| `domain/chat/signals.test.ts` | Caducidad, 18+ solo de quien envía, tope, cooldown, bloqueo |
+| `config/chat-prompts.test.ts` | Linter del banco |
+| `application/chat/conversation.test.ts` | Invitación, «ahora no» silencioso, señales simultáneas, 18+, sellado, revelado, preguntas propias, privacidad de los DTO |
+| `application/chat/chat-safety.test.ts` | Idempotencia, enlaces, lenguaje ofensivo, límites por grafemas y por minuto, repeticiones, borrar lo mío, reacciones, opinión agregada, pausa, silencio, cerrar con cooldown, bloquear, reportar |
+| `app/api/chat/chat-routes.test.ts` | Candado: nada se lee ni escribe sin él; tarjetas, ids ajenos, cuerpos estrictos |
+| `infrastructure/supabase/schema.test.ts` | Migración idempotente, base igual a la incremental, RLS, cascada, RPC protegidas, límites de texto |
+| `ui/chat/chat-parse.test.ts`, `ui/screens.test.ts` | Parsers defensivos; copy sin presión, sin emojis y sin «x» en lo que leen los lectores de pantalla |

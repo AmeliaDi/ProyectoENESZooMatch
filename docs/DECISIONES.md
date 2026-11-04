@@ -846,3 +846,68 @@ secciones de «pendientes» quedaron abiertas en `docs/`.
 
 **Consecuencias.** La «Coherencia MBTI–Eneagrama» y el «Tope de matches» siguen como estaban
 documentados. El único pendiente operativo es Upstash (rate limit en *fail-open*).
+
+## ADR-035 · Chat entre matches: señales con consentimiento, rondas guiadas selladas y seguridad
+
+**Contexto.** El chat de ADR-032 tenía tres preguntas fijas, se respondía en paralelo y no
+contaba con invitación visible, bloqueo, reporte, retención ni moderación. El prompt de chat
+pedía señales ❤️/🤗 con «ahora no» silencioso, preguntas guiadas según la afinidad real, límite
+de 300 grafemas, anti-abuso y salvaguardas de edad.
+
+**Decisión.**
+- **Señales.**
+  - Quien recibe una señal la ve como invitación («Alguien con quien conectas quiere abrir un
+    chat»), con el alias y el sprite que ya conocía.
+  - «Ahora no» solo la oculta para quien la recibió; quien la envió nunca recibe aviso.
+  - Caducan a los 7 días; cada persona puede tener 5 abiertas; tras cerrar, hay 14 días de
+    cooldown. Un bloqueo se ve igual que un match que ya no está.
+  - Todo se valida dentro de `express_chat_interest` (SQL atómico).
+- **Edad.**
+  - Romance exige una autodeclaración de 18+ en **ambos** lados (`profiles.adult_confirmed_at`).
+  - Solo la falta de declaración de quien envía puede rechazar una señal; la de quien recibe
+    deja la señal esperando sin que nadie lo vea, para no revelar la edad de otra persona.
+  - Amistad queda abierta. Es una autodeclaración, no una verificación.
+- **Rondas.**
+  - Los turnos de preguntar se alternan (quién empieza depende de un *hash* del id).
+  - Hay 3 tarjetas de un banco de 96 preguntas (`data/chat-prompts.json`, con linter). Las
+    elige una función pura y determinista que prioriza las capas con mayor **contribución real**
+    al `pairScore` de la pareja y avanza de nivel 1 a 3.
+  - Respuestas **selladas** hasta que ambas contestan (o pasan) o se cumplen 48 h. Se puede
+    «Pasar», reaccionar y responder «¿te gustó?», que solo se guarda como conteo diario sin ids.
+  - Chat libre tras 3 rondas y con la aceptación de ambas personas. En chat libre se pueden
+    escribir preguntas propias.
+- **Texto.**
+  - 300 **grafemas** (`Intl.Segmenter`) con la misma función en cliente y servidor. La base usa
+    un CHECK con margen (×8 en code points).
+  - NFC; sin caracteres invisibles ni overrides bidi, pero conservando el ZWJ.
+  - Siempre se muestra como texto.
+- **Anonimato y moderación.**
+  - Enlaces bloqueados.
+  - Filtro suave es-MX versionado (`data/chat-moderation.json`) que **no viaja al cliente**.
+  - Aviso amable, que no bloquea, ante teléfono, correo o @usuario.
+  - 8 mensajes por minuto y 300 al día; se rechazan repeticiones; entrega idempotente por
+    `clientKey`.
+- **Seguridad.**
+  - Pausa (solo quien pausó retoma) y silencio individual.
+  - Bloqueo silencioso y permanente.
+  - Reporte con una instantánea mínima (20 elementos, etiquetados por rol y sin ids), visible
+    solo para moderación y auditada.
+  - «Borrar mis mensajes».
+  - Retención: 30 días para mensajes y cierre tras 30 días de inactividad (`purge_chat`,
+    oportunista).
+- **Entrega.** Polling con *backoff* de 8 a 60 s en lugar de Realtime, porque las tablas no
+  tienen políticas para clientes. Paginación de 50.
+- **Emojis.** Los del sistema (banderas, tonos y ZWJ sin mantenimiento) con un selector propio
+  ligero: 46 emojis nombrados en español, búsqueda y recientes. Las pantallas siguen sin emojis
+  literales: los botones ❤️/🤗 son los iconos pixel `romance`/`amistad`.
+- **Constelación.** Un chat abierto vuelve dorado y sólido el *spoke* (sin destello con
+  movimiento reducido o alto contraste). Una invitación pendiente muestra un globo pixel sin
+  número.
+- **Migración** `20261106000000_chat_safety.sql`, idempotente y replicada en la base, con un
+  *backfill* de la conversación que ya existía.
+
+**Consecuencias.**
+- No se pueden impedir capturas de pantalla entre personas.
+- La edad es declarada, no verificada.
+- La moderación de reportes no tiene pantalla todavía: se revisan con SQL (`service_role`).
+- Queda propuesto, sin implementar, un intercambio de contacto con consentimiento mutuo.
