@@ -1,80 +1,115 @@
 /**
- * Pure rules of a conversation between matches (docs/CHAT.md §10):
- * question rounds → invitation to free chat → free chat. The stage is always
- * derived from stored facts, never stored, so it cannot drift.
+ * Pure rules of a conversation between matches (docs/CHAT.md §10–11):
+ * guided rounds with sealed answers → free chat once both accept after a
+ * minimum of rounds. Everything is derived from stored facts plus the clock,
+ * never stored, so it cannot drift.
  */
 
-export type ConversationStage = "rounds" | "invite" | "free";
 export type ConversationSide = "a" | "b";
+export type ConversationStage = "rounds" | "free" | "paused";
+/** What one side did with a round: nothing yet, an answer, or "Pasar". */
+export type AnswerMark = "answer" | "pass" | null;
+
+export interface RoundFacts {
+  index: number;
+  asker: ConversationSide;
+  createdAt: Date;
+  answered: Readonly<Record<ConversationSide, AnswerMark>>;
+}
 
 export interface ConversationFacts {
-  totalRounds: number;
-  /** Round indices (0-based) each side has answered. */
-  answered: Readonly<Record<ConversationSide, ReadonlySet<number>>>;
+  /** Rounds in index order (0, 1, 2…). */
+  rounds: readonly RoundFacts[];
   freeReady: Readonly<Record<ConversationSide, boolean>>;
+  pausedBy: ConversationSide | null;
+  /** Who asks the first question (stable per conversation). */
+  firstAsker: ConversationSide;
 }
+
+export interface RoundPolicy {
+  minForFree: number;
+  revealHours: number;
+  maxRounds: number;
+}
+
+const MS_PER_HOUR = 3_600_000;
 
 export function otherSide(side: ConversationSide): ConversationSide {
   return side === "a" ? "b" : "a";
 }
 
-/** First round not yet answered by BOTH sides; `null` once every round is done. */
-export function currentRound(facts: ConversationFacts): number | null {
-  for (let round = 0; round < facts.totalRounds; round += 1) {
-    if (!facts.answered.a.has(round) || !facts.answered.b.has(round)) return round;
-  }
-  return null;
+/** Revealed when both answered (or passed), or once the wait is over. */
+export function isRoundRevealed(round: RoundFacts, now: Date, policy: Pick<RoundPolicy, "revealHours">): boolean {
+  if (round.answered.a !== null && round.answered.b !== null) return true;
+  return now.getTime() - round.createdAt.getTime() >= policy.revealHours * MS_PER_HOUR;
+}
+
+/** The last round while it is still sealed; `null` when there is none open. */
+export function openRound(facts: ConversationFacts, now: Date, policy: RoundPolicy): RoundFacts | null {
+  const last = facts.rounds.at(-1);
+  return last && !isRoundRevealed(last, now, policy) ? last : null;
+}
+
+export function completedRounds(facts: ConversationFacts, now: Date, policy: RoundPolicy): number {
+  return facts.rounds.filter((round) => isRoundRevealed(round, now, policy)).length;
+}
+
+/** Turns alternate: whoever did not ask the last question asks the next one. */
+export function nextAsker(facts: ConversationFacts): ConversationSide {
+  const last = facts.rounds.at(-1);
+  return last ? otherSide(last.asker) : facts.firstAsker;
+}
+
+export function isFree(facts: ConversationFacts): boolean {
+  return facts.freeReady.a && facts.freeReady.b;
 }
 
 export function stageOf(facts: ConversationFacts): ConversationStage {
-  if (currentRound(facts) !== null) return "rounds";
-  return facts.freeReady.a && facts.freeReady.b ? "free" : "invite";
+  if (facts.pausedBy !== null) return "paused";
+  return isFree(facts) ? "free" : "rounds";
 }
 
-/** Only the current round, once per side: nobody runs ahead or edits an answer. */
-export function canAnswer(facts: ConversationFacts, side: ConversationSide, round: number): boolean {
-  return currentRound(facts) === round && !facts.answered[side].has(round);
+export function canOpenRound(facts: ConversationFacts, side: ConversationSide, now: Date, policy: RoundPolicy): boolean {
+  return (
+    facts.pausedBy === null &&
+    openRound(facts, now, policy) === null &&
+    nextAsker(facts) === side &&
+    facts.rounds.length < policy.maxRounds
+  );
 }
 
-export function canAcceptFree(facts: ConversationFacts, side: ConversationSide): boolean {
-  return stageOf(facts) === "invite" && !facts.freeReady[side];
+/** Only the open round, once per side: nobody edits an answer or answers late. */
+export function canAnswer(facts: ConversationFacts, side: ConversationSide, index: number, now: Date, policy: RoundPolicy): boolean {
+  const round = openRound(facts, now, policy);
+  return facts.pausedBy === null && round !== null && round.index === index && round.answered[side] === null;
 }
 
-/** Whether `side` can act now: answer the current round or accept the invitation. */
-export function isMyTurn(facts: ConversationFacts, side: ConversationSide): boolean {
-  const round = currentRound(facts);
-  if (round !== null) return !facts.answered[side].has(round);
-  return stageOf(facts) === "invite" && !facts.freeReady[side];
+/** Reactions go to the other side's answer of a revealed round. */
+export function canReact(facts: ConversationFacts, side: ConversationSide, index: number, now: Date, policy: RoundPolicy): boolean {
+  const round = facts.rounds.find((r) => r.index === index);
+  return round !== undefined && isRoundRevealed(round, now, policy) && round.answered[otherSide(side)] === "answer";
 }
 
-/** A round's other answer is revealed only when both answered it. */
-export function isRoundRevealed(facts: ConversationFacts, round: number): boolean {
-  return facts.answered.a.has(round) && facts.answered.b.has(round);
+/** The invitation to free chat appears after the minimum of completed rounds. */
+export function canAcceptFree(facts: ConversationFacts, side: ConversationSide, now: Date, policy: RoundPolicy): boolean {
+  return facts.pausedBy === null && !facts.freeReady[side] && completedRounds(facts, now, policy) >= policy.minForFree;
 }
 
-/** Rounds shown to a participant: done ones plus the current one; later questions stay hidden. */
-export function visibleRoundCount(facts: ConversationFacts): number {
-  const round = currentRound(facts);
-  return round === null ? facts.totalRounds : round + 1;
+export function canSendMessage(facts: ConversationFacts): boolean {
+  return stageOf(facts) === "free";
 }
 
-const CONTROL_CHARS = /[\u0000-\u0009\u000B-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g;
-const EXTRA_BLANK_LINES = /\n{3,}/g;
-const TRAILING_SPACES = /[ \t]+\n/g;
+/** Only who paused can resume; pausing again is a no-op conflict. */
+export function canTogglePause(facts: ConversationFacts, side: ConversationSide, pause: boolean): boolean {
+  return pause ? facts.pausedBy === null : facts.pausedBy === side;
+}
 
-/**
- * Normalises user text: NFC, no control or bidi-override characters, at most
- * one blank line in a row, trimmed. `null` when empty or longer than
- * `maxChars` code points (never truncated silently).
- */
-export function cleanChatText(raw: string, maxChars: number): string | null {
-  const text = raw
-    .normalize("NFC")
-    .replace(/\r\n?/g, "\n")
-    .replace(CONTROL_CHARS, "")
-    .replace(TRAILING_SPACES, "\n")
-    .replace(EXTRA_BLANK_LINES, "\n\n")
-    .trim();
-  const length = [...text].length;
-  return length === 0 || length > maxChars ? null : text;
+/** Whether `side` can act now (answer, ask, or accept the free chat the other already accepted). */
+export function isMyTurn(facts: ConversationFacts, side: ConversationSide, now: Date, policy: RoundPolicy): boolean {
+  if (facts.pausedBy !== null) return false;
+  const round = openRound(facts, now, policy);
+  if (round) return round.answered[side] === null;
+  if (isFree(facts)) return false;
+  if (facts.freeReady[otherSide(side)] && canAcceptFree(facts, side, now, policy)) return true;
+  return canOpenRound(facts, side, now, policy);
 }

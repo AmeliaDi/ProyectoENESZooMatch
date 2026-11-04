@@ -3,73 +3,103 @@ import { describe, expect, it } from "vitest";
 import {
   canAcceptFree,
   canAnswer,
-  cleanChatText,
-  currentRound,
+  canOpenRound,
+  canReact,
+  canSendMessage,
+  canTogglePause,
+  completedRounds,
   isMyTurn,
   isRoundRevealed,
+  nextAsker,
+  openRound,
   stageOf,
-  visibleRoundCount,
+  type AnswerMark,
   type ConversationFacts,
+  type RoundFacts,
 } from "./conversation";
 
-function facts(a: number[], b: number[], free: [boolean, boolean] = [false, false], total = 3): ConversationFacts {
-  return { totalRounds: total, answered: { a: new Set(a), b: new Set(b) }, freeReady: { a: free[0], b: free[1] } };
+const POLICY = { minForFree: 3, revealHours: 48, maxRounds: 60 };
+const T0 = new Date("2026-11-04T10:00:00Z");
+const hours = (h: number) => new Date(T0.getTime() + h * 3_600_000);
+
+function round(index: number, a: AnswerMark, b: AnswerMark, asker: "a" | "b" = index % 2 === 0 ? "a" : "b"): RoundFacts {
+  return { index, asker, createdAt: T0, answered: { a, b } };
 }
 
-describe("conversation stages", () => {
-  it("starts in round 0 with both sides to answer", () => {
-    const f = facts([], []);
-    expect(currentRound(f)).toBe(0);
-    expect(stageOf(f)).toBe("rounds");
-    expect(isMyTurn(f, "a")).toBe(true);
-    expect(visibleRoundCount(f)).toBe(1);
+function facts(rounds: RoundFacts[], extra: Partial<ConversationFacts> = {}): ConversationFacts {
+  return { rounds, freeReady: { a: false, b: false }, pausedBy: null, firstAsker: "a", ...extra };
+}
+
+const done = (n: number) => Array.from({ length: n }, (_, i) => round(i, "answer", "answer"));
+
+describe("turns and sealed rounds", () => {
+  it("starts with the first asker and alternates afterwards", () => {
+    expect(nextAsker(facts([]))).toBe("a");
+    expect(canOpenRound(facts([]), "a", T0, POLICY)).toBe(true);
+    expect(canOpenRound(facts([]), "b", T0, POLICY)).toBe(false);
+    expect(nextAsker(facts(done(1)))).toBe("b");
+    expect(isMyTurn(facts([]), "a", T0, POLICY)).toBe(true);
+    expect(isMyTurn(facts([]), "b", T0, POLICY)).toBe(false);
   });
 
-  it("waits on a round until both answered and reveals only then", () => {
-    const f = facts([0], []);
-    expect(currentRound(f)).toBe(0);
-    expect(isMyTurn(f, "a")).toBe(false);
-    expect(isMyTurn(f, "b")).toBe(true);
-    expect(isRoundRevealed(f, 0)).toBe(false);
-    expect(isRoundRevealed(facts([0], [0]), 0)).toBe(true);
+  it("keeps a round sealed until both answered or passed", () => {
+    const half = facts([round(0, "answer", null)]);
+    expect(isRoundRevealed(half.rounds[0]!, T0, POLICY)).toBe(false);
+    expect(openRound(half, T0, POLICY)?.index).toBe(0);
+    expect(isMyTurn(half, "a", T0, POLICY)).toBe(false);
+    expect(isMyTurn(half, "b", T0, POLICY)).toBe(true);
+    expect(isRoundRevealed(round(0, "answer", "pass"), T0, POLICY)).toBe(true);
   });
 
-  it("never lets a side run ahead or answer twice", () => {
-    const f = facts([0], []);
-    expect(canAnswer(f, "a", 1)).toBe(false);
-    expect(canAnswer(f, "a", 0)).toBe(false);
-    expect(canAnswer(f, "b", 0)).toBe(true);
-    expect(canAnswer(f, "b", 1)).toBe(false);
+  it("reveals by itself after the wait, without pressure on the other side", () => {
+    const half = facts([round(0, "answer", null)]);
+    expect(isRoundRevealed(half.rounds[0]!, hours(47.9), POLICY)).toBe(false);
+    expect(isRoundRevealed(half.rounds[0]!, hours(48), POLICY)).toBe(true);
+    expect(canAnswer(half, "b", 0, hours(48), POLICY)).toBe(false);
+    expect(canOpenRound(half, "b", hours(48), POLICY)).toBe(true);
   });
 
-  it("moves to the invitation, then free chat only when both accept", () => {
-    const done = facts([0, 1, 2], [0, 1, 2]);
-    expect(stageOf(done)).toBe("invite");
-    expect(canAcceptFree(done, "a")).toBe(true);
-    const half = facts([0, 1, 2], [0, 1, 2], [true, false]);
-    expect(stageOf(half)).toBe("invite");
-    expect(canAcceptFree(half, "a")).toBe(false);
-    expect(isMyTurn(half, "b")).toBe(true);
-    expect(stageOf(facts([0, 1, 2], [0, 1, 2], [true, true]))).toBe("free");
+  it("never lets a side answer twice, answer another round or ask while one is open", () => {
+    const half = facts([round(0, "answer", null)]);
+    expect(canAnswer(half, "a", 0, T0, POLICY)).toBe(false);
+    expect(canAnswer(half, "b", 1, T0, POLICY)).toBe(false);
+    expect(canAnswer(half, "b", 0, T0, POLICY)).toBe(true);
+    expect(canOpenRound(half, "b", T0, POLICY)).toBe(false);
   });
 
-  it("cannot accept free chat during the rounds", () => {
-    expect(canAcceptFree(facts([0], [0]), "a")).toBe(false);
+  it("reacts only to a revealed answer of the other side", () => {
+    expect(canReact(facts([round(0, "answer", null)]), "b", 0, T0, POLICY)).toBe(false);
+    expect(canReact(facts([round(0, "answer", "answer")]), "b", 0, T0, POLICY)).toBe(true);
+    expect(canReact(facts([round(0, "pass", "answer")]), "b", 0, T0, POLICY)).toBe(false);
   });
 });
 
-describe("cleanChatText", () => {
-  it("trims, strips control and bidi characters and keeps line breaks", () => {
-    expect(cleanChatText("  hola\u202E\u0007 \r\n\n\n\nmundo  ", 50)).toBe("hola\n\nmundo");
+describe("free chat", () => {
+  it("can be proposed only after the minimum of completed rounds", () => {
+    expect(canAcceptFree(facts(done(2)), "a", T0, POLICY)).toBe(false);
+    expect(completedRounds(facts(done(3)), T0, POLICY)).toBe(3);
+    expect(canAcceptFree(facts(done(3)), "a", T0, POLICY)).toBe(true);
   });
 
-  it("rejects empty and over-long text instead of truncating", () => {
-    expect(cleanChatText(" \n\t ", 10)).toBeNull();
-    expect(cleanChatText("a".repeat(11), 10)).toBeNull();
-    expect(cleanChatText("ñ".repeat(10), 10)).toBe("ñ".repeat(10));
+  it("opens only when both accept, and the other side then sees it is their turn", () => {
+    const half = facts(done(3), { freeReady: { a: true, b: false } });
+    expect(stageOf(half)).toBe("rounds");
+    expect(canSendMessage(half)).toBe(false);
+    expect(isMyTurn(half, "b", T0, POLICY)).toBe(true);
+    const both = facts(done(3), { freeReady: { a: true, b: true } });
+    expect(stageOf(both)).toBe("free");
+    expect(canSendMessage(both)).toBe(true);
   });
+});
 
-  it("counts code points, not UTF-16 units", () => {
-    expect(cleanChatText("\u{1F31F}".repeat(3), 3)).not.toBeNull();
+describe("pause", () => {
+  it("stops everything and only who paused can resume", () => {
+    const paused = facts(done(3), { freeReady: { a: true, b: true }, pausedBy: "b" });
+    expect(stageOf(paused)).toBe("paused");
+    expect(canSendMessage(paused)).toBe(false);
+    expect(canOpenRound(paused, "b", T0, POLICY)).toBe(false);
+    expect(canTogglePause(paused, "a", false)).toBe(false);
+    expect(canTogglePause(paused, "b", false)).toBe(true);
+    expect(canTogglePause(paused, "a", true)).toBe(false);
   });
 });
