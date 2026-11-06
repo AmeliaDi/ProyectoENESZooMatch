@@ -1,15 +1,14 @@
 /**
- * ZooMatch — Profile Identity Generator
- * Turns the avatar spec (MBTI → animal, Eneagrama → colour; see
- * `domain/avatars/avatar-spec`) into the public identity: alias and a
- * unique, empowering narrative.
+ * ZooMatch — Profile narrative generator
+ * Prose only. It reads catalogue entries by their stored ids and never
+ * derives an animal, a colour or a name: `hatchIdentity` is the single route
+ * that decides an identity, and everything else reads what it stored.
  */
 
 import type { ArchetypeAnimal, ArchetypeColor, GrammaticalGender } from "@/types/archetype";
-import type { DimensionScores, ProfileIdentity } from "@/types/microtest";
-import type { AvatarVisual } from "@/domain/avatars/avatar-spec";
-import { hmacSha256Hex, stringHash } from "@/domain/shared";
-import { AVATAR_CONFIG, CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
+import type { DimensionScores } from "@/types/microtest";
+import { stringHash } from "@/domain/shared";
+import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 
 // ─── Helper Types ─────────────────────────────────────────────────────────────
 
@@ -552,56 +551,20 @@ function fillNarrativeTemplate(
     .replaceAll("{color}", agreedColor);
 }
 
-/** "ajolotito verde esmeralda · XBCD" (4 consonants, agreed gender) */
-function generateAlias(animal: CatalogAnimal, color: CatalogColor, userId: string): string {
-  const alphabet = AVATAR_CONFIG.identity.suffix_alphabet.valor;
-  const len = AVATAR_CONFIG.identity.suffix_length.valor;
-  const blocked = new Set(AVATAR_CONFIG.identity.blocked_suffixes.valor);
-  const agreedColor = agreeCatalogColor(color, animal.genero);
-
-  let suffix = "BCDF";
-  for (let attempt = 0; attempt < AVATAR_CONFIG.identity.max_collision_attempts.valor; attempt += 1) {
-    const hex = hmacSha256Hex("zoomatch-profile-generator-v1", `${userId.trim().toLowerCase()}:${attempt}`);
-    let word = parseInt(hex.slice(0, 8), 16) >>> 0;
-    let candidate = "";
-    for (let i = 0; i < len; i += 1) {
-      candidate += alphabet[word % alphabet.length]!;
-      word = Math.floor(word / alphabet.length);
-    }
-    if (!blocked.has(candidate)) {
-      suffix = candidate;
-      break;
-    }
-  }
-  return `${animal.diminutivo} ${agreedColor}${AVATAR_CONFIG.identity.separator.valor}${suffix}`;
-}
-
-// ─── Full Profile Generation ──────────────────────────────────────────────────
+// ─── Narrative of a stored identity ──────────────────────────────────────────
 
 /**
- * Complete profile identity generation pipeline.
- * Prefer `hatchIdentity` from `domain/identity` for single-shot identity hatching.
+ * Prose for a person who already hatched: the animal and colour ids are the
+ * ones stored at hatching, only the dimension phrases refresh with the new
+ * answers. It never derives an animal, a colour or a name.
  */
-export function generateProfileIdentity(
+export function generateStoredNarrative(
+  animalId: string,
+  colorId: string,
   normalizedScores: DimensionScores,
-  userId: string,
-  avatar: AvatarVisual,
-): ProfileIdentity {
-  const animal = ANIMALES.find((a) => a.id === avatar.animalId);
-  const color = COLORES.find((c) => c.id === avatar.colorId);
-  if (!animal || !color) throw new Error(`Avatar outside the catalogue: ${avatar.animalId}/${avatar.colorId}`);
-  const topDims = getTopDimensions(normalizedScores, 3);
-  const narrative = generateProfileNarrative(animal, color, topDims);
-  const alias = generateAlias(animal, color, userId);
-
-  return {
-    animalId: animal.id,
-    animalDiminutivo: animal.diminutivo,
-    colorId: color.id,
-    colorNombre: color.nombre,
-    colorHex: color.hex,
-    mark: avatar.mark,
-    alias,
-    narrative,
-  };
+): string {
+  const animal = ANIMALES.find((a) => a.id === animalId);
+  const color = COLORES.find((c) => c.id === colorId);
+  if (!animal || !color) throw new Error(`Identity outside the catalogue: ${animalId}/${colorId}`);
+  return generateProfileNarrative(animal, color, getTopDimensions(normalizedScores, 3));
 }

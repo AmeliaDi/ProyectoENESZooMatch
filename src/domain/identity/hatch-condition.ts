@@ -5,11 +5,15 @@
  * sharpen the reading (aura, wing mark, narrative) but never change the
  * animal, the color or the alias, because those are frozen at hatching.
  *
- * `hatch_required_modules` lists the modules whose non-sensitive Likert items
- * must all be answered. It includes the items that feed the MBTI readout (the
- * animal) and the Enneagram readout (the color): with the Enneagram posterior
- * still at its prior the type is ambiguous, and `pickAmbiguousColor` distributes
- * the palette deterministically instead of defaulting everybody to "neblina".
+ * `hatch_required_modules` (config, measured) lists the modules whose
+ * non-sensitive Likert items must all be answered. `nucleo` is enough because
+ * it already loads both readouts used by the avatar: 4 items on `mbti_*` (the
+ * species pool comes from the axis signs) and 9 on `ennea_*` (one per type, so
+ * the Enneagram posterior moves off its prior). Adding `mbti` (12) or
+ * `eneagrama` (18) would sharpen θ̂ but would also un-hatch 68 of the 121
+ * people already completed in production, and the ambiguous-type path
+ * (`pickAmbiguousColor`) exists precisely for the weak-posterior case: it
+ * spreads the palette deterministically instead of defaulting to "neblina".
  */
 
 import { AVATAR_CONFIG } from "@/config";

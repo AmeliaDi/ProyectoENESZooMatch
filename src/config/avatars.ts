@@ -3,8 +3,9 @@ import { z } from "zod";
 import raw from "../../data/avatar-config.json";
 import { CATALOG_ANIMALS, MBTI_CODES } from "./catalog";
 import { loadConfig } from "./load";
+import { QUIZ_MODULE_IDS } from "@/types/microtest";
 
-const label = z.enum(["prior_literatura", "estimado_sintetico", "supuesto_diseno", "pendiente_verificacion"]);
+const label = z.enum(["prior_literatura", "estimado_sintetico", "supuesto_diseno", "medido_produccion", "pendiente_verificacion"]);
 const annotated = <T extends z.ZodType>(value: T) =>
   z.strictObject({ valor: value, etiqueta: label, fuente: z.string().min(1) });
 const glyph = z.strictObject({ id: z.string().min(1), nombre: z.string().min(1), razon: z.string().min(1) });
@@ -45,6 +46,7 @@ const avatarSchema = z
       max_collision_attempts: annotated(z.number().int().min(8).max(256)),
       blocked_suffixes: annotated(z.array(z.string().regex(/^[BCDFGHJKLMNPQRSTVWXYZ]{4}$/))),
       egg_crack_stages: annotated(z.number().int().min(1).max(8)),
+      hatch_required_modules: annotated(z.array(z.enum(QUIZ_MODULE_IDS)).min(1)),
     }),
   })
   .refine((c) => MBTI_CODES.every((code) => (c.species_pools.pools[code]?.length ?? 0) > 0), "every MBTI code needs a pool")

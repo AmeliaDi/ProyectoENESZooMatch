@@ -29,11 +29,9 @@ export interface IdentityDTO {
   readonly aliasColor?: string | null | undefined;
   readonly aliasSufijo?: string | null | undefined;
   readonly aliasCompleto?: string | null | undefined;
-  /** Stored full alias fallback (`alias_completo` or `alias`). */
-  readonly alias?: string | null | undefined;
   readonly mbtiCode?: string | null | undefined;
   readonly enneagramCode?: string | null | undefined;
-  readonly enneagramArchetype?: string | null | undefined;
+  readonly enneagramName?: string | null | undefined;
   readonly mark?: SubtypeMark | null | undefined;
   readonly colorHex?: string | null | undefined;
 }
@@ -99,21 +97,12 @@ export function parseAliasParts(fullAlias: string): {
 function buildTypologySubtitle(
   mbtiCode: string | null | undefined,
   enneagramCode: string | null | undefined,
-  enneagramArchetype?: string | null | undefined,
 ): string {
   const parts: string[] = [];
   const cleanMbti = mbtiCode?.trim();
-  if (cleanMbti && cleanMbti !== "—") {
-    parts.push(cleanMbti);
-  }
+  if (cleanMbti && cleanMbti !== "—") parts.push(cleanMbti);
   const cleanEnnea = enneagramCode?.trim();
-  if (cleanEnnea && cleanEnnea !== "—") {
-    if (enneagramArchetype && enneagramArchetype.trim().length > 0) {
-      parts.push(`${cleanEnnea}, ${enneagramArchetype.trim().toLowerCase()}`);
-    } else {
-      parts.push(cleanEnnea);
-    }
-  }
+  if (cleanEnnea && cleanEnnea !== "—") parts.push(cleanEnnea);
   return parts.join(SEPARATOR);
 }
 
@@ -133,7 +122,7 @@ export function formatIdentity(identity: IdentityDTO): FormattedIdentity {
     };
   }
 
-  const storedFull = (identity.aliasCompleto ?? identity.alias ?? "").trim();
+  const storedFull = (identity.aliasCompleto ?? "").trim();
   const parsed = storedFull ? parseAliasParts(storedFull) : null;
 
   const aliasAnimal = (identity.aliasAnimal ?? parsed?.aliasAnimal ?? "").trim();
@@ -162,11 +151,7 @@ export function formatIdentity(identity: IdentityDTO): FormattedIdentity {
     };
   }
 
-  const subtitle = buildTypologySubtitle(
-    identity.mbtiCode,
-    identity.enneagramCode,
-    identity.enneagramArchetype,
-  );
+  const subtitle = buildTypologySubtitle(identity.mbtiCode, identity.enneagramCode);
 
   return {
     isEgg: false,
@@ -174,7 +159,7 @@ export function formatIdentity(identity: IdentityDTO): FormattedIdentity {
     shortName: shortName || title,
     suffix: aliasSufijo,
     subtitle,
-    ariaLabel: `Tu animalito: ${title}`,
+    ariaLabel: title,
   };
 }
 

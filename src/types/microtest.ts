@@ -277,7 +277,7 @@ export const FRIENDSHIP_VECTOR_LENGTH = FRIENDSHIP_VECTOR_DIMENSIONS.length; // 
 
 
 // Notification types
-export type NotificationType = "match_romance" | "match_amistad" | "no_match" | "welcome";
+export type NotificationType = "match_romance" | "match_amistad" | "no_match" | "welcome" | "identity";
 
 export interface AppNotification {
   id: string;
@@ -287,17 +287,4 @@ export interface AppNotification {
   metadata: Record<string, unknown>;
   read: boolean;
   created_at: string;
-}
-
-// Profile with animal + color identity
-export interface ProfileIdentity {
-  animalId: string;
-  animalDiminutivo: string;
-  colorId: string;
-  colorNombre: string;
-  colorHex: string;
-  /** Optional Enneagram subtype mark drawn on the sprite (`null` = none). */
-  mark: "sp" | "so" | "sx" | null;
-  alias: string;
-  narrative: string;
 }

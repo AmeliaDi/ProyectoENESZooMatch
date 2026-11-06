@@ -191,11 +191,18 @@ function enneagramDistances(
   return distances;
 }
 
+/**
+ * Nombre del tipo considerado solo (`"4"`). `enneagramProfileFromType` exige un
+ * ala vecina real, así que una lectura sin ala no puede pedirle un `4w4`.
+ */
+export function enneagramTypeName(type: EnneagramType): string {
+  return DATA.types[String(type)]!.nombre;
+}
+
 export function enneagramProfileFromType(
   type: EnneagramType,
   wing: EnneagramType,
-): EnneagramProfile {
-  const code = `${type}w${wing}`;
+): EnneagramProfile {  const code = `${type}w${wing}`;
   const typeMeta = DATA.types[String(type)]!;
   const wingMeta = DATA.wings[code]!;
   return {

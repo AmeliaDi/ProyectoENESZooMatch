@@ -4,8 +4,10 @@ import {
   NO_MATCH_MESSAGE,
   generateNotificationCopy,
   generateWelcomeMessage,
+  nameFrozenMessage,
   type NotificationContext,
 } from "@/domain/messages/notification-copy";
+import { EGG_DISPLAY_NAME, formatIdentity } from "@/domain/identity/format-identity";
 import type { NotificationType } from "@/types/microtest";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -42,29 +44,38 @@ const GENDERED_WORDS = [
 /** Neutral "-x" / "-xs" marker used for inclusive Spanish (tranquilx, ellxs, unx). */
 const NEUTRAL_X_PATTERN = /[A-Za-záéíóúñ]+xs?\b/i;
 
-const USER_ANIMAL = "ajolotito";
-const USER_COLOR = "verde esmeralda";
-const MATCH_ANIMAL = "mantisita";
-const MATCH_COLOR = "rosa pastel";
+/**
+ * Names here are always the output of `formatIdentity()`. The generator only
+ * interpolates them: it never sees an animal, a colour or a catalogue id, so a
+ * second name route cannot appear inside a notification.
+ */
+const USER_NAME = formatIdentity({
+  estadoIdentidad: "eclosionado",
+  aliasCompleto: "tortuguita gris neblina · DRRS",
+  mbtiCode: "INFP",
+  enneagramCode: "4w5",
+}).title;
 
-const ALL_TYPES: NotificationType[] = ["match_romance", "match_amistad", "no_match", "welcome"];
+const MATCH_NAME = formatIdentity({
+  estadoIdentidad: "eclosionado",
+  aliasCompleto: "mariquita rosa pastel · VWXZ",
+  mbtiCode: "ESFJ",
+  enneagramCode: "2w1",
+}).title;
+
+const ALL_TYPES: NotificationType[] = ["match_romance", "match_amistad", "no_match", "welcome", "identity"];
 
 function context(overrides: Partial<NotificationContext> = {}): NotificationContext {
   return {
-    userAnimal: USER_ANIMAL,
-    userColor: USER_COLOR,
+    userName: USER_NAME,
     matchCount: 1,
-    matches: [{ animal: MATCH_ANIMAL, color: MATCH_COLOR, similarity: 0.86 }],
+    matches: [MATCH_NAME],
     ...overrides,
   };
 }
 
-function manyMatches(count: number): Array<{ animal: string; color: string; similarity: number }> {
-  return Array.from({ length: count }, (_, index) => ({
-    animal: `${MATCH_ANIMAL}-${index + 1}`,
-    color: MATCH_COLOR,
-    similarity: 0.9 - index * 0.01,
-  }));
+function manyMatches(count: number): string[] {
+  return Array.from({ length: count }, (_, index) => `${MATCH_NAME} ${index + 1}`);
 }
 
 /** Every piece of copy produced by the generator, for whole-suite assertions. */
@@ -77,7 +88,7 @@ const ALL_COPY: Array<{ type: NotificationType; title: string; body: string }> =
       context({ matchCount: 0, matches: [] }),
     ].map((ctx) => ({ type, ...generateNotificationCopy(type, ctx) })),
   ),
-  { type: "welcome", ...generateWelcomeMessage(USER_ANIMAL, USER_COLOR) },
+  { type: "welcome", ...generateWelcomeMessage(USER_NAME) },
   { type: "no_match", body: NO_MATCH_MESSAGE, title: "Tu momento llegará" },
 ];
 
@@ -86,7 +97,7 @@ const ALL_COPY: Array<{ type: NotificationType; title: string; body: string }> =
 describe("NO_MATCH_MESSAGE", () => {
   it("keeps the exact product literal", () => {
     expect(NO_MATCH_MESSAGE).toBe(
-      "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor \u003c3",
+      "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor <3",
     );
   });
 
@@ -120,28 +131,30 @@ describe("generateNotificationCopy — match_romance", () => {
     const copy = generateNotificationCopy("match_romance", context());
 
     expect(copy.title).toContain("universo");
-    expect(copy.body).toContain(USER_ANIMAL);
+    expect(copy.body).toContain(USER_NAME);
     expect(copy.body).toContain("ser extraordinario");
   });
 
   it("names the matched identity when the match details are known", () => {
     const copy = generateNotificationCopy("match_romance", context());
 
-    expect(copy.body).toContain(MATCH_ANIMAL);
-    expect(copy.body).toContain(MATCH_COLOR);
+    expect(copy.body).toContain(MATCH_NAME);
   });
 
   it("falls back to a single-match message without details", () => {
     const copy = generateNotificationCopy("match_romance", context({ matches: undefined }));
 
     expect(copy.title).toContain("universo");
-    expect(copy.body).toContain(USER_ANIMAL);
-    expect(copy.body).not.toContain(MATCH_ANIMAL);
+    expect(copy.body).toContain(USER_NAME);
+    expect(copy.body).not.toContain(MATCH_NAME);
     expect(copy.body.length).toBeGreaterThan(0);
   });
 
   it("switches to the plural and states the count for several matches", () => {
-    const copy = generateNotificationCopy("match_romance", context({ matchCount: 3, matches: manyMatches(3) }));
+    const copy = generateNotificationCopy(
+      "match_romance",
+      context({ matchCount: 3, matches: manyMatches(3) }),
+    );
 
     expect(copy.body).toContain("3");
     expect(copy.body).toContain("seres");
@@ -183,8 +196,8 @@ describe("generateNotificationCopy — match_amistad", () => {
     const copy = generateNotificationCopy("match_amistad", context());
 
     expect(copy.title).toContain("vibra");
-    expect(copy.body).toContain(USER_ANIMAL);
-    expect(copy.body).toContain(MATCH_ANIMAL);
+    expect(copy.body).toContain(USER_NAME);
+    expect(copy.body).toContain(MATCH_NAME);
     expect(copy.body).toContain("amistad");
   });
 
@@ -202,7 +215,6 @@ describe("generateNotificationCopy — match_amistad", () => {
         context({ matchCount: count, matches: manyMatches(count) }),
       );
 
-      expect(copy.title).toContain("vibra");
       expect(copy.body).toContain(String(count));
       expect(copy.body).toContain("amistades");
     }
@@ -212,8 +224,8 @@ describe("generateNotificationCopy — match_amistad", () => {
     const copy = generateNotificationCopy("match_amistad", context({ matches: undefined }));
 
     expect(copy.title).toContain("vibra");
-    expect(copy.body).toContain(USER_ANIMAL);
-    expect(copy.body).not.toContain(MATCH_ANIMAL);
+    expect(copy.body).toContain(USER_NAME);
+    expect(copy.body).not.toContain(MATCH_NAME);
   });
 });
 
@@ -238,43 +250,77 @@ describe("generateNotificationCopy — no_match", () => {
 // ─── Welcome copy ─────────────────────────────────────────────────────────────
 
 describe("generateNotificationCopy — welcome", () => {
-  it("greets the new profile and names its identity", () => {
+  it("greets the new profile with its frozen name", () => {
     const copy = generateNotificationCopy("welcome", context());
 
     expect(copy.title).toContain("brilla");
-    expect(copy.body).toContain(USER_ANIMAL);
-    expect(copy.body).toContain(USER_COLOR);
+    expect(copy.body).toContain(USER_NAME);
   });
 
   it("delegates to generateWelcomeMessage", () => {
     expect(generateNotificationCopy("welcome", context())).toEqual(
-      generateWelcomeMessage(USER_ANIMAL, USER_COLOR),
+      generateWelcomeMessage(USER_NAME),
     );
   });
 });
 
-// ─── generateWelcomeMessage ───────────────────────────────────────────────────
-
 describe("generateWelcomeMessage", () => {
-  it("returns a title and a body that name the animal and the color", () => {
-    const message = generateWelcomeMessage("mantisita", "rosa pastel");
+  it("names the identity once and promises it will not move", () => {
+    const message = generateWelcomeMessage(MATCH_NAME);
 
     expect(message.title).toContain("brilla");
-    expect(message.body).toContain("mantisita");
-    expect(message.body).toContain("rosa pastel");
+    expect(message.body).toContain(MATCH_NAME);
+    expect(message.body).toContain("fijo para siempre");
     expect(Object.keys(message).sort()).toEqual(["body", "title"]);
   });
 
-  it("is deterministic and reacts to both arguments", () => {
-    expect(generateWelcomeMessage(USER_ANIMAL, USER_COLOR)).toEqual(
-      generateWelcomeMessage(USER_ANIMAL, USER_COLOR),
-    );
-    expect(generateWelcomeMessage(USER_ANIMAL, USER_COLOR).body).not.toBe(
-      generateWelcomeMessage(MATCH_ANIMAL, USER_COLOR).body,
-    );
-    expect(generateWelcomeMessage(USER_ANIMAL, USER_COLOR).body).not.toBe(
-      generateWelcomeMessage(USER_ANIMAL, MATCH_COLOR).body,
-    );
+  it("is deterministic and reacts to its argument", () => {
+    expect(generateWelcomeMessage(USER_NAME)).toEqual(generateWelcomeMessage(USER_NAME));
+    expect(generateWelcomeMessage(USER_NAME).body).not.toBe(generateWelcomeMessage(MATCH_NAME).body);
+  });
+});
+
+describe("nameFrozenMessage", () => {
+  it("tells the person the name is now fixed", () => {
+    const message = nameFrozenMessage(USER_NAME);
+
+    expect(message.body).toContain(USER_NAME);
+    expect(message.body).toContain("Ya no cambia");
+    expect(message.body.length).toBeLessThan(MAX_BODY_LENGTH);
+  });
+
+  it("never mentions a recalculated animal or colour", () => {
+    const message = nameFrozenMessage(USER_NAME);
+    const haystack = `${message.title} ${message.body}`;
+
+    for (const forbidden of ["animal", "color_id", "cálculo", "recalcul", "huevito"]) {
+      expect(haystack, haystack).not.toContain(forbidden);
+    }
+  });
+
+  it("is the copy the `identity` notification type serves", () => {
+    expect(generateNotificationCopy("identity", context())).toEqual(nameFrozenMessage(USER_NAME));
+  });
+});
+
+// ─── Golden rule: no second name route ────────────────────────────────────────
+
+describe("notification copy never rebuilds an identity", () => {
+  it("renders an unusable or egg identity as the huevito, never as a blank name", () => {
+    const egg = formatIdentity({ estadoIdentidad: "huevo" });
+
+    expect(egg.title).toBe(EGG_DISPLAY_NAME);
+    expect(egg.subtitle).toContain("cascarón");
+    expect(formatIdentity({}).title).toBe(EGG_DISPLAY_NAME);
+  });
+
+  it("carries the canonical name through untouched, so the wire and the notice match", () => {
+    for (const type of ALL_TYPES) {
+      if (type === "no_match") continue;
+      const copy = generateNotificationCopy(type, context({ matchCount: 1 }));
+
+      expect(copy.body).toContain(USER_NAME);
+    }
   });
 });
 

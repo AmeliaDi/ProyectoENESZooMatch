@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { AVATAR_CONFIG, CATALOG, CATALOG_ANIMALS, CATALOG_COLORS, MATCHING_CONFIG } from "@/config";
+import { AVATAR_CONFIG, CATALOG, CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 import type { LatentProfile } from "@/types/latent";
 
 import {
@@ -273,14 +273,15 @@ describe("domain/identity — Fase 2: hatchIdentity & grammatical concordance", 
       aliasCompleto: "tortuguita gris neblina · DRRS",
       mbtiCode: "INFP",
       enneagramCode: "4w5",
-      enneagramArchetype: "El Individualista",
+      enneagramName: "El Individualista",
     });
 
     expect(hatchedView.isEgg).toBe(false);
     expect(hatchedView.title).toBe("tortuguita gris neblina · DRRS");
     expect(hatchedView.shortName).toBe("tortuguita gris neblina");
     expect(hatchedView.suffix).toBe("DRRS");
-    expect(hatchedView.subtitle).toBe("INFP · 4w5, el individualista");
+    // The subtitle is typology only: no animal, no colour, no archetype prose.
+    expect(hatchedView.subtitle).toBe("INFP · 4w5");
     // Subtitle NEVER contains an animal or color name
     expect(hatchedView.subtitle).not.toContain("mariquita");
     expect(hatchedView.subtitle).not.toContain("tortuguita");

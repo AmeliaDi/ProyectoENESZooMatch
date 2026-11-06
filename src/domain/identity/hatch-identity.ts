@@ -112,6 +112,18 @@ export function formatAgreedAnimalColor(animal: ArchetypeAnimal, color: Archetyp
   return `${animal.diminutivo} ${agreeColor(color, animal.genero)}`;
 }
 
+/**
+ * Stored Enneagram readout: `"4w5"`, `"4"` or `null` while the type is still
+ * ambiguous. Written once at hatching so no screen re-derives it from the
+ * answers or from the colour id.
+ */
+export function enneagramCodeOf(
+  readout: AvatarSpec["enneagram"],
+): string | null {
+  if (readout.type === null) return null;
+  return readout.wing === null ? String(readout.type) : `${readout.type}w${readout.wing}`;
+}
+
 function computeHmacHex(secret: string | Hmac, message: string): string {
   if (typeof secret === "string") {
     if (secret.trim().length === 0) {

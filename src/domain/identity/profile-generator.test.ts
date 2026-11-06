@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { AvatarVisual } from "@/domain/avatars/avatar-spec";
 import {
-  generateProfileIdentity,
   generateProfileNarrative,
   getTopDimensions,
   type CatalogAnimal,
@@ -18,9 +16,6 @@ import { CATALOG as catalogo } from "@/config";
 
 const CATALOG_ANIMALS: readonly CatalogAnimal[] = catalogo.animales;
 const CATALOG_COLORS: readonly CatalogColor[] = catalogo.colores;
-
-const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
-const ALIAS_SUFFIX_PATTERN = / · [0-9A-Z]{4}$/;
 
 /** Words a validating narrative must never use. */
 const FORBIDDEN_PATTERN =
@@ -119,50 +114,10 @@ describe("generateProfileNarrative", () => {
 });
 
 // ─── Full identity pipeline ───────────────────────────────────────────────────
-
-describe("generateProfileIdentity", () => {
-  const scores = scored({
-    personalidad_extraversion: 0.85,
-    cultural_estetica_visual: 0.7,
-    valores_empatia: 0.95,
-  });
-  const avatar: AvatarVisual = { animalId: "ajolotito", colorId: "ennea-6", mark: "sp" };
-  const identity = generateProfileIdentity(scores, "user-7", avatar);
-
-  it("fills every field of the public identity", () => {
-    expect(Object.keys(identity).sort()).toEqual([
-      "alias",
-      "animalDiminutivo",
-      "animalId",
-      "colorHex",
-      "colorId",
-      "colorNombre",
-      "mark",
-      "narrative",
-    ]);
-    expect(identity.colorHex).toMatch(HEX_PATTERN);
-    expect(identity.alias).toMatch(ALIAS_SUFFIX_PATTERN);
-    expect(identity.mark).toBe("sp");
-  });
-
-  it("uses the avatar spec for animal and colour and builds the narrative from them", () => {
-    expect(identity.animalId).toBe(AXOLOTL.id);
-    expect(identity.animalDiminutivo).toBe(AXOLOTL.diminutivo_es);
-    expect(identity.colorId).toBe(EMERALD.id);
-    expect(identity.colorNombre).toBe(EMERALD.nombre);
-    expect(identity.narrative).toBe(generateProfileNarrative(AXOLOTL, EMERALD, getTopDimensions(scores, 3)));
-    expect(identity.alias.startsWith(`${AXOLOTL.diminutivo_es} ${EMERALD.nombre.toLowerCase()} · `)).toBe(true);
-  });
-
-  it("is deterministic and never leaks the user id", () => {
-    expect(generateProfileIdentity(scores, "user-7", avatar)).toEqual(identity);
-    expect(JSON.stringify(identity)).not.toContain("user-7");
-  });
-
-  it("rejects an avatar outside the catalogue instead of inventing one", () => {
-    expect(() => generateProfileIdentity(scores, "user-7", { ...avatar, colorId: "verde-esmeralda" })).toThrow();
-  });
-});
+// Removed: this module used to expose `generateProfileIdentity`, a second route
+// from a latent profile to an animal, a colour and an alias. Identity is now
+// computed exactly once, at hatching, by `hatchIdentity()`; the narrative keeps
+// reading the animal and colour it is handed. See docs/DECISIONES.md.
 
 // ─── Top dimensions ───────────────────────────────────────────────────────────
 

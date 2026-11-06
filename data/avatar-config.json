@@ -53,6 +53,11 @@
       "etiqueta": "supuesto_diseno",
       "fuente": "Lista de bloqueo de abreviaturas ofensivas en es-MX y repeticiones triviales de 4 letras iguales"
     },
-    "egg_crack_stages": { "valor": 4, "etiqueta": "supuesto_diseno", "fuente": "4 niveles de grietas en el huevito según el progreso (0 %, 25 %, 50 %, 75 %, 100 %) del test principal" }
+    "egg_crack_stages": { "valor": 4, "etiqueta": "supuesto_diseno", "fuente": "4 niveles de grietas en el huevito según el progreso (0 %, 25 %, 50 %, 75 %, 100 %) del test principal" },
+    "hatch_required_modules": {
+      "valor": ["nucleo"],
+      "etiqueta": "medido_produccion",
+      "fuente": "nucleo es el único módulo obligatorio del test y ya carga los factores mbti_* (4 ítems) y ennea_* (9 ítems) de las dos lecturas que fijan la identidad; exigir mbti/eneagrama devolvería a huevo a 68 de 121 personas ya eclosionadas (56.2 %) medido en producción el 2026-11-06"
+    }
   }
 }

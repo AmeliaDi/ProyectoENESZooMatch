@@ -1,6 +1,11 @@
 /**
  * ZooMatch — Notification Copy Generator
  * Warm, poetic notification message templates for the affective notification system.
+ *
+ * Every name that reaches these templates is already formatted by
+ * `formatIdentity()` in the application layer. Nothing here concatenates an
+ * animal with a colour: that is the second calculation route the golden rule
+ * forbids, and the reason one person used to appear under two different names.
  */
 
 import type { NotificationType, MatchTrack } from "@/types/microtest";
@@ -8,10 +13,11 @@ import type { NotificationType, MatchTrack } from "@/types/microtest";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface NotificationContext {
-  userAnimal: string;
-  userColor: string;
+  /** Canonical display name of the viewer (identity, never rebuilt here). */
+  userName: string;
   matchCount: number;
-  matches?: Array<{ animal: string; color: string; similarity: number }> | undefined;
+  /** Canonical display names of the matches, best first. */
+  matches?: readonly string[] | undefined;
   track?: MatchTrack | undefined;
 }
 
@@ -45,63 +51,63 @@ export function generateNotificationCopy(
     case "no_match":
       return generateNoMatchCopy();
     case "welcome":
-      return generateWelcomeMessage(context.userAnimal, context.userColor);
+      return generateWelcomeMessage(context.userName);
+    case "identity":
+      return nameFrozenMessage(context.userName);
     default:
-      return generateWelcomeMessage(context.userAnimal, context.userColor);
+      return generateWelcomeMessage(context.userName);
   }
 }
 
 // ─── Romance Match ────────────────────────────────────────────────────────────
 
 function generateRomanceMatchCopy(context: NotificationContext): NotificationCopy {
-  const { userAnimal, userColor, matchCount, matches } = context;
+  const { userName, matchCount, matches } = context;
   const match = matches?.[0];
 
   if (matchCount === 1 && match) {
     return {
       title: "El universo conspir\u00f3 a tu favor",
-      body: `Tienes a un ser extraordinario en el campus con quien podr\u00edas tener una qu\u00edmica incre\u00edble. Tu energ\u00eda de ${userAnimal} ${userColor} resuen\u00f3 con ${match.animal} ${match.color}.`,
+      body: `Tienes a un ser extraordinario en el campus con quien podr\u00edas tener una qu\u00edmica incre\u00edble. Tu energ\u00eda de ${userName} resuen\u00f3 con ${match}.`,
     };
   }
 
   if (matchCount > 1) {
     return {
       title: "El universo conspir\u00f3 a tu favor",
-      body: `Tienes a ${matchCount} seres extraordinarios en el campus con los que podr\u00edas tener una qu\u00edmica incre\u00edble. Tu energ\u00eda de ${userAnimal} ${userColor} reson\u00f3 con cada unx de ellxs.`,
+      body: `Tienes a ${matchCount} seres extraordinarios en el campus con los que podr\u00edas tener una qu\u00edmica incre\u00edble. Tu energ\u00eda de ${userName} reson\u00f3 con cada unx de ellxs.`,
     };
   }
 
-  // Fallback single match without details
   return {
     title: "El universo conspir\u00f3 a tu favor",
-    body: `Tu energ\u00eda de ${userAnimal} ${userColor} encontr\u00f3 una resonancia especial en el campus. Hay alguien con quien la qu\u00edmica fluye de forma \u00fanica.`,
+    body: `Tu energ\u00eda de ${userName} encontr\u00f3 una resonancia especial en el campus. Hay alguien con quien la qu\u00edmica fluye de forma \u00fanica.`,
   };
 }
 
 // ─── Friendship Match ─────────────────────────────────────────────────────────
 
 function generateFriendshipMatchCopy(context: NotificationContext): NotificationCopy {
-  const { userAnimal, userColor, matchCount, matches } = context;
+  const { userName, matchCount, matches } = context;
   const match = matches?.[0];
 
   if (matchCount === 1 && match) {
     return {
       title: "Tu vibra reson\u00f3 con alguien",
-      body: `Tu energ\u00eda de ${userAnimal} ${userColor} conect\u00f3 con ${match.animal} ${match.color}. Hay una qu\u00edmica de amistad que vale la pena explorar \u2014 sus personalidades se complementan de forma \u00fanica.`,
+      body: `Tu energ\u00eda de ${userName} conect\u00f3 con ${match}. Hay una qu\u00edmica de amistad que vale la pena explorar \u2014 sus personalidades se complementan de forma \u00fanica.`,
     };
   }
 
   if (matchCount > 1) {
     return {
       title: "Tu vibra reson\u00f3 con el campus",
-      body: `Tu energ\u00eda de ${userAnimal} ${userColor} reson\u00f3 con ${matchCount} personas del campus. Hay amistades esperando florecer \u2014 sus personalidades y gustos se complementan de forma hermosa.`,
+      body: `Tu energ\u00eda de ${userName} reson\u00f3 con ${matchCount} personas del campus. Hay amistades esperando florecer \u2014 sus personalidades y gustos se complementan de forma hermosa.`,
     };
   }
 
-  // Fallback single match without details
   return {
     title: "Tu vibra reson\u00f3 con alguien",
-    body: `Tu energ\u00eda de ${userAnimal} ${userColor} encontr\u00f3 una conexi\u00f3n de amistad genuina en el campus. Hay alguien cuyo esp\u00edritu complementa el tuyo.`,
+    body: `Tu energ\u00eda de ${userName} encontr\u00f3 una conexi\u00f3n de amistad genuina en el campus. Hay alguien cuyo esp\u00edritu complementa el tuyo.`,
   };
 }
 
@@ -117,11 +123,23 @@ function generateNoMatchCopy(): NotificationCopy {
 // ─── Welcome Message ──────────────────────────────────────────────────────────
 
 /**
- * Welcome message shown after profile creation.
+ * Welcome message shown once, right after the egg hatches. The name it uses is
+ * the frozen one: from this moment it never changes again.
  */
-export function generateWelcomeMessage(animal: string, color: string): NotificationCopy {
+export function generateWelcomeMessage(userName: string): NotificationCopy {
   return {
     title: "Tu perfil ya brilla en el h\u00e1bitat",
-    body: `Tu esencia de ${animal} ${color} ya est\u00e1 registrada. Cuando alguien compatible entre al h\u00e1bitat, el universo te lo har\u00e1 saber.`,
+    body: `Tu esencia de ${userName} ya est\u00e1 registrada y tu nombre queda fijo para siempre; ya no cambia. Cuando alguien compatible entre al h\u00e1bitat, el universo te lo har\u00e1 saber.`,
+  };
+}
+
+/**
+ * Copy for people whose name was corrected by the fase 6 backfill. It says the
+ * two things that matter: what happened and that it will not happen again.
+ */
+export function nameFrozenMessage(userName: string): NotificationCopy {
+  return {
+    title: "Tu nombre ya est\u00e1 decidido",
+    body: `Revisamos tu identidad con la regla nueva y tu nombre qued\u00f3 fijo para siempre: ${userName}. Ya no cambia, aunque completes más módulos.`,
   };
 }
