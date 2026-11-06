@@ -3,7 +3,14 @@ import { describe, expect, it } from "vitest";
 import { ROMANCE_VECTOR_LENGTH, FRIENDSHIP_VECTOR_LENGTH } from "@/types/microtest";
 import type { ScoredProfile } from "@/types/microtest";
 
-import { deleteMyData, getPrivacyState, setProfilePaused, setSharedLayers, setShowAvatarDetail } from "./privacy";
+import {
+  deleteMyData,
+  getPrivacyState,
+  reassignProfileColor,
+  setProfilePaused,
+  setSharedLayers,
+  setShowAvatarDetail,
+} from "./privacy";
 import { MemoryStore, instantScheduler, memoryMatches, memoryProfiles } from "./testing/in-memory";
 
 function profile(): ScoredProfile {
@@ -80,5 +87,39 @@ describe("privacy use cases", () => {
     store.faults.save = true;
     expect(await deleteMyData("a", deps)).toEqual({ ok: false, error: "storage.failed" });
     expect(store.results.has("a")).toBe(true);
+  });
+
+  it("reassigns profile color explicitly when requested in Ajustes", async () => {
+    const { store, deps } = setup();
+    const record = store.results.get("a")!;
+    store.results.set("a", {
+      ...record,
+      scored: {
+        ...record.scored,
+        latent: {
+          theta: {
+            ennea_1: 2.5,
+            ennea_2: 1.2,
+            ennea_3: -0.5,
+            ennea_4: -0.5,
+            ennea_5: -0.5,
+            ennea_6: -0.5,
+            ennea_7: -0.5,
+            ennea_8: -0.5,
+            ennea_9: -0.5,
+          },
+          se: { ennea_1: 0.3, ennea_2: 0.4 },
+          quality: 1,
+          answered: 30,
+        },
+      },
+      identity: { ...record.identity, colorId: "ennea-neblina" },
+    });
+    const result = await reassignProfileColor("a", deps);
+    expect(result).toEqual({
+      ok: true,
+      value: { colorId: "ennea-1-w2", colorName: "Azul cobalto claro", colorHex: "#597AD6" },
+    });
+    expect(store.results.get("a")?.identity.colorId).toBe("ennea-1-w2");
   });
 });

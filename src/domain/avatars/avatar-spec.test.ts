@@ -70,19 +70,86 @@ describe("buildAvatarSpec", () => {
     expect(spec.colorId).toBe("ennea-6");
   });
 
-  it("never forces a type when the Enneagram is ambiguous", () => {
-    const flat = profile("ESTP", 3);
-    for (let t = 1; t <= 9; t++) flat.theta[`ennea_${t}`] = 0.1 * (t % 2);
-    const spec = buildAvatarSpec(flat, PARAMS);
-    expect(spec.enneagram.ambiguous).toBe(true);
-    expect(spec).toMatchObject({ colorId: NEUTRAL_COLOR_ID, emblem: "neutro", enneagram: { type: null, wing: null } });
+  it("never forces a type when the Enneagram is ambiguous, while diversifying colour across the palette", () => {
+    const colorsSeen = new Set<string>();
+    for (let i = 0; i < 40; i++) {
+      const flat = profile("ESTP", 3);
+      for (let t = 1; t <= 9; t++) flat.theta[`ennea_${t}`] = 0.05 * ((t + i) % 3);
+      flat.theta.hex_h = (i - 20) * 0.07;
+      const spec = buildAvatarSpec(flat, PARAMS, `user-${i}`);
+      expect(spec.enneagram.ambiguous).toBe(true);
+      expect(spec.emblem).toBe("neutro");
+      expect(spec.enneagram.type).toBeNull();
+      expect(spec.enneagram.wing).toBeNull();
+      colorsSeen.add(spec.colorId);
+    }
+    expect(colorsSeen.size).toBeGreaterThan(8);
   });
 
   it("stays valid with no answers at all (missing modules widen, never invent)", () => {
     const spec = buildAvatarSpec(PRIOR, PARAMS);
     expect(CATALOG_ANIMALS.some((a) => a.id === spec.animalId)).toBe(true);
-    expect(spec.colorId).toBe(NEUTRAL_COLOR_ID);
+    expect(CATALOG_COLORS.some((c) => c.id === spec.colorId)).toBe(true);
+    expect(spec.enneagram.ambiguous).toBe(true);
+    expect(spec.enneagram.type).toBeNull();
     expect(spec.mark).toBeNull();
+  });
+
+  it("distributes N >= 5000 synthetic profiles (core-only, full, and ambiguous) with no colour above 12% and high entropy", () => {
+    const N = 5000;
+    const counts = new Map<string, number>();
+    const allFactors = [
+      ...AXES,
+      "hex_h", "hex_e", "hex_x", "hex_a", "hex_c", "hex_o",
+      "ennea_1", "ennea_2", "ennea_3", "ennea_4", "ennea_5", "ennea_6", "ennea_7", "ennea_8", "ennea_9",
+      "sub_sp", "sub_so", "sub_sx",
+    ];
+    // Deterministic PRNG (Mulberry32)
+    let state = 20261105;
+    const rand = () => {
+      state = (state + 0x6d2b79f5) | 0;
+      let t = Math.imul(state ^ (state >>> 15), 1 | state);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    const randNormal = () => {
+      const u1 = Math.max(1e-9, rand());
+      const u2 = rand();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    };
+
+    for (let i = 0; i < N; i++) {
+      const theta: Record<string, number> = {};
+      const se: Record<string, number> = {};
+      // 70% core-only (high SE on enneagram, narrow theta), 20% full modules, 10% flat/ambiguous
+      const mode = i % 10;
+      const enneaScale = mode < 7 ? 0.42 : mode < 9 ? 1.15 : 0.08;
+      for (const f of allFactors) {
+        if (f.startsWith("ennea_")) {
+          theta[f] = randNormal() * enneaScale;
+          se[f] = mode < 7 ? 0.78 : 0.45;
+        } else {
+          theta[f] = randNormal() * 0.85;
+          se[f] = 0.55;
+        }
+      }
+      const p: LatentProfile = { theta, se, quality: 1, answered: mode < 7 ? 38 : 96 };
+      const spec = buildAvatarSpec(p, PARAMS, `synth-${i}`);
+      counts.set(spec.colorId, (counts.get(spec.colorId) ?? 0) + 1);
+    }
+
+    const maxShare = Math.max(...[...counts.values()].map((c) => c / N));
+    const neblinaShare = (counts.get(NEUTRAL_COLOR_ID) ?? 0) / N;
+    let shannonEntropy = 0;
+    for (const c of counts.values()) {
+      const p = c / N;
+      if (p > 0) shannonEntropy -= p * Math.log(p);
+    }
+
+    expect(maxShare).toBeLessThanOrEqual(0.12);
+    expect(neblinaShare).toBeLessThanOrEqual(0.08);
+    expect(neblinaShare).toBeGreaterThan(0.005);
+    expect(shannonEntropy).toBeGreaterThanOrEqual(2.95);
   });
 
   it("only uses ids that exist in the catalogue", () => {

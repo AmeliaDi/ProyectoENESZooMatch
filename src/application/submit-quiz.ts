@@ -19,11 +19,13 @@ export interface SubmitQuizInput {
   submission: QuizSubmission;
   inclusiveMode?: InclusiveMode | undefined;
   clientKey?: string | undefined;
+  preserveColor?: boolean | undefined;
 }
 
 export interface SubmitQuizDeps extends RecomputeDeps {
   profiles: RecomputeDeps["profiles"] &
-    Pick<ProfileRepository, "isQuizCompleted" | "saveQuizResult" | "setInclusiveMode">;
+    Pick<ProfileRepository, "isQuizCompleted" | "saveQuizResult" | "setInclusiveMode"> &
+    Partial<Pick<ProfileRepository, "findOwn">>;
   notifications: Pick<NotificationRepository, "notifyMatches" | "insertWelcome">;
   /** Bayesian GRM scorer (built server-side from the measurement parameters). */
   latentScorer: LatentScorer;
@@ -152,7 +154,15 @@ async function executeSubmitQuiz(
   const scored = score(input.submission, deps.latentScorer);
   if (!scored) return err("request.invalid");
 
-  const avatar = buildAvatarSpec(scored.latent, avatarParams());
+  const computedAvatar = buildAvatarSpec(scored.latent, avatarParams(), input.userId);
+  let effectiveColorId = computedAvatar.colorId;
+  if (input.preserveColor && deps.profiles.findOwn) {
+    const existing = await deps.profiles.findOwn(input.userId);
+    if (existing.ok && existing.value?.color?.id) {
+      effectiveColorId = existing.value.color.id;
+    }
+  }
+  const avatar = { ...computedAvatar, colorId: effectiveColorId };
   const identity = generateProfileIdentity(scored.normalizedScores, input.userId, avatar);
   const completed = await deps.profiles.isQuizCompleted(input.userId);
   const isFirstSubmission = completed.ok && !completed.value;
@@ -164,6 +174,7 @@ async function executeSubmitQuiz(
     scored,
     identity,
     completedModules: completedOf(answers),
+    preserveColor: input.preserveColor,
   });
   if (!saved.ok) return saved;
 

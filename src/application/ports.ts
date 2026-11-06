@@ -33,6 +33,8 @@ export interface QuizResultRecord {
   identity: ProfileIdentity;
   /** Optional modules whose non-sensitive items are all answered. */
   completedModules: readonly QuizModuleId[];
+  /** Keeps the existing assigned color fixed during optional-module refinement. */
+  preserveColor?: boolean | undefined;
 }
 
 export interface PoolProfile {
@@ -78,6 +80,8 @@ export interface ProfileRepository {
   setPaused(userId: string, paused: boolean): Promise<Result<void, StorageError>>;
   setShowAvatarDetail(userId: string, show: boolean): Promise<Result<void, StorageError>>;
   setSharedLayers(userId: string, layers: readonly ShareLayerId[]): Promise<Result<void, StorageError>>;
+  /** Explicitly updates the assigned base color and `color_asignado_en`. */
+  setColor(userId: string, colorId: string): Promise<Result<void, StorageError>>;
   /** Deletes the auth user; every participant row cascades from it. */
   deleteAccount(userId: string): Promise<Result<void, StorageError>>;
   /** Resolves to the effective alias: the first one ever assigned is kept. */

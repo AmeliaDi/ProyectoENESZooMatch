@@ -3,6 +3,7 @@
  * of the Supabase repositories (pool-size guard, notify-clears-unread) without
  * any network.
  */
+import { CATALOG_COLORS } from "@/config";
 import { normalizeMatchPairs, type GlobalMatch } from "@/domain/matching";
 import { clearAttempts } from "@/domain/chat";
 import { err, ok } from "@/domain/shared";
@@ -81,6 +82,26 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
       else store.showDetail.delete(userId);
       return ok(undefined);
     },
+    async setColor(userId, colorId) {
+      if (store.faults.save) return failed;
+      const catalogColor = CATALOG_COLORS.find((c) => c.id === colorId);
+      const existing = store.results.get(userId);
+      if (existing) {
+        store.results.set(userId, {
+          ...existing,
+          identity: {
+            ...existing.identity,
+            colorId,
+            colorNombre: catalogColor?.nombre ?? existing.identity.colorNombre,
+            colorHex: catalogColor?.hex ?? existing.identity.colorHex,
+          },
+        });
+      }
+      if (store.own && catalogColor) {
+        store.own = { ...store.own, color: { id: catalogColor.id, nombre: catalogColor.nombre, hex: catalogColor.hex } };
+      }
+      return ok(undefined);
+    },
     async setPaused(userId, paused) {
       if (store.faults.save) return failed;
       if (paused) store.paused.add(userId);
@@ -99,8 +120,20 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
     },
     async saveQuizResult(record) {
       if (store.faults.save) return failed;
-      const alias = store.results.get(record.userId)?.identity.alias ?? record.identity.alias;
-      store.results.set(record.userId, { ...record, identity: { ...record.identity, alias } });
+      const existing = store.results.get(record.userId);
+      const alias = existing?.identity.alias ?? record.identity.alias;
+      const preservedColor =
+        record.preserveColor && existing
+          ? {
+              colorId: existing.identity.colorId,
+              colorNombre: existing.identity.colorNombre,
+              colorHex: existing.identity.colorHex,
+            }
+          : {};
+      store.results.set(record.userId, {
+        ...record,
+        identity: { ...record.identity, alias, ...preservedColor },
+      });
       store.version += 1;
       return ok({ alias });
     },
@@ -111,7 +144,21 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
       return store.faults.pool ? failed : ok(store.pool());
     },
     countActive: async () => store.pool().length,
-    findOwn: async () => ok(store.own),
+    async findOwn(userId) {
+      if (store.own) return ok(store.own);
+      const record = store.results.get(userId);
+      if (!record) return ok(null);
+      return ok({
+        alias: record.identity.alias,
+        narrative: record.identity.narrative,
+        mbtiCode: record.scored.mbtiCode,
+        animal: { id: record.identity.animalId, diminutivo_es: record.identity.animalDiminutivo, categoria_fauna: "" },
+        color: { id: record.identity.colorId, nombre: record.identity.colorNombre, hex: record.identity.colorHex },
+        mark: record.identity.mark,
+        latent: record.scored.latent,
+        completedModules: record.completedModules,
+      });
+    },
     loadAnswers: async (userId) => ok([...(store.results.get(userId)?.answers ?? [])]),
     findCounterparts: async (ids) => store.counterparts.filter((c) => ids.includes(c.userId)),
   };

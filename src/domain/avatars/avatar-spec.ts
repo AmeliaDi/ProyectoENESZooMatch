@@ -14,6 +14,7 @@
 import { AVATAR_CONFIG } from "@/config";
 import { normalCdf } from "@/domain/math";
 import { enneagramFromLatent, mbtiFromLatent } from "@/domain/psychometrics/derived";
+import { fnv1a32, mulberry32 } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
 
 export type SubtypeMark = "sp" | "so" | "sx";
@@ -74,11 +75,70 @@ export function subtypeMark(profile: LatentProfile): SubtypeMark | null {
   return first.s;
 }
 
-function enneagramVisual(profile: LatentProfile, params: AvatarParams) {
+function latentProfileQuantile(profile: LatentProfile, seed?: string): number {
+  const keys = Object.keys(profile.theta).sort();
+  const thetaPart = keys.map((k) => `${k}:${(profile.theta[k] ?? 0).toFixed(6)}`).join("|");
+  const seKeys = Object.keys(profile.se).sort();
+  const sePart = seKeys.map((k) => `${k}:${(profile.se[k] ?? 1).toFixed(4)}`).join("|");
+  const raw = `avatar-color:${seed ?? ""}:${profile.answered}:${thetaPart}:${sePart}`;
+  return mulberry32(fnv1a32(raw))();
+}
+
+/**
+ * Deterministic posterior-weighted colour selection when the Enneagram type is
+ * ambiguous (normalized entropy > threshold). Uses the full posterior over the
+ * 9 types to weight the 27 type/wing tones and keeps `ennea-neblina` at its
+ * catalog prior weight (1/28), sampling via a deterministic quantile of the
+ * profile seed so no single fallback colour monopolizes ambiguous profiles.
+ */
+export function pickAmbiguousColor(
+  profile: LatentProfile,
+  probabilities: readonly number[],
+  seed?: string,
+): string {
+  const neblinaWeight = AVATAR_CONFIG.ambiguity.neblina_prior_weight.valor;
+  const remainingMass = Math.max(0, 1 - neblinaWeight);
+  const candidates: Array<{ id: string; weight: number }> = [
+    { id: NEUTRAL_COLOR_ID, weight: neblinaWeight },
+  ];
+
+  for (let type = 1; type <= 9; type++) {
+    const pType = Math.max(0, probabilities[type - 1] ?? 1 / 9);
+    const familyMass = remainingMass * pType;
+    const left = type === 1 ? 9 : type - 1;
+    const right = type === 9 ? 1 : type + 1;
+    const pLeft = Math.max(1e-6, probabilities[left - 1] ?? 1 / 9);
+    const pRight = Math.max(1e-6, probabilities[right - 1] ?? 1 / 9);
+    const wingSum = pLeft + pRight;
+    const baseMass = familyMass / 3;
+    const wingMass = (familyMass * 2) / 3;
+
+    candidates.push(
+      { id: `ennea-${type}`, weight: baseMass },
+      { id: `ennea-${type}-w${left}`, weight: wingMass * (pLeft / wingSum) },
+      { id: `ennea-${type}-w${right}`, weight: wingMass * (pRight / wingSum) },
+    );
+  }
+
+  const total = candidates.reduce((sum, c) => sum + c.weight, 0);
+  const target = latentProfileQuantile(profile, seed) * (total > 0 ? total : 1);
+  let cumulative = 0;
+  for (const candidate of candidates) {
+    cumulative += candidate.weight;
+    if (target < cumulative) return candidate.id;
+  }
+  return candidates[candidates.length - 1]!.id;
+}
+
+function enneagramVisual(profile: LatentProfile, params: AvatarParams, seed?: string) {
   const readout = enneagramFromLatent(profile, params.temperature, params.ambiguityEntropy);
   const base = { normalizedEntropy: readout.normalizedEntropy, ambiguous: readout.ambiguous };
   if (readout.ambiguous) {
-    return { colorId: NEUTRAL_COLOR_ID, emblem: "neutro" as EmblemKey, enneagram: { ...base, type: null, wing: null } };
+    return {
+      colorId: pickAmbiguousColor(profile, readout.probabilities, seed),
+      emblem: "neutro" as EmblemKey,
+      enneagram: { ...base, type: null, wing: null },
+    };
   }
   const { type, wing, probabilities } = readout;
   const left = type === 1 ? 9 : type - 1;
@@ -92,9 +152,9 @@ function enneagramVisual(profile: LatentProfile, params: AvatarParams) {
   };
 }
 
-export function buildAvatarSpec(profile: LatentProfile, params: AvatarParams): AvatarSpec {
+export function buildAvatarSpec(profile: LatentProfile, params: AvatarParams, seed?: string): AvatarSpec {
   const mbtiCode = mbtiFromLatent(profile, 0).code;
-  const ennea = enneagramVisual(profile, params);
+  const ennea = enneagramVisual(profile, params, seed);
   return { animalId: pickSpecies(mbtiCode, preferenceClarity(profile)), mbtiCode, mark: subtypeMark(profile), ...ennea };
 }
 

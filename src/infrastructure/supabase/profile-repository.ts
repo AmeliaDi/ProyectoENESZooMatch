@@ -143,6 +143,16 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
       return res && !res.error ? ok(undefined) : failed;
     },
 
+    async setColor(userId, colorId) {
+      const res = await attempt(() =>
+        admin
+          .from(TABLE.profiles)
+          .update({ color_id: colorId, color_asignado_en: new Date().toISOString() })
+          .eq("user_id", userId),
+      );
+      return res && !res.error ? ok(undefined) : failed;
+    },
+
     async setPaused(userId, paused) {
       const res = await attempt(() =>
         admin
@@ -158,7 +168,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
       return res && !res.error ? ok(undefined) : failed;
     },
 
-    async saveQuizResult({ userId, answers, scored, identity, completedModules }) {
+    async saveQuizResult({ userId, answers, scored, identity, completedModules, preserveColor }) {
       const res = await attempt(() =>
         admin.rpc(RPC.submit, {
           p_user_id: userId,
@@ -175,6 +185,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
           p_latent_profile: scored.latent,
           p_avatar_mark: identity.mark,
           p_completed_modules: completedModules,
+          p_preserve_color: Boolean(preserveColor),
         }),
       );
       if (!res || res.error) return failed;

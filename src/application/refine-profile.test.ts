@@ -69,4 +69,27 @@ describe("refineProfile", () => {
     const foreign = moduleAnswers("valores", 3);
     expect(mergeModule([], { userId: USER, module: MODULE, likert: foreign })).toBeNull();
   });
+
+  it("keeps the initial assigned color fixed when completing optional modules (Fase 2 color stability)", async () => {
+    const store = new MemoryStore();
+    const deps = wire(store);
+    const initial = await submitQuiz({ userId: USER, submission: coreOnly(3) }, deps);
+    expect(initial.ok).toBe(true);
+    if (!initial.ok) return;
+    const initialColor = initial.value.profile.color;
+
+    // Now complete the eneagrama module with strongly polarized answers toward a single type
+    const enneaItems = QUIZ_ITEMS.filter((i) => i.modulo === "eneagrama" && i.tipo_respuesta === "likert_5").map(
+      (item, idx) => ({
+        itemId: item.id,
+        value: (idx < 2 ? 5 : 1) as LikertValue,
+      }),
+    );
+    const refined = await refineProfile({ userId: USER, module: "eneagrama", likert: enneaItems }, deps);
+    expect(refined.ok).toBe(true);
+    if (!refined.ok) return;
+
+    expect(refined.value.profile.color).toBe(initialColor);
+    expect(store.results.get(USER)?.identity.colorId).toBe(initialColor);
+  });
 });

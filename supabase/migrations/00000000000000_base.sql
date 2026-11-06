@@ -88,6 +88,8 @@ CREATE TABLE public.profiles (
   alias TEXT UNIQUE,
   animal_id TEXT REFERENCES public.animals(id),
   color_id TEXT REFERENCES public.colors(id),
+  -- Timestamp of the base color assignment (fixed across optional-module refinements).
+  color_asignado_en TIMESTAMPTZ,
   -- Enneagram subtype mark on the sprite (identity layer, docs/AVATARES.md).
   avatar_mark TEXT CHECK (avatar_mark IS NULL OR avatar_mark IN ('sp', 'so', 'sx')),
   -- Opt-in: third parties see the wing tone and subtype mark only when true.
@@ -345,7 +347,8 @@ CREATE FUNCTION public.submit_quiz_result(
   p_alias TEXT,
   p_latent_profile JSONB,
   p_avatar_mark TEXT,
-  p_completed_modules TEXT[]
+  p_completed_modules TEXT[],
+  p_preserve_color BOOLEAN DEFAULT false
 )
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -387,10 +390,21 @@ BEGIN
   END LOOP;
 
   -- The alias is fixed at first assignment (ADR-024): retakes never rename.
+  -- When p_preserve_color is true (optional module refinement), the existing
+  -- color_id and color_asignado_en are preserved.
   UPDATE public.profiles SET
     alias = COALESCE(public.profiles.alias, v_candidate),
     animal_id = p_animal_id,
-    color_id = p_color_id,
+    color_id = CASE
+      WHEN COALESCE(p_preserve_color, false) AND public.profiles.color_id IS NOT NULL
+        THEN public.profiles.color_id
+      ELSE p_color_id
+    END,
+    color_asignado_en = CASE
+      WHEN COALESCE(p_preserve_color, false) AND public.profiles.color_id IS NOT NULL
+        THEN COALESCE(public.profiles.color_asignado_en, now())
+      ELSE now()
+    END,
     avatar_mark = p_avatar_mark,
     narrative = p_narrative,
     orientacion_sexual = ARRAY(SELECT jsonb_array_elements_text(COALESCE(p_hard_filters -> 'orientacion_sexual', '[]'))),
@@ -1401,6 +1415,7 @@ BEGIN
     quiz_completed_at = NULL,
     animal_id = NULL,
     color_id = NULL,
+    color_asignado_en = NULL,
     avatar_mark = NULL,
     narrative = NULL,
     orientacion_sexual = '{}',
@@ -1495,7 +1510,7 @@ REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA private FROM PUBLIC, anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION
-  public.submit_quiz_result(UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT[]),
+  public.submit_quiz_result(UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT[], BOOLEAN),
   public.get_pool_version(),
   public.replace_matches(JSONB, TEXT),
   public.get_user_matches(UUID),

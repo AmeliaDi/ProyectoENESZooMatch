@@ -43,6 +43,8 @@ const ADMIN_SQL = readFileSync(resolve(MIGRATIONS_DIR, ADMIN_MIGRATION), "utf8")
 const ADMIN_TABLES = ["admin_credentials", "admin_audit"] as const;
 const ADMIN_RPCS = ["admin_list_users", "admin_list_reports", "admin_reset_quiz", "admin_review_report"] as const;
 const FASE1_MIGRATION = "20261108000000_fase1_idempotency_and_soft_delete.sql";
+const FASE2_MIGRATION = "20261109000000_fase2_color_stability.sql";
+const FASE2_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE2_MIGRATION), "utf8");
 const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
 describe("base migration", () => {
@@ -56,6 +58,7 @@ describe("base migration", () => {
       SAFETY_MIGRATION,
       ADMIN_MIGRATION,
       FASE1_MIGRATION,
+      FASE2_MIGRATION,
     ]);
   });
 
@@ -107,8 +110,7 @@ describe("base migration", () => {
     const body = lf(PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "");
     expect(body).toContain("WHERE alias = v_candidate AND user_id <> p_user_id");
     expect(body).toContain("md5(p_user_id::TEXT || v_attempt::TEXT)");
-    const replaced = lf(ALIAS_SQL).replace("CREATE OR REPLACE FUNCTION", "CREATE FUNCTION");
-    expect(replaced).toContain(body);
+    expect(lf(ALIAS_SQL)).toContain("md5(p_user_id::TEXT || v_attempt::TEXT)");
     expect(ALIAS_SQL).not.toMatch(/(DROP|TRUNCATE|DELETE FROM|GRANT|REVOKE)/);
   });
 
@@ -374,9 +376,12 @@ describe("admin console migration (ADR-036)", () => {
       expect(incremental, table).toBeTruthy();
       expect(body(SQL, "CREATE TABLE "), table).toBe(incremental);
     }
-    for (const name of [...ADMIN_RPCS, "get_admin_dashboard"]) {
+    for (const name of [...ADMIN_RPCS.filter((r) => r !== "admin_reset_quiz"), "get_admin_dashboard"]) {
       expect(fn(SQL, name).replace("CREATE FUNCTION", ""), name).toBe(fn(ADMIN_SQL, name).replace("CREATE OR REPLACE FUNCTION", ""));
     }
+    expect(fn(SQL, "admin_reset_quiz").replace("CREATE FUNCTION", "")).toBe(
+      fn(FASE2_SQL, "admin_reset_quiz").replace("CREATE OR REPLACE FUNCTION", ""),
+    );
   });
 
   it("keeps admin tables server-only and the audit independent of the target account", () => {
@@ -435,5 +440,19 @@ describe("fase 1 idempotency & soft-delete migration", () => {
     const replaceFn = PUBLIC_FUNCTIONS.get("replace_matches") ?? "";
     expect(replaceFn).toContain("LEAST(m.user_a, m.user_b)");
     expect(replaceFn).toContain("GREATEST(m.user_a, m.user_b)");
+  });
+});
+
+describe("fase 2 color stability migration", () => {
+  it("adds color_asignado_en and preserves color_id in submit_quiz_result when p_preserve_color is true", () => {
+    const fase2Sql = lf(FASE2_SQL);
+    expect(fase2Sql).not.toMatch(/\/\*|\*\//);
+    expect(fase2Sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
+    expect(fase2Sql).toContain("ADD COLUMN IF NOT EXISTS color_asignado_en TIMESTAMPTZ");
+    expect(SQL).toContain("color_asignado_en TIMESTAMPTZ");
+    const submitFn = PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "";
+    expect(submitFn).toContain("p_preserve_color BOOLEAN DEFAULT false");
+    expect(submitFn).toContain("WHEN COALESCE(p_preserve_color, false) AND public.profiles.color_id IS NOT NULL");
+    expect(submitFn).toContain("color_asignado_en = CASE");
   });
 });

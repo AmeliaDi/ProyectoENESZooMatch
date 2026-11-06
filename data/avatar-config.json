@@ -15,7 +15,10 @@
 
     "wing_margin": { "valor": 0.05, "etiqueta": "supuesto_diseno", "fuente": "Si |P(ala izq) − P(ala der)| < margen, no se muestra ala (tono base)" },
     "subtype_max_se": { "valor": 0.85, "etiqueta": "estimado_sintetico", "fuente": "SE posterior medio del subtipo: 1.00 sin módulo y 0.72 con módulo (scripts/matching/population, semilla 7); solo se dibuja la marca si el SE del instinto dominante es < 0.85" },
-    "subtype_margin": { "valor": 0.25, "etiqueta": "supuesto_diseno", "fuente": "Diferencia mínima en θ entre el instinto dominante y el segundo" }
+    "subtype_margin": { "valor": 0.25, "etiqueta": "supuesto_diseno", "fuente": "Diferencia mínima en θ entre el instinto dominante y el segundo" },
+    "neblina_prior_weight": { "valor": 0.035714, "etiqueta": "supuesto_diseno", "fuente": "Peso base 1/28 de ennea-neblina como un color más del catálogo cuando el eneagrama es ambiguo" },
+    "max_color_share": { "valor": 0.12, "etiqueta": "supuesto_diseno", "fuente": "Cota máxima permitida (12 %) para cualquier color individual en población sintética N>=5000" },
+    "min_color_entropy": { "valor": 2.95, "etiqueta": "estimado_sintetico", "fuente": "Entropía de Shannon mínima (nats) sobre los 28 colores del catálogo (ln 28 ≈ 3.332)" }
   },
   "emblem_tone": {
     "valor": "#F2E8D5",

@@ -19,13 +19,25 @@
 | Tono | Ala (vecino del anillo más probable) | Ala anterior (k−1) → tono **profundo**; ala siguiente (k+1) → tono **claro**. Si las dos alas están a menos de 0.05 de probabilidad, no se muestra ala | `supuesto_diseno` |
 | Emblema del pecho | Tipo del Eneagrama | Glifo de 4×3 px en tinta crema (§4). Repite el tipo **sin depender del color** (daltonismo) | `supuesto_diseno` |
 | Marca pequeña | Subtipo instintivo (módulo opcional) | sp: a ras de suelo; so: a los lados; sx: alta y central. Solo si el SE posterior < 0.85 y el instinto dominante aventaja por ≥ 0.25 | `estimado_sintetico` |
-| Estado neutro | Entropía normalizada > 0.85 | Color **gris neblina** y emblema de **aura suave**: no se fuerza un tipo | `supuesto_diseno` (umbral de ADR-017) |
+| Eneagrama en exploración | Entropía normalizada > 0.85 | Emblema de **aura suave** (no se fuerza etiqueta diagnóstica) y **muestreo determinista ponderado por la posterior** sobre los 28 colores del catálogo (`pickAmbiguousColor`), donde `ennea-neblina` participa con peso 1/28 (≈ 3.6 %) | `supuesto_diseno` (umbral de ADR-017 + corrección Fase 2) |
 
-**Faltan módulos → el sprite sigue siendo válido.** Solo con el núcleo, el
-subtipo tiene SE = 1, así que no hay marca. Si el Eneagrama queda ambiguo, se
-muestra el estado neutro. Al completar módulos, la entropía baja y aparecen el
-color de tipo, el ala y la marca. Nunca se imputa: eso se prueba en
-`avatar-spec.test.ts` («stays valid with no answers at all»).
+**Faltan módulos → el sprite sigue siendo válido y diverso.** Solo con el núcleo, el
+subtipo tiene SE = 1, así que no hay marca, y los 9 tipos del Eneagrama quedan con
+entropía normalizada > 0.85. En ese estado, la lectura diagnóstica se mantiene
+en «En exploración» (`type: null`, `emblem: "neutro"`), pero el color visual se
+asigna de forma determinista y explicable a partir de la distribución posterior
+sobre los 9 tipos (repartida entre el tono base y las dos alas de cada tipo, más
+`ennea-neblina` con peso `1/28 = 0.035714`) usando una semilla estable del perfil.
+De este modo ningún color supera el 12 % (`max_color_share`) y la entropía de
+Shannon supera 2.95 nats (`min_color_entropy`), verificado con $N = 5000$ perfiles
+sintéticos en `avatar-spec.test.ts` y en vivo en `/dev/avatars`.
+
+**Estabilidad del color («como inicia»).** El color base se fija al terminar el
+cuestionario y se persiste en `profiles.color_id` y `profiles.color_asignado_en`.
+Completar módulos opcionales (`refineProfile`) afina la lectura diagnóstica, la
+especie, el ala o la marca de subtipo, pero **conserva el color base inicial**
+(`preserveColor: true`). El color solo cambia si la persona **rehace el cuestionario
+completo** o lo solicita explícitamente en **Ajustes → Reasignar mi color**.
 
 **Honestidad.** MBTI y Eneagrama tienen validez empírica limitada
 (`docs/EVIDENCIA.md`, EV-30 a EV-42). Por eso solo dan forma y color, nunca
@@ -202,10 +214,13 @@ Población sintética (N = 1000, semilla de calibración, generador de
 | Indicador | Valor |
 |---|---|
 | Especies que aparecen | 77 de 77 en grupos (mín. 5 y máx. 28 personas por especie) |
-| Eneagrama ambiguo (gris neblina) | 15.5 % |
+| Eneagrama en exploración (`emblem: "neutro"`) | 15.5 % en test completo; 100 % solo núcleo |
+| Frecuencia de `ennea-neblina` ($N = 5000$, mezcla núcleo + módulos) | ≈ 2.0 % – 3.6 % (1 color más de los 28) |
+| Máxima concentración de cualquier color ($N = 5000$) | ≤ 7.0 % (umbral máx. configurado: 12.0 %) |
+| Entropía de Shannon de colores ($N = 5000$) | ≈ 3.23 nats (mín. configurado: 2.95 nats; máx. teórico $\ln 28 = 3.33$ nats) |
 | Ala visible | 45.0 % |
 | Marca de subtipo visible | 29.5 % (sp 115, sx 107, so 73) |
-| Colores usados | 28 de 28 (de 13 a 155 personas; el máximo es neblina) |
+| Colores usados | 28 de 28 |
 
 ## 6. Privacidad: riesgo de reidentificación y decisión
 

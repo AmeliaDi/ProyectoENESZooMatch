@@ -9,8 +9,10 @@
 
 import { useMemo, useState } from "react";
 
-import { AVATAR_CONFIG, CATALOG_COLORS, DESIGN_TOKENS, MBTI_CODES } from "@/config";
+import { AVATAR_CONFIG, CATALOG_COLORS, DESIGN_TOKENS, MATCHING_CONFIG, MBTI_CODES } from "@/config";
+import { buildAvatarSpec } from "@/domain/avatars/avatar-spec";
 import { GRID_SIZE, getSpriteFrame } from "@/domain/avatars/pixel-sprites";
+import { fnv1a32 } from "@/domain/shared";
 import type { SpriteMark } from "@/ui/constellation/types";
 
 type Wing = "none" | "deep" | "light";
@@ -19,6 +21,41 @@ const SCALE = 3;
 const TYPES = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 const MARKS: readonly (SpriteMark | null)[] = [null, "sp", "so", "sx"];
 const COLOR_IDS = new Set(CATALOG_COLORS.map((c) => c.id));
+const SAMPLE_SIZE = 1000;
+const AVATAR_PARAMS = {
+  temperature: MATCHING_CONFIG.categories.eneagrama.kind === "distribution" ? MATCHING_CONFIG.categories.eneagrama.temperature : 1,
+  ambiguityEntropy: MATCHING_CONFIG.scoring.enneagram_ambiguity_entropy,
+};
+
+function computeSyntheticDistribution() {
+  const counts = new Map<string, number>();
+  for (const c of CATALOG_COLORS) counts.set(c.id, 0);
+  for (let i = 0; i < SAMPLE_SIZE; i++) {
+    const theta: Record<string, number> = {};
+    const se: Record<string, number> = {};
+    const ambiguous = i % 2 === 0;
+    for (let t = 1; t <= 9; t++) {
+      const h = fnv1a32(`gallery:${i}:${t}`) / 0x100000000;
+      theta[`ennea_${t}`] = ambiguous ? (h - 0.5) * 0.4 : (h - 0.5) * 3.2;
+      se[`ennea_${t}`] = ambiguous ? 0.95 : 0.45;
+    }
+    const spec = buildAvatarSpec({ theta, se, quality: 1, answered: ambiguous ? 30 : 90 }, AVATAR_PARAMS, `gallery-user-${i}`);
+    counts.set(spec.colorId, (counts.get(spec.colorId) ?? 0) + 1);
+  }
+  let topColor = "";
+  let topShare = 0;
+  let entropy = 0;
+  for (const [id, count] of counts) {
+    const p = count / SAMPLE_SIZE;
+    if (p > topShare) {
+      topShare = p;
+      topColor = id;
+    }
+    if (p > 0) entropy -= p * Math.log(p);
+  }
+  const neblinaShare = (counts.get("ennea-neblina") ?? 0) / SAMPLE_SIZE;
+  return { topColor, topShare, entropy, neblinaShare };
+}
 
 function colorFor(type: number, wing: Wing): string {
   if (wing === "none") return `ennea-${type}`;
@@ -91,6 +128,11 @@ export function AvatarGallery() {
   const background = DESIGN_TOKENS.modes[sky].colors.sky;
   const ink = DESIGN_TOKENS.modes[sky].colors.fg;
   const missing = rows.flatMap((r) => r.colors).filter((id) => !COLOR_IDS.has(id));
+  const distribution = useMemo(() => computeSyntheticDistribution(), []);
+  const maxAllowedShare = AVATAR_CONFIG.ambiguity.max_color_share.valor;
+  const minAllowedEntropy = AVATAR_CONFIG.ambiguity.min_color_entropy.valor;
+  const colorMonopolyAlert =
+    distribution.topShare > maxAllowedShare || distribution.entropy < minAllowedEntropy;
 
   return (
     <main style={{ background, color: ink, padding: 16, minHeight: "100vh" }}>
@@ -130,6 +172,11 @@ export function AvatarGallery() {
         {duplicates.length === 0 && missing.length === 0
           ? `Sin duplicados: ${rows.length * TYPES.length} sprites distintos.`
           : `Atención: ${duplicates.length} duplicados, ${missing.length} colores fuera del catálogo. ${duplicates.slice(0, 5).join("; ")}`}
+      </p>
+      <p role={colorMonopolyAlert ? "alert" : "status"}>
+        {colorMonopolyAlert
+          ? `Alerta de concentración de color: ${distribution.topColor} acapara ${(distribution.topShare * 100).toFixed(1)} % (máx. ${(maxAllowedShare * 100).toFixed(0)} %) · entropía ${distribution.entropy.toFixed(2)} nats.`
+          : `Distribución sintética equilibrada (N=${SAMPLE_SIZE}): máx. ${distribution.topColor} (${(distribution.topShare * 100).toFixed(1)} % ≤ ${(maxAllowedShare * 100).toFixed(0)} %), neblina ${(distribution.neblinaShare * 100).toFixed(1)} %, entropía ${distribution.entropy.toFixed(2)} nats.`}
       </p>
       <table style={{ borderCollapse: "collapse" }}>
         <thead>

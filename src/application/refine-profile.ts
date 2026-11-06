@@ -44,5 +44,5 @@ export async function refineProfile(input: RefineInput, deps: RefineDeps): Promi
   if (!stored.ok) return stored;
   const submission = mergeModule(stored.value, input);
   if (!submission) return err("request.invalid");
-  return submitQuiz({ userId: input.userId, submission }, deps);
+  return submitQuiz({ userId: input.userId, submission, preserveColor: true }, deps);
 }

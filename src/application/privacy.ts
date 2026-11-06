@@ -1,19 +1,55 @@
-import { ok, type Result } from "@/domain/shared";
+import { CATALOG_COLORS } from "@/config";
+import { buildAvatarSpec } from "@/domain/avatars/avatar-spec";
+import { err, ok, type Result } from "@/domain/shared";
 import { SHARE_LAYER_IDS, type ShareLayerId } from "@/types/sharing";
 
 import type { AppError } from "./errors";
+import { avatarParams } from "./identity-readout";
 import type { PrivacyState, ProfileRepository } from "./ports";
 import { recomputeMatches, type RecomputeDeps } from "./recompute-matches";
 
 export interface PrivacyDeps extends RecomputeDeps {
   profiles: RecomputeDeps["profiles"] &
-    Pick<ProfileRepository, "privacyState" | "setPaused" | "setShowAvatarDetail" | "setSharedLayers" | "deleteAccount">;
+    Pick<
+      ProfileRepository,
+      "privacyState" | "setPaused" | "setShowAvatarDetail" | "setSharedLayers" | "deleteAccount"
+    > &
+    Partial<Pick<ProfileRepository, "findOwn" | "setColor">>;
 }
 
 export interface PrivacyOutcome {
   paused: boolean;
   /** `true` when the shared match set could not be republished yet. */
   recomputePending: boolean;
+}
+
+export interface ReassignedColor {
+  colorId: string;
+  colorName: string;
+  colorHex: string;
+}
+
+/**
+ * Explicitly recalculates and persists the user's base color from their
+ * current latent profile (used when requested in Ajustes).
+ */
+export async function reassignProfileColor(
+  userId: string,
+  deps: Pick<PrivacyDeps, "profiles">,
+): Promise<Result<ReassignedColor, AppError>> {
+  if (!deps.profiles.findOwn || !deps.profiles.setColor) return err("storage.failed");
+  const own = await deps.profiles.findOwn(userId);
+  if (!own.ok) return own;
+  if (!own.value || !own.value.latent || !own.value.animal) return err("quiz.not_completed");
+
+  const spec = buildAvatarSpec(own.value.latent, avatarParams(), userId);
+  const color = CATALOG_COLORS.find((c) => c.id === spec.colorId);
+  if (!color) return err("request.invalid");
+
+  const saved = await deps.profiles.setColor(userId, color.id);
+  if (!saved.ok) return saved;
+
+  return ok({ colorId: color.id, colorName: color.nombre, colorHex: color.hex });
 }
 
 /** Visual-only preference: no recomputation, matches do not change. */
