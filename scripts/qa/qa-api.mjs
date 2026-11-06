@@ -63,8 +63,9 @@ for (const s of [a, b]) {
   const r = await post("/api/quiz", { likert: likert(2), filters }, s.cookie);
   row("quiz completo", r.status, r.status === 200);
 }
-const firstAlias = (await (await post("/api/quiz", { likert: likert(0), filters }, a.cookie)).json()).profile?.alias;
-const retake = (await (await post("/api/quiz", { likert: likert(2), filters }, a.cookie)).json()).profile?.alias;
+const aliasOf = (body) => body?.identity?.aliasCompleto ?? body?.profile?.identity?.aliasCompleto ?? null;
+const firstAlias = aliasOf(await (await post("/api/quiz", { likert: likert(0), filters }, a.cookie)).json());
+const retake = aliasOf(await (await post("/api/quiz", { likert: likert(2), filters }, a.cookie)).json());
 row("alias fijo al rehacer el test (ADR-024)", retake === firstAlias ? "igual" : "cambió", Boolean(firstAlias) && retake === firstAlias);
 const get = (p, s) => fetch(BASE + p, { headers: { cookie: s.cookie } });
 const res = await get("/api/result", a);
@@ -97,7 +98,7 @@ await patchShare(b, { sharedLayers: [] });
 const pause = await fetch(BASE + "/api/privacy", { method: "PATCH", headers: { "content-type": "application/json", origin: BASE, cookie: b.cookie }, body: JSON.stringify({ paused: true }) });
 row("PATCH pausar perfil", pause.status, pause.status === 200);
 const resAfter = await (await get("/api/result", a)).json();
-const hidden = !JSON.stringify(resAfter).includes(JSON.stringify(resJson.matches?.romance?.[0]?.alias ?? "§"));
+const hidden = !JSON.stringify(resAfter).includes(JSON.stringify(resJson.matches?.romance?.[0]?.identity?.aliasCompleto ?? "§"));
 row("perfil pausado deja de aparecer", hidden ? "sí" : "no", hidden || !resJson.matches?.romance?.length);
 const notif = await get("/api/notifications", a);
 row("GET /api/notifications", notif.status, notif.status === 200);
@@ -136,12 +137,13 @@ row("recuperación con matrícula ajena", badRecovery.status, badRecovery.status
 
 // Chat entre matches (ADR-032): solo entre las dos cuentas QA, identificadas por alias.
 await fetch(BASE + "/api/privacy", { method: "PATCH", headers: { "content-type": "application/json", origin: BASE, cookie: b.cookie }, body: JSON.stringify({ paused: false }) });
-const bAlias = (await (await get("/api/profile", b)).json()).profile?.alias ?? (await (await get("/api/result", b)).json()).alias;
+const bAlias = aliasOf(await (await get("/api/profile", b)).json()) ?? aliasOf(await (await get("/api/result", b)).json());
 async function entryFor(s, alias) {
+  if (!alias) return null;
   for (let i = 0; i < 6; i++) {
     const r = await (await get("/api/result", s)).json();
     for (const track of ["amistad", "romance"]) {
-      const e = (r.matches?.[track] ?? []).find((m) => m.alias === alias);
+      const e = (r.matches?.[track] ?? []).find((m) => m.identity?.aliasCompleto === alias);
       if (e?.id) return { track, id: e.id };
     }
     await new Promise((ok) => setTimeout(ok, 1500));

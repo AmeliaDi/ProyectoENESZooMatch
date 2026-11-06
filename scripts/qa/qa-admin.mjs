@@ -49,7 +49,7 @@ async function login() {
 async function findTarget(cookie, alias) {
   const res = await call(`/api/admin/users?q=${encodeURIComponent(alias)}`, {}, cookie);
   const body = await res.json();
-  return body.users?.find((u) => u.alias === alias) ?? null;
+  return body.users?.find((u) => u.identity?.aliasCompleto === alias) ?? null;
 }
 
 async function targetFlow(cookie) {
@@ -58,7 +58,7 @@ async function targetFlow(cookie) {
   const list = await call("/api/admin/users?page=0", {}, cookie);
   const page = await list.json();
   check("users page lists accounts without matrícula/hash", list.ok && Array.isArray(page.users) && !/matricula|hash|latent|theta/i.test(JSON.stringify(page)));
-  const target = page.users.find((u) => !u.alias && !u.quizCompletedAt) ?? null;
+  const target = page.users.find((u) => !u.identity?.aliasCompleto && !u.quizCompletedAt) ?? null;
   if (!target) return check("found the fresh target account", false);
   for (const action of ["pause", "resume"]) {
     const res = await call(`/api/admin/users/${target.id}`, { method: "POST", body: JSON.stringify({ action }) }, cookie);
@@ -90,7 +90,7 @@ if (MATRICULA && PIN) {
   const cookie = await login();
   if (cookie) {
     const session = await call("/api/admin/session", {}, cookie);
-    check("session → alias", session.ok && "alias" in (await session.json()));
+    check("session → identity", session.ok && "identity" in (await session.json()));
     const selfDelete = await findTarget(cookie, "__none__");
     check("search with no match → empty", selfDelete === null);
     if (TARGET) await targetFlow(cookie);
