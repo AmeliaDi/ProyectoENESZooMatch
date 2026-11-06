@@ -303,4 +303,18 @@ describe("domain/identity — Fase 2: hatchIdentity & grammatical concordance", 
     const sfx = suffixFromDigestHex("deadbeef0123456789abcdef0123456789abcdef0123456789abcdef01234567");
     expect(SAFE_SUFFIX_REGEX.test(sfx)).toBe(true);
   });
+
+  it("keeps every egg shell inside uint32 and spreads one shell per person", () => {
+    // The seed is the first 8 hex of HMAC-SHA-256 read as an unsigned 32-bit
+    // integer, so 0 <= seed < 2^32 is structural, not a fitted bound.
+    const seeds = Array.from({ length: 512 }, (_, i) => eggCosmeticSeed(`user-${i}`, SECRET));
+    for (const seed of seeds) {
+      expect(Number.isInteger(seed)).toBe(true);
+      expect(seed).toBeGreaterThanOrEqual(0);
+      expect(seed).toBeLessThan(2 ** 32);
+    }
+    // Birthday bound for 512 draws from 2^32 values is ~3.0e-5 collisions, and
+    // SECRET is fixed, so this set is the same set on every machine.
+    expect(new Set(seeds).size).toBe(seeds.length);
+  });
 });

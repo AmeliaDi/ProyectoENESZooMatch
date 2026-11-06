@@ -10,6 +10,7 @@
  */
 import { describe, expect, it } from "vitest";
 
+import { eggCosmeticSeed } from "@/domain/identity/hatch-identity";
 import { ENNEAGRAM_WING_CODES } from "@/domain/psychometrics/psychometrics";
 import type { CounterpartProfile, IdentityRecord } from "./ports";
 
@@ -23,6 +24,9 @@ import {
 const TYPES = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 /** All 81 type × wing pairs, adjacent and not. */
 const ALL_COMBINATIONS = TYPES.flatMap((type) => TYPES.map((wing) => `${type}w${wing}`));
+
+const USER_ID = "00000000-0000-4000-8000-00000000000a";
+const SECRET = "zm-test-secret";
 
 function record(overrides: Partial<IdentityRecord> = {}): IdentityRecord {
   return {
@@ -170,5 +174,20 @@ describe("toIdentityDto", () => {
       revelacionVista: false,
       huevitoSeed: 4242,
     });
+  });
+
+  it("seeds an egg shell from the person's own id and nothing else", () => {
+    const seed = eggCosmeticSeed(USER_ID, SECRET);
+    const dto = toIdentityDto(record({ estadoIdentidad: "huevo" }), seed);
+    expect(dto.huevitoSeed).toBe(seed);
+    expect(Number.isInteger(dto.huevitoSeed)).toBe(true);
+    expect(dto.huevitoSeed!).toBeGreaterThanOrEqual(0);
+    expect(dto.huevitoSeed!).toBeLessThan(2 ** 32);
+    // Two people answering the same way still get different shells.
+    expect(eggCosmeticSeed("00000000-0000-4000-8000-00000000000b", SECRET)).not.toBe(seed);
+    // No seed asked for, no shell variation: an egg never carries a made-up one.
+    expect(toIdentityDto(record({ estadoIdentidad: "huevo" })).huevitoSeed).toBeNull();
+    // A hatched row ignores the seed entirely: cosmetics stop at the hatch.
+    expect(toIdentityDto(record(), seed).huevitoSeed).toBeNull();
   });
 });

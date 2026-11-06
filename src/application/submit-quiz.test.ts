@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { MATCHING_CONFIG, QUIZ_ITEMS } from "@/config";
 import { PSYCHOMETRIC_PARAMS } from "@/config/psychometric-params";
+import { hatchRequiredItemIds } from "@/domain/identity/hatch-condition";
 import { buildMeasurementModel, scoreLatent } from "@/domain/psychometrics/latent";
 import type { LikertValue, QuizSubmission } from "@/types/microtest";
 
@@ -76,6 +77,24 @@ describe("submitQuiz", () => {
     await submitQuiz({ userId: USER_A, submission: submission(4) }, deps);
     await submitQuiz({ userId: USER_A, submission: submission(2) }, deps);
     expect(store.notifications.filter((n) => n.type === "welcome")).toHaveLength(1);
+  });
+
+  it("refuses a submission with an unanswered core item and stores nothing", async () => {
+    const store = new MemoryStore();
+    const [missing] = hatchRequiredItemIds(QUIZ_ITEMS);
+    const partial: QuizSubmission = {
+      likert: submission(4).likert.filter((answer) => answer.itemId !== missing),
+      filters: [],
+    };
+
+    const result = await submitQuiz({ userId: USER_A, submission: partial }, wire(store));
+
+    // The mandatory core is exactly what hatching reads, so an egg never comes
+    // out of a scored submission: the request is refused before anything is
+    // written, and no half-named row can reach a screen.
+    expect(result).toEqual({ ok: false, error: "request.invalid" });
+    expect(store.results.has(USER_A)).toBe(false);
+    expect(store.identities.has(USER_A)).toBe(false);
   });
 
   it("keeps the first alias when the profile is retaken (ADR-024)", async () => {

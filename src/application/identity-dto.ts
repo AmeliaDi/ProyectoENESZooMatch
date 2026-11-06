@@ -8,7 +8,6 @@ import { baseColorId } from "@/domain/avatars/avatar-spec";
 import type { SubtypeMark } from "@/domain/avatars/avatar-spec";
 import type { IdentityDto } from "@/contracts/identity";
 import type { IdentityState } from "@/domain/identity/hatch-identity";
-import { hmacSha256Hex, type Hmac } from "@/domain/shared";
 import {
   ENNEAGRAM_WING_CODES,
   enneagramProfileFromType,
@@ -51,20 +50,6 @@ export function enneagramWords(code: string | null): EnneagramWords {
 export function enneagramCodeOfReadout(type: number | null, wing: number | null): string | null {
   if (type === null) return null;
   return wing === null ? String(type) : `${type}w${wing}`;
-}
-
-/**
- * Cosmetic shell of an egg, from the server secret and the person's own id.
- * Reversible only with the secret, and independent of every psychometric
- * number, so the drawing cannot hint at — or change with — the animal.
- */
-export function eggSeedOf(secret: string | Hmac, userId: string): number {
-  const hex = hmacOf(secret, `huevito:${userId}`).slice(0, 8);
-  return Number.parseInt(hex, 16) >>> 0;
-}
-
-function hmacOf(secret: string | Hmac, input: string): string {
-  return typeof secret === "string" ? hmacSha256Hex(secret, input) : secret.sign(input);
 }
 
 interface IdentitySource {

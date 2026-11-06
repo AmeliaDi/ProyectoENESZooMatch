@@ -2,6 +2,7 @@ import { MICROTEST_ITEMS, scoreQuiz, type GlobalMatch, type LatentScorer } from 
 import { generateStoredNarrative } from "@/domain/identity/profile-generator";
 import { formatIdentity } from "@/domain/identity/format-identity";
 import { hatchConditionMet, identityRequirements } from "@/domain/identity/hatch-condition";
+import { eggCosmeticSeed } from "@/domain/identity/hatch-identity";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import { generateWelcomeMessage } from "@/domain/messages/notification-copy";
 
@@ -46,10 +47,14 @@ function flattenAnswers(submission: QuizSubmission): StoredAnswer[] {
 
 const OPTIONAL_MODULES = QUIZ_MODULE_IDS.filter((id) => id !== "nucleo");
 
-/** What the API answers when a submission did not hatch: no identity at all. */
-function eggProfile(progressPercent: number): QuizSubmittedDto["profile"] {
+/**
+ * What the API answers when a submission did not hatch: no identity at all,
+ * only the cosmetic shell. The seed comes from the server secret and the
+ * person's own id, so two huevitos differ without previewing the animal.
+ */
+function eggProfile(userId: string, progressPercent: number, secret: string | Hmac): QuizSubmittedDto["profile"] {
   return {
-    identity: EGG_IDENTITY_DTO,
+    identity: { ...EGG_IDENTITY_DTO, huevitoSeed: eggCosmeticSeed(userId, secret) },
     narrative: "",
     mbtiCode: "",
     enneagram: { code: "—", nombre: "En exploración", arquetipo: "Tu eneagrama aún no se define", exploring: true },
@@ -210,7 +215,7 @@ async function executeSubmitQuiz(
   if (!after.ok) return after;
   const record = after.value;
   if (!record || record.estadoIdentidad !== "eclosionado") {
-    return ok({ ok: true, recomputePending: !recomputed.ok, profile: eggProfile(coreProgressPercent(answers)) });
+    return ok({ ok: true, recomputePending: !recomputed.ok, profile: eggProfile(input.userId, coreProgressPercent(answers), deps.secret) });
   }
   const identity = toIdentityDto(record);
 
