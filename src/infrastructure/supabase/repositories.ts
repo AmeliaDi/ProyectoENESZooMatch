@@ -13,6 +13,7 @@ import type {
   StoredMatch,
 } from "@/application/ports";
 import type { StorageError } from "@/application/errors";
+import { normalizeMatchPairs } from "@/domain/matching";
 import { ok, type Result } from "@/domain/shared";
 
 import { POOL_CHANGED_SENTINEL, RPC, TABLE, attempt, failed } from "./shared";
@@ -40,9 +41,10 @@ export function supabaseMatchRepository(admin: SupabaseClient): MatchRepository 
     },
 
     async replaceAll(pairs, poolVersion) {
+      const normalized = normalizeMatchPairs(pairs);
       const res = await attempt(() =>
         admin.rpc(RPC.replace, {
-          p_matches: pairs.map((pair) => ({
+          p_matches: normalized.map((pair) => ({
             track: pair.track,
             user_a: pair.userA,
             user_b: pair.userB,
@@ -106,6 +108,15 @@ export function supabaseNotificationRepository(
 
     async insertWelcome(userId, message, metadata) {
       if (!admin) return;
+      const existing = await attempt(() =>
+        admin
+          .from(TABLE.notifications)
+          .select("id")
+          .eq("user_id", userId)
+          .eq("type", "welcome")
+          .maybeSingle(),
+      );
+      if (existing && !existing.error && existing.data) return;
       await attempt(() =>
         admin.from(TABLE.notifications).insert({
           user_id: userId,

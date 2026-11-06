@@ -86,19 +86,38 @@ async function findProfileAfterRace(admin: SupabaseClient, matriculaHash: string
   return findProfile(admin, matriculaHash);
 }
 
-/** Creates auth user + profile row; tolerates a concurrent first entry. */
+/** Creates auth user + profile row; tolerates a concurrent first entry or orphan auth user. */
 async function createProfile(
   admin: SupabaseClient,
   matriculaHash: string,
 ): Promise<ProfileRow | MatriculaEntryResult> {
+  const email = privateLoginEmail(matriculaHash);
   const { data: created, error: createError } = await admin.auth.admin.createUser({
-    email: privateLoginEmail(matriculaHash),
+    email,
     password: randomBytes(32).toString("base64url"),
     email_confirm: true,
   });
   if (createError || !created.user) {
     const existing = await findProfileAfterRace(admin, matriculaHash);
-    return existing.data ?? fail("create_user", createError ?? existing.error);
+    if (existing.data) return existing.data;
+
+    // Recover if an earlier attempt created auth.users before profiles was inserted.
+    const { data: recoveredLink } = await admin.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+    });
+    const recoveredId = recoveredLink?.user?.id;
+    if (recoveredId) {
+      const { error: upsertError } = await admin
+        .from("profiles")
+        .upsert({ user_id: recoveredId, matricula_hash: matriculaHash }, { onConflict: "matricula_hash", ignoreDuplicates: true });
+      if (!upsertError) {
+        const afterRecover = await findProfile(admin, matriculaHash);
+        if (afterRecover.data) return afterRecover.data;
+        return { user_id: recoveredId, quiz_completed_at: null };
+      }
+    }
+    return fail("create_user", createError ?? existing.error);
   }
 
   const row = { user_id: created.user.id, matricula_hash: matriculaHash };

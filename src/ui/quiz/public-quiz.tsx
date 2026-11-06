@@ -57,6 +57,7 @@ export function PublicQuiz() {
   const promptId = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const submitLock = useRef(false);
+  const clientKeyRef = useRef<string>("");
 
   const [stage, setStage] = useState<Stage>("loading");
   const [draft, setDraft] = useState<QuizDraft>({ likert: {}, filters: {}, skipped: [] });
@@ -122,19 +123,27 @@ export function PublicQuiz() {
       setIndex(resumeIndex(ITEMS, draft));
       return;
     }
+    if (!clientKeyRef.current) {
+      clientKeyRef.current =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `quiz-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    }
     submitLock.current = true;
     setSubmitting(true);
     setError(null);
+    let succeeded = false;
     try {
       const response = await fetch("/api/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, inclusiveMode }),
+        body: JSON.stringify({ ...payload, inclusiveMode, clientKey: clientKeyRef.current }),
       });
       if (!response.ok) {
         setError(response.status === 401 ? "session" : "generic");
         return;
       }
+      succeeded = true;
       const body = (await response.json().catch(() => null)) as QuizSubmittedDto | null;
       window.localStorage.removeItem(QUIZ_STORAGE_KEY);
       if (body?.recomputePending) window.sessionStorage.setItem(RECOMPUTE_PENDING_KEY, "1");
@@ -148,8 +157,10 @@ export function PublicQuiz() {
     } catch {
       setError("generic");
     } finally {
-      submitLock.current = false;
-      setSubmitting(false);
+      if (!succeeded) {
+        submitLock.current = false;
+        setSubmitting(false);
+      }
     }
   }
 

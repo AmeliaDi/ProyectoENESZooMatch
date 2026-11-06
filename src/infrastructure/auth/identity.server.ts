@@ -1,7 +1,11 @@
 import { createHmac } from "node:crypto";
 
-export function hashMatricula(normalizedMatricula: string, secret: string): string {
-  return createHmac("sha256", secret).update(normalizedMatricula, "utf8").digest("hex");
+export function normalizeMatriculaInput(matricula: string): string {
+  return matricula.trim().toUpperCase();
+}
+
+export function hashMatricula(matricula: string, secret: string): string {
+  return createHmac("sha256", secret).update(normalizeMatriculaInput(matricula), "utf8").digest("hex");
 }
 
 export function privateLoginEmail(matriculaHash: string): string {

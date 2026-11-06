@@ -143,4 +143,33 @@ describe("submitQuiz", () => {
     );
     expect(store.inclusiveModes.get(USER_A)).toBe("neutro_e");
   });
+
+  it("deduplicates concurrent double submissions and clientKey retries idempotently", async () => {
+    const store = new MemoryStore();
+    const deps = wire(store);
+    let saveCalls = 0;
+    const origSave = deps.profiles.saveQuizResult.bind(deps.profiles);
+    deps.profiles.saveQuizResult = async (record) => {
+      saveCalls += 1;
+      await new Promise((resolve) => setTimeout(resolve, 15));
+      return origSave(record);
+    };
+
+    const [first, second] = await Promise.all([
+      submitQuiz({ userId: USER_A, submission: submission(4), clientKey: "attempt-1" }, deps),
+      submitQuiz({ userId: USER_A, submission: submission(4), clientKey: "attempt-1" }, deps),
+    ]);
+
+    expect(first).toEqual(second);
+    expect(saveCalls).toBe(1);
+    expect(store.notifications.filter((n) => n.type === "welcome")).toHaveLength(1);
+
+    // Subsequent retry with the same clientKey also returns cached result without re-saving
+    const retry = await submitQuiz(
+      { userId: USER_A, submission: submission(4), clientKey: "attempt-1" },
+      deps,
+    );
+    expect(retry).toEqual(first);
+    expect(saveCalls).toBe(1);
+  });
 });

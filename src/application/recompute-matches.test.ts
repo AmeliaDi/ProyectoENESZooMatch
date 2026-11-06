@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { err, ok } from "@/domain/shared";
+import { normalizeMatchPairs } from "@/domain/matching";
 
 import type { ReplaceOutcome } from "./ports";
 import {
@@ -59,5 +60,35 @@ describe("recomputeMatches", () => {
     value.profiles = { loadCompletedPool: async () => err("storage.failed") };
     await expect(recomputeMatches(value)).resolves.toEqual(err("storage.failed"));
     expect(replaceAll).not.toHaveBeenCalled();
+  });
+
+  it("normalizes inverted pairs so userA < userB and deduplicates same-track pairs keeping highest similarity", () => {
+    const pairs = normalizeMatchPairs([
+      {
+        track: "romance",
+        userA: "00000000-0000-4000-8000-00000000000b",
+        userB: "00000000-0000-4000-8000-00000000000a",
+        similarity: 0.71,
+        badges: [],
+      },
+      {
+        track: "romance",
+        userA: "00000000-0000-4000-8000-00000000000a",
+        userB: "00000000-0000-4000-8000-00000000000b",
+        similarity: 0.83,
+        badges: [{ dimension: "valores", affinity: 0.9 }],
+      },
+      {
+        track: "romance",
+        userA: "00000000-0000-4000-8000-00000000000a",
+        userB: "00000000-0000-4000-8000-00000000000a",
+        similarity: 0.99,
+        badges: [],
+      },
+    ]);
+    expect(pairs).toHaveLength(1);
+    expect(pairs[0]?.userA).toBe("00000000-0000-4000-8000-00000000000a");
+    expect(pairs[0]?.userB).toBe("00000000-0000-4000-8000-00000000000b");
+    expect(pairs[0]?.similarity).toBe(0.83);
   });
 });

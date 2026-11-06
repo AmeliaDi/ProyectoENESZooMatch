@@ -15,9 +15,9 @@ async function handlePost(request: Request) {
   const context = await quizContext();
   if (!context.ok) return errorResponse(context.error);
 
-  const { likert, filters, inclusiveMode } = parsed.data;
+  const { likert, filters, inclusiveMode, clientKey } = parsed.data;
   const result = await submitQuiz(
-    { userId: context.value.userId, submission: { likert, filters }, inclusiveMode },
+    { userId: context.value.userId, submission: { likert, filters }, inclusiveMode, clientKey },
     context.value.deps,
   );
   return result.ok ? jsonResponse(result.value) : errorResponse(result.error);

@@ -211,7 +211,7 @@ function ConstellationCanvasImpl({
   const [centred, setCentred] = useState(true);
 
   const dataKey = useMemo(() => buildDataKey(me, matches), [me, matches]);
-  const meta = useMemo(() => buildNodeMeta(me, matches), [me, matches]);
+  const meta = useMemo(() => buildNodeMeta(me, matches, track), [me, matches, track]);
   const threshold = useMemo(() => thresholdOverride ?? getTrackThreshold(track), [track, thresholdOverride]);
   const activeMatches = useMemo(() => matchesForTrack(matches, track, threshold), [matches, track, threshold]);
 
@@ -724,7 +724,20 @@ function ConstellationCanvasImpl({
     for (const neighbour of structure.adjacency.get(activeId) ?? []) set.add(neighbour);
     return set;
   }, [structure, activeId]);
-  const similarityById = useMemo(() => new Map(matches.map((m) => [m.id, m.similarity])), [matches]);
+  const similarityById = useMemo(() => {
+    const map = new Map<string, number>();
+    const active = new Set<string>();
+    for (const m of matches) {
+      const isTrack = m.track === track;
+      if (!isTrack && active.has(m.id)) continue;
+      const prev = map.get(m.id);
+      if ((isTrack && !active.has(m.id)) || prev === undefined || m.similarity > prev) {
+        map.set(m.id, m.similarity);
+      }
+      if (isTrack) active.add(m.id);
+    }
+    return map;
+  }, [matches, track]);
   const romancePulseId =
     track === "romance" && activeId !== null && (similarityById.get(activeId) ?? 0) >= ROMANCE_SPRITE_THRESHOLD
       ? activeId

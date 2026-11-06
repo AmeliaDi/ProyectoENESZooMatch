@@ -437,6 +437,32 @@ describe("track switch", () => {
     const newOrder = order(survivors.map((b) => ({ id: b.id, x: b.homeX, y: b.homeY })));
     expect(rotate(newOrder)).toBe(rotate(oldOrder));
   });
+
+  it("deduplicates repeated match ids by highest similarity and never creates duplicate body ids across rapid transitions", () => {
+    const dupMatches: SceneMatch[] = [
+      { id: "dup-star", similarity: 0.55, track: "romance" },
+      { id: "dup-star", similarity: 0.88, track: "romance" },
+      { id: "leaving-star", similarity: 0.72, track: "romance" },
+    ];
+    const scene1 = buildScene(input(dupMatches, { track: "romance", threshold: ROMANCE, ghostCount: 0 }), PHYSICS);
+    const matchBodies = scene1.bodies.filter((b) => b.kind === "match");
+    expect(matchBodies.map((b) => b.id)).toEqual(["dup-star", "leaving-star"]);
+    expect(matchBodies.find((b) => b.id === "dup-star")?.similarity).toBeCloseTo(0.88, 6);
+
+    const world1 = createWorld(scene1, PHYSICS, "settled");
+    const scene2 = buildScene(input([], { track: "amistad", threshold: AMISTAD, ghostCount: 0 }), PHYSICS);
+    const world2 = transitionWorld(world1, scene2, PHYSICS);
+    // Simulate a body that already faded out to alpha 0 plus an accidental duplicate in previous.bodies
+    const faded = world2.bodies.find((b) => b.id === "leaving-star")!;
+    faded.alpha = 0;
+    world2.bodies.push({ ...faded, id: "dup-star", alpha: 0.4 });
+
+    const scene3 = buildScene(input([], { track: "romance", threshold: ROMANCE, ghostCount: 0 }), PHYSICS);
+    const world3 = transitionWorld(world2, scene3, PHYSICS);
+    const ids = world3.bodies.map((b) => b.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids).not.toContain("leaving-star");
+  });
 });
 
 describe("render frame", () => {

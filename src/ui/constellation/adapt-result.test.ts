@@ -250,12 +250,32 @@ describe("adaptResult", () => {
     ).toBeNull();
   });
 
-  it("falls back to a synthetic id when the API omits other_user", () => {
+  it("falls back to a deterministic pseudonymous id (never array index) when the API omits other_user", () => {
     const adapted = adaptResult(
       makeResult({
         matches: { romance: [omitKeys(makeMatch(), "id")], amistad: [] },
       }),
     )!;
-    expect(adapted.matches[0]?.id).toBe("romance-0");
+    expect(adapted.matches[0]?.id).toBeDefined();
+    expect(adapted.matches[0]?.id).not.toMatch(/^romance-\d+$/);
+  });
+
+  it("deduplicates repeated match ids within the same track keeping the highest similarity", () => {
+    const adapted = adaptResult(
+      makeResult({
+        matches: {
+          romance: [
+            makeMatch({ id: "dup-1", similarity: 0.65 }),
+            makeMatch({ id: "dup-1", similarity: 0.89 }),
+          ],
+          amistad: [
+            makeMatch({ id: "dup-1", similarity: 0.54 }),
+          ],
+        },
+      }),
+    )!;
+    const romanceMatches = adapted.matches.filter((m) => m.track === "romance");
+    expect(romanceMatches).toHaveLength(1);
+    expect(romanceMatches[0]?.similarity).toBeCloseTo(0.89, 6);
   });
 });

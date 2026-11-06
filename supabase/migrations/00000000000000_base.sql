@@ -121,6 +121,8 @@ CREATE TABLE public.profiles (
   paused_at TIMESTAMPTZ,
   -- Self-declared 18+ (ADR-035): romance chats need it on both sides.
   adult_confirmed_at TIMESTAMPTZ,
+  -- Soft-delete timestamp for reversible profile merges and retention purges.
+  eliminado_en TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT profiles_romance_vector_shape CHECK (
@@ -181,6 +183,8 @@ CREATE TABLE public.notifications (
 CREATE INDEX notifications_user_idx ON public.notifications (user_id, created_at DESC);
 CREATE INDEX notifications_unread_idx
   ON public.notifications (user_id, created_at DESC) WHERE read = false;
+CREATE UNIQUE INDEX notifications_welcome_unique_idx
+  ON public.notifications (user_id) WHERE type = 'welcome';
 
 -- ─── Row-level security and table privileges ────────────────────────────────
 
@@ -305,6 +309,12 @@ CREATE TRIGGER profiles_pool_paused
   AFTER UPDATE OF paused_at ON public.profiles
   FOR EACH ROW
   WHEN (NEW.paused_at IS DISTINCT FROM OLD.paused_at AND NEW.quiz_completed_at IS NOT NULL)
+  EXECUTE FUNCTION private.bump_pool_revision();
+
+CREATE TRIGGER profiles_pool_soft_deleted
+  AFTER UPDATE OF eliminado_en ON public.profiles
+  FOR EACH ROW
+  WHEN (NEW.eliminado_en IS DISTINCT FROM OLD.eliminado_en AND NEW.quiz_completed_at IS NOT NULL)
   EXECUTE FUNCTION private.bump_pool_revision();
 
 CREATE INDEX profiles_active_pool_idx
@@ -453,9 +463,16 @@ BEGIN
 
   DELETE FROM public.matches WHERE true;
   INSERT INTO public.matches (track, user_a, user_b, similarity, badges)
-  SELECT m.track, m.user_a, m.user_b, m.similarity, COALESCE(m.badges, '[]')
+  SELECT DISTINCT ON (m.track, LEAST(m.user_a, m.user_b), GREATEST(m.user_a, m.user_b))
+    m.track,
+    LEAST(m.user_a, m.user_b),
+    GREATEST(m.user_a, m.user_b),
+    m.similarity,
+    COALESCE(m.badges, '[]')
   FROM jsonb_to_recordset(p_matches)
-    AS m(track TEXT, user_a UUID, user_b UUID, similarity DOUBLE PRECISION, badges JSONB);
+    AS m(track TEXT, user_a UUID, user_b UUID, similarity DOUBLE PRECISION, badges JSONB)
+  WHERE m.user_a IS NOT NULL AND m.user_b IS NOT NULL AND m.user_a <> m.user_b
+  ORDER BY m.track, LEAST(m.user_a, m.user_b), GREATEST(m.user_a, m.user_b), m.similarity DESC;
 
   GET DIAGNOSTICS v_inserted = ROW_COUNT;
   RETURN v_inserted;

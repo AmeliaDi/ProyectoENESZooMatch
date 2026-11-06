@@ -15,6 +15,7 @@ export {
   TRACKS,
   badgesFromScore,
   computeAllMatches,
+  normalizeMatchPairs,
   type GlobalMatch,
   type MatchBadge,
   type PoolEntry,

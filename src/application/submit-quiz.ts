@@ -4,7 +4,7 @@ import { generateProfileIdentity } from "@/domain/identity/profile-generator";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import { generateWelcomeMessage } from "@/domain/messages/notification-copy";
 
-import { err, ok, type Result } from "@/domain/shared";
+import { err, fnv1a32, ok, type Result } from "@/domain/shared";
 import { completedModules } from "@/domain/psychometrics/modules";
 import { QUIZ_MODULE_IDS, type QuizModuleId, type QuizSubmission, type ScoredProfile } from "@/types/microtest";
 
@@ -18,6 +18,7 @@ export interface SubmitQuizInput {
   userId: string;
   submission: QuizSubmission;
   inclusiveMode?: InclusiveMode | undefined;
+  clientKey?: string | undefined;
 }
 
 export interface SubmitQuizDeps extends RecomputeDeps {
@@ -74,12 +75,77 @@ async function notifyAll(
   await Promise.all(counterpartsOf(userId, pairs).map((id) => deps.notifications.notifyMatches(id)));
 }
 
+const CLIENT_KEY_CACHE_MAX = 256;
+const CLIENT_KEY_TTL_MS = 5 * 60 * 1000;
+
+const inFlightBySubmissionKey = new Map<string, Promise<Result<QuizSubmittedDto, AppError>>>();
+const completedByClientKey = new WeakMap<
+  SubmitQuizDeps["profiles"],
+  Map<string, { at: number; value: QuizSubmittedDto }>
+>();
+
+function submissionFingerprint(submission: QuizSubmission): string {
+  const likert = [...submission.likert]
+    .sort((a, b) => (a.itemId < b.itemId ? -1 : a.itemId > b.itemId ? 1 : 0))
+    .map((a) => `${a.itemId}=${a.value}`)
+    .join("&");
+  const filters = [...submission.filters]
+    .sort((a, b) => (a.itemId < b.itemId ? -1 : a.itemId > b.itemId ? 1 : 0))
+    .map((a) => `${a.itemId}=${[...a.selected].sort().join(",")}`)
+    .join("&");
+  return fnv1a32(`${likert}|${filters}`).toString(36);
+}
+
 /**
  * Scores, persists, republishes matches and notifies. Once the result is
  * stored the call succeeds even if recomputation or notifications fail;
  * `recomputePending` tells the client to retry the result view later.
  */
 export async function submitQuiz(
+  input: SubmitQuizInput,
+  deps: SubmitQuizDeps,
+): Promise<Result<QuizSubmittedDto, AppError>> {
+  const normalizedKey = input.clientKey?.trim();
+  const fp = submissionFingerprint(input.submission);
+  const clientScopeKey = normalizedKey ? `${input.userId}:${normalizedKey}:${fp}` : null;
+
+  if (clientScopeKey) {
+    const repoCache = completedByClientKey.get(deps.profiles);
+    const cached = repoCache?.get(clientScopeKey);
+    if (cached && Date.now() - cached.at < CLIENT_KEY_TTL_MS) {
+      return ok(cached.value);
+    }
+  }
+
+  const inFlightKey = `${input.userId}:${normalizedKey ?? fp}`;
+  const existingInFlight = inFlightBySubmissionKey.get(inFlightKey);
+  if (existingInFlight) return existingInFlight;
+
+  const execution = executeSubmitQuiz(input, deps).then((result) => {
+    if (result.ok && clientScopeKey) {
+      let repoCache = completedByClientKey.get(deps.profiles);
+      if (!repoCache) {
+        repoCache = new Map();
+        completedByClientKey.set(deps.profiles, repoCache);
+      }
+      if (repoCache.size >= CLIENT_KEY_CACHE_MAX) {
+        const oldest = repoCache.keys().next().value;
+        if (oldest !== undefined) repoCache.delete(oldest);
+      }
+      repoCache.set(clientScopeKey, { at: Date.now(), value: result.value });
+    }
+    return result;
+  });
+
+  inFlightBySubmissionKey.set(inFlightKey, execution);
+  try {
+    return await execution;
+  } finally {
+    inFlightBySubmissionKey.delete(inFlightKey);
+  }
+}
+
+async function executeSubmitQuiz(
   input: SubmitQuizInput,
   deps: SubmitQuizDeps,
 ): Promise<Result<QuizSubmittedDto, AppError>> {

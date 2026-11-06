@@ -34,6 +34,7 @@
  */
 
 import { CATALOG_ANIMALS as LOADED_ANIMALS, CATALOG_COLORS as LOADED_COLORS } from "@/config";
+import { fnv1a32 } from "@/domain/shared";
 
 import type { PublicResult, ResultMatch } from "@/ui/result/parse-result";
 import type { MatchTrack } from "@/types/microtest";
@@ -222,25 +223,42 @@ export interface AdaptedConstellation {
   matches: ConstellationMatchInput[];
 }
 
+function syntheticPseudonymId(
+  track: MatchTrack,
+  entry: ResultMatch,
+  animalId: string,
+  colorId: string,
+): string {
+  const key = `${track}:${entry.alias.trim().toLowerCase()}:${animalId}:${colorId}`;
+  return `${track}-${fnv1a32(key).toString(36)}`;
+}
+
 /**
  * Maps one track's API matches into `ConstellationMatchInput`s, skipping any
- * entry whose animal or colour cannot be resolved to a real catalogue id.
+ * entry whose animal or colour cannot be resolved to a real catalogue id, and
+ * deduplicating deterministically by pseudonymous id (keeping highest similarity).
  */
 function adaptTrack(
   entries: readonly ResultMatch[],
   track: MatchTrack,
 ): ConstellationMatchInput[] {
-  const adapted: ConstellationMatchInput[] = [];
-  entries.forEach((entry, index) => {
+  const byId = new Map<string, ConstellationMatchInput>();
+  for (const entry of entries) {
     const animalId = resolveAnimalId(entry.animal_id, entry.animal);
     const color = resolveColor(entry.color_id, entry.color, entry.color_hex);
-    if (!animalId || !color) return; // defensive skip — never feed a bad id to the engine
+    if (!animalId || !color) continue; // defensive skip — never feed a bad id to the engine
 
     const animal = ANIMAL_BY_ID.get(animalId);
-    adapted.push({
-      // The opaque per-viewer handle is the stable React key; fall back to a
-      // per-track synthetic key only if the API somehow omitted it.
-      id: entry.id ?? `${track}-${index}`,
+    const id =
+      entry.id && entry.id.trim().length > 0
+        ? entry.id.trim()
+        : syntheticPseudonymId(track, entry, animalId, color.colorId);
+
+    const existing = byId.get(id);
+    if (existing && existing.similarity >= entry.similarity) continue;
+
+    byId.set(id, {
+      id,
       animalId,
       colorId: color.colorId,
       mark: entry.mark ?? null,
@@ -257,8 +275,8 @@ function adaptTrack(
       layers: entry.layers,
       shared: entry.shared,
     });
-  });
-  return adapted;
+  }
+  return [...byId.values()];
 }
 
 /**

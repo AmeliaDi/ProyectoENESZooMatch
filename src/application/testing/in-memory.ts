@@ -3,7 +3,7 @@
  * of the Supabase repositories (pool-size guard, notify-clears-unread) without
  * any network.
  */
-import type { GlobalMatch } from "@/domain/matching";
+import { normalizeMatchPairs, type GlobalMatch } from "@/domain/matching";
 import { clearAttempts } from "@/domain/chat";
 import { err, ok } from "@/domain/shared";
 import type { ShareLayerId } from "@/types/sharing";
@@ -126,7 +126,7 @@ export function memoryMatches(store: MemoryStore): MatchRepository {
         store.version += 1;
       }
       if (String(store.version) !== poolVersion) return ok("pool_changed");
-      store.matches = [...pairs];
+      store.matches = normalizeMatchPairs(pairs);
       return ok("replaced");
     },
     listFor: async () => ok(store.stored),
@@ -141,6 +141,7 @@ export function memoryNotifications(store: MemoryStore): NotificationRepository 
       return ok(undefined);
     },
     async insertWelcome(userId, message, metadata) {
+      if (store.notifications.some((n) => n.userId === userId && n.type === "welcome")) return;
       store.notifications.push({
         userId,
         id: `n${store.notifications.length}`,

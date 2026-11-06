@@ -42,6 +42,34 @@ export function badgesFromScore(score: PairScore, limit: number): MatchBadge[] {
 
 const compareIds = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
+/**
+ * Normalizes match pairs to canonical order (`userA < userB`, lowercase),
+ * drops self-pairs (`userA === userB`), and deduplicates per track keeping
+ * the highest similarity.
+ */
+export function normalizeMatchPairs(pairs: readonly GlobalMatch[]): GlobalMatch[] {
+  const byKey = new Map<string, GlobalMatch>();
+  for (const pair of pairs) {
+    const a = pair.userA.trim().toLowerCase();
+    const b = pair.userB.trim().toLowerCase();
+    if (!a || !b || a === b) continue;
+    const [userA, userB] = a < b ? [a, b] : [b, a];
+    const key = `${pair.track}:${userA}:${userB}`;
+    const existing = byKey.get(key);
+    if (existing && existing.similarity >= pair.similarity) continue;
+    byKey.set(key, {
+      track: pair.track,
+      userA,
+      userB,
+      similarity: pair.similarity,
+      badges: pair.badges,
+    });
+  }
+  return [...byKey.values()].sort(
+    (a, b) => compareIds(a.track, b.track) || compareIds(a.userA, b.userA) || compareIds(a.userB, b.userB),
+  );
+}
+
 interface Candidate {
   index: number;
   similarity: number;

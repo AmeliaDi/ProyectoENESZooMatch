@@ -227,20 +227,19 @@ export function buildDataKey(
   return key;
 }
 
-/** Matches that are real under `track`: strictly above its threshold. */
+/** Matches that are real under `track`: strictly above its threshold, deduplicated by highest similarity. */
 export function matchesForTrack(
   matches: readonly ConstellationMatchInput[],
   track: MatchTrack,
   threshold: number,
 ): ConstellationMatchInput[] {
-  const seen = new Set<string>();
-  const result: ConstellationMatchInput[] = [];
+  const byId = new Map<string, ConstellationMatchInput>();
   for (const match of matches) {
     if (match.track !== track) continue;
     if (!(match.similarity > threshold)) continue;
-    if (seen.has(match.id)) continue;
-    seen.add(match.id);
-    result.push(match);
+    const existing = byId.get(match.id);
+    if (existing && existing.similarity >= match.similarity) continue;
+    byId.set(match.id, match);
   }
-  return result.sort((a, b) => b.similarity - a.similarity || (a.id < b.id ? -1 : 1));
+  return [...byId.values()].sort((a, b) => b.similarity - a.similarity || (a.id < b.id ? -1 : 1));
 }

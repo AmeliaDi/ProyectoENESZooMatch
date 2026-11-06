@@ -72,6 +72,7 @@ export const quizSubmissionSchema = z
     likert: z.array(likertAnswerSchema).max(LIKERT_ITEM_IDS.length),
     filters: z.array(filterAnswerSchema).length(FILTER_ITEM_IDS.length),
     inclusiveMode: inclusiveModeSchema.optional(),
+    clientKey: z.string().trim().min(1).max(64).optional(),
   })
   .superRefine((data, ctx) => {
     const likert = checkIds(data.likert.map((answer) => answer.itemId), "likert_5", ctx);

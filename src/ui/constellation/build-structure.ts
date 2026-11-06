@@ -33,17 +33,26 @@ import type {
 } from "./types";
 
 
-/** Adapts the view-model matches to the scene's minimal input (no names). */
+/** Adapts the view-model matches to the scene's minimal input (no names), deduplicated per track. */
 export function toSceneMatches(matches: readonly ConstellationMatchInput[]): SceneMatch[] {
-  return matches.map((match) => ({ id: match.id, similarity: match.similarity, track: match.track }));
+  const byTrackAndId = new Map<string, SceneMatch>();
+  for (const match of matches) {
+    const key = `${match.track}:${match.id}`;
+    const existing = byTrackAndId.get(key);
+    if (existing && existing.similarity >= match.similarity) continue;
+    byTrackAndId.set(key, { id: match.id, similarity: match.similarity, track: match.track });
+  }
+  return [...byTrackAndId.values()];
 }
 
-/** Indexes every participant by id, including the self node. */
+/** Indexes every participant by id, including the self node, prioritizing `activeTrack` when a counterpart is in both tracks. */
 export function buildNodeMeta(
   me: ConstellationSelfInput,
   matches: readonly ConstellationMatchInput[],
+  activeTrack?: MatchTrack,
 ): Map<string, NodeMeta> {
   const meta = new Map<string, NodeMeta>();
+  const metaTrack = new Map<string, MatchTrack>();
   meta.set(me.id, {
     animalId: me.animalId,
     colorId: me.colorId,
@@ -55,6 +64,15 @@ export function buildNodeMeta(
     similarity: 1,
   });
   for (const match of matches) {
+    const current = meta.get(match.id);
+    const currentTrack = metaTrack.get(match.id);
+    if (current) {
+      const currentIsActive = activeTrack !== undefined && currentTrack === activeTrack;
+      const candidateIsActive = activeTrack !== undefined && match.track === activeTrack;
+      if (currentIsActive && !candidateIsActive) continue;
+      if (currentIsActive === candidateIsActive && current.similarity >= match.similarity) continue;
+    }
+    metaTrack.set(match.id, match.track);
     meta.set(match.id, {
       animalId: match.animalId,
       colorId: match.colorId,

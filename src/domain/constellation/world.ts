@@ -175,7 +175,13 @@ export type Entrance = "settled" | "from-edge";
 export function createWorld(scene: Scene, cfg: PhysicsConfig, entrance: Entrance): World {
   const cx = scene.width / 2;
   const cy = scene.height / 2;
-  const bodies = scene.bodies.map((body) => {
+  const seenIds = new Set<string>();
+  const uniqueSceneBodies = scene.bodies.filter((body) => {
+    if (seenIds.has(body.id)) return false;
+    seenIds.add(body.id);
+    return true;
+  });
+  const bodies = uniqueSceneBodies.map((body) => {
     if (entrance === "settled" || body.kind === "self") return bodyFromScene(body, body.homeX, body.homeY, 1);
     const angle = Math.atan2(body.homeY - cy, body.homeX - cx);
     const start =
@@ -261,8 +267,10 @@ export function transitionWorld(previous: World, scene: Scene, cfg: PhysicsConfi
     body.vy = old.vy;
     body.alpha = old.alpha;
   }
+  const seen = new Set(next.bodies.map((b) => b.id));
   for (const old of previous.bodies) {
-    if (old.kind !== "match" || next.index.has(old.id)) continue;
+    if (old.kind !== "match" || seen.has(old.id) || (old.leaving && old.alpha <= 0)) continue;
+    seen.add(old.id);
     const angle = Math.atan2(old.y - next.cy, old.x - next.cx);
     const rim = edgePoint(next.cx, next.cy, angle, next.width, next.height, cfg.bounds.padding);
     next.bodies.push({ ...old, leaving: true, hx: rim.x, hy: rim.y, alphaTarget: 0, ax: 0, ay: 0 });

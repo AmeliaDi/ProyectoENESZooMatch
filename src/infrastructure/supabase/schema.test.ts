@@ -41,7 +41,8 @@ const SAFETY_RPCS = ["express_chat_interest", "leave_conversation", "block_chat_
 const ADMIN_MIGRATION = "20261107000000_admin_panel.sql";
 const ADMIN_SQL = readFileSync(resolve(MIGRATIONS_DIR, ADMIN_MIGRATION), "utf8");
 const ADMIN_TABLES = ["admin_credentials", "admin_audit"] as const;
-const ADMIN_RPCS = ["admin_list_users", "admin_reset_quiz", "admin_list_reports", "admin_review_report"] as const;
+const ADMIN_RPCS = ["admin_list_users", "admin_list_reports", "admin_reset_quiz", "admin_review_report"] as const;
+const FASE1_MIGRATION = "20261108000000_fase1_idempotency_and_soft_delete.sql";
 const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
 describe("base migration", () => {
@@ -54,6 +55,7 @@ describe("base migration", () => {
       ALIAS_MIGRATION,
       SAFETY_MIGRATION,
       ADMIN_MIGRATION,
+      FASE1_MIGRATION,
     ]);
   });
 
@@ -415,5 +417,23 @@ describe("admin console migration (ADR-036)", () => {
   it("lets the dashboard answer the service role and the guard accept admin_address", () => {
     expect(PUBLIC_FUNCTIONS.get("get_admin_dashboard")).toContain("COALESCE(auth.jwt() ->> 'role', '') <> 'service_role' AND NOT private.is_admin(auth.uid())");
     for (const sql of [SQL, ADMIN_SQL]) expect(sql).toContain("'address_attempt', 'chat_pin_address', 'admin_address'");
+  });
+});
+
+describe("fase 1 idempotency & soft-delete migration", () => {
+  it("enforces unique constraints on profiles, ordered pairs on matches, single welcome per user, and soft-delete column", () => {
+    const fase1Sql = lf(readFileSync(resolve(MIGRATIONS_DIR, FASE1_MIGRATION), "utf8"));
+    expect(fase1Sql).not.toMatch(/\/\*|\*\//);
+    expect(fase1Sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
+    expect(fase1Sql).toContain("ADD COLUMN IF NOT EXISTS eliminado_en TIMESTAMPTZ");
+    expect(fase1Sql).toContain("CREATE UNIQUE INDEX IF NOT EXISTS notifications_welcome_unique_idx");
+    expect(SQL).toContain("matricula_hash TEXT NOT NULL UNIQUE CHECK (matricula_hash ~ '^[0-9a-f]{64}$')");
+    expect(SQL).toContain("alias TEXT UNIQUE");
+    expect(SQL).toContain("CONSTRAINT matches_ordered_pair CHECK (user_a < user_b)");
+    expect(SQL).toContain("eliminado_en TIMESTAMPTZ");
+    expect(SQL).toContain("notifications_welcome_unique_idx");
+    const replaceFn = PUBLIC_FUNCTIONS.get("replace_matches") ?? "";
+    expect(replaceFn).toContain("LEAST(m.user_a, m.user_b)");
+    expect(replaceFn).toContain("GREATEST(m.user_a, m.user_b)");
   });
 });

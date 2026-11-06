@@ -121,6 +121,24 @@ describe("buildNodeMeta", () => {
     expect(getAllAnimalIds()).toContain(GHOST_ANIMAL_ID);
     expect(getAllColorIds()).toContain(GHOST_COLOR_ID);
   });
+
+  it("preserves active-track similarity in buildNodeMeta and deduplicates toSceneMatches when a counterpart is in both tracks", () => {
+    const dual: ConstellationMatchInput[] = [
+      makeMatch("dual-1", 0.86, "romance"),
+      makeMatch("dual-1", 0.49, "amistad"),
+      makeMatch("dual-1", 0.91, "romance"),
+    ];
+    const romanceMeta = buildNodeMeta(SELF, dual, "romance");
+    expect(romanceMeta.get("dual-1")?.similarity).toBeCloseTo(0.91, 6);
+
+    const amistadMeta = buildNodeMeta(SELF, dual, "amistad");
+    expect(amistadMeta.get("dual-1")?.similarity).toBeCloseTo(0.49, 6);
+
+    const sceneMatches = toSceneMatches(dual);
+    const romanceScene = sceneMatches.filter((m) => m.track === "romance" && m.id === "dual-1");
+    expect(romanceScene).toHaveLength(1);
+    expect(romanceScene[0]?.similarity).toBeCloseTo(0.91, 6);
+  });
 });
 
 describe("structureFromWorld", () => {

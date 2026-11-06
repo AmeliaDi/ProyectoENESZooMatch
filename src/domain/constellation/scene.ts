@@ -104,20 +104,21 @@ function hashAngle(key: string): number {
   return (fnv1a32(key) / 0xffffffff) * TAU;
 }
 
-/** Real matches of the active track, deduplicated and capped by affinity. */
+/** Real matches of the active track, deduplicated by highest similarity and capped by affinity. */
 export function activeMatches(
   matches: readonly SceneMatch[],
   track: MatchTrack,
   threshold: number,
   cap: number,
 ): SceneMatch[] {
-  const seen = new Set<string>();
-  const out: SceneMatch[] = [];
+  const byId = new Map<string, SceneMatch>();
   for (const match of matches) {
-    if (match.track !== track || !(match.similarity > threshold) || seen.has(match.id)) continue;
-    seen.add(match.id);
-    out.push(match);
+    if (match.track !== track || !(match.similarity > threshold)) continue;
+    const existing = byId.get(match.id);
+    if (existing && existing.similarity >= match.similarity) continue;
+    byId.set(match.id, match);
   }
+  const out = [...byId.values()];
   out.sort((a, b) => b.similarity - a.similarity || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   return out.slice(0, cap);
 }
