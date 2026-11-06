@@ -80,7 +80,7 @@ function RoundCard({ round, convo, actions, position }: { round: RoundDto; convo
   return (
     <li>
       <article className="zm-box zm-box--frame zm-round" aria-labelledby={headingId}>
-        <p className="zm-eyebrow zm-num">{roundsStage(position, convo.rounds.length)}</p>
+        <p className="zm-eyebrow zm-num">{roundsStage(position, convo.minRoundsForFree)}</p>
         <h3 id={headingId} className="zm-round__question">{round.question}</h3>
         <div className="zm-round__answer" data-who="mine">
           <p className="zm-round__who">{CONVERSATION_COPY.yourAnswer}</p>

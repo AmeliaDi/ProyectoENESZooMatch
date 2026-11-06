@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  canAcceptFree,
   canAnswer,
   canOpenRound,
   canReact,
@@ -18,7 +17,7 @@ import {
   type RoundFacts,
 } from "./conversation";
 
-const POLICY = { minForFree: 3, revealHours: 48, maxRounds: 60 };
+const POLICY = { minForFree: 3, revealHours: 48, maxRounds: 3 };
 const T0 = new Date("2026-11-04T10:00:00Z");
 const hours = (h: number) => new Date(T0.getTime() + h * 3_600_000);
 
@@ -74,21 +73,39 @@ describe("turns and sealed rounds", () => {
   });
 });
 
-describe("free chat", () => {
-  it("can be proposed only after the minimum of completed rounds", () => {
-    expect(canAcceptFree(facts(done(2)), "a", T0, POLICY)).toBe(false);
-    expect(completedRounds(facts(done(3)), T0, POLICY)).toBe(3);
-    expect(canAcceptFree(facts(done(3)), "a", T0, POLICY)).toBe(true);
+describe("free chat (automatic transition after 3 rounds)", () => {
+  it("stays in rounds during questions 1, 2 and sealed question 3, and rejects free messages", () => {
+    expect(stageOf(facts([]), T0, POLICY)).toBe("rounds");
+    expect(canSendMessage(facts([]), T0, POLICY)).toBe(false);
+    expect(stageOf(facts(done(1)), T0, POLICY)).toBe("rounds");
+    expect(canSendMessage(facts(done(1)), T0, POLICY)).toBe(false);
+    expect(stageOf(facts(done(2)), T0, POLICY)).toBe("rounds");
+    expect(canSendMessage(facts(done(2)), T0, POLICY)).toBe(false);
+    const round3Sealed = facts([...done(2), round(2, "answer", null)]);
+    expect(stageOf(round3Sealed, T0, POLICY)).toBe("rounds");
+    expect(canSendMessage(round3Sealed, T0, POLICY)).toBe(false);
   });
 
-  it("opens only when both accept, and the other side then sees it is their turn", () => {
-    const half = facts(done(3), { freeReady: { a: true, b: false } });
-    expect(stageOf(half)).toBe("rounds");
-    expect(canSendMessage(half)).toBe(false);
-    expect(isMyTurn(half, "b", T0, POLICY)).toBe(true);
-    const both = facts(done(3), { freeReady: { a: true, b: true } });
-    expect(stageOf(both)).toBe("free");
-    expect(canSendMessage(both)).toBe(true);
+  it("transitions automatically to free chat as soon as round 3 is revealed without extra consent", () => {
+    const threeRevealed = facts(done(3), { freeReady: { a: false, b: false } });
+    expect(completedRounds(threeRevealed, T0, POLICY)).toBe(3);
+    expect(stageOf(threeRevealed, T0, POLICY)).toBe("free");
+    expect(canSendMessage(threeRevealed, T0, POLICY)).toBe(true);
+    expect(isMyTurn(threeRevealed, "a", T0, POLICY)).toBe(false);
+    expect(isMyTurn(threeRevealed, "b", T0, POLICY)).toBe(false);
+  });
+
+  it("never allows opening round 4 (idx >= 3)", () => {
+    const threeRevealed = facts(done(3));
+    expect(canOpenRound(threeRevealed, "a", T0, POLICY)).toBe(false);
+    expect(canOpenRound(threeRevealed, "b", T0, POLICY)).toBe(false);
+  });
+
+  it("migrates ongoing conversations with >= 3 completed rounds directly to free chat", () => {
+    const legacyFourRounds = facts(done(4), { freeReady: { a: false, b: false } });
+    expect(stageOf(legacyFourRounds, T0, POLICY)).toBe("free");
+    expect(canSendMessage(legacyFourRounds, T0, POLICY)).toBe(true);
+    expect(canOpenRound(legacyFourRounds, "a", T0, POLICY)).toBe(false);
   });
 });
 

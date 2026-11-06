@@ -40,6 +40,7 @@ export type ChatError =
   | "chat.not_found"
   | "chat.match_gone"
   | "chat.conflict"
+  | "chat.not_allowed"
   | "chat.adult_required"
   | "chat.cooldown"
   | "chat.too_many_signals"

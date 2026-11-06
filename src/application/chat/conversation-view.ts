@@ -107,7 +107,7 @@ export function toDto(loaded: Loaded, viewer: string, now: Date, extras: ViewExt
   const side = sideOf(row, viewer);
   const mine = side === "a" ? row.freeReadyA : row.freeReadyB;
   const theirs = side === "a" ? row.freeReadyB : row.freeReadyA;
-  const stage = stageOf(facts);
+  const stage = stageOf(facts, now, ROUND_POLICY);
   const asking = canOpenRound(facts, side, now, ROUND_POLICY);
   const ctx = { loaded, viewer, now };
   return {

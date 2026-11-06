@@ -13,7 +13,6 @@ import {
   reportConversation,
   roundFeedback,
   sendMessage,
-  setFreeChat,
   setMuted,
   setPaused,
 } from "./index";
@@ -26,8 +25,6 @@ const clientKey = () => `00000000-0000-4000-9000-${String((key += 1)).padStart(1
 async function freeChat(): Promise<string> {
   const id = await open(w);
   await playRounds(w, id, SETTINGS.rounds.minForFree);
-  await setFreeChat(id, ANA, true, w.deps());
-  await setFreeChat(id, BEA, true, w.deps());
   return id;
 }
 

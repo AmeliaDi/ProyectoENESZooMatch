@@ -43,8 +43,8 @@
       "minForFree": 3,
       "suggestions": 3,
       "revealHours": 48,
-      "levelFromRound": [0, 2, 4],
-      "maxRounds": 60
+      "levelFromRound": [0, 1, 2],
+      "maxRounds": 3
     },
     "limits": { "messagesPerMinute": 8, "messagesPerDay": 300, "repeatWindow": 3 },
     "retention": { "messageDays": 30, "inactiveDays": 30 },

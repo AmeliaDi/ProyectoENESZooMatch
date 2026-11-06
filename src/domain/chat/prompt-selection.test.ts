@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { levelForRound, selectPrompts, type SelectablePrompt } from "./prompt-selection";
 
-const LEVELS = [0, 2, 4] as const;
+const LEVELS = [0, 1, 2] as const;
 const CATS = ["humor", "gustos", "valores", "campus"];
 
 function bank(): SelectablePrompt[] {
@@ -39,11 +39,11 @@ describe("question selection", () => {
     expect(selectPrompts(base)).toHaveLength(3);
   });
 
-  it("progresses from level 1 to 3 with the rounds", () => {
+  it("progresses from level 1 to 3 across rounds 0, 1 and 2", () => {
     expect(levelForRound(0, LEVELS)).toBe(1);
-    expect(levelForRound(2, LEVELS)).toBe(2);
-    expect(levelForRound(5, LEVELS)).toBe(3);
-    expect(selectPrompts({ ...base, roundIndex: 4 }).every((p) => p.nivel === 3)).toBe(true);
+    expect(levelForRound(1, LEVELS)).toBe(2);
+    expect(levelForRound(2, LEVELS)).toBe(3);
+    expect(selectPrompts({ ...base, roundIndex: 2 }).every((p) => p.nivel === 3)).toBe(true);
   });
 
   it("never offers used questions or another track", () => {

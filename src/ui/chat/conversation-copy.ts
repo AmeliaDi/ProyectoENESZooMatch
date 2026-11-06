@@ -146,6 +146,7 @@ export function errorCopy(code: string): string | null {
     "chat.slow_down": "Tomemos una pausa corta. Puedes escribir de nuevo en un momento.",
     "chat.repeated": "Ya enviaste ese mismo mensaje. Prueba con algo distinto.",
     "chat.conflict": "La conversación cambió mientras escribías. Revisa y vuelve a intentarlo.",
+    "chat.not_allowed": "Completa primero las 3 preguntas para abrir el chat libre.",
   };
   return map[code] ?? null;
 }

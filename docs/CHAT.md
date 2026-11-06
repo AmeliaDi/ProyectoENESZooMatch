@@ -204,9 +204,8 @@ stateDiagram-v2
     Senal --> Match: caduca a los 7 días, «ahora no» o se retira
     Senal --> Rondas: la otra responde con el mismo gesto
     Match --> Rondas: las dos señales coinciden
-    Rondas --> Rondas: ronda con respuestas selladas, turno alterno
-    Rondas --> Libre: tras 3 rondas, las dos aceptan
-    Libre --> Rondas: retirar la aceptación
+    Rondas --> Rondas: 3 preguntas guiadas (idx 0, 1, 2), respuestas selladas, turno alterno
+    Rondas --> Libre: al revelarse la pregunta 3 (automático, sin segundo consentimiento)
     Rondas --> Pausa: alguien pausa
     Libre --> Pausa: alguien pausa
     Pausa --> Rondas: quien pausó retoma
@@ -294,10 +293,13 @@ del PIN.
    `conversation.reactions`, y se ofrece la pregunta opcional «¿Te gustó esta ronda?». Esa
    respuesta solo suma a un contador diario agregado (`chat_feedback_daily`, sin ids), nunca al
    modelo de afinidad.
-6. A partir de `rounds.minForFree` = **3** rondas completadas, cualquiera puede proponer el
-   **chat libre**. Se abre solo cuando las dos personas aceptan. La aceptación ajena no se
-   revela antes de aceptar tú, y cualquiera puede retirarla para volver a las preguntas. En chat
-   libre se puede seguir abriendo rondas, también con preguntas propias.
+6. La conversación tiene **exactamente 3 rondas de preguntas guiadas** (`idx` 0, 1 y 2;
+   `rounds.minForFree` = **3**, `rounds.maxRounds` = **3**). Al revelarse la pregunta 3, la
+   conversación pasa **automáticamente** a **chat libre** (sin pedir otro consentimiento mutuo:
+   el consentimiento ya se dio al abrir el chat). No se permiten más rondas de preguntas después
+   de la 3 (`idx >= 3` rechazado en servidor y base). En chat libre, ambas personas pueden
+   enviar mensajes de hasta **300 grafemas** (medidos con `Intl.Segmenter`, normalizados a NFC,
+   sin recortar), y las 3 preguntas y respuestas quedan arriba como contexto colapsable.
 
 ### 10.5 Riesgos y mitigaciones
 
@@ -355,9 +357,9 @@ Ejemplos por nivel (el banco completo está en el JSON):
 
 `selectPrompts` (`src/domain/chat/prompt-selection.ts`) es una función pura:
 
-1. **Nivel por ronda:** `rounds.levelFromRound` = `[0, 2, 4]`, es decir, nivel 1 en las rondas
-   1–2, nivel 2 en las 3–4 y nivel 3 desde la 5. Si un nivel se agota, se completa con los
-   vecinos.
+1. **Nivel por ronda:** `rounds.levelFromRound` = `[0, 1, 2]`, es decir, nivel 1 en la pregunta 1
+   (`idx = 0`), nivel 2 en la pregunta 2 (`idx = 1`) y nivel 3 en la pregunta 3 (`idx = 2`). Si un
+   nivel se agota, se completa con los vecinos.
 2. **Filtros:** solo preguntas de la pista o de «ambos», y nunca una ya usada en la conversación.
 3. **Puntaje:** promedio, sobre las capas en las que se apoya la pregunta, de la **contribución
    real** de cada capa al `pairScore` de la pareja (`application/chat/prompts.ts`), con un piso de
@@ -389,9 +391,8 @@ eligió:
 6. **Ronda 3** (elige A). Tarjetas: «¿Qué gesto te hace sentir que alguien de verdad te
    escucha?» (r015) · «¿Cuál ha sido el malentendido más divertido que te ha pasado?» (p034) ·
    «¿Qué proyecto personal te emociona aunque nadie lo sepa todavía?» (p028).
-7. Con 3 rondas completas, A propone el chat libre y B ve el botón «Sí, abramos el chat libre»
-   (`free.canAccept: true`).
-8. B acepta → `stage: free`. Escribe «¿Te late un café en las islas el jueves? ☕».
+7. Al revelarse la **Ronda 3**, la conversación pasa **automáticamente** a `stage: free` (con las
+   3 preguntas colapsables arriba como contexto). Escribe «¿Te late un café en las islas el jueves? ☕» (≤ 300 grafemas).
 9. A intenta mandar `www.ejemplo.com` → `chat.link_blocked`: «Por ahora los enlaces no se pueden
    enviar. Así cuidamos el anonimato de las dos personas».
 

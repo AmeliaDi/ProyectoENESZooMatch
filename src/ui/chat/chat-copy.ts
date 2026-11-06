@@ -41,7 +41,7 @@ export { CONVERSATION_COPY, INTEREST_COPY, SAFETY_COPY, errorCopy } from "./conv
 import { CONVERSATION_COPY } from "./conversation-copy";
 
 export function roundsStage(round: number, total: number): string {
-  return `Ronda ${round} de ${total}`;
+  return `Pregunta ${round} de ${total}`;
 }
 
 export function trackLabel(track: ChatTrack): string {

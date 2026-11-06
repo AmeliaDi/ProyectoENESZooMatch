@@ -10,10 +10,9 @@ import { Button } from "@/ui/kit/button";
 import { Chip } from "@/ui/kit/surfaces";
 import { EmptyState, ErrorState, LoadingState } from "@/ui/kit/states";
 
-import { CHAT_COPY, CONVERSATION_COPY, stageLabel, trackLabel } from "./chat-copy";
+import { CHAT_COPY, CONVERSATION_COPY, roundsStage, stageLabel, trackLabel } from "./chat-copy";
 import { ChatGuide } from "./chat-guide";
 import { FreeChat } from "./free-chat";
-import { FreeInvite } from "./free-invite";
 import { PeerSprite } from "./peer-sprite";
 import { QuestionCards } from "./question-cards";
 import { RoundsView } from "./rounds-view";
@@ -23,6 +22,11 @@ import { useConversation, type ConversationActions, type PendingMessage } from "
 const SPRITE_SIZE = 48;
 
 function Header({ convo }: { convo: ConversationDto }) {
+  const currentQuestion = Math.min(convo.minRoundsForFree, Math.max(1, convo.rounds.length || convo.completedRounds + 1));
+  const progressText =
+    convo.stage === "rounds"
+      ? roundsStage(currentQuestion, convo.minRoundsForFree)
+      : stageLabel(convo.stage, convo.completedRounds);
   return (
     <header className="zm-convo__head">
       <PeerSprite peer={convo.peer} size={SPRITE_SIZE} />
@@ -30,7 +34,7 @@ function Header({ convo }: { convo: ConversationDto }) {
         <h2 className="zm-chat__title">{convo.peer.alias}</h2>
         <p className="zm-convo__meta">
           <Chip tone={convo.track} icon={convo.track}>{trackLabel(convo.track)}</Chip>
-          <span className="zm-num">{stageLabel(convo.stage, convo.completedRounds)}</span>
+          <span className="zm-num">{progressText}</span>
         </p>
       </div>
     </header>
@@ -42,6 +46,7 @@ function Turn({ convo, actions }: { convo: ConversationDto; actions: Conversatio
     return <p className="zm-round__pending">{convo.pausedByMe ? CONVERSATION_COPY.pausedMine : CONVERSATION_COPY.pausedTheirs}</p>;
   }
   if (convo.ask) return <QuestionCards ask={convo.ask} limit={convo.limits.customQuestionChars} onAsk={actions.ask} onOthers={actions.others} />;
+  if (convo.stage === "free") return null;
   const open = convo.rounds.some((r) => !r.revealed);
   return open ? null : <p className="zm-detail__muted">{CONVERSATION_COPY.waitingQuestion}</p>;
 }
@@ -63,7 +68,6 @@ function Body({ convo, pending, actions }: { convo: ConversationDto; pending: re
         </>
       )}
       <Turn convo={convo} actions={actions} />
-      <FreeInvite convo={convo} onChoose={actions.free} />
       {free ? <FreeChat convo={convo} pending={pending} actions={actions} /> : null}
     </>
   );

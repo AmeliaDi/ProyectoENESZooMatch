@@ -13,7 +13,7 @@ import {
   getConversation,
   getInbox,
   interestStates,
-  setFreeChat,
+  sendMessage,
 } from "./index";
 
 const SETTINGS = CHAT_CONFIG.conversation;
@@ -123,26 +123,78 @@ describe("guided rounds", () => {
     expect(await askQuestion(id, asker, { promptId: "p999" }, w.deps())).toEqual({ ok: false, error: "request.invalid" });
   });
 
-  it("offers free chat only after the minimum of rounds and both acceptances", async () => {
+  it("transitions automatically to free chat after round 3 and rejects free messages in rounds 1 or 2", async () => {
     const id = await open(w);
-    expect(await setFreeChat(id, ANA, true, w.deps())).toEqual({ ok: false, error: "chat.conflict" });
-    await playRounds(w, id, SETTINGS.rounds.minForFree);
-    const half = await setFreeChat(id, ANA, true, w.deps());
-    expect(half.ok && half.value).toMatchObject({ stage: "rounds", free: { mine: true, theirs: false } });
-    const beaView = await getConversation(id, BEA, w.deps());
-    expect(beaView.ok && beaView.value.free).toEqual({ canAccept: true, mine: false, theirs: false });
-    const both = await setFreeChat(id, BEA, true, w.deps());
-    expect(both.ok && both.value.stage).toBe("free");
+    const key1 = "00000000-0000-4000-9000-000000000001";
+    // Round 0 (Question 1): free message rejected
+    expect(await sendMessage(id, ANA, { body: "antes de tiempo", clientKey: key1 }, w.deps())).toEqual({
+      ok: false,
+      error: "chat.not_allowed",
+    });
+    await playRounds(w, id, 1);
+    // Round 1 (Question 2): free message rejected
+    expect(await sendMessage(id, BEA, { body: "ronda 2", clientKey: key1 }, w.deps())).toEqual({
+      ok: false,
+      error: "chat.not_allowed",
+    });
+    await playRounds(w, id, 1);
+    const afterTwo = await getConversation(id, ANA, w.deps());
+    expect(afterTwo.ok && afterTwo.value.stage).toBe("rounds");
+    // Complete Round 2 (Question 3): automatic transition to free chat without setFreeChat!
+    await playRounds(w, id, 1);
+    const afterThree = await getConversation(id, ANA, w.deps());
+    expect(afterThree.ok && afterThree.value.stage).toBe("free");
+    expect(afterThree.ok && afterThree.value.completedRounds).toBe(3);
+    expect(afterThree.ok && afterThree.value.ask).toBeNull();
+
+    // Free message of 300 graphemes (including emojis & accents) is accepted; 301 is rejected
+    const familyEmoji = "\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}";
+    const msg300 = `¡Canción café! ${familyEmoji} ` + "a".repeat(300 - 17);
+    const sent300 = await sendMessage(id, ANA, { body: msg300, clientKey: key1 }, w.deps());
+    expect(sent300.ok).toBe(true);
+    expect(sent300.ok && sent300.value.messages).toHaveLength(1);
+
+    const msg301 = msg300 + "z";
+    const key2 = "00000000-0000-4000-9000-000000000002";
+    expect(await sendMessage(id, ANA, { body: msg301, clientKey: key2 }, w.deps())).toEqual({
+      ok: false,
+      error: "request.invalid",
+    });
   });
 
-  it("lets anyone write their own question once the chat is free", async () => {
+  it("rejects opening round 4 (idx >= 3) after the 3 guided questions", async () => {
     const id = await open(w);
-    await playRounds(w, id, SETTINGS.rounds.minForFree);
-    await setFreeChat(id, ANA, true, w.deps());
-    await setFreeChat(id, BEA, true, w.deps());
-    const asker = await askerOf(w, id);
-    const own = await askQuestion(id, asker, { customText: "¿Qué plan harías el sábado?" }, w.deps());
-    expect(own.ok && own.value.rounds.at(-1)?.question).toBe("¿Qué plan harías el sábado?");
+    await playRounds(w, id, 3);
+    expect(await askQuestion(id, ANA, { promptId: "p001" }, w.deps())).toEqual({ ok: false, error: "chat.conflict" });
+    expect(await askQuestion(id, BEA, { promptId: "p002" }, w.deps())).toEqual({ ok: false, error: "chat.conflict" });
+    expect(await askQuestion(id, ANA, { customText: "¿Ronda 4?" }, w.deps())).toEqual({ ok: false, error: "chat.conflict" });
+  });
+
+  it("migrates ongoing conversations: < 3 rounds stay in rounds, >= 3 rounds enter free chat keeping messages", async () => {
+    const idUnder = await open(w, "amistad");
+    await playRounds(w, idUnder, 2);
+    const viewUnder = await getConversation(idUnder, ANA, w.deps());
+    expect(viewUnder.ok && viewUnder.value.stage).toBe("rounds");
+
+    await confirmAdult(ANA, w.deps());
+    await confirmAdult(BEA, w.deps());
+    const idOver = await open(w, "romance");
+    await playRounds(w, idOver, 3);
+    // Simulate a pre-migration row where freeReadyA/freeReadyB were still false in DB
+    const row = w.store.conversations.get(idOver)!;
+    row.freeReadyA = false;
+    row.freeReadyB = false;
+    w.store.messages.push({
+      id: "m-legacy-1",
+      conversationId: idOver,
+      author: ANA,
+      body: "mensaje previo conservado",
+      clientKey: "00000000-0000-4000-9000-000000000099",
+      at: new Date(),
+    });
+    const viewOver = await getConversation(idOver, BEA, w.deps());
+    expect(viewOver.ok && viewOver.value.stage).toBe("free");
+    expect(viewOver.ok && viewOver.value.messages.map((m) => m.body)).toEqual(["mensaje previo conservado"]);
   });
 });
 

@@ -910,9 +910,27 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 SET search_path = ''
 AS $$
+DECLARE
+  v_completed_three BOOLEAN := false;
 BEGIN
+  IF TG_TABLE_NAME = 'conversation_answers' THEN
+    SELECT (
+      SELECT count(*)
+      FROM public.conversation_rounds AS r
+      WHERE r.conversation_id = NEW.conversation_id
+        AND r.idx BETWEEN 0 AND 2
+        AND (
+          (SELECT count(*) FROM public.conversation_answers AS a WHERE a.conversation_id = NEW.conversation_id AND a.round = r.idx) >= 2
+          OR r.created_at <= now() - interval '48 hours'
+        )
+    ) >= 3 INTO v_completed_three;
+  END IF;
+
   UPDATE public.conversations
-  SET updated_at = NEW.created_at, last_actor = NEW.author
+  SET updated_at = NEW.created_at,
+      last_actor = NEW.author,
+      free_ready_a = CASE WHEN v_completed_three THEN true ELSE free_ready_a END,
+      free_ready_b = CASE WHEN v_completed_three THEN true ELSE free_ready_b END
   WHERE id = NEW.conversation_id AND NEW.author IN (user_a, user_b);
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Not a participant' USING ERRCODE = '42501';
@@ -1020,6 +1038,12 @@ CREATE TABLE public.chat_report_audit (
 
 ALTER TABLE public.conversation_answers DROP CONSTRAINT IF EXISTS conversation_answers_round_check;
 ALTER TABLE public.conversation_answers ADD CONSTRAINT conversation_answers_round_check CHECK (round BETWEEN 0 AND 59);
+ALTER TABLE public.conversation_rounds DROP CONSTRAINT IF EXISTS conversation_rounds_three_questions_check;
+ALTER TABLE public.conversation_rounds ADD CONSTRAINT conversation_rounds_three_questions_check CHECK (idx BETWEEN 0 AND 2) NOT VALID;
+ALTER TABLE public.conversation_answers DROP CONSTRAINT IF EXISTS conversation_answers_three_questions_check;
+ALTER TABLE public.conversation_answers ADD CONSTRAINT conversation_answers_three_questions_check CHECK (round BETWEEN 0 AND 2) NOT VALID;
+ALTER TABLE public.conversation_reactions DROP CONSTRAINT IF EXISTS conversation_reactions_three_questions_check;
+ALTER TABLE public.conversation_reactions ADD CONSTRAINT conversation_reactions_three_questions_check CHECK (idx BETWEEN 0 AND 2) NOT VALID;
 ALTER TABLE public.conversation_answers DROP CONSTRAINT IF EXISTS conversation_answers_body_check;
 ALTER TABLE public.conversation_answers ADD CONSTRAINT conversation_answers_body_check CHECK (
   (passed AND body = '') OR (NOT passed AND char_length(body) BETWEEN 1 AND 2400)

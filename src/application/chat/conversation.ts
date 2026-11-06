@@ -5,7 +5,7 @@
  * "exists but not yours").
  */
 import type { ConversationDto, InboxDto, InboxEntryDto } from "@/contracts/chat";
-import { completedRounds, isMyTurn, stageOf } from "@/domain/chat";
+import { completedRounds, isFree, isMyTurn, stageOf } from "@/domain/chat";
 import { err, ok, type Clock, type Result } from "@/domain/shared";
 
 import type { AppError } from "../errors";
@@ -30,7 +30,7 @@ function inboxEntry(row: ConversationRow, viewer: string, loaded: Omit<Loaded, "
     id: row.id,
     track: row.track,
     peer: toPeerDto(peers.get(otherOf(row, viewer))),
-    stage: stageOf(facts),
+    stage: stageOf(facts, now, ROUND_POLICY),
     completedRounds: completedRounds(facts, now, ROUND_POLICY),
     unread: seen === null || (fromOther && row.updatedAt > seen),
     myTurn: isMyTurn(facts, side, now, ROUND_POLICY),
@@ -105,8 +105,8 @@ export interface ViewOptions {
   before?: Date;
 }
 
-async function messagesFor(loaded: Loaded, options: ViewOptions, deps: ConversationDeps): Promise<Result<{ list: MessageRow[]; hasOlder: boolean }, AppError>> {
-  if (!loaded.row.freeReadyA || !loaded.row.freeReadyB) return ok({ list: [], hasOlder: false });
+async function messagesFor(loaded: Loaded, now: Date, options: ViewOptions, deps: ConversationDeps): Promise<Result<{ list: MessageRow[]; hasOlder: boolean }, AppError>> {
+  if (!isFree(loaded.facts, now, ROUND_POLICY)) return ok({ list: [], hasOlder: false });
   const page = await deps.conversations.messages(loaded.row.id, SETTINGS.messagesPage + 1, options.before ?? null);
   if (!page.ok) return page;
   const hasOlder = page.value.length > SETTINGS.messagesPage;
@@ -119,14 +119,14 @@ export async function getConversation(id: string, viewer: string, deps: Conversa
   if (!loaded.ok) return loaded;
   const { row } = loaded.value;
   const refresh = options.refresh ?? 0;
+  const now = deps.clock.now();
   const [messages, peers, suggestions] = await Promise.all([
-    messagesFor(loaded.value, options, deps),
+    messagesFor(loaded.value, now, options, deps),
     peerMap([otherOf(row, viewer)], deps.conversations),
     suggestionsFor(loaded.value, viewer, refresh, deps),
   ]);
   if (!messages.ok) return messages;
   if (!peers.ok) return peers;
-  const now = deps.clock.now();
   await deps.conversations.markSeen(id, sideOf(row, viewer), now);
   return ok(toDto(loaded.value, viewer, now, {
     peer: peers.value.get(otherOf(row, viewer)),

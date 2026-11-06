@@ -33,6 +33,11 @@ export interface RoundPolicy {
 }
 
 const MS_PER_HOUR = 3_600_000;
+const DEFAULT_ROUND_POLICY: RoundPolicy = {
+  minForFree: 3,
+  revealHours: 48,
+  maxRounds: 3,
+};
 
 export function otherSide(side: ConversationSide): ConversationSide {
   return side === "a" ? "b" : "a";
@@ -50,7 +55,7 @@ export function openRound(facts: ConversationFacts, now: Date, policy: RoundPoli
   return last && !isRoundRevealed(last, now, policy) ? last : null;
 }
 
-export function completedRounds(facts: ConversationFacts, now: Date, policy: RoundPolicy): number {
+export function completedRounds(facts: ConversationFacts, now: Date = new Date(), policy: RoundPolicy = DEFAULT_ROUND_POLICY): number {
   return facts.rounds.filter((round) => isRoundRevealed(round, now, policy)).length;
 }
 
@@ -60,18 +65,19 @@ export function nextAsker(facts: ConversationFacts): ConversationSide {
   return last ? otherSide(last.asker) : facts.firstAsker;
 }
 
-export function isFree(facts: ConversationFacts): boolean {
-  return facts.freeReady.a && facts.freeReady.b;
+export function isFree(facts: ConversationFacts, now: Date = new Date(), policy: RoundPolicy = DEFAULT_ROUND_POLICY): boolean {
+  return (facts.freeReady.a && facts.freeReady.b) || completedRounds(facts, now, policy) >= policy.minForFree;
 }
 
-export function stageOf(facts: ConversationFacts): ConversationStage {
+export function stageOf(facts: ConversationFacts, now: Date = new Date(), policy: RoundPolicy = DEFAULT_ROUND_POLICY): ConversationStage {
   if (facts.pausedBy !== null) return "paused";
-  return isFree(facts) ? "free" : "rounds";
+  return isFree(facts, now, policy) ? "free" : "rounds";
 }
 
 export function canOpenRound(facts: ConversationFacts, side: ConversationSide, now: Date, policy: RoundPolicy): boolean {
   return (
     facts.pausedBy === null &&
+    !isFree(facts, now, policy) &&
     openRound(facts, now, policy) === null &&
     nextAsker(facts) === side &&
     facts.rounds.length < policy.maxRounds
@@ -95,8 +101,8 @@ export function canAcceptFree(facts: ConversationFacts, side: ConversationSide, 
   return facts.pausedBy === null && !facts.freeReady[side] && completedRounds(facts, now, policy) >= policy.minForFree;
 }
 
-export function canSendMessage(facts: ConversationFacts): boolean {
-  return stageOf(facts) === "free";
+export function canSendMessage(facts: ConversationFacts, now: Date = new Date(), policy: RoundPolicy = DEFAULT_ROUND_POLICY): boolean {
+  return stageOf(facts, now, policy) === "free";
 }
 
 /** Only who paused can resume; pausing again is a no-op conflict. */
@@ -104,12 +110,11 @@ export function canTogglePause(facts: ConversationFacts, side: ConversationSide,
   return pause ? facts.pausedBy === null : facts.pausedBy === side;
 }
 
-/** Whether `side` can act now (answer, ask, or accept the free chat the other already accepted). */
+/** Whether `side` can act now (answer or ask during guided rounds). */
 export function isMyTurn(facts: ConversationFacts, side: ConversationSide, now: Date, policy: RoundPolicy): boolean {
   if (facts.pausedBy !== null) return false;
   const round = openRound(facts, now, policy);
   if (round) return round.answered[side] === null;
-  if (isFree(facts)) return false;
-  if (facts.freeReady[otherSide(side)] && canAcceptFree(facts, side, now, policy)) return true;
+  if (isFree(facts, now, policy)) return false;
   return canOpenRound(facts, side, now, policy);
 }

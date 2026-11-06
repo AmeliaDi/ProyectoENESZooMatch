@@ -29,6 +29,7 @@ import {
   errorCopy,
   formatCountdown,
   pausedMessage,
+  roundsStage,
   stageLabel,
 } from "./chat/chat-copy";
 import { REPORT_REASON_LABELS } from "./chat/conversation-copy";
@@ -144,6 +145,9 @@ describe("chat lock copy", () => {
   });
 
   it("names stages in words and never pressures", () => {
+    expect(roundsStage(1, 3)).toBe("Pregunta 1 de 3");
+    expect(roundsStage(2, 3)).toBe("Pregunta 2 de 3");
+    expect(roundsStage(3, 3)).toBe("Pregunta 3 de 3");
     expect(stageLabel("rounds", 0)).toBe("Rondas de preguntas");
     expect(stageLabel("rounds", 2)).toBe("Rondas de preguntas · 2 rondas");
     expect(stageLabel("free", 3)).toBe("Chat libre");

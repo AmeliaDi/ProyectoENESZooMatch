@@ -55,7 +55,7 @@ export function askQuestion(id: string, viewer: string, input: AskInput, deps: C
       if (!isKnownPrompt(input.promptId, loaded.row.track) || loaded.rounds.some((r) => r.promptId === input.promptId)) return err("request.invalid");
       return deps.conversations.openRound(id, index, viewer, { promptId: input.promptId }, now);
     }
-    if (stageOf(loaded.facts) !== "free") return err("chat.conflict");
+    if (stageOf(loaded.facts, now, ROUND_POLICY) !== "free") return err("chat.conflict");
     const text = guardText(input.customText, SETTINGS.customQuestionChars);
     if (!text.ok) return text;
     return deps.conversations.openRound(id, index, viewer, { customText: text.value }, now);
@@ -105,7 +105,9 @@ export function setFreeChat(id: string, viewer: string, ready: boolean, deps: Co
 
 export function sendMessage(id: string, viewer: string, input: { body: string; clientKey: string }, deps: ConversationDeps) {
   return act(id, viewer, deps, async (loaded, _side, now) => {
-    if (!canSendMessage(loaded.facts)) return err("chat.conflict");
+    const stage = stageOf(loaded.facts, now, ROUND_POLICY);
+    if (stage === "rounds") return err("chat.not_allowed");
+    if (!canSendMessage(loaded.facts, now, ROUND_POLICY)) return err("chat.conflict");
     const body = guardText(input.body, SETTINGS.messageChars);
     if (!body.ok) return body;
     const rate = await checkMessageRate(viewer, body.value, now, deps.conversations);

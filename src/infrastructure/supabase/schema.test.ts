@@ -47,6 +47,8 @@ const FASE2_MIGRATION = "20261109000000_fase2_color_stability.sql";
 const FASE2_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE2_MIGRATION), "utf8");
 const FASE3_MIGRATION = "20261110000000_fase3_retention_policy.sql";
 const FASE3_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE3_MIGRATION), "utf8");
+const FASE4_MIGRATION = "20261111000000_fase4_chat_three_rounds.sql";
+const FASE4_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE4_MIGRATION), "utf8");
 const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
 describe("base migration", () => {
@@ -62,6 +64,7 @@ describe("base migration", () => {
       FASE1_MIGRATION,
       FASE2_MIGRATION,
       FASE3_MIGRATION,
+      FASE4_MIGRATION,
     ]);
   });
 
@@ -471,5 +474,19 @@ describe("fase 3 retention policy migration", () => {
     expect(fn).toContain("SET search_path = ''");
     expect(fn).toContain("'softDeletedAbandoned'");
     expect(fn).toContain("'purgedReadNotifications'");
+  });
+});
+
+describe("fase 4 chat three rounds migration", () => {
+  it("restricts guided rounds to idx 0..2 and migrates >= 3 completed rounds to free chat", () => {
+    const fase4Sql = lf(FASE4_SQL);
+    expect(fase4Sql).not.toMatch(/\/\*|\*\//);
+    expect(fase4Sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
+    expect(fase4Sql).toContain("conversation_rounds_three_questions_check");
+    expect(fase4Sql).toContain("conversation_answers_three_questions_check");
+    expect(fase4Sql).toContain("conversation_reactions_three_questions_check");
+    expect(SQL).toContain("conversation_rounds_three_questions_check CHECK (idx BETWEEN 0 AND 2) NOT VALID");
+    expect(SQL).toContain("conversation_answers_three_questions_check CHECK (round BETWEEN 0 AND 2) NOT VALID");
+    expect(SQL).toContain("conversation_reactions_three_questions_check CHECK (idx BETWEEN 0 AND 2) NOT VALID");
   });
 });
