@@ -214,6 +214,46 @@
 .zm-progress__star[data-current="true"] { fill: var(--zm-gold); animation: zm-blink 1.2s steps(1) infinite; }
 .zm-progress__label { font-family: var(--font-read); font-size: 0.8125rem; font-variant-numeric: tabular-nums; color: var(--zm-fg-muted); }
 
+/* ─── Huevito (Fase 3) ────────────────────────────────────── */
+/*
+ * El cascarón es el único elemento con movimiento propio antes de eclosionar,
+ * así que usa el presupuesto de "respiración" (ADR-027): una subida de 1 píxel
+ * lógico —nunca medio píxel, para no romper la retícula— sobre 4800 ms.
+ * El aura sólo cambia de opacidad: escalar una elipse con `crispEdges` daría
+ * bordes fraccionarios. Su tope `--egg-glow` lo pone el componente según el
+ * progreso del núcleo, así que el latido nunca aplasta la señal de avance.
+ */
+.zm-egg {
+  --egg-glow: 0.28;
+  display: block;
+  transform-origin: 50% 100%;
+  animation: zm-egg-bob var(--zm-dur-breath) var(--zm-ease-in-out) infinite alternate;
+}
+.zm-egg__aura {
+  animation: zm-egg-pulse calc(var(--zm-dur-breath) / 2) var(--zm-ease-in-out) infinite alternate;
+  transform-origin: center;
+}
+.zm-egg[data-crack-stage="3"] { animation-duration: calc(var(--zm-dur-breath) / 2); }
+
+@keyframes zm-egg-bob {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(var(--zm-px) * -1)); }
+}
+
+@keyframes zm-egg-pulse {
+  from { opacity: calc(var(--egg-glow) * 0.7); }
+  to { opacity: var(--egg-glow); }
+}
+
+@keyframes zm-egg-fade {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zm-egg { animation: zm-egg-fade var(--zm-dur-enter) var(--zm-ease-out) both; }
+  .zm-egg__aura { animation: none; }
+}
+
 /* ─── Toast ───────────────────────────────────────────────── */
 .zm-toast-region {
   position: fixed;

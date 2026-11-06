@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { EXPERIENCE } from "@/config";
+import { formatIdentity } from "@/domain/identity/format-identity";
+import type { ResultDto } from "@/contracts/result";
 import type { MatchTrack } from "@/types/microtest";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
@@ -17,7 +19,8 @@ import { type ApiError, RECOMPUTE_PENDING_KEY } from "@/ui/shared/chrome";
 import { ExitButton } from "@/ui/shared/exit-button";
 
 import { MatchCard } from "./match-card";
-import { parsePublicResult, type PublicResult } from "./parse-result";
+import { parsePublicResult } from "./parse-result";
+import { clipName } from "./clip-label";
 
 // The sky (physics + sprites) is the heaviest part of the page: load it only
 // when it is shown, after the result itself has painted.
@@ -36,7 +39,7 @@ export const FEW_PEOPLE_COPY =
 type View = "cielo" | "lista";
 
 function useResult(attempt: number) {
-  const [state, setState] = useState<{ result: PublicResult | null; error: ApiError; loading: boolean }>({
+  const [state, setState] = useState<{ result: ResultDto | null; error: ApiError; loading: boolean }>({
     result: null,
     error: null,
     loading: true,
@@ -78,7 +81,7 @@ function useResult(attempt: number) {
  * sharing, or a recompute, shows up without a reload. No loading state, and
  * nothing changes unless the payload did, so the sky keeps its place.
  */
-function useRefreshOnReturn(current: PublicResult | null, apply: (result: PublicResult) => void) {
+function useRefreshOnReturn(current: ResultDto | null, apply: (result: ResultDto) => void) {
   const latest = useRef({ current, apply, at: 0 });
   useEffect(() => {
     latest.current = { ...latest.current, current, apply };
@@ -167,8 +170,9 @@ export function PublicResultView() {
 
   const matches = result.matches[track];
   const total = result.matches.romance.length + result.matches.amistad.length;
+  const mine = formatIdentity(result.identity);
   const self = adaptResult(result)?.me ?? null;
-  const emptyMessage = result.fewPeople ? FEW_PEOPLE_COPY : result.no_match_message;
+  const emptyMessage = result.few_people ? FEW_PEOPLE_COPY : result.no_match_message;
 
   return (
     <AtlasShell plate="Lámina 04 · tu cielo" actions={actions} bare={view === "cielo"}>
@@ -180,11 +184,12 @@ export function PublicResultView() {
             </span>
           ) : null}
           <div>
-            <h1 className="zm-result__alias">{result.alias}</h1>
-            <p className="zm-result__identity">
-              {result.animal.diminutivo_es} {result.color.nombre.toLowerCase()}
-              {result.mbti_code ? ` · ${result.mbti_code}` : ""}
-            </p>
+            <h1 className="zm-result__alias" title={mine.title}>{clipName(mine.title, 28)}</h1>
+            {mine.subtitle ? (
+              <p className="zm-result__identity">
+                {mine.subtitle}
+              </p>
+            ) : null}
           </div>
         </header>
 
@@ -228,7 +233,7 @@ export function PublicResultView() {
           <ConstellationSection key={skyKey} result={result} track={track} emptyMessage={emptyMessage} />
         ) : matches.length === 0 ? (
           <EmptyState
-            title={result.fewPeople ? "Somos pocxs todavía" : "Tu cielo está tranquilo"}
+            title={result.few_people ? "Somos pocxs todavía" : "Tu cielo está tranquilo"}
             body={emptyMessage}
             art={self ? <PixelAnimal animalId={self.animalId} colorId={self.colorId} mark={self.mark} size={72} /> : undefined}
           />

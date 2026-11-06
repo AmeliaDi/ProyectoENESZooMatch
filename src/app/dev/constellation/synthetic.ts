@@ -5,10 +5,15 @@
  * color distinto (hasta agotar la paleta), de modo que nunca aparezcan dos
  * sprites idénticos en el mismo cielo. El "yo" del panel queda excluido para no
  * duplicar el nodo central.
+ *
+ * Los nodos sintéticos viajan con un `IdentityDto` completo: la pantalla lee
+ * nombres y sprites por esa única ruta, así que el banco de pruebas imita el
+ * contrato real en lugar de inventarse campos sueltos.
  */
 
 import { mulberry32 } from "@/domain/shared";
-import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
+import { AVATAR_CONFIG, CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
+import type { IdentityDto } from "@/contracts/identity";
 import type {
   ConstellationMatchInput,
   ConstellationSelfInput,
@@ -35,15 +40,53 @@ const ANIMAL_NAME = new Map<string, string>(ANIMALS.map((a) => [a.id, a.diminuti
 const COLOR_NAME = new Map<string, string>(COLORS.map((c) => [c.id, c.nombre]));
 const COLOR_HEX = new Map<string, string>(COLORS.map((c) => [c.id, c.hex]));
 
+const SEPARATOR = AVATAR_CONFIG.identity.separator.valor;
+
+/**
+ * `IdentityDto` sintético y ya eclosionado: el cielo de desarrollo pinta nombres
+ * y sprites sólo por esa ruta, igual que producción.
+ */
+export function devIdentityDto(input: {
+  animalId: string;
+  colorId: string;
+  colorHex: string;
+  aliasAnimal: string;
+  aliasColor: string;
+  sufijo: string;
+  mbtiCode?: string | null;
+  enneagramCode?: string | null;
+}): IdentityDto {
+  return {
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: `${input.aliasAnimal} ${input.aliasColor}${SEPARATOR}${input.sufijo}`,
+    aliasAnimal: input.aliasAnimal,
+    aliasColor: input.aliasColor,
+    aliasSufijo: input.sufijo,
+    animalId: input.animalId,
+    colorId: input.colorId,
+    colorHex: input.colorHex,
+    mbtiCode: input.mbtiCode ?? null,
+    enneagramCode: input.enneagramCode ?? null,
+    enneagramName: null,
+    mark: null,
+    revelacionVista: true,
+    huevitoSeed: null,
+  };
+}
+
 export const DEV_SELF: ConstellationSelfInput = {
   id: "dev-self",
+  identity: devIdentityDto({
+    animalId: "ajolotito",
+    colorId: "ennea-6",
+    colorHex: COLOR_HEX.get("ennea-6") ?? "#338547",
+    aliasAnimal: "ajolotito",
+    aliasColor: "verde bosque",
+    sufijo: "VTSD",
+  }),
   animalId: "ajolotito",
   colorId: "ennea-6",
   colorHex: COLOR_HEX.get("ennea-6") ?? "#338547",
-  animalName: "Ajolotito",
-  colorName: "verde bosque",
-  alias: "tú (dev)",
-  mbtiCode: null,
 };
 
 const FACTORS = [
@@ -79,6 +122,18 @@ function shuffled<T>(list: readonly T[], rand: () => number): T[] {
     copy[j] = tmp;
   }
   return copy;
+}
+
+/** Sufijo pseudo-realista (4 consonantes del alfabeto oficial) para cada estrella. */
+export function suffixFor(index: number): string {
+  const alphabet = AVATAR_CONFIG.identity.suffix_alphabet.valor;
+  let out = "";
+  let rest = index;
+  for (let position = 0; position < 4; position += 1) {
+    out += alphabet[rest % alphabet.length] ?? "B";
+    rest = Math.floor(rest / alphabet.length);
+  }
+  return out;
 }
 
 export interface SyntheticMatchOptions {
@@ -134,12 +189,17 @@ export function generateSyntheticMatches({
     });
     matches.push({
       id: `dev-${seed}-${index}`,
+      identity: devIdentityDto({
+        animalId,
+        colorId,
+        colorHex: COLOR_HEX.get(colorId) ?? "#c9d4ff",
+        aliasAnimal: animalName,
+        aliasColor: colorName,
+        sufijo: suffixFor(index),
+      }),
       animalId,
       colorId,
       colorHex: COLOR_HEX.get(colorId) ?? "#c9d4ff",
-      animalName,
-      colorName,
-      alias: `${animalName} ${colorName} · dev${index}`,
       similarity: roundedSimilarity,
       track,
       badges: [],

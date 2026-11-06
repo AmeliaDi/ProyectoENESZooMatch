@@ -10,9 +10,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CHAT_CONFIG } from "@/config";
 import type { InvitationDto } from "@/contracts/chat";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import { Button } from "@/ui/kit/button";
 import { Icon } from "@/ui/kit/icon";
 import { EmptyState, ErrorState, LoadingState } from "@/ui/kit/states";
+import { isHatched } from "@/ui/shared/parse-identity";
 
 import { LOCKED, conversationApi } from "./chat-api";
 import { CHAT_COPY, CONVERSATION_COPY, INTEREST_COPY, stageLabel, trackLabel } from "./chat-copy";
@@ -56,12 +58,13 @@ function useInbox(onLocked: () => void) {
 }
 
 function InboxRow({ entry, onOpen }: { entry: InboxEntry; onOpen(id: string): void }) {
+  const name = formatIdentity(entry.peer.identity);
   return (
     <li>
       <button type="button" className="zm-box zm-inbox__row" data-tone={entry.track} onClick={() => onOpen(entry.id)}>
-        <PeerSprite peer={entry.peer} size={SPRITE_SIZE} />
+        <PeerSprite identity={entry.peer.identity} size={SPRITE_SIZE} />
         <span className="zm-inbox__text">
-          <span className="zm-inbox__alias">{entry.peer.alias}</span>
+          <span className="zm-inbox__alias">{name.title}</span>
           <span className="zm-inbox__meta zm-num">{trackLabel(entry.track)} · {stageLabel(entry.stage, entry.completedRounds)}</span>
         </span>
         <span className="zm-inbox__flags">
@@ -81,26 +84,30 @@ export interface InboxProps {
 
 export function Inbox({ onOpen, onLock, onLocked }: InboxProps) {
   const [state, reload] = useInbox(onLocked);
-  const empty = state.kind === "ready" && state.list.length === 0 && state.invitations.length === 0;
+  // The parsers already drop a peer without a stored name; this is the second
+  // gate that keeps an egg out of the list — it cannot be opened or answered.
+  const rows = state.kind === "ready" ? state.list.filter((entry) => isHatched(entry.peer.identity)) : [];
+  const invites = state.kind === "ready" ? state.invitations.filter((inv) => isHatched(inv.peer.identity)) : [];
+  const empty = state.kind === "ready" && rows.length === 0 && invites.length === 0;
   return (
     <>
       {state.kind === "loading" ? <LoadingState title={CONVERSATION_COPY.loading} /> : null}
       {state.kind === "error" ? <ErrorState title={state.message} action={<Button onClick={() => void reload()}>{CONVERSATION_COPY.retry}</Button>} /> : null}
       {empty ? <EmptyState title={CHAT_COPY.emptyTitle} body={CHAT_COPY.empty} /> : null}
-      {state.kind === "ready" && state.invitations.length > 0 ? (
+      {invites.length > 0 ? (
         <>
           <h2 className="zm-chat__title">{INTEREST_COPY.invitationsTitle}</h2>
           <ul className="zm-inbox">
-            {state.invitations.map((inv) => (
+            {invites.map((inv) => (
               <InvitationCard key={`${inv.track}:${inv.match}`} invitation={inv} onOpened={onOpen} onDone={() => void reload()} />
             ))}
           </ul>
         </>
       ) : null}
-      {state.kind === "ready" && state.list.length > 0 ? (
+      {rows.length > 0 ? (
         <>
           <h2 className="zm-chat__title">{CONVERSATION_COPY.inboxTitle}</h2>
-          <ul className="zm-inbox">{state.list.map((entry) => <InboxRow key={entry.id} entry={entry} onOpen={onOpen} />)}</ul>
+          <ul className="zm-inbox">{rows.map((entry) => <InboxRow key={entry.id} entry={entry} onOpen={onOpen} />)}</ul>
         </>
       ) : null}
       <div className="zm-chat__actions">

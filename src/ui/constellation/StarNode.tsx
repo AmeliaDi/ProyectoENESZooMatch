@@ -8,6 +8,8 @@
 
 import { memo, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 
+import { clipName } from "@/ui/result/clip-label";
+
 import { FOCO_PATTERN_ID, GLOW_REACH, suavePatternId } from "./glow";
 import { PixelAnimal } from "./PixelAnimal";
 import { affinityLabelOpacity, affinityLabelY, DIMMED_OPACITY, HIT_RADIUS_PADDING, round2 } from "./render-helpers";
@@ -64,6 +66,12 @@ function ChatMark({ size }: { size: number }) {
 /** % label size in world units (Atkinson, tabular figures; see ADR-028). */
 const AFFINITY_FONT_SIZE = 10;
 const TAG_FONT_SIZE = 10;
+/**
+ * A star tag is centred under a ~24-40 px sprite with neighbours a few radii
+ * away, so it gets a much tighter budget than the HTML screens: an SVG `<text>`
+ * ignores CSS ellipsis, hence the clip happens on the string itself.
+ */
+const TAG_MAX_WIDTH_PX = 110;
 /** Alias baseline below the star, in world units. */
 const TAG_OFFSET = 16;
 /** Selection ring: gap to the sprite edge and stroke, in world units. */
@@ -160,9 +168,9 @@ function StarNodeImpl({ node, happy, romance, dimmed, ringed, breathing, showTag
           </text>
         ) : null}
         <circle r={node.radius + HIT_RADIUS_PADDING} fill="transparent" style={{ pointerEvents: interactive ? "all" : "none" }} />
-        {showTag && node.alias ? (
+        {showTag && node.name ? (
           <text y={node.radius + TAG_OFFSET} textAnchor="middle" className="zm-canvas__tag" fontSize={TAG_FONT_SIZE}>
-            {node.alias}
+            {clipName(node.name, TAG_FONT_SIZE, TAG_MAX_WIDTH_PX)}
           </text>
         ) : null}
       </g>

@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 
 import type { ProfileDto } from "@/contracts/profile";
 import { EXPERIENCE } from "@/config";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
 import { isRadiantPercent } from "@/ui/constellation/render-helpers";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
@@ -79,17 +80,21 @@ function Actions() {
 }
 
 function Hero({ profile }: { profile: ProfileDto }) {
-  const { mbti, enneagram } = profile;
+  const { mbti, enneagram, identity } = profile;
+  const name = formatIdentity(identity);
   return (
     <header className="zm-box zm-box--frame zm-card__hero">
       <span className="zm-card__sprite" aria-hidden="true">
-        <PixelAnimal animalId={profile.animal.id} colorId={profile.color.id} mark={profile.mark} size={96} />
+        <PixelAnimal
+          animalId={identity.animalId ?? ""}
+          colorId={identity.colorId ?? ""}
+          mark={identity.mark}
+          size={96}
+        />
       </span>
       <div className="zm-card__who">
-        <h1 className="zm-card__alias">{profile.alias}</h1>
-        <p className="zm-card__identity">
-          {profile.animal.name} {profile.color.name.toLowerCase()}
-        </p>
+        <h1 className="zm-card__alias">{name.title}</h1>
+        <p className="zm-card__identity">{name.subtitle}</p>
         <div className="zm-card__chips">
           <Chip icon="personalidad">
             {mbti.code}
@@ -147,14 +152,17 @@ function Affinities({ profile }: { profile: ProfileDto }) {
               <p className="zm-detail__muted">Todavía nadie cruza el umbral aquí. Tu cielo sigue abierto.</p>
             ) : (
               <ul className="zm-card__matches">
-                {t.data.top.map((m) => (
-                  <li key={m.alias}>
-                    <span>{m.alias}</span>
-                    <span className="zm-card__pct">
-                      <PixelNumber value={`${m.percent} %`} size="sm" gold={isRadiantPercent(m.percent, t.key)} />
-                    </span>
-                  </li>
-                ))}
+                {t.data.top.map((m) => {
+                  const name = formatIdentity(m.identity);
+                  return (
+                    <li key={name.title}>
+                      <span>{name.title}</span>
+                      <span className="zm-card__pct">
+                        <PixelNumber value={`${m.percent} %`} size="sm" gold={isRadiantPercent(m.percent, t.key)} />
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>

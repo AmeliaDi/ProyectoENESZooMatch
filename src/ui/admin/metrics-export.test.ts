@@ -18,8 +18,9 @@ const METRICS: AdminMetrics = {
   amistadMatches: 240,
   usersWithRomanceMatch: 80,
   usersWithAmistadMatch: 160,
-  topAnimals: [{ animal: "ajolotito", count: 12 }],
-  topColors: [{ color: "verde esmeralda", count: 9 }],
+  huevos: 17,
+  topAnimals: [{ id: "ajolotito", name: "ajolotito", count: 12 }],
+  topColors: [{ id: "verde-esmeralda", name: "verde esmeralda", count: 9 }],
   mbtiDistribution: { INTJ: 30, ENFP: 25 },
 };
 
@@ -37,6 +38,14 @@ describe("admin metrics validation", () => {
       parseAdminMetrics({ ...METRICS, totalProfiles: -1 }),
     ).toBeNull();
     expect(parseAdminMetrics({ ...METRICS, topAnimals: "nope" })).toBeNull();
+  });
+
+  it("counts the unhatched, and refuses a breakdown without the stored id", () => {
+    expect(parseAdminMetrics({ ...METRICS, huevos: -1 })).toBeNull();
+    expect(parseAdminMetrics({ ...METRICS, huevos: null })).toBeNull();
+    // Grouping is by the id frozen on eclosion, so a name alone is not a cell.
+    expect(parseAdminMetrics({ ...METRICS, topAnimals: [{ animal: "ajolotito", count: 12 }] })).toBeNull();
+    expect(parseAdminMetrics({ ...METRICS, topColors: [{ color: "verde esmeralda", count: 9 }] })).toBeNull();
   });
 
   it("accepts the calibrated thresholds, which may sit below 0.5", () => {
@@ -62,8 +71,10 @@ describe("CSV export", () => {
     expect(csv).toContain("\r\n");
     expect(csv).toContain("Matches romance,120");
     expect(csv).toContain("Matches amistad,240");
-    expect(csv).toContain("Top animales,Cantidad");
-    expect(csv).toContain("ajolotito,12");
+    expect(csv).toContain("En el cascarón (sin identidad fijada),17");
+    expect(csv).toContain("Top animales,Id,Cantidad");
+    expect(csv).toContain("ajolotito,ajolotito,12");
+    expect(csv).toContain("verde esmeralda,verde-esmeralda,9");
     expect(csv).toContain("INTJ,30");
     expect(csv).toContain("ENFP,25");
     expect(csv.endsWith("\r\n")).toBe(true);

@@ -31,6 +31,7 @@ function emptyMetrics(): AdminMetrics {
     amistadMatches: 0,
     usersWithRomanceMatch: 0,
     usersWithAmistadMatch: 0,
+    huevos: 0,
     mbtiDistribution: {},
     topAnimals: [],
     topColors: [],
@@ -131,8 +132,8 @@ export function AdminDashboard({ onUnauthorized }: { onUnauthorized: () => void 
   }
 
   const mbti = MBTI_CODES.map((code) => ({ label: code, count: data.mbtiDistribution[code] ?? 0 }));
-  const animals = data.topAnimals.map((a) => ({ label: a.animal, count: a.count }));
-  const colors = data.topColors.map((c) => ({ label: c.color, count: c.count }));
+  const animals = data.topAnimals.map((a) => ({ label: a.name, count: a.count }));
+  const colors = data.topColors.map((c) => ({ label: c.name, count: c.count }));
   const tooFew = data.totalProfiles > 0 && data.totalProfiles < K_FLOOR;
 
   return (
@@ -154,7 +155,7 @@ export function AdminDashboard({ onUnauthorized }: { onUnauthorized: () => void 
           </p>
         </header>
 
-        {data.totalProfiles === 0 ? (
+        {data.totalProfiles === 0 && data.huevos === 0 ? (
           <EmptyState title="Cielo sin perfiles" body="Las métricas aparecen después de los primeros cuestionarios." />
         ) : null}
         {tooFew ? (
@@ -167,6 +168,11 @@ export function AdminDashboard({ onUnauthorized }: { onUnauthorized: () => void 
           <Frame title="Perfiles activos" coord="Σ">
             <p className="zm-admin__big">
               <PixelNumber value={data.totalProfiles.toLocaleString("es-MX")} size="lg" />
+            </p>
+            {/* An egg has no animal and no colour, so it is outside every breakdown below. */}
+            <p className="zm-detail__muted">
+              <span className="zm-num">{safe(data.huevos).text}</span> personas siguen en el cascarón, sin identidad
+              fijada.
             </p>
             <p className="zm-detail__muted">Sin matrículas, hashes, vectores ni respuestas.</p>
           </Frame>

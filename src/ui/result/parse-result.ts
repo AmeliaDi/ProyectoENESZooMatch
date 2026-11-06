@@ -2,54 +2,22 @@
  * Client-side parser for `GET /api/result`. It never trusts the payload:
  * malformed entries are dropped, badge labels come from a local map and the
  * badge icon is the dimension's category key (rendered as a pixel icon).
+ * Identity — own and counterpart — is read only through `parseIdentity`, so
+ * this file carries no second name route, and an egg never reaches a screen.
  */
 import type {
   ChemistrySummary,
-  LayerAffinityBand,
+  MatchEntryDto,
   MatchExplanation,
-  SharedProfileDto,
-  SpriteMark,
+  ResultDto,
 } from "@/contracts/result";
 import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
+import { isHatched, parseIdentity } from "@/ui/shared/parse-identity";
 import type { CompatibilityBadge } from "@/types/microtest";
 
 import { parseLayers, parseShared } from "./parse-shared";
 
 export { NO_MATCH_MESSAGE };
-
-export interface ResultMatch {
-  /** Opaque per-viewer handle (React key only). Never displayed. */
-  id?: string | null;
-  alias: string;
-  animal: string;
-  animal_id?: string | null;
-  color: string;
-  color_id?: string | null;
-  color_hex?: string | null;
-  mark?: SpriteMark | null;
-  mbti_code?: string | null;
-  similarity: number;
-  chemistry: ChemistrySummary | null;
-  badges: CompatibilityBadge[];
-  narrative: string;
-  explanation: MatchExplanation | null;
-  /** Per-layer affinity bands (empty when the API omitted them). */
-  layers: LayerAffinityBand[];
-  /** What the counterpart chose to share (nothing by default). */
-  shared: SharedProfileDto;
-}
-
-export interface PublicResult {
-  alias: string;
-  animal: { id: string; diminutivo_es: string; categoria_fauna: string };
-  color: { id: string; nombre: string; hex: string };
-  mark: SpriteMark | null;
-  narrative: string;
-  mbti_code: string | null;
-  matches: { romance: ResultMatch[]; amistad: ResultMatch[] };
-  fewPeople: boolean;
-  no_match_message: string;
-}
 
 const DIMENSION_LABELS: Record<string, string> = {
   // Match categories (layered model): what the badges carry now.
@@ -129,8 +97,6 @@ function categoryOf(dimension: string): string {
   );
 }
 
-const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -147,12 +113,24 @@ function badgeForDimension(dimension: string, affinity: number): CompatibilityBa
   };
 }
 
+/**
+ * The only badge wording route: labels and icon keys always come from the local
+ * maps, never from the payload. Exported because the constellation's node
+ * contract wants the same enriched badges the parser produced.
+ */
+export function normalizeBadges(
+  badges: readonly { dimension: string; affinity: number }[],
+): CompatibilityBadge[] {
+  return badges.map((badge) => badgeForDimension(badge.dimension, badge.affinity));
+}
+
 function parseBadges(raw: unknown): CompatibilityBadge[] {
   if (!Array.isArray(raw)) return [];
-  return raw.flatMap((b) =>
-    isRecord(b) && typeof b.dimension === "string" && typeof b.affinity === "number"
-      ? [badgeForDimension(b.dimension, b.affinity)]
-      : [],
+  return normalizeBadges(
+    raw.filter(
+      (b): b is { dimension: string; affinity: number } =>
+        isRecord(b) && typeof b.dimension === "string" && typeof b.affinity === "number",
+    ),
   );
 }
 
@@ -192,85 +170,48 @@ function parseExplanation(raw: unknown): MatchExplanation | null {
   return raw as unknown as MatchExplanation;
 }
 
-function parseMatchEntry(raw: unknown): ResultMatch | null {
-  if (!isRecord(raw) || typeof raw.alias !== "string" || typeof raw.similarity !== "number") {
-    return null;
-  }
+function parseMatchEntry(raw: unknown): MatchEntryDto | null {
+  if (!isRecord(raw) || typeof raw.similarity !== "number") return null;
+  const identity = parseIdentity(raw.identity);
+  // Fail closed: an egg or an unusable identity never becomes a card or a star.
+  if (!isHatched(identity)) return null;
   const explanation = parseExplanation(raw.explanation);
+  // `MatchEntryDto.chemistry` is never nullable: the server always computes it,
+  // so an entry without any usable band is a broken row and gets dropped.
+  const chemistry = parseChemistry(raw.chemistry) ?? explanation?.chemistry;
+  if (!chemistry) return null;
   return {
     id: optionalString(raw.id),
-    alias: raw.alias,
-    animal: optionalString(raw.animal) ?? "",
-    animal_id: optionalString(raw.animal_id),
-    color: optionalString(raw.color) ?? "",
-    color_id: optionalString(raw.color_id),
-    color_hex: optionalString(raw.color_hex),
-    mark: parseMark(raw.mark),
-    mbti_code: optionalString(raw.mbti_code),
+    identity,
     similarity: raw.similarity,
-    chemistry: parseChemistry(raw.chemistry) ?? explanation?.chemistry ?? null,
+    chemistry,
     badges: parseBadges(raw.badges),
-    narrative: optionalString(raw.narrative) ?? "",
     explanation,
     layers: parseLayers(raw.layers),
     shared: parseShared(raw.shared),
   };
 }
 
-function parseMark(raw: unknown): SpriteMark | null {
-  return raw === "sp" || raw === "so" || raw === "sx" ? raw : null;
-}
-
-function parseMatchList(raw: unknown): ResultMatch[] {
+function parseMatchList(raw: unknown): MatchEntryDto[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map(parseMatchEntry).filter((m): m is ResultMatch => m !== null);
+  return raw.map(parseMatchEntry).filter((m): m is MatchEntryDto => m !== null);
 }
 
-/** Supabase embedded joins may arrive as an object or a one-element array. */
-function firstRecord(raw: unknown): Record<string, unknown> | null {
-  const value: unknown = Array.isArray(raw) ? raw[0] : raw;
-  return isRecord(value) ? value : null;
-}
-
-function parseAnimal(raw: unknown): PublicResult["animal"] | null {
-  const animal = firstRecord(raw);
-  if (!animal || typeof animal.id !== "string" || typeof animal.diminutivo_es !== "string") {
+export function parsePublicResult(raw: unknown): ResultDto | null {
+  if (!isRecord(raw) || typeof raw.narrative !== "string" || !isRecord(raw.matches)) {
     return null;
   }
-  return {
-    id: animal.id,
-    diminutivo_es: animal.diminutivo_es,
-    categoria_fauna: optionalString(animal.categoria_fauna) ?? "",
-  };
-}
-
-function parseColor(raw: unknown): PublicResult["color"] | null {
-  const color = firstRecord(raw);
-  if (!color || typeof color.id !== "string" || typeof color.nombre !== "string") return null;
-  if (typeof color.hex !== "string" || !HEX_PATTERN.test(color.hex)) return null;
-  return { id: color.id, nombre: color.nombre, hex: color.hex };
-}
-
-export function parsePublicResult(raw: unknown): PublicResult | null {
-  if (!isRecord(raw) || typeof raw.alias !== "string" || typeof raw.narrative !== "string") {
-    return null;
-  }
-  const animal = parseAnimal(raw.animal);
-  const color = parseColor(raw.color);
-  if (!animal || !color || !isRecord(raw.matches)) return null;
+  const identity = parseIdentity(raw.identity);
+  if (!isHatched(identity)) return null;
 
   return {
-    alias: raw.alias,
-    animal,
-    color,
-    mark: parseMark(raw.mark),
+    identity,
     narrative: raw.narrative,
-    mbti_code: optionalString(raw.mbti_code),
     matches: {
       romance: parseMatchList(raw.matches.romance),
       amistad: parseMatchList(raw.matches.amistad),
     },
-    fewPeople: raw.few_people === true,
+    few_people: raw.few_people === true,
     no_match_message: optionalString(raw.no_match_message) ?? NO_MATCH_MESSAGE,
   };
 }

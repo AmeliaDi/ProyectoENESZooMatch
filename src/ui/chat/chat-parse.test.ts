@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { CHAT_CONFIG } from "@/config";
+import type { IdentityDto } from "@/contracts/identity";
+import { formatIdentity } from "@/domain/identity/format-identity";
+import { EGG_IDENTITY } from "@/ui/shared/parse-identity";
 
 import {
   parseConversation,
@@ -16,7 +19,24 @@ import {
 import { hasInterestHandle, interestKey } from "./interest-api";
 
 const SETTINGS = CHAT_CONFIG.conversation;
-const peer = { alias: "Nutria Serena", animal_id: "nutria", color_id: "ennea-2", color_hex: "#AABBCC", mark: "sx" };
+/** A hatched identity as the server stores and projects it. */
+const identity: IdentityDto = {
+  estadoIdentidad: "eclosionado",
+  aliasCompleto: "nutria verde esmeralda · KMPQ",
+  aliasAnimal: "nutria",
+  aliasColor: "verde esmeralda",
+  aliasSufijo: "KMPQ",
+  animalId: "nutria",
+  colorId: "ennea-2",
+  colorHex: "#AABBCC",
+  mbtiCode: "INFP",
+  enneagramCode: "4w5",
+  enneagramName: "El Individualista",
+  mark: "sx",
+  revelacionVista: false,
+  huevitoSeed: null,
+};
+const peer = { identity };
 const entry = { id: "c1", track: "romance", peer, stage: "rounds", completedRounds: 2, unread: true, myTurn: false, updatedAt: "2026-11-01T10:00:00Z" };
 const round = {
   index: 0, question: "¿Qué te alegra?", askedByMe: true, mine: "Los gatos", minePassed: false,
@@ -33,22 +53,31 @@ const convo = {
 };
 
 describe("parsePeer", () => {
-  it("keeps valid fields and nulls the doubtful ones", () => {
+  it("keeps the stored identity and nulls the doubtful fields", () => {
     expect(parsePeer(peer)).toEqual(peer);
-    expect(parsePeer({ ...peer, color_hex: "red", mark: "xx", animal_id: 7 })).toMatchObject({ color_hex: null, mark: null, animal_id: null });
+    const doubtful = { identity: { ...identity, colorHex: "red", mark: "xx", mbtiCode: "XXXX", enneagramCode: "10" } };
+    expect(parsePeer(doubtful)).toMatchObject({
+      identity: { colorHex: null, mark: null, mbtiCode: null, enneagramCode: null, animalId: "nutria" },
+    });
   });
 
-  it("rejects a peer without alias", () => {
-    expect(parsePeer({ ...peer, alias: "  " })).toBeNull();
+  it("never yields a peer without a renderable identity", () => {
+    expect(parsePeer({ identity: EGG_IDENTITY })).toBeNull();
+    expect(parsePeer({ identity: { ...EGG_IDENTITY, huevitoSeed: 7 } })).toBeNull();
+    expect(parsePeer({ identity: { ...identity, aliasCompleto: "  " } })).toBeNull();
+    expect(parsePeer({ identity: { ...identity, aliasSufijo: null } })).toBeNull();
+    // A hand-built name is not an identity: the old wire shape parses to nothing.
+    expect(parsePeer({ alias: identity.aliasCompleto, animal_id: "nutria", color_id: "ennea-2" })).toBeNull();
     expect(parsePeer(null)).toBeNull();
   });
 });
 
 describe("parseInbox", () => {
   it("drops invalid entries and invitations instead of failing the whole list", () => {
+    const egg = { identity: EGG_IDENTITY };
     const parsed = parseInbox({
-      conversations: [entry, { ...entry, id: 3 }, { ...entry, stage: "chat" }, "x"],
-      invitations: [{ match: "h1", track: "amistad", peer }, { match: "h2", track: "otro", peer }],
+      conversations: [entry, { ...entry, id: 3 }, { ...entry, stage: "chat" }, { ...entry, id: "c2", peer: egg }, "x"],
+      invitations: [{ match: "h1", track: "amistad", peer }, { match: "h2", track: "otro", peer }, { match: "h3", track: "romance", peer: egg }],
     });
     expect(parsed?.conversations).toHaveLength(1);
     expect(parsed?.invitations).toEqual([{ match: "h1", track: "amistad", peer }]);
@@ -92,7 +121,18 @@ describe("parseConversation", () => {
     expect(parseConversation({ ...convo, id: "" })).toBeNull();
     expect(parseConversation({ ...convo, stage: "invite" })).toBeNull();
     expect(parseConversation({ ...convo, peer: null })).toBeNull();
+    expect(parseConversation({ ...convo, peer: { identity: EGG_IDENTITY } })).toBeNull();
     expect(parseConversation("x")).toBeNull();
+  });
+
+  it("renders the peer with the one canonical name and its own aria-label", () => {
+    const name = formatIdentity(parsePeer(peer)?.identity ?? EGG_IDENTITY);
+    expect(name.isEgg).toBe(false);
+    expect(name.title).toBe("nutria verde esmeralda · KMPQ");
+    expect(name.shortName).toBe("nutria verde esmeralda");
+    expect(name.suffix).toBe("KMPQ");
+    expect(name.subtitle).toBe("INFP · 4w5");
+    expect(name.ariaLabel).toBe(name.title);
   });
 });
 

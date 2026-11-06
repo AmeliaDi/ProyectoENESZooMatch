@@ -8,9 +8,10 @@
 
 import { useMemo } from "react";
 
+import type { ResultDto } from "@/contracts/result";
 import { CoachMarks } from "@/ui/coach/coach-guide";
 import { ErrorState, LoadingState } from "@/ui/kit/states";
-import { NO_MATCH_MESSAGE, type PublicResult } from "@/ui/result/parse-result";
+import { NO_MATCH_MESSAGE } from "@/ui/result/parse-result";
 import type { MatchTrack } from "@/types/microtest";
 
 import { adaptResult } from "./adapt-result";
@@ -18,7 +19,7 @@ import { ConstellationView } from "./ConstellationView";
 import { CONSTELLATION_COPY } from "./types";
 
 export interface ConstellationSectionProps {
-  result: PublicResult | null;
+  result: ResultDto | null;
   loading?: boolean;
   error?: boolean;
   /** Controlled track (the result screen owns the tabs). */

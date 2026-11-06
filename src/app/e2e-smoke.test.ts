@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 
 import { CORE_ITEMS, MATCHING_CONFIG, QUIZ_ITEMS } from "@/config";
 import { PSYCHOMETRIC_PARAMS } from "@/config/psychometric-params";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import { buildMeasurementModel, scoreLatent } from "@/domain/psychometrics/latent";
 import type { LikertValue, QuizSubmission } from "@/types/microtest";
 import { adaptResult } from "@/ui/constellation/adapt-result";
@@ -40,6 +41,8 @@ import { ConversationStore, memoryConversations } from "@/application/testing/me
 const MODEL = buildMeasurementModel(PSYCHOMETRIC_PARAMS);
 const USER_A = "00000000-0000-4000-8000-000000000101";
 const USER_B = "00000000-0000-4000-8000-000000000202";
+/** Fixed test seed: `hatchIdentity` is deterministic, so the alias is reproducible. */
+const SECRET = "zm-test-secret";
 const digest = (s: string) => createHash("sha256").update(s).digest("hex");
 
 function buildCompatibleSubmission(variant: "A" | "B"): QuizSubmission {
@@ -71,6 +74,7 @@ describe("Fase 6 E2E smoke flow", () => {
       matches,
       notifications,
       scheduler: instantScheduler,
+      secret: SECRET,
       latentScorer: ((responses) =>
         scoreLatent(MODEL, responses, MATCHING_CONFIG.quality)) satisfies SubmitQuizDeps["latentScorer"],
     };
@@ -84,7 +88,8 @@ describe("Fase 6 E2E smoke flow", () => {
     expect(subA1.ok).toBe(true);
     expect(subA2).toEqual(subA1);
     if (!subA1.ok) return;
-    const initialColorA = subA1.value.profile.color;
+    const hatchedA = subA1.value.profile.identity;
+    const initialColorA = hatchedA.colorId;
 
     // 2. User A refines an optional module -> initial color stays fixed ("como inicia")
     const optionalItems = QUIZ_ITEMS.filter(
@@ -96,7 +101,8 @@ describe("Fase 6 E2E smoke flow", () => {
     );
     expect(refinedA.ok).toBe(true);
     if (!refinedA.ok) return;
-    expect(refinedA.value.profile.color).toBe(initialColorA);
+    expect(refinedA.value.profile.identity.colorId).toBe(initialColorA);
+    expect(refinedA.value.profile.identity).toEqual(hatchedA);
 
     // 3. User B submits compatible quiz -> matches computed in romance & amistad, User A sees User B automatically
     const subB = await submitQuiz(
@@ -105,7 +111,7 @@ describe("Fase 6 E2E smoke flow", () => {
     );
     expect(subB.ok).toBe(true);
     if (!subB.ok) return;
-    expect(subB.value.profile.color).toMatch(/^ennea-/);
+    expect(subB.value.profile.identity.colorId!).toMatch(/^ennea-/);
 
     const resA = await getResult(USER_A, resultDeps);
     const resB = await getResult(USER_B, resultDeps);
@@ -116,6 +122,16 @@ describe("Fase 6 E2E smoke flow", () => {
     expect(resA.value.matches.amistad.length).toBe(1);
     expect(resB.value.matches.romance.length).toBe(1);
     expect(resB.value.matches.amistad.length).toBe(1);
+
+    // The frozen name is one string: the reveal, the cielo and the chat all say it.
+    const nameA = formatIdentity(resA.value.identity).title;
+    const nameB = formatIdentity(resB.value.identity).title;
+    expect(nameA).toBe(formatIdentity(subA1.value.profile.identity).title);
+    expect(nameB).toBe(formatIdentity(subB.value.profile.identity).title);
+    expect(formatIdentity(resA.value.matches.romance[0]!.identity).title).toBe(nameB);
+    expect(formatIdentity(resA.value.matches.amistad[0]!.identity).title).toBe(nameB);
+    expect(formatIdentity(resB.value.matches.romance[0]!.identity).title).toBe(nameA);
+    expect(formatIdentity(resB.value.matches.amistad[0]!.identity).title).toBe(nameA);
 
     // Verify constellation adaptation has zero duplicate nodes
     const publicA = parsePublicResult(resA.value);
@@ -139,18 +155,18 @@ describe("Fase 6 E2E smoke flow", () => {
     convStore.addMatch("amistad", USER_A, USER_B);
     convStore.peers.set(USER_A, {
       userId: USER_A,
-      alias: resA.value.alias,
-      animalId: resA.value.animal?.id ?? subA1.value.profile.animal,
-      colorId: resA.value.color?.id ?? subA1.value.profile.color,
-      mark: resA.value.mark,
+      alias: resA.value.identity.aliasCompleto,
+      animalId: resA.value.identity.animalId,
+      colorId: resA.value.identity.colorId,
+      mark: resA.value.identity.mark,
       showAvatarDetail: true,
     });
     convStore.peers.set(USER_B, {
       userId: USER_B,
-      alias: resB.value.alias,
-      animalId: resB.value.animal?.id ?? subB.value.profile.animal,
-      colorId: resB.value.color?.id ?? subB.value.profile.color,
-      mark: resB.value.mark,
+      alias: resB.value.identity.aliasCompleto,
+      animalId: resB.value.identity.animalId,
+      colorId: resB.value.identity.colorId,
+      mark: resB.value.identity.mark,
       showAvatarDetail: false,
     });
 
@@ -207,6 +223,13 @@ describe("Fase 6 E2E smoke flow", () => {
     expect(freeView.ok && freeView.value.stage).toBe("free");
     expect(freeView.ok && freeView.value.completedRounds).toBe(3);
     expect(freeView.ok && freeView.value.ask).toBeNull();
+
+    // In the chat header the other person reads exactly the same name string.
+    if (!freeView.ok) throw new Error("expected the conversation to be open");
+    expect(formatIdentity(freeView.value.peer.identity).title).toBe(nameB);
+    const viewB = await getConversation(convId, USER_B, chatDeps());
+    if (!viewB.ok) throw new Error("expected the conversation to be open");
+    expect(formatIdentity(viewB.value.peer.identity).title).toBe(nameA);
 
     // Round 4 (idx = 3) is rejected
     expect(await askQuestion(convId, USER_A, { promptId: "p001" }, chatDeps())).toEqual({

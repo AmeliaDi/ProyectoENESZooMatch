@@ -4,7 +4,9 @@
 
 import { describe, expect, it } from "vitest";
 
+import type { IdentityDto } from "@/contracts/identity";
 import { getTrackThreshold } from "@/domain/constellation";
+import { EGG_IDENTITY } from "@/ui/shared/parse-identity";
 import type { CompatibilityBadge } from "@/types/microtest";
 
 import {
@@ -47,25 +49,55 @@ function makeBadge(dimension: string, affinity: number): CompatibilityBadge {
   return { dimension, label: `Label ${dimension}`, affinity, icon: "general" };
 }
 
-const SELF: ConstellationSelfInput = {
-  id: "me",
+/** A frozen, hatched identity — the only name route a node has. */
+function makeIdentity(overrides: Partial<IdentityDto> = {}): IdentityDto {
+  return {
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: "lobito azul zafiro · 9QW2",
+    aliasAnimal: "lobito",
+    aliasColor: "azul zafiro",
+    aliasSufijo: "9QW2",
+    animalId: "lobito",
+    colorId: "ennea-1",
+    colorHex: "#3b6fd4",
+    mbtiCode: "INFP",
+    enneagramCode: "4w5",
+    enneagramName: "El individualista",
+    mark: null,
+    revelacionVista: true,
+    huevitoSeed: null,
+    ...overrides,
+  };
+}
+
+const SELF_IDENTITY = makeIdentity({
+  aliasCompleto: "ajolotito rosa pastel · 4K2P",
+  aliasAnimal: "ajolotito",
+  aliasColor: "rosa pastel",
+  aliasSufijo: "4K2P",
   animalId: "ajolotito",
   colorId: "rosa-pastel",
   colorHex: "#e8a0bf",
-  animalName: "Ajolotito",
-  colorName: "rosa pastel",
-  alias: "Mar",
+  mbtiCode: "ENFJ",
+  enneagramCode: null,
+  enneagramName: null,
+});
+
+const SELF: ConstellationSelfInput = {
+  id: "me",
+  identity: SELF_IDENTITY,
+  animalId: "ajolotito",
+  colorId: "rosa-pastel",
+  colorHex: "#e8a0bf",
 };
 
 function makeMatch(id: string, similarity: number, track: "romance" | "amistad"): ConstellationMatchInput {
   return {
     id,
+    identity: makeIdentity(),
     animalId: "lobito",
     colorId: "ennea-1",
     colorHex: "#3b6fd4",
-    animalName: "Lobito",
-    colorName: "azul zafiro",
-    alias: `Alias ${id}`,
     similarity,
     track,
     badges: [],
@@ -211,30 +243,36 @@ describe("trackNoun", () => {
 });
 
 describe("matchAriaLabel", () => {
-  it("matches the documented accessible-name shape exactly", () => {
-    expect(matchAriaLabel("Ajolotito", "azul", 0.87, "romance")).toBe(
-      "Ajolotito azul, 87 % de afinidad estimada en romance",
+  it("reads the stored alias exactly once, plus the affinity sentence", () => {
+    expect(matchAriaLabel(makeIdentity(), 0.87, "romance")).toBe(
+      "lobito azul zafiro · 9QW2, 87 % de afinidad estimada en romance",
     );
   });
 
-  it("drops an empty colour name without leaving a double space", () => {
-    expect(matchAriaLabel("Lobito", "  ", 0.912, "amistad")).toBe(
-      "Lobito, 91 % de afinidad estimada en amistad",
+  it("never repeats the animal or the colour, and never leaks the typology", () => {
+    const label = matchAriaLabel(makeIdentity(), 0.912, "amistad");
+    expect(label.match(/lobito/g)).toHaveLength(1);
+    expect(label.match(/azul/g)).toHaveLength(1);
+    expect(label).not.toContain("INFP");
+    expect(label).not.toContain("4w5");
+  });
+
+  it("announces an unhatched counterpart as an egg, never as a hand-built name", () => {
+    expect(matchAriaLabel(EGG_IDENTITY, 0.9, "amistad")).toBe(
+      "Tu huevito en espera de eclosionar, 90 % de afinidad estimada en amistad",
     );
   });
 });
 
 describe("selfAriaLabel", () => {
-  it("names the centred node as the user", () => {
-    expect(selfAriaLabel("Ajolotito", "rosa pastel", "Mar")).toBe(
-      "Mar, Ajolotito rosa pastel, tú, el centro de tu constelación",
+  it("names the centred node with its canonical alias", () => {
+    expect(selfAriaLabel(SELF_IDENTITY)).toBe(
+      "ajolotito rosa pastel · 4K2P, tú, el centro de tu constelación",
     );
   });
 
-  it("omits a missing alias cleanly", () => {
-    expect(selfAriaLabel("Ajolotito", "rosa pastel", "  ")).toBe(
-      "Ajolotito rosa pastel, tú, el centro de tu constelación",
-    );
+  it("keeps the subtitle out of the accessible name", () => {
+    expect(selfAriaLabel(SELF_IDENTITY)).not.toContain("ENFJ");
   });
 });
 
@@ -310,6 +348,14 @@ describe("buildDataKey", () => {
 
   it("changes when the user changes", () => {
     expect(buildDataKey({ ...SELF, id: "other" }, matches)).not.toBe(buildDataKey(SELF, matches));
+  });
+
+  it("fingerprints the stored alias, so a renamed person rebuilds the sky", () => {
+    const renamed = {
+      ...SELF,
+      identity: { ...SELF_IDENTITY, aliasCompleto: "ajolotito rosa pastel · ZVTB" },
+    };
+    expect(buildDataKey(renamed, matches)).not.toBe(buildDataKey(SELF, matches));
   });
 });
 

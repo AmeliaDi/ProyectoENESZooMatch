@@ -63,7 +63,7 @@ export function SettingsView() {
   const router = useRouter();
   const [account, setAccount] = useAccount();
   const notificationsPaused = useNotificationsPaused();
-  const [busy, setBusy] = useState<"pause" | "detail" | "color" | "delete" | null>(null);
+  const [busy, setBusy] = useState<"pause" | "detail" | "delete" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
@@ -102,29 +102,6 @@ export function SettingsView() {
       setMessage(next ? "Ahora otras personas ven el tono de tu ala y tu marca." : "Otras personas solo ven tu animalito y tu color base.");
     } else {
       setMessage("No pudimos guardar el cambio. Intenta de nuevo en un momento.");
-    }
-  }
-
-  async function reassignColor() {
-    if (account.state !== "ready") return;
-    setBusy("color");
-    setMessage(null);
-    const res = await fetch("/api/privacy", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reassignColor: true }),
-    }).catch(() => null);
-    setBusy(null);
-    if (res?.ok) {
-      const body = (await res.json().catch(() => null)) as { color?: { colorName?: string } } | null;
-      const name = body?.color?.colorName?.toLowerCase();
-      setMessage(
-        name
-          ? `Tu color base se actualizó a ${name}.`
-          : "Tu color base se actualizó según tus respuestas actuales.",
-      );
-    } else {
-      setMessage("No pudimos actualizar tu color ahora. Intenta de nuevo en un momento.");
     }
   }
 
@@ -226,19 +203,12 @@ export function SettingsView() {
                 </Button>
               </div>
               <div className="zm-setting">
-                <p className="zm-setting__label">Color de tu animalito</p>
+                <p className="zm-setting__label">Tu nombre es fijo</p>
                 <p className="zm-detail__muted">
-                  Tu color queda fijo desde que terminas el cuestionario para que te reconozcan en el cielo. Si
-                  afinaste tu perfil con módulos opcionales y quieres actualizar tu color base, puedes pedirlo aquí.
+                  Tu animalito y tu color se deciden una sola vez, cuando eclosiona tu huevito, y ya no cambian: así te
+                  reconocen en el cielo, en el chat y en tus avisos. Completar módulos opcionales solo afina tus
+                  resultados, nunca tu nombre.
                 </p>
-                <Button
-                  variant="secondary"
-                  busy={busy === "color"}
-                  disabled={busy !== null}
-                  onClick={() => void reassignColor()}
-                >
-                  Reasignar mi color
-                </Button>
               </div>
               <div className="zm-setting">
                 <p className="zm-setting__label">Borrar mis datos</p>

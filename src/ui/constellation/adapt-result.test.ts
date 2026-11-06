@@ -1,39 +1,64 @@
 import { describe, expect, it } from "vitest";
 
-import type { MatchExplanation } from "@/contracts/result";
-import type { CompatibilityBadge } from "@/types/microtest";
-import type { PublicResult, ResultMatch } from "@/ui/result/parse-result";
+import { CATALOG_COLORS } from "@/config";
+import type { IdentityDto } from "@/contracts/identity";
+import type { MatchEntryDto, MatchExplanation, ResultDto } from "@/contracts/result";
+import { EGG_IDENTITY } from "@/ui/shared/parse-identity";
 
-import {
-  SELF_NODE_ID,
-  adaptResult,
-  resolveAnimalId,
-  resolveColor,
-} from "./adapt-result";
+import { SELF_NODE_ID, adaptResult } from "./adapt-result";
 
-// ─── Fixtures (real catalogue ids from data/arquetipos.json) ──────
+// ─── Fixtures (real catalogue ids from data/arquetipos.json) ──────────────────
 
-const BADGE: CompatibilityBadge = {
-  dimension: "valores_empatia",
-  label: "Empatía",
-  affinity: 0.9,
-  icon: "valores_relacionales",
-};
+/** The wire badge: dimension + affinity only (labels are the client's job). */
+const WIRE_BADGE = { dimension: "valores_empatia", affinity: 0.9 };
 
-function makeMatch(overrides: Partial<ResultMatch> = {}): ResultMatch {
+/** A frozen, hatched identity — the only route to a name or a sprite. */
+function makeIdentity(overrides: Partial<IdentityDto> = {}): IdentityDto {
   return {
-    id: "11111111-1111-1111-1111-111111111111",
-    alias: "mantisita rosa · 9QW2",
-    animal: "mantisita",
-    animal_id: "mantisita",
-    color: "verde bosque",
-    color_id: "ennea-6",
-    color_hex: "#338547",
-    mbti_code: "ENFP",
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: "mantisita rosa pastel · 9QW2",
+    aliasAnimal: "mantisita",
+    aliasColor: "rosa pastel",
+    aliasSufijo: "9QW2",
+    animalId: "mantisita",
+    colorId: "ennea-3",
+    colorHex: "#f7c8dd",
+    mbtiCode: "ENFP",
+    enneagramCode: null,
+    enneagramName: null,
+    mark: "sp",
+    revelacionVista: true,
+    huevitoSeed: null,
+    ...overrides,
+  };
+}
+
+const SELF_IDENTITY = makeIdentity({
+  aliasCompleto: "ajolotito verde bosque · 4K2P",
+  aliasAnimal: "ajolotito",
+  aliasColor: "verde bosque",
+  aliasSufijo: "4K2P",
+  animalId: "ajolotito",
+  colorId: "ennea-6",
+  colorHex: "#338547",
+  mbtiCode: "ENFJ",
+  mark: "sx",
+});
+
+function makeMatch(overrides: Partial<MatchEntryDto> = {}): MatchEntryDto {
+  return {
+    id: "opaque-handle-1",
+    identity: makeIdentity(),
     similarity: 0.87,
-    chemistry: null,
-    badges: [BADGE],
-    narrative: "Dos criaturas que se reconocen.",
+    chemistry: {
+      percentage: 87,
+      displayText: "87% de Compatibilidad",
+      level: "quimica_fuerte",
+      levelLabel: "Química fuerte",
+      threshold: 0.78,
+      relativePosition: 0.4,
+    },
+    badges: [WIRE_BADGE],
     explanation: null,
     layers: [],
     shared: { sections: [], mbti: null, enneagram: null },
@@ -41,127 +66,107 @@ function makeMatch(overrides: Partial<ResultMatch> = {}): ResultMatch {
   };
 }
 
-type OptionalMatchKey = "id" | "animal_id" | "color_id" | "color_hex";
-
-/** Returns a copy of `match` with the given optional keys absent (as the API may omit them). */
-function omitKeys(match: ResultMatch, ...keys: OptionalMatchKey[]): ResultMatch {
-  const copy = { ...match };
-  for (const key of keys) delete copy[key];
-  return copy;
-}
-
-function makeResult(overrides: Partial<PublicResult> = {}): PublicResult {
+function makeResult(overrides: Partial<ResultDto> = {}): ResultDto {
   return {
-    alias: "ajolotito verde bosque · 4K2P",
-    animal: { id: "ajolotito", diminutivo_es: "ajolotito", categoria_fauna: "anfibio" },
-    color: { id: "ennea-6", nombre: "Verde bosque", hex: "#338547" },
-    mark: "sp",
+    identity: SELF_IDENTITY,
     narrative: "Eres un ajolotito con una capacidad infinita de regenerar.",
-    mbti_code: "ENFJ",
     matches: { romance: [makeMatch()], amistad: [] },
-    fewPeople: false,
+    few_people: false,
     no_match_message: "mensaje",
     ...overrides,
   };
 }
 
-// ─── Resolution helpers ───────────────────────────────────────────────────────
-
-describe("resolveAnimalId", () => {
-  it("accepts an exact catalogue id", () => {
-    expect(resolveAnimalId("ajolotito", null)).toBe("ajolotito");
-  });
-
-  it("resolves by diminutivo, accent- and case-insensitively", () => {
-    expect(resolveAnimalId(null, "Mantisita")).toBe("mantisita");
-    expect(resolveAnimalId(null, "ajolotito")).toBe("ajolotito");
-  });
-
-  it("resolves by nombre_fuente", () => {
-    expect(resolveAnimalId(null, "Axolotl")).toBe("ajolotito");
-  });
-
-  it("returns null for an unknown animal", () => {
-    expect(resolveAnimalId(null, "unicornio-rosa")).toBeNull();
-    expect(resolveAnimalId("no-existe", "tampoco")).toBeNull();
-  });
-});
-
-describe("resolveColor", () => {
-  it("accepts an exact catalogue id and keeps a valid payload hex", () => {
-    expect(resolveColor("ennea-6", null, "#338547")).toEqual({
-      colorId: "ennea-6",
-      colorHex: "#338547",
-    });
-  });
-
-  it("resolves by nombre, case-insensitively", () => {
-    expect(resolveColor(null, "verde bosque", null)?.colorId).toBe("ennea-6");
-  });
-
-  it("falls back to the catalogue hex when the payload hex is invalid", () => {
-    const resolved = resolveColor("ennea-6", null, "not-a-hex");
-    expect(resolved?.colorId).toBe("ennea-6");
-    expect(resolved?.colorHex).toMatch(/^#[0-9A-Fa-f]{6}$/);
-  });
-
-  it("resolves by nearest hex when no id or name matches", () => {
-    // One unit off the catalogue forest green must still land on ennea-6.
-    expect(resolveColor(null, null, "#338548")?.colorId).toBe("ennea-6");
-  });
-
-  it("returns null when nothing is usable", () => {
-    expect(resolveColor(null, null, null)).toBeNull();
-  });
-});
-
 // ─── adaptResult ──────────────────────────────────────────────────────────────
 
-describe("adaptResult", () => {
-  it("maps the self identity into a centred node without similarity/track/badges", () => {
+describe("adaptResult · the self node", () => {
+  it("centres the sky on the stored identity, with no match-only fields", () => {
     const adapted = adaptResult(makeResult());
     expect(adapted).not.toBeNull();
     const me = adapted!.me;
+
     expect(me.id).toBe(SELF_NODE_ID);
+    expect(me.identity).toBe(SELF_IDENTITY);
     expect(me.animalId).toBe("ajolotito");
     expect(me.colorId).toBe("ennea-6");
     expect(me.colorHex).toBe("#338547");
-    expect(me.alias).toBe("ajolotito verde bosque · 4K2P");
-    expect(me.mbtiCode).toBe("ENFJ");
-    // The self node must not carry match-only fields.
+    expect(me.mark).toBe("sx");
     expect("similarity" in me).toBe(false);
     expect("track" in me).toBe(false);
     expect("badges" in me).toBe(false);
     expect("explanation" in me).toBe(false);
-    // Vectors are never forwarded.
     expect("selfVector" in me).toBe(false);
-    expect("matchVector" in me).toBe(false);
   });
 
-  it("capitalises the animal name and lowercases the colour name", () => {
-    const me = adaptResult(makeResult())!.me;
-    expect(me.animalName).toBe("Ajolotito");
-    expect(me.colorName).toBe("verde bosque");
+  it("copies the identity ids instead of re-deriving them from names", () => {
+    // An alias that disagrees with the ids is exactly the old bug: the sprite
+    // must follow the stored ids, and the label must follow the stored alias.
+    const me = adaptResult(
+      makeResult({
+        identity: makeIdentity({
+          aliasCompleto: "tortuguita gris neblina · DRRS",
+          animalId: "tortuguita",
+          colorId: "ennea-9",
+        }),
+      }),
+    )!.me;
+
+    expect(me.animalId).toBe("tortuguita");
+    expect(me.colorId).toBe("ennea-9");
+    expect(Object.keys(me).sort()).toEqual([
+      "animalId",
+      "colorHex",
+      "colorId",
+      "id",
+      "identity",
+      "mark",
+    ]);
   });
 
+  it("gives the self node the catalogue hex of its colour id when the identity has none", () => {
+    const me = adaptResult(
+      makeResult({ identity: makeIdentity({ colorHex: null, colorId: "ennea-6" }) }),
+    )!.me;
+
+    expect(me.colorHex).toBe(CATALOG_COLORS.find((color) => color.id === "ennea-6")?.hex);
+    expect(me.identity.colorHex).toBeNull();
+  });
+
+  it("degrades an unknown colour id to the neutral sky hex", () => {
+    const me = adaptResult(
+      makeResult({ identity: makeIdentity({ colorHex: null, colorId: "no-existe" }) }),
+    )!.me;
+
+    expect(me.colorHex).toMatch(/^#[0-9A-Fa-f]{6}$/);
+  });
+
+  it("returns null when the owner is an egg, so no centre star can be an egg", () => {
+    expect(adaptResult(makeResult({ identity: EGG_IDENTITY }))).toBeNull();
+    expect(adaptResult(makeResult({ identity: makeIdentity({ animalId: null }) }))).toBeNull();
+    expect(adaptResult(makeResult({ identity: makeIdentity({ colorId: null }) }))).toBeNull();
+  });
+});
+
+describe("adaptResult · the match nodes", () => {
   it("maps a match with its real track, similarity, badges, explanation and opaque id", () => {
     const explanation = { headline: "chispa" } as unknown as MatchExplanation;
-    const adapted = adaptResult(
-      makeResult({
-        matches: { romance: [makeMatch({ explanation })], amistad: [] },
-      }),
-    )!;
-    expect(adapted.matches).toHaveLength(1);
-    const match = adapted.matches[0]!;
-    expect(match.id).toBe("11111111-1111-1111-1111-111111111111");
+    const match = adaptResult(
+      makeResult({ matches: { romance: [makeMatch({ explanation })], amistad: [] } }),
+    )!.matches[0]!;
+
+    expect(match.id).toBe("opaque-handle-1");
     expect(match.track).toBe("romance");
     expect(match.similarity).toBeCloseTo(0.87, 12);
+    expect(match.identity.animalId).toBe("mantisita");
     expect(match.animalId).toBe("mantisita");
-    expect(match.colorId).toBe("ennea-6");
-    expect(match.badges).toEqual([BADGE]);
+    expect(match.colorId).toBe("ennea-3");
+    expect(match.mark).toBe("sp");
+    // Badge wording always comes from the shared local map, never from the payload.
+    expect(match.badges).toEqual([
+      { dimension: "valores_empatia", label: "Empatía", affinity: 0.9, icon: "valores_relacionales" },
+    ]);
     expect(match.explanation).toBe(explanation);
-    expect(match.mbtiCode).toBe("ENFP");
-    // The adapter must not sneak the self/ghost flags onto a match input.
+    expect(match.chemistry?.levelLabel).toBe("Química fuerte");
     expect("isSelf" in match).toBe(false);
     expect("isGhost" in match).toBe(false);
   });
@@ -175,61 +180,31 @@ describe("adaptResult", () => {
         },
       }),
     )!;
+
     expect(adapted.matches).toHaveLength(3);
     expect(adapted.matches.filter((m) => m.track === "romance")).toHaveLength(1);
     expect(adapted.matches.filter((m) => m.track === "amistad")).toHaveLength(2);
   });
 
-  it("resolves ids from names when the explicit ids are missing", () => {
-    const adapted = adaptResult(
-      makeResult({
-        matches: {
-          romance: [
-            omitKeys(makeMatch(), "animal_id", "color_id", "color_hex"),
-          ],
-          amistad: [],
-        },
-      }),
-    )!;
-    expect(adapted.matches).toHaveLength(1);
-    expect(adapted.matches[0]?.animalId).toBe("mantisita");
-    expect(adapted.matches[0]?.colorId).toBe("ennea-6");
-  });
-
-  it("resolves a colour by nearest hex when only a hex is supplied", () => {
-    const adapted = adaptResult(
-      makeResult({
-        matches: {
-          romance: [
-            omitKeys(makeMatch({ color: "", color_hex: "#338548" }), "color_id"),
-          ],
-          amistad: [],
-        },
-      }),
-    )!;
-    expect(adapted.matches[0]?.colorId).toBe("ennea-6");
-  });
-
-  it("skips a match whose animal cannot be resolved, keeping the rest", () => {
+  it("never paints an egg, keeping every hatched counterpart", () => {
     const adapted = adaptResult(
       makeResult({
         matches: {
           romance: [
             makeMatch({ id: "good" }),
-            makeMatch({ id: "bad", animal: "unicornio", animal_id: "no-existe" }),
+            makeMatch({ id: "egg", identity: EGG_IDENTITY }),
+            makeMatch({ id: "hatched-without-ids", identity: makeIdentity({ animalId: null }) }),
           ],
-          amistad: [],
+          amistad: [makeMatch({ id: "egg-friend", identity: EGG_IDENTITY })],
         },
       }),
     )!;
-    expect(adapted.matches).toHaveLength(1);
-    expect(adapted.matches[0]?.id).toBe("good");
+
+    expect(adapted.matches.map((m) => m.id)).toEqual(["good"]);
   });
 
   it("supports explanation: null and an empty match list (self-only sky)", () => {
-    const adapted = adaptResult(
-      makeResult({ matches: { romance: [], amistad: [] } }),
-    )!;
+    const adapted = adaptResult(makeResult({ matches: { romance: [], amistad: [] } }))!;
     expect(adapted.matches).toEqual([]);
     expect(adapted.me.id).toBe(SELF_NODE_ID);
 
@@ -240,27 +215,55 @@ describe("adaptResult", () => {
     expect(nullExplanation.matches[0]?.explanation).toBeNull();
   });
 
-  it("returns null when the self identity cannot be resolved", () => {
-    expect(
-      adaptResult(
-        makeResult({
-          animal: { id: "no-existe", diminutivo_es: "unicornio", categoria_fauna: "?" },
-        }),
-      ),
-    ).toBeNull();
+  it("layers and shared readings travel with the node untouched", () => {
+    const layers = [{ category: "personalidad", label: "Forma de ser", band: "alta", strength: 3 }] as const;
+    const shared = { sections: [], mbti: { code: "INFP" }, enneagram: null };
+    const match = adaptResult(
+      makeResult({ matches: { romance: [makeMatch({ layers: [...layers], shared })], amistad: [] } }),
+    )!.matches[0]!;
+
+    expect(match.layers).toEqual([...layers]);
+    expect(match.shared).toBe(shared);
+  });
+});
+
+describe("adaptResult · pseudonymous ids", () => {
+  it("derives a stable opaque id when the API omits the handle", () => {
+    const first = adaptResult(makeResult({ matches: { romance: [makeMatch({ id: null })], amistad: [] } }))!;
+    const again = adaptResult(makeResult({ matches: { romance: [makeMatch({ id: null })], amistad: [] } }))!;
+    const id = first.matches[0]!.id;
+
+    expect(id).toBe(again.matches[0]!.id);
+    expect(id.startsWith("romance-")).toBe(true);
+    expect(id).not.toMatch(/^romance-\d+$/); // never the array index
+    expect(id).not.toContain("mantisita");
+    expect(id).not.toContain("9QW2");
   });
 
-  it("falls back to a deterministic pseudonymous id (never array index) when the API omits other_user", () => {
+  it("ignores the order of the payload when deriving synthetic ids", () => {
+    const entries = [makeMatch({ id: null }), makeMatch({ id: "", identity: makeIdentity({ aliasCompleto: "gatito azul cobalto · TVVB" }) })];
+    const forward = adaptResult(makeResult({ matches: { romance: entries, amistad: [] } }))!;
+    const reverse = adaptResult(makeResult({ matches: { romance: [...entries].reverse(), amistad: [] } }))!;
+
+    expect([...forward.matches].sort((a, b) => a.id.localeCompare(b.id)).map((m) => m.id)).toEqual(
+      [...reverse.matches].sort((a, b) => a.id.localeCompare(b.id)).map((m) => m.id),
+    );
+  });
+
+  it("splits the same person into one star per track, never a shared id", () => {
     const adapted = adaptResult(
       makeResult({
-        matches: { romance: [omitKeys(makeMatch(), "id")], amistad: [] },
+        matches: {
+          romance: [makeMatch({ id: null })],
+          amistad: [makeMatch({ id: null })],
+        },
       }),
     )!;
-    expect(adapted.matches[0]?.id).toBeDefined();
-    expect(adapted.matches[0]?.id).not.toMatch(/^romance-\d+$/);
+
+    expect(new Set(adapted.matches.map((m) => m.id)).size).toBe(2);
   });
 
-  it("deduplicates repeated match ids within the same track keeping the highest similarity", () => {
+  it("deduplicates the same handle within a track, keeping the highest similarity", () => {
     const adapted = adaptResult(
       makeResult({
         matches: {
@@ -268,14 +271,28 @@ describe("adaptResult", () => {
             makeMatch({ id: "dup-1", similarity: 0.65 }),
             makeMatch({ id: "dup-1", similarity: 0.89 }),
           ],
-          amistad: [
-            makeMatch({ id: "dup-1", similarity: 0.54 }),
-          ],
+          amistad: [makeMatch({ id: "dup-1", similarity: 0.54 })],
         },
       }),
     )!;
-    const romanceMatches = adapted.matches.filter((m) => m.track === "romance");
-    expect(romanceMatches).toHaveLength(1);
-    expect(romanceMatches[0]?.similarity).toBeCloseTo(0.89, 6);
+    const romance = adapted.matches.filter((m) => m.track === "romance");
+
+    expect(romance).toHaveLength(1);
+    expect(romance[0]?.similarity).toBeCloseTo(0.89, 6);
+    expect(adapted.matches.filter((m) => m.track === "amistad")).toHaveLength(1);
+  });
+
+  it("collapses two handle-less copies of the same person into one star", () => {
+    const adapted = adaptResult(
+      makeResult({
+        matches: {
+          romance: [makeMatch({ id: null, similarity: 0.6 }), makeMatch({ id: "  ", similarity: 0.9 })],
+          amistad: [],
+        },
+      }),
+    )!;
+
+    expect(adapted.matches).toHaveLength(1);
+    expect(adapted.matches[0]?.similarity).toBeCloseTo(0.9, 6);
   });
 });

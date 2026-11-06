@@ -7,6 +7,7 @@
 import { describe, expect, it } from "vitest";
 
 import { PHYSICS } from "@/config";
+import type { IdentityDto } from "@/contracts/identity";
 import { GRID_SIZE, getAllAnimalIds, getAllColorIds } from "@/domain/avatars/pixel-sprites";
 import { buildScene, createWorld, getTrackThreshold, settle, type World } from "@/domain/constellation";
 
@@ -42,25 +43,53 @@ const HEIGHT = 620;
 const ROMANCE = getTrackThreshold("romance");
 const AMISTAD = getTrackThreshold("amistad");
 
-const SELF: ConstellationSelfInput = {
-  id: "me",
+/** A frozen identity straight from the wire contract: the node's only name route. */
+function makeIdentity(overrides: Partial<IdentityDto> = {}): IdentityDto {
+  return {
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: "lobito azul zafiro · 9QW2",
+    aliasAnimal: "lobito",
+    aliasColor: "azul zafiro",
+    aliasSufijo: "9QW2",
+    animalId: "lobito",
+    colorId: "ennea-1",
+    colorHex: "#3b6fd4",
+    mbtiCode: "INFP",
+    enneagramCode: null,
+    enneagramName: null,
+    mark: null,
+    revelacionVista: true,
+    huevitoSeed: null,
+    ...overrides,
+  };
+}
+
+const SELF_IDENTITY = makeIdentity({
+  aliasCompleto: "ajolotito rosa pastel · 4K2P",
+  aliasAnimal: "ajolotito",
+  aliasColor: "rosa pastel",
+  aliasSufijo: "4K2P",
   animalId: "ajolotito",
   colorId: "rosa-pastel",
   colorHex: "#e8a0bf",
-  animalName: "Ajolotito",
-  colorName: "rosa pastel",
-  alias: "Mar",
+  mbtiCode: "ENFJ",
+});
+
+const SELF: ConstellationSelfInput = {
+  id: "me",
+  identity: SELF_IDENTITY,
+  animalId: "ajolotito",
+  colorId: "rosa-pastel",
+  colorHex: "#e8a0bf",
 };
 
 function makeMatch(id: string, similarity: number, track: "romance" | "amistad"): ConstellationMatchInput {
   return {
     id,
+    identity: makeIdentity(),
     animalId: "lobito",
     colorId: "ennea-1",
     colorHex: "#3b6fd4",
-    animalName: "Lobito",
-    colorName: "azul zafiro",
-    alias: `Alias ${id}`,
     similarity,
     track,
     badges: [],
@@ -105,19 +134,24 @@ describe("buildNodeMeta", () => {
 
   it("indexes the self node with similarity 1", () => {
     expect(meta.get("me")?.similarity).toBe(1);
-    expect(meta.get("me")?.animalName).toBe("Ajolotito");
+    expect(meta.get("me")?.animalId).toBe("ajolotito");
+    expect(meta.get("me")?.name).toBe("ajolotito rosa pastel · 4K2P");
+    expect(meta.get("me")?.identity).toBe(SELF_IDENTITY);
   });
 
   it("indexes every match", () => {
     for (const match of ALL_MATCHES) {
       expect(meta.get(match.id)?.colorHex).toBe(match.colorHex);
-      expect(meta.get(match.id)?.alias).toBe(match.alias);
+      expect(meta.get(match.id)?.name).toBe("lobito azul zafiro · 9QW2");
+      expect(meta.get(match.id)?.identity).toBe(match.identity);
     }
   });
 
-  it("exposes ghost meta pointing at real catalogue ids", () => {
+  it("exposes ghost meta pointing at real catalogue ids, with no identity behind it", () => {
     expect(GHOST_META.animalId).toBe(GHOST_ANIMAL_ID);
     expect(GHOST_META.colorId).toBe(GHOST_COLOR_ID);
+    expect(GHOST_META.identity).toBeNull();
+    expect(GHOST_META.name).toBe("");
     expect(getAllAnimalIds()).toContain(GHOST_ANIMAL_ID);
     expect(getAllColorIds()).toContain(GHOST_COLOR_ID);
   });
@@ -164,7 +198,8 @@ describe("structureFromWorld", () => {
   it("marks the self node with full opacity and its accessible name", () => {
     const self = structure.nodes.find((n) => n.isSelf);
     expect(self?.opacity).toBe(1);
-    expect(self?.ariaLabel).toBe("Mar, Ajolotito rosa pastel, tú, el centro de tu constelación");
+    expect(self?.ariaLabel).toBe("ajolotito rosa pastel · 4K2P, tú, el centro de tu constelación");
+    expect(self?.name).toBe("ajolotito rosa pastel · 4K2P");
   });
 
   it("sizes every sprite from its display radius", () => {
@@ -173,7 +208,18 @@ describe("structureFromWorld", () => {
 
   it("names real matches as an estimated affinity", () => {
     const match = structure.nodes.find((n) => n.id === "r3");
-    expect(match?.ariaLabel).toMatch(/^Lobito azul zafiro, \d{2} % de afinidad estimada en romance$/);
+    expect(match?.ariaLabel).toMatch(/^lobito azul zafiro · 9QW2, \d{2} % de afinidad estimada en romance$/);
+  });
+
+  it("says every real star's name exactly once, with no hand-built animal + colour copy", () => {
+    for (const node of structure.nodes) {
+      if (node.isGhost) continue;
+      const expected = node.isSelf ? "ajolotito rosa pastel · 4K2P" : "lobito azul zafiro · 9QW2";
+      expect(node.name).toBe(expected);
+      expect(node.ariaLabel.startsWith(expected)).toBe(true);
+      expect(node.ariaLabel.split(expected).length - 1).toBe(1);
+      expect(node.ariaLabel).not.toContain("INFP");
+    }
   });
 
   it("labels only real matches with their rounded affinity", () => {
@@ -219,7 +265,8 @@ describe("structureFromWorld", () => {
     for (const ghost of ghosts) {
       expect(ghost.opacity).toBe(GHOST_OPACITY);
       expect(ghost.animalId).toBe(GHOST_ANIMAL_ID);
-      expect(ghost.alias).toBe("");
+      expect(ghost.name).toBe("");
+      expect(ghost.ariaLabel).toBe("Estrella decorativa");
     }
   });
 

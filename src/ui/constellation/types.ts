@@ -8,22 +8,27 @@
  *
  * Design rules for this contract:
  * - All user-facing copy produced from these fields is es-MX, warm and inclusive.
- * - `animalId` / `colorId` are the CATALOGUE ids consumed by
- *   `getSpriteFrame(animalId, colorId, frame)`; `animalName` / `colorName` are
- *   the human es-MX words used in aria-labels and headlines. They are separate
- *   on purpose: the sprite engine needs ids, screen readers need words.
+ * - `identity` is the stored, frozen `IdentityDto`: the ONLY name source of a
+ *   node. Every label, sheet headline and aria text renders it through
+ *   `formatIdentity()`; nobody concatenates animal and colour here.
+ * - `animalId` / `colorId` / `mark` are the same catalogue ids carried by that
+ *   identity (`getSpriteFrame(animalId, colorId, frame)`), copied at the
+ *   adapter boundary, never re-derived from names or hexes.
  * - `similarity` is the raw 0-1 track similarity, NOT a percentage.
  * - Thresholds are never part of this contract; the canvas reads them from
  *   `getTrackThreshold(track)` (which reads `data/matching-config.json`).
  */
 
 import type { PhysicsConfig } from "@/config";
-import type { ChemistrySummary, LayerAffinityBand, MatchExplanation, SharedProfileDto } from "@/contracts/result";
+import type { IdentityDto } from "@/contracts/identity";
+import type { ChemistrySummary, LayerAffinityBand, MatchExplanation, SharedProfileDto, SpriteMark } from "@/contracts/result";
 import type { LinkKind, PairSimilarity } from "@/domain/constellation";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 import type { CSSProperties, RefObject } from "react";
 
 import type { GlowLevel } from "./render-helpers";
+
+export type { SpriteMark };
 
 // ─── Node input (the unified shape) ──────────────────────────────────────────
 
@@ -35,20 +40,16 @@ import type { GlowLevel } from "./render-helpers";
 export interface ConstellationNodeInput {
   /** Stable unique id (Supabase user id, or any unique key). */
   id: string;
-  /** Catalogue animal id, e.g. `"ajolotito"` — feeds `getSpriteFrame`. */
+  /** Stored identity of this person; the only route to a name or an aria text. */
+  identity: IdentityDto;
+  /** Catalogue animal id, e.g. `"ajolotito"` — the one stored on `identity`. */
   animalId: string;
-  /** Catalogue colour id, e.g. `"ennea-2"` — feeds `getSpriteFrame`. */
+  /** Catalogue colour id, e.g. `"ennea-2"` — the one stored on `identity`. */
   colorId: string;
   /** Enneagram subtype mark; absent/`null` draws none. */
   mark?: SpriteMark | null | undefined;
   /** Display hex (`#rrggbb`) for halos, rings and connection lines. */
   colorHex: string;
-  /** es-MX animal diminutive in display case, e.g. `"Ajolotito"`. */
-  animalName: string;
-  /** es-MX colour name in lowercase, e.g. `"rosa orquídea"`. */
-  colorName: string;
-  /** Public display name (never the matrícula). */
-  alias: string;
   /** Raw 0-1 similarity with the current user, for this node's track. */
   similarity: number;
   /** Track this match belongs to. Ignored for the self node. */
@@ -63,8 +64,6 @@ export interface ConstellationNodeInput {
   isSelf: boolean;
   /** True for decorative, non-interactive peripheral nodes. */
   isGhost: boolean;
-  /** Matched person's MBTI code, only when they share it (or the own code). */
-  mbtiCode?: string | null;
   /** Per-layer affinity bands with this person (ADR-030). */
   layers?: readonly LayerAffinityBand[] | undefined;
   /** What this person chose to share; absent = nothing. */
@@ -249,9 +248,6 @@ export interface PixelAnimalProps {
   className?: string;
 }
 
-/** Enneagram subtype instinct drawn as a small sprite mark. */
-export type SpriteMark = "sp" | "so" | "sx";
-
 /** The four frames the sprite engine can produce. */
 export type SpriteFrameName = "idle_1" | "idle_2" | "happy" | "romance_pulse";
 
@@ -275,7 +271,8 @@ export interface RenderNode {
   animalId: string;
   colorId: string;
   colorHex: string;
-  alias: string;
+  /** Canonical name from `formatIdentity`; the star tag clips it to fit. */
+  name: string;
   /** Small visible affinity (`"87%"`) for real matches; `null` for you and ghosts. */
   affinityLabel: string | null;
   /** Very high estimated affinity: the star is painted golden. Never you or ghosts. */
@@ -333,16 +330,17 @@ export interface ConstellationStructure {
 /**
  * Everything the render tree needs to know about one id, indexed once per data
  * change. The physics engine only carries `animal` / `color` (ids and a hex);
- * the accessible names and catalogue ids live here.
+ * the stored identity and its canonical name live here. `identity` is `null`
+ * only for decorative ghosts — they are not people and never get a name.
  */
 export interface NodeMeta {
+  identity: IdentityDto | null;
   animalId: string;
   colorId: string;
   mark: SpriteMark | null;
   colorHex: string;
-  animalName: string;
-  colorName: string;
-  alias: string;
+  /** Canonical display name (`formatIdentity(...).title`); `""` for ghosts. */
+  name: string;
   /** Raw 0-1 similarity; `1` for the self node, `0` for ghosts. */
   similarity: number;
 }

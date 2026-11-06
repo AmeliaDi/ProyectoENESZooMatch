@@ -7,6 +7,7 @@
  */
 
 import type { SceneMatch, World } from "@/domain/constellation";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import type { MatchTrack } from "@/types/microtest";
 
 import {
@@ -45,6 +46,18 @@ export function toSceneMatches(matches: readonly ConstellationMatchInput[]): Sce
   return [...byTrackAndId.values()];
 }
 
+function toMeta(node: ConstellationSelfInput | ConstellationMatchInput, similarity: number): NodeMeta {
+  return {
+    identity: node.identity,
+    animalId: node.animalId,
+    colorId: node.colorId,
+    mark: node.mark ?? null,
+    colorHex: node.colorHex,
+    name: formatIdentity(node.identity).title,
+    similarity,
+  };
+}
+
 /** Indexes every participant by id, including the self node, prioritizing `activeTrack` when a counterpart is in both tracks. */
 export function buildNodeMeta(
   me: ConstellationSelfInput,
@@ -53,16 +66,7 @@ export function buildNodeMeta(
 ): Map<string, NodeMeta> {
   const meta = new Map<string, NodeMeta>();
   const metaTrack = new Map<string, MatchTrack>();
-  meta.set(me.id, {
-    animalId: me.animalId,
-    colorId: me.colorId,
-    mark: me.mark ?? null,
-    colorHex: me.colorHex,
-    animalName: me.animalName,
-    colorName: me.colorName,
-    alias: me.alias,
-    similarity: 1,
-  });
+  meta.set(me.id, toMeta(me, 1));
   for (const match of matches) {
     const current = meta.get(match.id);
     const currentTrack = metaTrack.get(match.id);
@@ -73,35 +77,25 @@ export function buildNodeMeta(
       if (currentIsActive === candidateIsActive && current.similarity >= match.similarity) continue;
     }
     metaTrack.set(match.id, match.track);
-    meta.set(match.id, {
-      animalId: match.animalId,
-      colorId: match.colorId,
-      mark: match.mark ?? null,
-      colorHex: match.colorHex,
-      animalName: match.animalName,
-      colorName: match.colorName,
-      alias: match.alias,
-      similarity: match.similarity,
-    });
+    meta.set(match.id, toMeta(match, match.similarity));
   }
   return meta;
 }
 
-/** Meta for the decorative stars the scene synthesises. */
+/** Meta for the decorative stars the scene synthesises: not a person, so no identity. */
 export const GHOST_META: NodeMeta = {
+  identity: null,
   animalId: GHOST_ANIMAL_ID,
   colorId: GHOST_COLOR_ID,
   mark: null,
   colorHex: "#c9d4ff",
-  animalName: CONSTELLATION_COPY.ghostDecorative,
-  colorName: "",
-  alias: "",
+  name: "",
   similarity: 0,
 };
 
 function resolveMeta(meta: Map<string, NodeMeta>, id: string, isGhost: boolean): NodeMeta {
   if (isGhost) return GHOST_META;
-  return meta.get(id) ?? { ...GHOST_META, animalName: "" };
+  return meta.get(id) ?? GHOST_META;
 }
 
 function adjacencyOf(edges: readonly RenderEdge[]): Map<string, string[]> {
@@ -132,11 +126,14 @@ export function structureFromWorld(
     const isGhost = body.kind === "ghost";
     const isSelf = body.kind === "self";
     const info = resolveMeta(meta, body.id, isGhost);
-    const ariaLabel = isGhost
-      ? CONSTELLATION_COPY.ghostDecorative
-      : isSelf
-        ? selfAriaLabel(info.animalName, info.colorName, info.alias)
-        : matchAriaLabel(info.animalName, info.colorName, body.similarity, track);
+    // Every accessible name comes from `formatIdentity` on the stored identity;
+    // a ghost (or an id with no person behind it) is pure decoration.
+    const ariaLabel =
+      isGhost || info.identity === null
+        ? CONSTELLATION_COPY.ghostDecorative
+        : isSelf
+          ? selfAriaLabel(info.identity)
+          : matchAriaLabel(info.identity, body.similarity, track);
     return {
       id: body.id,
       radius: body.displayRadius,
@@ -148,7 +145,7 @@ export function structureFromWorld(
       colorId: info.colorId,
       mark: info.mark,
       colorHex: info.colorHex,
-      alias: info.alias,
+      name: info.name,
       affinityLabel: isGhost || isSelf ? null : `${formatAffinityPercent(body.similarity)}%`,
       radiant: !isGhost && !isSelf && !body.leaving && isRadiantAffinity(body.similarity, track),
       glowLevel: isGhost || isSelf ? 0 : glowLevel(body.similarity, world.threshold),

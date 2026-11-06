@@ -8,6 +8,8 @@
  */
 
 import { EXPERIENCE } from "@/config";
+import type { IdentityDto } from "@/contracts/identity";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import type { CompatibilityBadge, MatchTrack } from "@/types/microtest";
 
 import { CONSTELLATION_COPY } from "./types";
@@ -169,24 +171,21 @@ export function trackNoun(track: MatchTrack): string {
 }
 
 /**
- * Accessible name for a real match node, exactly in the documented shape:
- * `"Ajolotito rosa orquídea, 87 % de afinidad estimada en romance"`.
+ * Accessible name for a real match node: the canonical name exactly as
+ * `formatIdentity` reads it, never a hand-built animal + colour pair.
+ * `"ajolotito rosa orquídea · K3LM, 87 % de afinidad estimada en romance"`.
  */
 export function matchAriaLabel(
-  animalName: string,
-  colorName: string,
+  identity: IdentityDto,
   similarity: number,
   track: MatchTrack,
 ): string {
-  const identity = colorName.trim().length > 0 ? `${animalName} ${colorName}` : animalName;
-  return `${identity}, ${formatAffinityPercent(similarity)} % de afinidad estimada en ${trackNoun(track)}`;
+  return `${formatIdentity(identity).ariaLabel}, ${formatAffinityPercent(similarity)} % de afinidad estimada en ${trackNoun(track)}`;
 }
 
 /** Accessible name for the centred self node. */
-export function selfAriaLabel(animalName: string, colorName: string, alias: string): string {
-  const identity = colorName.trim().length > 0 ? `${animalName} ${colorName}` : animalName;
-  const who = alias.trim().length > 0 ? `${alias}, ` : "";
-  return `${who}${identity}, ${CONSTELLATION_COPY.selfSuffix}`;
+export function selfAriaLabel(identity: IdentityDto): string {
+  return `${formatIdentity(identity).ariaLabel}, ${CONSTELLATION_COPY.selfSuffix}`;
 }
 
 /** `1 conexión` / `7 conexiones`. */
@@ -220,7 +219,7 @@ export function buildDataKey(
   me: ConstellationSelfInput,
   matches: readonly ConstellationMatchInput[],
 ): string {
-  let key = `${me.id}|${me.animalId}|${me.colorId}|${me.alias}`;
+  let key = `${me.id}|${me.animalId}|${me.colorId}|${me.identity.aliasCompleto ?? ""}`;
   for (const match of matches) {
     key += `#${match.id}:${match.track}:${match.similarity.toFixed(4)}:${match.animalId}:${match.colorId}`;
   }

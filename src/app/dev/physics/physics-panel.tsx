@@ -19,7 +19,7 @@ import { getTrackThreshold } from "@/domain/constellation";
 import { mulberry32 } from "@/domain/shared";
 import { ConstellationView, type CanvasControl, type CanvasMetrics, type ConstellationMatchInput } from "@/ui/constellation";
 
-import { DEV_SELF } from "../constellation/synthetic";
+import { DEV_SELF, devIdentityDto, suffixFor } from "../constellation/synthetic";
 import { GROUP_PREFIX, SCENARIOS, type Scenario } from "./scenarios";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] extends object ? Mutable<T[K]> : T[K] };
@@ -71,12 +71,17 @@ function makeMatches(scenario: Scenario, count: number, seed: number): Constella
     const id = scenario.id === "grupo5" && i < 5 ? `${GROUP_PREFIX}-${i}` : `s-${seed}-${i}`;
     return {
       id,
+      identity: devIdentityDto({
+        animalId,
+        colorId: color.id,
+        colorHex: color.hex,
+        aliasAnimal: animalName,
+        aliasColor: colorName,
+        sufijo: suffixFor(i),
+      }),
       animalId,
       colorId: color.id,
       colorHex: color.hex,
-      animalName,
-      colorName,
-      alias: `${animalName} ${colorName}`,
       similarity,
       track: "amistad",
       badges: [],

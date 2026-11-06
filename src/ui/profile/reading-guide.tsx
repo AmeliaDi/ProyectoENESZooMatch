@@ -34,7 +34,8 @@ export function ReadingGuide() {
 }
 
 export function EnneagramPlate({ profile }: { profile: ProfileDto }) {
-  const { enneagram, mark } = profile;
+  const { enneagram } = profile;
+  const mark = profile.identity.mark;
   return (
     <Frame title="Tu eneagrama" coord="AR 05h">
       {enneagram.exploring ? (

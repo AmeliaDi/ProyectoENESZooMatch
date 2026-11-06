@@ -1,11 +1,12 @@
 "use client";
 
 /**
- * One conversation inside `/chats`: header (sprite, alias, track, stage), the
- * first-time guide, the rounds, the question of the turn (cards), the free
+ * One conversation inside `/chats`: header (sprite, stored name, track, stage),
+ * the first-time guide, the rounds, the question of the turn (cards), the free
  * chat invitation, the free chat, and the safety menu always one tap away.
  */
 import type { ConversationDto } from "@/contracts/chat";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import { Button } from "@/ui/kit/button";
 import { Chip } from "@/ui/kit/surfaces";
 import { EmptyState, ErrorState, LoadingState } from "@/ui/kit/states";
@@ -27,11 +28,12 @@ function Header({ convo }: { convo: ConversationDto }) {
     convo.stage === "rounds"
       ? roundsStage(currentQuestion, convo.minRoundsForFree)
       : stageLabel(convo.stage, convo.completedRounds);
+  const name = formatIdentity(convo.peer.identity);
   return (
     <header className="zm-convo__head">
-      <PeerSprite peer={convo.peer} size={SPRITE_SIZE} />
+      <PeerSprite identity={convo.peer.identity} size={SPRITE_SIZE} />
       <div className="zm-convo__who">
-        <h2 className="zm-chat__title">{convo.peer.alias}</h2>
+        <h2 className="zm-chat__title">{name.title}</h2>
         <p className="zm-convo__meta">
           <Chip tone={convo.track} icon={convo.track}>{trackLabel(convo.track)}</Chip>
           <span className="zm-num">{progressText}</span>

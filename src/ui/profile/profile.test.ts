@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ProfileDto, ScaleReadingDto } from "@/contracts/profile";
+import type { IdentityDto } from "@/contracts/identity";
 
 import { parseProfile } from "./parse-profile";
 import { cellOf, leaningText, TRACK_CELLS } from "./scale-row";
@@ -16,11 +17,43 @@ const SCALE: ScaleReadingDto = {
   leaning: "alto",
 };
 
-const PROFILE: ProfileDto = {
-  alias: "zorrito ámbar",
-  animal: { id: "zorrito", name: "zorrito" },
-  color: { id: "ennea-7", name: "Naranja mandarina", hex: "#C05722" },
+const OWNER_IDENTITY: IdentityDto = {
+  estadoIdentidad: "eclosionado",
+  aliasCompleto: "zorrito naranja mandarina · DRRS",
+  aliasAnimal: "zorrito",
+  aliasColor: "naranja mandarina",
+  aliasSufijo: "DRRS",
+  animalId: "zorrito",
+  colorId: "ennea-7",
+  colorHex: "#C05722",
+  mbtiCode: "INFP",
+  enneagramCode: "7w6",
+  enneagramName: "El entusiasta",
   mark: "sx",
+  revelacionVista: true,
+  huevitoSeed: null,
+};
+
+/** A counterpart who shares nothing beyond their own frozen identity. */
+const PEER_IDENTITY: IdentityDto = {
+  estadoIdentidad: "eclosionado",
+  aliasCompleto: "pulpito violeta amatista · KMPQ",
+  aliasAnimal: "pulpito",
+  aliasColor: "violeta amatista",
+  aliasSufijo: "KMPQ",
+  animalId: "pulpito",
+  colorId: "ennea-4",
+  colorHex: "#9D56C7",
+  mbtiCode: "ENFP",
+  enneagramCode: "4",
+  enneagramName: "El individualista",
+  mark: null,
+  revelacionVista: false,
+  huevitoSeed: null,
+};
+
+const PROFILE: ProfileDto = {
+  identity: OWNER_IDENTITY,
   narrative: "Una narrativa",
   mbti: { code: "INFP", balancedAxes: 1 },
   enneagram: { code: "7w6", name: "Entusiasta", archetype: "Explorador", exploring: false },
@@ -30,7 +63,7 @@ const PROFILE: ProfileDto = {
   completedModules: [],
   affinities: {
     romance: { count: 0, top: [] },
-    amistad: { count: 1, top: [{ alias: "pulpito azul", animal: "pulpito", percent: 87 }] },
+    amistad: { count: 1, top: [{ identity: PEER_IDENTITY, percent: 87 }] },
   },
 };
 

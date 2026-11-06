@@ -9,6 +9,7 @@ import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { EXPERIENCE } from "@/config";
+import type { AdminUser } from "@/contracts/admin";
 
 import { ADMIN_COPY, ADMIN_REASON_LABELS, AUDIT_LABELS, REPORT_STATUS_LABELS, TAB_LABELS, USER_ACTION_COPY, confirmMatches } from "./admin/admin-copy";
 import { pageCount } from "./admin/pager";
@@ -218,8 +219,25 @@ describe("pure helpers", () => {
 });
 
 describe("admin console helpers (ADR-036)", () => {
-  const user = {
-    id: "aaaaaaaa-0000-4000-8000-000000000001", alias: "Nube", animal: null, color: null, colorHex: null, mbti: null,
+  const user: AdminUser = {
+    id: "aaaaaaaa-0000-4000-8000-000000000001",
+    // A fresh account: the identity is still an egg, so it carries no name.
+    identity: {
+      estadoIdentidad: "huevo",
+      aliasCompleto: null,
+      aliasAnimal: null,
+      aliasColor: null,
+      aliasSufijo: null,
+      animalId: null,
+      colorId: null,
+      colorHex: null,
+      mbtiCode: null,
+      enneagramCode: null,
+      enneagramName: null,
+      mark: null,
+      revelacionVista: false,
+      huevitoSeed: null,
+    },
     createdAt: "2026-11-01T00:00:00.000Z", quizCompletedAt: null, paused: false, adult: false, modules: 0,
     isAdmin: false, hasChatPin: false, romanceMatches: 0, amistadMatches: 0, conversations: 0, reportsReceived: 0,
   };

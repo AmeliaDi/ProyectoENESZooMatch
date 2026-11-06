@@ -11,8 +11,10 @@
 
 import { useMemo } from "react";
 
+import { formatIdentity } from "@/domain/identity/format-identity";
 import { InterestAction } from "@/ui/chat/interest-action";
 import { categoryIcon } from "@/ui/design/category-icons";
+import { clipName } from "@/ui/result/clip-label";
 import { Chip } from "@/ui/kit/surfaces";
 import { Dialog } from "@/ui/kit/dialog";
 import { Icon } from "@/ui/kit/icon";
@@ -30,11 +32,13 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
   const explanation = node?.explanation ?? null;
   const confidence = explanation?.confidence ?? null;
   const duo = track === "romance" && (node?.chemistry?.percentage ?? 0) >= 70;
-  const identity = node ? `${node.animalName} ${node.colorName}`.trim() : "";
+  // The sheet's accessible name is the canonical alias from `formatIdentity`,
+  // and the same name is repeated as plain text inside the dialog body.
+  const name = node ? formatIdentity(node.identity) : null;
 
   return (
-    <Dialog open={node !== null} onClose={onClose} title={node?.alias ?? ""} kind="sheet" closeLabel={CONSTELLATION_COPY.closeSheet}>
-      {node ? (
+    <Dialog open={node !== null} onClose={onClose} title={name?.title ?? ""} kind="sheet" closeLabel={CONSTELLATION_COPY.closeSheet}>
+      {node && name ? (
         <div className="zm-detail" data-tone={track}>
           <div className="zm-detail__hero">
             <div className="zm-box zm-box--flat zm-detail__sprite" aria-hidden="true">
@@ -57,7 +61,10 @@ export function NodeDetailSheet({ node, self, track, reducedMotion, onClose }: N
               <p className="zm-eyebrow">
                 {track === "romance" ? CONSTELLATION_COPY.sheetEyebrowRomance : CONSTELLATION_COPY.sheetEyebrowAmistad}
               </p>
-              <p className="zm-detail__identity">{identity}</p>
+              <p className="zm-detail__identity" title={name.title}>
+                {clipName(name.title, 15)}
+                {name.subtitle ? <span className="zm-detail__muted"> · {name.subtitle}</span> : null}
+              </p>
               <p className="zm-detail__affinity">
                 <strong>
                   <PixelNumber value={`${formatAffinityPercent(node.similarity)} %`} size="md" gold={isRadiantAffinity(node.similarity, track)} />

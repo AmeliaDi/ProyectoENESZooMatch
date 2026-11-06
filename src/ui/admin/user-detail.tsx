@@ -3,9 +3,12 @@
 import { useState } from "react";
 
 import type { AdminUser, AdminUserAction } from "@/contracts/admin";
+import { formatIdentity } from "@/domain/identity/format-identity";
+import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
 import { Button } from "@/ui/kit/button";
 import { Dialog } from "@/ui/kit/dialog";
 import { Field } from "@/ui/kit/field";
+import { PixelEgg } from "@/ui/kit/pixel-egg";
 
 import { adminApi } from "./admin-api";
 import { ADMIN_COPY, USER_ACTION_COPY, confirmMatches, stamp } from "./admin-copy";
@@ -27,10 +30,34 @@ export function availableActions(user: AdminUser): AdminUserAction[] {
   return actions;
 }
 
+/**
+ * The avatar frozen on eclosion, drawn only from the stored ids. Without them
+ * there is a neutral shell: the console never receives the shell seed (it is
+ * signed with the server secret for the person's own view), so an egg cannot
+ * hint at the animal inside.
+ */
+function Avatar({ user }: { user: AdminUser }) {
+  const { identity } = user;
+  const name = formatIdentity(identity);
+  const animalId = identity.animalId;
+  const colorId = identity.colorId;
+  const drawn = !name.isEgg && animalId !== null && colorId !== null;
+  return (
+    <span className="zm-box zm-box--flat" role="img" aria-label={name.ariaLabel}>
+      {drawn ? (
+        <PixelAnimal animalId={animalId} colorId={colorId} mark={identity.mark} size={48} animated={false} />
+      ) : (
+        <PixelEgg seed={identity.huevitoSeed} size={48} />
+      )}
+    </span>
+  );
+}
+
 function facts(user: AdminUser): Array<[string, string]> {
+  const name = formatIdentity(user.identity);
   return [
-    ["Animalito", user.animal ? `${user.animal} · ${user.color ?? ""}` : "—"],
-    ["MBTI", user.mbti ?? "—"],
+    ["Identidad", name.isEgg ? ADMIN_COPY.insideEgg : name.shortName],
+    ["Tipología", name.isEgg ? ADMIN_COPY.noTypology : (name.subtitle || ADMIN_COPY.noTypology)],
     ["Alta", stamp(user.createdAt)],
     ["Cuestionario", user.quizCompletedAt ? stamp(user.quizCompletedAt) : "Sin completar"],
     ["Módulos extra", String(user.modules)],
@@ -75,10 +102,12 @@ export function UserDetail({ user, onClose, onUnauthorized }: UserDetailProps) {
   }
 
   if (!user) return <Dialog open={false} onClose={close} title="">{null}</Dialog>;
+  const name = formatIdentity(user.identity);
   const word = pending ? USER_ACTION_COPY[pending].confirmWord : null;
 
   return (
-    <Dialog open onClose={close} title={user.alias ?? ADMIN_COPY.noAlias}>
+    <Dialog open onClose={close} title={name.title}>
+      <Avatar user={user} />
       <dl className="zm-admin__facts">
         {facts(user).map(([label, value]) => (
           <div key={label}><dt>{label}</dt><dd>{value}</dd></div>

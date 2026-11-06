@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 
 import { ADMIN_CONFIG } from "@/config";
 import type { AdminUser } from "@/contracts/admin";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import { Chip } from "@/ui/kit/surfaces";
 import { ErrorState, EmptyState, LoadingState } from "@/ui/kit/states";
 import { Button } from "@/ui/kit/button";
@@ -18,13 +19,15 @@ import { UserDetail } from "./user-detail";
 const PAGE_SIZE = ADMIN_CONFIG.users.pageSize;
 
 function UserRow({ user, onOpen }: { user: AdminUser; onOpen(): void }) {
+  const name = formatIdentity(user.identity);
   return (
     <tr>
       <th scope="row">
-        {user.alias ?? ADMIN_COPY.noAlias}
+        {name.title}
+        {name.isEgg ? <Chip tone="neutral">{ADMIN_COPY.eggBadge}</Chip> : null}
         {user.isAdmin ? <Chip tone="neutral">{ADMIN_COPY.adminBadge}</Chip> : null}
       </th>
-      <td>{user.animal ? `${user.animal} · ${user.color ?? ""}` : "—"}</td>
+      <td>{name.isEgg ? ADMIN_COPY.insideEgg : name.shortName}</td>
       <td>{user.quizCompletedAt ? "Sí" : "No"}</td>
       <td>{user.paused ? "Pausado" : "Activo"}</td>
       <td className="zm-num">{user.romanceMatches} / {user.amistadMatches}</td>
@@ -76,7 +79,7 @@ export function UsersPanel({ onUnauthorized }: { onUnauthorized: () => void }) {
             <caption className="zm-sr-only">Cuentas registradas</caption>
             <thead>
               <tr>
-                <th scope="col">Alias</th><th scope="col">Animalito</th><th scope="col">Cuestionario</th>
+                <th scope="col">Alias</th><th scope="col">Identidad</th><th scope="col">Cuestionario</th>
                 <th scope="col">Estado</th><th scope="col">Afinidades R / A</th><th scope="col">Reportes</th>
                 <th scope="col">Alta</th><th scope="col"><span className="zm-sr-only">Acciones</span></th>
               </tr>

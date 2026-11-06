@@ -1,7 +1,9 @@
 /**
  * Defensive parsers for the chat wire contracts (src/contracts/chat.ts). The
  * client never trusts the JSON: every field is type-checked, invalid entries
- * are dropped and a reply missing its core fields parses to `null`.
+ * are dropped and a reply missing its core fields parses to `null`. A peer is
+ * the stored identity read through `parseIdentity()`, so an egg — which has no
+ * name and cannot chat — is never a parseable peer.
  */
 import { CHAT_CONFIG } from "@/config";
 import type {
@@ -17,14 +19,12 @@ import type {
   PromptCardDto,
   RoundDto,
 } from "@/contracts/chat";
-import type { SpriteMark } from "@/contracts/result";
+import { isHatched, parseIdentity } from "@/ui/shared/parse-identity";
 
 type Json = Record<string, unknown>;
 
 const TRACKS: readonly ChatTrack[] = ["romance", "amistad"];
 const STAGES: readonly ConversationStage[] = ["rounds", "free", "paused"];
-const MARKS: readonly SpriteMark[] = ["sp", "so", "sx"];
-const HEX = /^#[0-9a-f]{6}$/i;
 const INTEREST_KEY = /^(romance|amistad):.+$/;
 const SETTINGS = CHAT_CONFIG.conversation;
 
@@ -60,10 +60,8 @@ function listOf<T>(value: unknown, parse: (item: unknown) => T | null): T[] {
 
 export function parsePeer(value: unknown): ChatPeerDto | null {
   if (!isRecord(value)) return null;
-  const alias = text(value.alias);
-  if (alias === null) return null;
-  const hex = typeof value.color_hex === "string" && HEX.test(value.color_hex) ? value.color_hex : null;
-  return { alias, animal_id: text(value.animal_id), color_id: text(value.color_id), color_hex: hex, mark: oneOf(MARKS, value.mark) };
+  const identity = parseIdentity(value.identity);
+  return isHatched(identity) ? { identity } : null;
 }
 
 export function parseInboxEntry(value: unknown): InboxEntry | null {

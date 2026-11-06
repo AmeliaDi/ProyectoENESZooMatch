@@ -10,9 +10,8 @@ import type {
   ScaleReadingDto,
   SectionReadingDto,
 } from "@/contracts/profile";
-import type { SpriteMark } from "@/contracts/result";
+import { parseIdentity } from "@/ui/shared/parse-identity";
 
-const HEX = /^#[0-9A-Fa-f]{6}$/;
 const CONFIDENCE: readonly ReadingConfidenceDto[] = ["clara", "tentativa", "abierta"];
 const LEANING: readonly ReadingLeaningDto[] = ["bajo", "medio", "alto"];
 
@@ -59,8 +58,9 @@ function parseSection(raw: unknown): SectionReadingDto | null {
 
 function parseAffinity(raw: unknown): AffinitySummaryDto | null {
   if (!isRec(raw) || typeof raw.percent !== "number") return null;
-  const alias = str(raw.alias);
-  return alias ? { alias, animal: str(raw.animal) ?? "", percent: Math.round(raw.percent) } : null;
+  const identity = parseIdentity(raw.identity);
+  if (identity.estadoIdentidad !== "eclosionado") return null;
+  return { identity, percent: Math.round(raw.percent) };
 }
 
 function parseTrack(raw: unknown): ProfileDto["affinities"]["romance"] {
@@ -68,43 +68,34 @@ function parseTrack(raw: unknown): ProfileDto["affinities"]["romance"] {
   return { count: count(raw.count), top: raw.top.map(parseAffinity).filter((a): a is AffinitySummaryDto => a !== null) };
 }
 
-function parseMark(raw: unknown): SpriteMark | null {
-  return raw === "sp" || raw === "so" || raw === "sx" ? raw : null;
-}
-
-function parseIdentity(raw: Rec) {
-  const { animal, color, mbti, enneagram } = raw;
-  if (!isRec(animal) || !isRec(color) || !isRec(mbti) || !isRec(enneagram)) return null;
-  const [animalId, animalName, colorId, colorName, hex] = [
-    str(animal.id), str(animal.name), str(color.id), str(color.name), str(color.hex),
-  ];
-  const [mbtiCode, enneaCode, enneaName, archetype] = [
-    str(mbti.code), str(enneagram.code), str(enneagram.name), str(enneagram.archetype),
-  ];
-  if (!animalId || !animalName || !colorId || !colorName || !hex || !HEX.test(hex)) return null;
-  if (!mbtiCode || !enneaCode || !enneaName || !archetype) return null;
+function parseTypology(raw: Rec): Pick<ProfileDto, "mbti" | "enneagram"> | null {
+  const mbti = isRec(raw.mbti) ? raw.mbti : null;
+  const enneagram = isRec(raw.enneagram) ? raw.enneagram : null;
+  if (!mbti || !enneagram) return null;
+  const code = str(mbti.code);
+  const enneaCode = str(enneagram.code);
+  const enneaName = str(enneagram.name);
+  const archetype = str(enneagram.archetype);
+  if (!code || enneaCode === null || enneaName === null || archetype === null) return null;
   return {
-    animal: { id: animalId, name: animalName },
-    color: { id: colorId, name: colorName, hex },
-    mbti: { code: mbtiCode, balancedAxes: count(mbti.balancedAxes) },
+    mbti: { code, balancedAxes: count(mbti.balancedAxes) },
     enneagram: { code: enneaCode, name: enneaName, archetype, exploring: enneagram.exploring === true },
   };
 }
 
 export function parseProfile(raw: unknown): ProfileDto | null {
   if (!isRec(raw) || !Array.isArray(raw.sections) || !Array.isArray(raw.virtues)) return null;
-  const alias = str(raw.alias);
-  const identity = parseIdentity(raw);
-  if (!alias || !identity) return null;
+  const identity = parseIdentity(raw.identity);
+  const typology = parseTypology(raw);
+  if (!typology) return null;
   const virtues = raw.virtues.flatMap((v) =>
     isRec(v) && str(v.title) && str(v.text) ? [{ title: String(v.title), text: String(v.text) }] : [],
   );
   const open = isRec(raw.openScales) ? raw.openScales : {};
   const affinities = isRec(raw.affinities) ? raw.affinities : {};
   return {
-    alias,
-    ...identity,
-    mark: parseMark(raw.mark),
+    identity,
+    ...typology,
     narrative: str(raw.narrative) ?? "",
     virtues,
     sections: raw.sections.map(parseSection).filter((s): s is SectionReadingDto => s !== null),

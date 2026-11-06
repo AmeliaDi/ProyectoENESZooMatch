@@ -30,6 +30,10 @@ export const ADMIN_COPY = {
   emptySnapshot: "Sin mensajes en la instantánea.",
   adminBadge: "admin",
   noAlias: "sin alias",
+  /** A person without a frozen identity: named by the formatter, never guessed. */
+  eggBadge: "huevo",
+  insideEgg: "En el cascarón",
+  noTypology: "Sin lectura de tipos",
 } as const;
 
 export const TAB_LABELS = {
@@ -50,7 +54,7 @@ interface ActionCopy {
 export const USER_ACTION_COPY: Record<AdminUserAction, ActionCopy> = {
   reset_quiz: {
     label: "Reiniciar cuestionario",
-    body: "Borra respuestas, lectura, animalito y afinidades. El alias, los chats y el PIN se conservan.",
+    body: "Borra respuestas, lectura y afinidades. La identidad fijada al eclosionar, los chats y el PIN se conservan.",
     confirmWord: "REINICIAR",
   },
   pause: { label: "Pausar perfil", body: "Sale del cielo hasta que se reactive. Sus datos se conservan.", confirmWord: null },

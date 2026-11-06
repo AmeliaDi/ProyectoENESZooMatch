@@ -1,13 +1,15 @@
 "use client";
 
 /**
- * Invitation received: soft card with the match's sprite and alias (nothing
- * new about them) and three ways out — the same gesture, "ahora no" (silent
- * for the sender), or simply ignoring it. No counters, no urgency.
+ * Invitation received: soft card with the match's sprite and stored name
+ * (nothing new about them) and three ways out — the same gesture, "ahora no"
+ * (silent for the sender), or simply ignoring it. No counters, no urgency.
+ * An egg is never invited, so it never reaches this card.
  */
 import { useState } from "react";
 
 import type { InvitationDto } from "@/contracts/chat";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import { Button } from "@/ui/kit/button";
 
 import { AdultGate } from "./adult-gate";
@@ -30,6 +32,7 @@ export function InvitationCard({ invitation, onOpened, onDone }: InvitationCardP
   const [message, setMessage] = useState<string | null>(null);
   const [needsAdult, setNeedsAdult] = useState(false);
   const icon = invitation.track;
+  const name = formatIdentity(invitation.peer.identity);
 
   async function accept() {
     setBusy(true);
@@ -55,9 +58,9 @@ export function InvitationCard({ invitation, onOpened, onDone }: InvitationCardP
   return (
     <li>
       <article className="zm-box zm-box--frame zm-invite" data-tone={invitation.track} aria-label={INTEREST_COPY.invitedTitle}>
-        <PeerSprite peer={invitation.peer} size={SPRITE_SIZE} />
+        <PeerSprite identity={invitation.peer.identity} size={SPRITE_SIZE} />
         <div className="zm-invite__text">
-          <p className="zm-inbox__alias">{invitation.peer.alias}</p>
+          <p className="zm-inbox__alias">{name.title}</p>
           <p className="zm-inbox__meta">{trackLabel(invitation.track)} · {INTEREST_COPY.invitedTitle}</p>
           <p className="zm-detail__muted">{INTEREST_COPY.invitedBody}</p>
           <div className="zm-chat__actions">

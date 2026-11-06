@@ -10,10 +10,14 @@ import {
   adminReportPageSchema,
   adminSessionSchema,
   adminUserPageSchema,
+  type AdminSessionDto,
+  type AdminUser,
   type AdminUserAction,
+  type AdminUserPage,
   type ReportStatus,
 } from "@/contracts/admin";
 import { parseAdminMetrics, type AdminMetrics } from "@/contracts/admin-metrics";
+import { parseIdentity } from "@/ui/shared/parse-identity";
 
 const TIMEOUT_MS = 15000;
 const LONG_TIMEOUT_MS = 120000;
@@ -43,6 +47,22 @@ const using = <S extends z.ZodType>(schema: S) => (raw: unknown): z.output<S> | 
 };
 const okOnly = (raw: unknown) => (raw && typeof raw === "object" ? true : null);
 
+/**
+ * Identity goes through `parseIdentity` and nowhere else: a row without a
+ * complete frozen identity arrives as an egg, never as a half-built name.
+ */
+const withStoredIdentity = (user: AdminUser): AdminUser => ({ ...user, identity: parseIdentity(user.identity) });
+
+const readUserPage = (raw: unknown): AdminUserPage | null => {
+  const parsed = adminUserPageSchema.safeParse(raw);
+  return parsed.success ? { total: parsed.data.total, users: parsed.data.users.map(withStoredIdentity) } : null;
+};
+
+const readSession = (raw: unknown): AdminSessionDto | null => {
+  const parsed = adminSessionSchema.safeParse(raw);
+  return parsed.success ? { identity: parseIdentity(parsed.data.identity) } : null;
+};
+
 const post = (body: unknown): RequestInit => ({
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -50,10 +70,10 @@ const post = (body: unknown): RequestInit => ({
 });
 
 export const adminApi = {
-  session: () => call("/api/admin/session", using(adminSessionSchema)),
+  session: () => call("/api/admin/session", readSession),
   metrics: () => call<AdminMetrics>("/api/admin/metrics", parseAdminMetrics),
   users: (q: string, page: number) =>
-    call(`/api/admin/users?${new URLSearchParams({ q, page: String(page) })}`, using(adminUserPageSchema)),
+    call(`/api/admin/users?${new URLSearchParams({ q, page: String(page) })}`, readUserPage),
   userAction: (id: string, action: AdminUserAction) =>
     call(`/api/admin/users/${encodeURIComponent(id)}`, (raw) => (raw && typeof raw === "object" ? raw : null), post({ action }), LONG_TIMEOUT_MS),
   reports: (status: ReportStatus, page: number) =>

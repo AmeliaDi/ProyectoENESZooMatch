@@ -890,13 +890,13 @@ function ConstellationCanvasImpl({
         <h2 id="constellation-sr-heading">{CONSTELLATION_COPY.srListHeading}</h2>
         <p>{CONSTELLATION_COPY.srListIntro}</p>
         <ul>
-          <li>{selfAriaLabel(me.animalName, me.colorName, me.alias)}</li>
+          <li>{selfAriaLabel(me.identity)}</li>
           {activeMatches.length === 0 ? (
             <li>{CONSTELLATION_COPY.srNoConnections}</li>
           ) : (
             activeMatches.map((match) => (
               <li key={match.id}>
-                {`${match.alias} — ${matchAriaLabel(match.animalName, match.colorName, match.similarity, match.track)}. ${CONSTELLATION_COPY.srOpenDetail}.`}
+                {`${matchAriaLabel(match.identity, match.similarity, match.track)}. ${CONSTELLATION_COPY.srOpenDetail}.`}
               </li>
             ))
           )}

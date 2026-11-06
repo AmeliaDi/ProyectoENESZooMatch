@@ -10,6 +10,7 @@
 import { useEffect, useRef } from "react";
 
 import type { ChatMessageDto, ConversationDto } from "@/contracts/chat";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import { Button } from "@/ui/kit/button";
 
 import { CONVERSATION_COPY } from "./chat-copy";
@@ -28,12 +29,15 @@ function timeOf(at: string): string | null {
 
 function Bubble({ message, convo }: { message: ChatMessageDto; convo: ConversationDto }) {
   const time = timeOf(message.at);
+  // The narrowest name slot in the chat: `shortName` is the same stored alias
+  // without its suffix, which the header of this same screen already shows.
+  const name = formatIdentity(convo.peer.identity);
   return (
     <li className="zm-bubble" data-mine={message.mine || undefined}>
-      {message.mine ? null : <PeerSprite peer={convo.peer} size={AVATAR_SIZE} />}
+      {message.mine ? null : <PeerSprite identity={convo.peer.identity} size={AVATAR_SIZE} />}
       <div className="zm-box zm-bubble__box">
         <p className="zm-bubble__who">
-          {message.mine ? CONVERSATION_COPY.mine : convo.peer.alias}
+          {message.mine ? CONVERSATION_COPY.mine : name.shortName}
           {time ? <time className="zm-chat__when zm-num" dateTime={message.at}> · {time}</time> : null}
         </p>
         <p className="zm-bubble__text">{message.body}</p>
