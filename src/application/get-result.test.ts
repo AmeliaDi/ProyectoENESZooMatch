@@ -280,4 +280,25 @@ describe("getResult", () => {
       expect(json).not.toContain(leak);
     }
   });
+
+  it("drops a counterpart given a soft delete, match row and all", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    store.stored = [MATCH];
+    store.counterparts = [COUNTERPART];
+
+    const before = await getResult(VIEWER, wire(store));
+    expect(before.ok && before.value.matches.amistad).toHaveLength(1);
+
+    // `eliminado_en` is set and the account still exists: the purge has not
+    // run yet, so the `matches` row is still there. Nothing may spell that
+    // person's name any more — not the sky, not the carta, not a star.
+    store.softDeleted.add(OTHER);
+    const after = await getResult(VIEWER, wire(store));
+    if (!after.ok) throw new Error("expected ok");
+    expect(after.value.matches.amistad).toEqual([]);
+    expect(after.value.matches.romance).toEqual([]);
+    expect(JSON.stringify(after.value)).not.toContain(COUNTERPART.aliasCompleto ?? "");
+    expect(after.value.identity.aliasCompleto).toBe(OWN.identity.aliasCompleto);
+  });
 });

@@ -21,6 +21,8 @@ const IDENTITY_MIGRATION = "20261114000000_identity_single_source.sql";
 const IDENTITY_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, IDENTITY_MIGRATION), "utf8"));
 const IDENTITY_DROP_MIGRATION = "20261116000000_identity_drop_legacy.sql";
 const IDENTITY_DROP_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, IDENTITY_DROP_MIGRATION), "utf8"));
+const SOFT_DELETE_MIGRATION = "20261117000000_filter_soft_deleted_matches.sql";
+const SOFT_DELETE_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, SOFT_DELETE_MIGRATION), "utf8"));
 
 /** Every `CREATE FUNCTION public.x(...)` body, keyed by name, across migrations. */
 function publicFunctionsOf(sql: string): [string, string][] {
@@ -29,6 +31,7 @@ function publicFunctionsOf(sql: string): [string, string][] {
 const PUBLIC_FUNCTIONS = new Map([
   ...publicFunctionsOf(lf(SQL)),
   ...publicFunctionsOf(IDENTITY_SQL),
+  ...publicFunctionsOf(SOFT_DELETE_SQL),
 ]);
 
 const CHAT_MIGRATION = "20261102000000_chat_pin.sql";
@@ -79,6 +82,7 @@ describe("base migration", () => {
       FASE5_MIGRATION,
       IDENTITY_MIGRATION,
       IDENTITY_DROP_MIGRATION,
+      SOFT_DELETE_MIGRATION,
     ]);
   });
 
@@ -660,6 +664,42 @@ describe("identity single source migration", () => {
     // No SQL anywhere concatenates a catalogue diminutive with a colour name.
     expect(IDENTITY_SQL).not.toMatch(/diminutivo_es\s*\|\|\s*' '\s*\|\|\s*\w*\.?nombre/);
     expect(IDENTITY_SQL).not.toMatch(/a\.diminutivo_es\s*\|\|\s*' '\s*\|\|\s*c\.nombre/);
+  });
+
+  it("hides soft-deleted people from every read that names them", () => {
+    // `eliminado_en` marks a person for deletion, but their row — and the
+    // `matches` rows that point at it — survive until the purge deletes the
+    // account. Every read that spells a counterpart's name has to skip them.
+    const matches = PUBLIC_FUNCTIONS.get("get_user_matches") ?? "";
+    expect(matches).toContain("AND p.eliminado_en IS NULL");
+    expect(matches).toContain("p.estado_identidad = 'eclosionado'");
+
+    // The migration redefines the same signature, in a transaction, and says
+    // so: that is what lets `db-apply -- --migration` run it on a live schema.
+    expect(SOFT_DELETE_SQL).toMatch(/^BEGIN;/m);
+    expect(SOFT_DELETE_SQL).toMatch(/^COMMIT;/m);
+    expect(SOFT_DELETE_SQL).toMatch(/idempotente/i);
+    expect(SOFT_DELETE_SQL).toMatch(/CREATE OR REPLACE FUNCTION public\.get_user_matches\(p_user_id UUID\)/);
+    expect(SOFT_DELETE_SQL).not.toMatch(/^\s*DROP FUNCTION/m);
+    expect(SOFT_DELETE_SQL).not.toMatch(/\b(DELETE FROM|TRUNCATE|UPDATE public\.profiles)\b/);
+    // Same grants as the step that created the function, no wider.
+    expect(SOFT_DELETE_SQL).toContain("GRANT EXECUTE ON FUNCTION public.get_user_matches(UUID) TO service_role");
+    expect(SOFT_DELETE_SQL).toContain(
+      "REVOKE ALL ON FUNCTION public.get_user_matches(UUID) FROM PUBLIC, anon, authenticated",
+    );
+
+    // The two reads the adapters build themselves filter the same column.
+    const profileRepo = lf(readFileSync(resolve(process.cwd(), "src/infrastructure/supabase/profile-repository.ts"), "utf8"));
+    const chatRepo = lf(readFileSync(resolve(process.cwd(), "src/infrastructure/chat/conversation-repository.ts"), "utf8"));
+    expect(profileRepo).toMatch(/\.in\("user_id", \[\.\.\.userIds\]\),?\s*\n\s*\/\/[^\n]*\n\s*\/\/[^\n]*\n\s*\.is\("eliminado_en", null\)/);
+    expect(chatRepo.match(/\.is\("eliminado_en", null\)/g)?.length).toBe(2);
+
+    // The in-memory adapters model the same contract, so a use-case test that
+    // deletes somebody mid-flight sees what production would return.
+    const harness = lf(readFileSync(resolve(process.cwd(), "src/application/testing/in-memory.ts"), "utf8"));
+    expect(harness).toContain("readonly softDeleted = new Set<string>();");
+    expect(harness).toMatch(/if \(store\.softDeleted\.has\(otherId\)\) continue;/);
+    expect(harness).toMatch(/if \(!rec \|\| !identity \|\| gone\(id\)\) return \[\];/);
   });
 
   it("keeps the reset path honest: an admin reset returns the person to an egg", () => {

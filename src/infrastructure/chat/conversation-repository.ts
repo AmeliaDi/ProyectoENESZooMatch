@@ -218,12 +218,13 @@ function otherReads(admin: SupabaseClient): Pick<Reads, "messages" | "recentMess
     },
     async peers(userIds) {
       const rows = await select(() => admin.from(TABLE.profiles).select(PEER_COLUMNS).in("user_id", [...userIds])
-        .eq("estado_identidad", "eclosionado"), peerSchema);
+        .eq("estado_identidad", "eclosionado").is("eliminado_en", null), peerSchema);
       if (!rows.ok) return rows;
       return ok(rows.value.map(toPeerRecord).filter((p): p is ChatPeerRecord => p !== null));
     },
     async latents(userIds) {
-      const rows = await select(() => admin.from(TABLE.profiles).select("user_id, latent_profile").in("user_id", [...userIds]), z.object({ user_id: z.string(), latent_profile: latentSchema }));
+      const rows = await select(() => admin.from(TABLE.profiles).select("user_id, latent_profile").in("user_id", [...userIds])
+        .is("eliminado_en", null), z.object({ user_id: z.string(), latent_profile: latentSchema }));
       if (!rows.ok) return rows;
       return ok(new Map(rows.value.flatMap((r): Array<[string, LatentProfile]> => (r.latent_profile ? [[r.user_id, r.latent_profile]] : []))));
     },

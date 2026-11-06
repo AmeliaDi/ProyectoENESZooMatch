@@ -42,6 +42,8 @@ export class MemoryStore {
   readonly identities = new Map<string, IdentityRecord>();
   readonly inclusiveModes = new Map<string, string>();
   readonly paused = new Set<string>();
+  /** `profiles.eliminado_en`: the row survives, the person is no longer visible. */
+  readonly softDeleted = new Set<string>();
   readonly showDetail = new Set<string>();
   readonly sharedLayers = new Map<string, ShareLayerId[]>();
   matches: GlobalMatch[] = [];
@@ -219,13 +221,14 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
     },
     loadAnswers: async (userId) => ok([...(store.results.get(userId)?.answers ?? [])]),
     findCounterparts: async (ids) => {
+      const gone = (id: string) => store.softDeleted.has(id);
       if (store.counterparts.length > 0) {
-        return store.counterparts.filter((c) => ids.includes(c.userId));
+        return store.counterparts.filter((c) => ids.includes(c.userId) && !gone(c.userId));
       }
       return ids.flatMap((id): CounterpartProfile[] => {
         const rec = store.results.get(id);
         const identity = store.identities.get(id);
-        if (!rec || !identity) return [];
+        if (!rec || !identity || gone(id)) return [];
         return [
           {
             userId: id,
@@ -269,6 +272,7 @@ export function memoryMatches(store: MemoryStore): MatchRepository {
         if (m.userA !== self && m.userB !== self) continue;
         const otherId = m.userA === self ? m.userB : m.userA;
         if (store.identities.get(otherId)?.estadoIdentidad !== "eclosionado") continue;
+        if (store.softDeleted.has(otherId)) continue;
         out.push({
           track: m.track,
           otherUser: otherId,

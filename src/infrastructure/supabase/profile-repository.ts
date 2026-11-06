@@ -374,7 +374,10 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
           .select(
             "user_id, estado_identidad, alias_completo, alias_animal, alias_color, alias_sufijo, animal_id, color_id, mbti_code, enneagram_code, avatar_mark, latent_profile, show_avatar_detail, shared_layers",
           )
-          .in("user_id", [...userIds]),
+          .in("user_id", [...userIds])
+          // A soft-deleted row still exists during the grace window, and a
+          // person who is being deleted is not somebody to show a name for.
+          .is("eliminado_en", null),
       );
       if (!res || res.error || !res.data) return [];
       return (res.data as Array<Record<string, unknown>>).map(toCounterpart);
