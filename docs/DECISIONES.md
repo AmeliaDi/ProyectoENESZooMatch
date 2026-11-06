@@ -961,3 +961,21 @@ identificada por matrícula y un PIN, en una ventana propia.
   y la ausencia de matrículas en claro limitan la reidentificación.
 - Al calibrar los umbrales, amistad quedó en ≈ 0.46. El contrato de métricas exigía ≥ 0.5, así que
   la pestaña de agregados respondía 503. Ahora el contrato acepta [0, 1).
+
+
+## ADR-037 · Consolidación de documentos históricos pre-unificación
+
+**Contexto.** En `docs/` permanecían cuatro documentos de las fases iniciales previas a la
+arquitectura hexagonal y al modelo psicométrico GRM: `AUDIT.md`, `CONTEXTO_PROYECTO.md`,
+`SCORING.md` y `EXTERNAL_SIGNALS.md`. Esos archivos describían rutas inexistentes (`src/lib/*`),
+tablas y RPCs con sufijo `*_v2` ya eliminadas (ADR-008) y los scripts `crawl_external.py` /
+`extract_signals.py` reemplazados por `scripts/literature/run.mts` (`docs/LITERATURA.md`).
+
+**Decisión.** Se retiran los cuatro documentos obsoletos y se conserva su trazabilidad en los
+documentos vigentes:
+- Arquitectura y esquema sin sufijos `_v2`: `docs/ARQUITECTURA.md` y ADR-001 a ADR-015.
+- Modelo de medición y emparejamiento por capas: `docs/MEDICION.md`, `docs/MATCHING.md` y
+  `docs/EVIDENCIA.md`.
+- Corpus bibliográfico reproducible: `docs/LITERATURA.md` y `docs/META_ANALISIS.md`.
+- Diagnóstico y corrección de bugs de producción (idempotencia, distribución de color,
+  retención, chat de 3 preguntas y frescura de matches): `docs/DIAGNOSTICO_BUGS.md`.
