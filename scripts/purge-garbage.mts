@@ -215,9 +215,16 @@ async function main(): Promise<void> {
         : null;
     await runSql(`
       BEGIN;
+      SELECT set_config('request.jwt.claims', '{"role":"service_role"}', true);
       ${
         syntheticIdsSql
-          ? `UPDATE public.profiles SET eliminado_en = now() WHERE user_id IN (${syntheticIdsSql}) AND eliminado_en IS NULL;`
+          ? `
+            DELETE FROM public.matches
+            WHERE user_a IN (${syntheticIdsSql}) OR user_b IN (${syntheticIdsSql});
+            UPDATE public.profiles
+            SET eliminado_en = now()
+            WHERE user_id IN (${syntheticIdsSql}) AND eliminado_en IS NULL;
+          `
           : ""
       }
       SELECT public.apply_retention_policy(
