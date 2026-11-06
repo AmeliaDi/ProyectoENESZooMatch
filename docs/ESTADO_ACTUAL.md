@@ -11,8 +11,9 @@ Las secciones §1–§4 son la **foto histórica** de la auditoría inicial del
 
 | Comprobación | Hoy |
 |---|---|
-| Tests | 867 en verde (`npm run check`) |
+| Tests | 959 en 82 archivos, en verde (`npm run check`) |
 | Lint, typecheck, secretos y build | En verde |
+| Identidad única y fija (huevo → eclosión) | Código cerrado (ADR-038, §10); **migraciones y backfill pendientes de aplicar** |
 | QA de API contra producción | 85/85 (`docs/QA.md` §4.4) |
 | Chat completo (señales, rondas guiadas selladas, seguridad, emojis) | Implementado y en producción (ADR-035, `docs/CHAT.md` §10–14) |
 | HEXACO, MBTI continuo, Eneagrama con softmax y entropía | Implementados (Fases 3–5) |
@@ -171,7 +172,7 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | 5. Avatares | Cerrada | `docs/AVATARES.md`, ADR-018, `scripts/avatars/`, `/dev/avatars` |
 | 6. Validación y preregistro | Cerrada | `docs/PREREGISTRO.md`, `docs/VALIDACION.md`, `docs/VALIDACION_RESULTADOS.md`, `docs/TRAZABILIDAD.md`, `docs/META_ANALISIS.md`, ADR-020, `scripts/validation/` |
 | 7. Producto | Cerrada | ADR-021, `src/domain/explainability/layered.ts`, `src/application/refine-profile.ts`, `/afinar`, `/evidencia`, `data/explanation-copy.json`, `data/evidence-summary.json` |
-| Cierre: QA y revisión de sprites | Cerrada | `docs/QA.md`, `scripts/qa/`, `docs/AVATARES.md` §5 (siluetas propias) |
+| Cierre: QA y revisión de sprites | Cerrada | `docs/QA.md`, `scripts/qa/`, `docs/AVATARES.md` §6 (siluetas propias) |
 | Pulido visual, perfil de afinidades y guía | Cerrada | `docs/AUDITORIA_VISUAL.md`, ADR-027/028/030 |
 | Candado PIN | Cerrada | `docs/CHAT.md` §1–9, ADR-029 |
 | Chat entre matches | Cerrada (2026-11-04) | `docs/CHAT.md` §10, ADR-032, migración `20261104000000_conversations.sql` (aplicada) |
@@ -180,6 +181,7 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | Cierre de pendientes (Φ, alias, avisos, docs) | Cerrada (2026-11-04) | ADR-034, migración `20261105000000_alias_collision.sql` (aplicada) |
 | Dorado por pista y física de cielos llenos | Cerrada | ADR-031, `docs/FISICA.md` |
 | Ráfaga concurrente (H-02) y verificación `[VERIFICAR]` | Cerrada (2026-11-03) | `docs/QA.md` §4.3, `docs/EVIDENCIA.md` §6 (quedan 3 sin fuente accesible) |
+| Identidad única y fija (huevo → eclosión, fases 0–6) | Código cerrado (2026-11-06); **aplicar migraciones y backfill pendiente de autorización** | ADR-038, `docs/DIAGNOSTICO_IDENTIDAD.md`, `docs/CHANGELOG_IDENTIDAD.md`, §10 de este documento |
 
 **Pendiente solo manual** (no automatizable aquí, ver `docs/QA.md` §5): teléfono real de gama
 media, TalkBack/VoiceOver y panel admin con sesión.
@@ -251,6 +253,48 @@ hay que volver a correrlo: un test compara el hash del banco con el de
 - El PIN admin tiene 4 dígitos; lo mitigan el pepper, las pausas y el tope por red.
 - Borrar desde el observatorio no tiene deshacer (queda auditado).
 - La lista individual es una excepción consciente al principio de «solo agregados».
+
+## 10. Changelog de identidad fija (2026-11-06)
+
+Código cerrado en `main` (ADR-038, `docs/DIAGNOSTICO_IDENTIDAD.md`, `docs/AVATARES.md` §5 y
+`docs/ARQUITECTURA.md` §7.2). **Las migraciones no se han aplicado**: quedan a la espera de
+autorización explícita.
+
+**Archivos tocados**
+
+| Área | Archivos |
+|---|---|
+| Respaldo | `scripts/db-backup.mts`, `scripts/db-restore.mts` → `.backups/pre-identidad-fija` (git-ignorado), 20 tablas verificadas con `--dry-run` |
+| Base, paso 1 | `supabase/migrations/20261114000000_identity_single_source.sql`: tipo `identity`, 9 columnas, CHECKs de formato y longitud, `reject_identity_mutation`, `hatch_profile_identity`, `mark_identity_revealed`, aviso `type='identity'` con índice único parcial |
+| Base, paso 2 | `supabase/migrations/20261116000000_identity_drop_legacy.sql`: borra `profiles.alias` y la ruta de cálculo vieja, estrecha la RPC a 17 claves |
+| Dominio | `src/domain/identity/` → `hatch-identity.ts`, `hatch-condition.ts`, `format-identity.ts`, `golden-rule.guard.test.ts` |
+| Aplicación | `src/application/` → `identity-dto.ts`, `hatch.ts`, `revelation.ts`; `get-result.ts`, `get-profile.ts`, `submit-quiz.ts`, `refine-profile.ts`, `counterpart-view.ts`, `chat/peer-view.ts`, `privacy.ts`, `admin/users.ts`, `ports.ts` |
+| Contrato | `src/contracts/identity.ts` (+ `profile.ts`, `result.ts`, `chat.ts`, `admin.ts`, `admin-metrics.ts`) |
+| UI | `src/ui/shared/parse-identity.ts`; `src/ui/kit/pixel-egg.tsx` + `src/app/kit.css` (huevito); pantallas de resultado, carta, constelación, chat, ajustes y admin; `src/ui/quiz/reveal.tsx` (eclosión) |
+| Datos | `data/avatar-config.json` (`identity`: alfabeto, bloqueos, concordancia, `egg_crack_stages`, `hatch_required_modules`); `data/arquetipos.json` y `supabase/seed.sql` (diminutivos `libélula`, `pinguinito`) |
+| Migración de datos | `scripts/identity-backfill.mts` (`--check` / `--apply --confirm`, transacción única, 7 aserciones internas) |
+| Docs | `docs/CHANGELOG_IDENTIDAD.md` (nuevo), `docs/DIAGNOSTICO_IDENTIDAD.md`, ADR-038 y las secciones citadas arriba |
+
+**Personas afectadas (medido en producción el 2026-11-06, 164 filas)**
+
+| Grupo | Conteo | Efecto del backfill |
+|---|---:|---|
+| Activas con test principal completo | 121 | eclosionan con la identidad canónica; conservan su nombre las que ya lo tenían sincronizado; se corrige el alias en 40 (animal) y 88 (color) casos desincronizados |
+| Activas sin test completo | 28 | pasan a `huevo`, salen de constelaciones, matches, señales y chat; **conservan sus respuestas parciales** |
+| Bajas lógicas (`eliminado_en`) | 15 | fuera de todo cálculo (les corresponde la política de retención) |
+| Cumplen la condición de núcleo (53 ítems) | 121 de 121 | nadie pierde el nombre por la condición; exigir `mbti` + `eneagrama` habría devuelto a huevo a 68 (56.2 %) |
+
+**Pendiente operativo (en orden, con autorización)**
+
+1. Aplicar el paso 1 y verificar el respaldo otra vez (`.backups/pre-identidad-fija`).
+2. `node --no-warnings scripts/identity-backfill.mts --check` → leer el reporte.
+3. `… --apply --confirm` (una transacción; restaura automáticamente si algo falla).
+4. Recalcular matches desde el observatorio y revisar duplicados/huérfanos.
+5. Aplicar el paso 2 y volver a correr el `--check` (debe salir sin diferencias).
+6. Desplegar: el paso 1 es compatible con el código anterior; el paso 2 exige el código nuevo ya en producción.
+
+**Verificación**: 82 archivos y 959 tests en verde, `eslint` 0 avisos, `tsc --noEmit` limpio y
+`next build` correcto. La prueba guardia del ADR-038 entra en `npm run check`.
 
 ## 7. Lo que no se puede afirmar (se mantiene)
 

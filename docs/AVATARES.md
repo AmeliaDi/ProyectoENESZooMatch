@@ -1,8 +1,10 @@
 # Avatares: identidad visual desde MBTI y Eneagrama
 
-> Fase 5 del afinado (2026-11-02). Capa 4 del modelo: **identidad y narrativa,
+> Fase 5 del afinado (2026-11-02), con la identidad congelada de ADR-038
+> (2026-11-06). Capa 4 del modelo: **identidad y narrativa,
 > no puntaje**. El sprite no cambia la afinidad de nadie (ADR-017: la capa 4 pesa
-> ≤ 0.02 y la ablación no cambia el orden). Código: `src/domain/avatars/`
+> ≤ 0.02 y la ablación no cambia el orden). Código: `src/domain/identity/` (un solo
+> cálculo y una sola lectura del nombre) y `src/domain/avatars/`
 > (`avatar-spec.ts`, `emblems.ts`, `pixel-sprites.ts`). Datos:
 > `data/avatar-config.json` y la paleta en `data/arquetipos.json`. Galería:
 > `/dev/avatars` (404 en producción). Reproducción: `npm run data:avatars`
@@ -32,12 +34,24 @@ De este modo ningún color supera el 12 % (`max_color_share`) y la entropía de
 Shannon supera 2.95 nats (`min_color_entropy`), verificado con $N = 5000$ perfiles
 sintéticos en `avatar-spec.test.ts` y en vivo en `/dev/avatars`.
 
-**Estabilidad del color («como inicia»).** El color base se fija al terminar el
-cuestionario y se persiste en `profiles.color_id` y `profiles.color_asignado_en`.
-Completar módulos opcionales (`refineProfile`) afina la lectura diagnóstica, la
-especie, el ala o la marca de subtipo, pero **conserva el color base inicial**
-(`preserveColor: true`). El color solo cambia si la persona **rehace el cuestionario
-completo** o lo solicita explícitamente en **Ajustes → Reasignar mi color**.
+**Identidad congelada (ADR-038).** Al terminar el test principal, `hatchIdentity` calcula una
+sola vez animal, color, sufijo y alias, y `hatch_profile_identity` los escribe en la misma
+transacción que marca `estado_identidad = 'eclosionado'` y `eclosionado_en`. Desde ahí la fila
+es inmutable: un trigger (`reject_identity_mutation`) rechaza cualquier escritura posterior, así
+que completar módulos opcionales (`refineProfile`) afina la lectura diagnóstica, la narrativa, el
+ala o la marca de subtipo, pero **no toca el nombre ni el sprite**. Ya no existe
+**Ajustes → Reasignar mi color**: reasignar el color sería renombrar a alguien. El color sigue
+quedando
+registrado en `profiles.color_id` y `profiles.color_asignado_en`, ahora escritos solo por la
+eclosión.
+
+**Cómo se arma el nombre.** `alias_completo = alias_animal + " " + alias_color + " · " +
+alias_sufijo`, donde `alias_color` conjuga el adjetivo de color con el género gramatical del
+diminutivo (`tortuguita gris neblina`, `zorrito rojo carmín`, `ballenita roja carmín`) y el
+sufijo son 4 letras de un alfabeto de 21 consonantes sin vocales: 21⁴ = 194 481 combinaciones,
+menos 31 bloqueadas = **194 450 utilizables**. La semilla es `HMAC(SECRETO, user_id)`, nunca el
+perfil, y el reintento por colisión es determinista: **nunca se renombra a quien ya tiene
+nombre**. Longitud máxima 64, sin emojis ni caracteres invisibles.
 
 **Honestidad.** MBTI y Eneagrama tienen validez empírica limitada
 (`docs/EVIDENCIA.md`, EV-30 a EV-42). Por eso solo dan forma y color, nunca
@@ -173,7 +187,25 @@ rubor, chispa ni corazones, y tampoco cambian la máscara de la silueta. Así se
 mantiene la garantía del motor: dos especies distintas siguen con ≥ 5 celdas de
 silueta de diferencia.
 
-## 5. Distinguibilidad (resultados reales)
+## 5. El huevito (antes de eclosionar)
+
+Quien no ha terminado el test principal no tiene identidad: `parseIdentity` devuelve huevo y el
+DTO trae `animal_id`, `color_id` y alias en `null`, con una única señal visual — `huevitoSeed`,
+derivada del `HMAC(secreto, user_id)` en el servidor. El sprite (`src/ui/kit/pixel-egg.tsx`) usa
+esa semilla solo para **variaciones cosméticas** (manchas, brillo, pequeña rotación): no insinúa
+el animal, porque insinuarlo sería filtrar una lectura incompleta.
+
+| Canal | Regla | Dato |
+|---|---|---|
+| Grietas | 4 etapas según el progreso del núcleo | `identity.egg_crack_stages = 4` |
+| Aura dorada | opacidad `0.10 + 0.06 × etapa` (crece con el progreso, no con el azar) | medido, no inventado |
+| Movimiento | respiración suave y flote; la etapa 3 late al doble | `prefers-reduced-motion` → solo fundido |
+| Visibilidad | solo la ve su dueño; no entra en constelaciones, matches, señales ni chat | probado en `get-result.test.ts` y `conversation.test.ts` |
+
+La eclosión se anima una vez (`revelacion_vista`), se puede saltar con un toque y deja la ficha
+de identidad con `aria-live` y descripción textual del sprite; sin sonido por defecto.
+
+## 6. Distinguibilidad (resultados reales)
 
 | Comprobación | Resultado |
 |---|---|
@@ -222,7 +254,13 @@ Población sintética (N = 1000, semilla de calibración, generador de
 | Marca de subtipo visible | 29.5 % (sp 115, sx 107, so 73) |
 | Colores usados | 28 de 28 |
 
-## 6. Privacidad: riesgo de reidentificación y decisión
+**Reparto real medido en producción (2026-11-06, 121 personas con test completo y alias).**
+27 de los 28 colores están en uso, el más frecuente es `Verde bosque` con 11 personas (9.1 %) y
+`Gris neblina` tiene 7 (5.8 %). Es el número que desmonta el síntoma «casi todo el mundo es gris
+neblina»: el dato guardado siempre fue diverso; lo que se repetía era el *texto* viejo del alias
+(74 alias decían «gris neblina»). Detalle en `docs/DIAGNOSTICO_IDENTIDAD.md` §1.
+
+## 7. Privacidad: riesgo de reidentificación y decisión
 
 El sprite revela a otras personas el código MBTI (por la especie), el tipo de
 Eneagrama (por el color y el emblema), el ala (por el tono) y el subtipo (por
@@ -262,7 +300,7 @@ podría reconocer su especie y su color. La mitigación es social y de producto
 (nadie ve respuestas, solo afinidades por encima del umbral, y top-K
 limitado), no visual.
 
-## 7. Limitaciones
+## 8. Limitaciones
 
 - La correspondencia especie ↔ MBTI y color ↔ Eneagrama es **simbólica y de
   diseño**, sin base empírica. Se documenta como tal.

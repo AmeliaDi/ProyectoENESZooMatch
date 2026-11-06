@@ -325,3 +325,29 @@ data/self-reading.json → config/self-reading.ts (Zod)
 
 El DTO `contracts/profile.ts` no lleva θ, SE, vectores, respuestas ni filtros.
 Enlazada desde el resultado, Ajustes y la revelación.
+
+### 7.2 Identidad única y fija (`domain/identity`, ADR-038)
+
+El nombre de una persona recorre exactamente tres estaciones, y ninguna pantalla puede
+saltárselas ni duplicarlas:
+
+```
+hatch:   domain/identity/hatch-identity.ts  hatchIdentity(perfil, HMAC, catálogo)
+           └─ único cálculo de animal + color + sufijo + alias (concordancia gramatical)
+write:   RPC public.hatch_profile_identity   ← único escritor (misma transacción que
+           marca estado_identidad='eclosionado' y eclosionado_en)
+           └─ trigger reject_identity_mutation: después de eclosionar, nada cambia
+read:    contracts/identity.ts (IdentityDTO) → application/identity-dto.ts
+           (toIdentityDto · counterpartIdentity · project) → domain/identity/format-identity.ts
+           └─ ui/shared/parse-identity.ts: si falta un dato, es huevo, no se inventa
+```
+
+- Las pantallas reciben `aliasCompleto`, `animalId`, `colorId` y la lectura amable; **ninguna
+  concatena animal con color**. El subtítulo fijo es solo `INFP · 4w5`.
+- El sprite se dibuja desde `animal_id`/`color_id` guardados, no desde el perfil latente.
+- `src/domain/identity/golden-rule.guard.test.ts` es la pieza que mantiene esto vivo: recorre
+  `src/` y falla `npm run check` si aparece una cuarta ruta (concatenación, interpolación,
+  recálculo del animal o un segundo formateador). Es análisis sintáctico a propósito: razona
+  sobre las formas que tenían los bugs, no sobre tipos.
+- Ningún DTO expone matrícula, hash ni respuestas; el huevo expone `null` en toda la identidad y
+  solo `huevitoSeed`.

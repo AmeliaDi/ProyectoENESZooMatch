@@ -979,3 +979,105 @@ documentos vigentes:
 - Corpus bibliográfico reproducible: `docs/LITERATURA.md` y `docs/META_ANALISIS.md`.
 - Diagnóstico y corrección de bugs de producción (idempotencia, distribución de color,
   retención, chat de 3 preguntas y frescura de matches): `docs/DIAGNOSTICO_BUGS.md`.
+
+## ADR-038 · Identidad única y fija: huevo → eclosión al terminar el test principal
+
+**Contexto.** Una misma persona llegaba a verse con dos nombres en la misma pantalla
+(`tortuguita gris neblina · DRRS` en el título, `mariquita gris neblina · INFP` en el
+subtítulo) y su sprite seguía una tercera ruta. Medido en producción sobre 121 perfiles
+activos con test completo: 40 alias (33.1 %) nombran un animal distinto del guardado en
+`animal_id` y 88 (72.7 %) nombran otro color. Detalle y método en `docs/DIAGNOSTICO_IDENTIDAD.md`.
+La causa no es un cálculo mal hecho sino **muchas rutas de cálculo y de lectura**: el alias se
+congelaba con `COALESCE` mientras `animal_id` se sobrescribía en cada módulo opcional, y la UI
+volvía a concatenar animal + color en siete sitios. Mientras existieran varias rutas, cualquier
+arreglo del generador se deshacía al leer.
+
+**Decisión.** Regla de oro: **la identidad (animal, color, sufijo, alias) se calcula una sola
+vez, al eclosionar, se guarda y nunca se recalcula.** Todo lo demás lee el registro guardado.
+
+- **Una calculadora.** `hatchIdentity(profile, secret, catalogSnapshot)`
+  (`src/domain/identity/hatch-identity.ts`) es la única función que decide un nombre. La ruta
+  heredada `generateProfileIdentity` y sus llamadas desaparecen.
+- **Un escritor.** Solo la RPC `hatch_profile_identity` (`SET search_path = ''`) escribe la
+  identidad, dentro de la misma transacción que marca `estado_identidad = 'eclosionado'` y
+  `eclosionado_en`. Un trigger `reject_identity_mutation` rechaza cualquier cambio posterior de
+  `alias_completo`, `animal_id`, `color_id` o sus piezas.
+- **Un lector.** `IdentityDTO` (`src/contracts/identity.ts`) más `formatIdentity()`
+  (`src/domain/identity/format-identity.ts`) y `parseIdentity()` (falla a huevo, no inventa).
+  Ningún componente arma nombres a mano: título, subtítulo, tarjetas, constelación, ficha,
+  chat, avisos, insignias, admin y `aria-label` leen los mismos campos. En la pantalla fija el
+  título es el alias completo y el subtítulo solo `INFP · 4w5`; nunca un segundo animal.
+- **Guardia.** `src/domain/identity/golden-rule.guard.test.ts` recorre `src/` (excluye
+  `domain/identity`, `domain/avatars`, `config`, `types`, tests, fixtures y `/dev`) y revienta
+  `npm run check` si aparece una segunda ruta: concatenación animal+color, interpolación de
+  ambas en un mismo string, recálculo del animal desde el perfil, o un formateador distinto de
+  `format-identity.ts`. Escanea >50 archivos y exige >5 consumidores del formateador para no
+  volverse vacuo.
+- **Marca de congelación.** `eclosionado_en IS NOT NULL` significa «identidad canónica, cerrada,
+  intocable». NULL es una fila heredada que el backfill aún puede corregir. Es el criterio que
+  hace el backfill re-ejecutable y el que protege al trigger.
+- **Animal y color.** El animal sale del MBTI (signos de los 4 ejes → grupo de especies; la
+  claridad elige la especie dentro del grupo) y el color del Eneagrama con el mecanismo de
+  distribución diversa que ya existía (`pickAmbiguousColor`): en la ambigüedad el catálogo se
+  recorre de forma determinista ponderada por la posterior, así que **`gris neblina` es un color
+  más, no el respaldo universal**. Medido hoy en producción: el color más frecuente es Verde
+  bosque con 11 de 121 (9.1 %) y Gris neblina tiene 7 (5.8 %).
+- **Semilla.** El sufijo y los empates se siembran con `HMAC(SECRETO, user_id)`. Nunca del
+  perfil: dos lecturas psicométricas distintas del mismo usuario no pueden producir nombres
+  distintos.
+- **Concordancia gramatical.** El adjetivo de color concuerda con el género del diminutivo
+  (`tortuguita gris neblina`, `zorrito rojo carmín`, `ballenita roja carmín`). La tabla de
+  concordancia catálogo × color se verifica en un test sobre las 103 especies. Dos diminutivos
+  del catálogo se corrigieron a mano: `libelula` → `libélula` y `pinguino` → `pinguinito`
+  (también en las narrativas generadas de `data/arquetipos.json`).
+- **Capacidad del sufijo.** Alfabeto de 21 consonantes sin vocales, longitud 4 →
+  21⁴ = **194 481** combinaciones; menos 31 bloqueadas = **194 450 utilizables** (99.98 %).
+  Colisión real se resuelve con reintento determinista sobre la misma semilla y **nunca se
+  renombra a una persona que ya tiene nombre** (`alias_completo` es único). El sufijo, el alias
+  y el color pasan validación de formato y longitud (máximo 64), con caracteres seguros: sin
+  emojis ni caracteres invisibles.
+- **Condición de eclosión.** `hatch_required_modules = ["nucleo"]`, evaluada por ítems
+  (53 ítems Likert no sensibles del núcleo), no por la lista `completed_modules`. Está medido:
+  las 121 personas con `quiz_completed_at` cumplen hoy esa condición y las 28 restantes no, así
+  que el backfill no le quita el nombre a nadie. Exigir los módulos opcionales `mbti` y
+  `eneagrama` habría devuelto a huevo a **68 de 121 (56.2 %)**. Los módulos opcionales nunca
+  cambian animal, color ni alias después.
+- **Huevo.** Quien no ha terminado el test principal es un huevo: se ve solo en sus propias
+  pantallas, no entra en la constelación de nadie, no recibe matches, señales ni chat y en los
+  DTO su identidad es `null` (`parseIdentity` lo garantiza). El sprite del huevito varía en
+  detalles cosméticos sembrados por el id — sin insinuar el animal — y muestra 4 etapas de grieta
+  según el progreso del núcleo (`egg_crack_stages`), con un aura dorada que crece con el
+  progreso; con `prefers-reduced-motion` solo hay fundido.
+- **Revelación.** La secuencia de eclosión y la ficha de identidad aparecen una sola vez,
+  controlada por `revelacion_vista`, que se marca con `mark_identity_revealed` aunque la
+  animación se interrumpa. Se puede saltar con un toque, es accesible (`aria-live`, descripción
+  textual del sprite) y no suena por defecto. Los avisos hablan del «huevito» antes de eclosionar
+  y del nombre fijo después.
+- **Migración en dos pasos.** Paso 1 (`20261114000000_identity_single_source.sql`) añade columnas,
+  tipo `identity` y funciones, y **conserva** la columna heredada `alias` escribiéndola para que
+  la ventana de despliegue (código nuevo con RPC antigua y viceversa) no rompa nada. Paso 2
+  (`20261116000000_identity_drop_legacy.sql`) borra la columna y lo que ya nadie lee, y estrecha
+  la RPC a las 17 claves que realmente envía `profile-repository.ts`. El backfill
+  (`scripts/identity-backfill.mts`) se puede correr entre los dos pasos y después: detecta qué
+  columnas existen.
+- **Aviso de nombre fijo.** `notifications` con `type = 'identity'` e índice único parcial
+  (por usuario y tipo) hace el aviso idempotente: nadie recibe dos.
+- **Eneagrama legible.** `enneagramWords` falla cerrado al tipo cuando el código guardado no
+  tiene ala o el ala no es vecina real (`"4"` → «el individualista», `"4w2"` inexistente → tipo
+  solo). La lectura diagnóstica sí usa el respaldo de anillo. De las 81 combinaciones
+  tipo×ala, solo 18 son alas adyacentes reales; un test lo fija.
+
+**Consecuencias.**
+- Nadie existente pierde el nombre: el backfill reescribe alias **solo** cuando el guardado
+  estaba desincronizado respecto a `animal_id`/`color_id`; a quien ya tenía el nombre canónico
+  se le respeta incluso `revelacion_vista`.
+- El panel admin anida la identidad (`identity` en lugar de campos sueltos) y el dashboard cita
+  el catálogo en las etiquetas de distribución; ningún DTO expone matrícula, hash ni respuestas.
+- Los matches del pool hay que recalcularlos después del backfill (la identidad fija puede mover
+  la capa 4). El script deja el aviso en cola, no los recalcula.
+- Queda pendiente operativo, no código: aplicar el paso 1, correr el backfill en `--check`,
+  aplicar en `--apply` con respaldo verificado, recalcular matches y aplicar el paso 2.
+- No se añadió un huevito a `/perfil` ni `/cuestionario`: la única semilla legítima del huevito
+  es la del DTO, que exige el secreto del servidor. Crear una segunda fuente de seeds sería
+  reproducir la clase de bug que este ADR elimina. Haría falta un campo nuevo en la API.
+

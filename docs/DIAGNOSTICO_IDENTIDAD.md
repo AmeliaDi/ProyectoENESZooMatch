@@ -33,6 +33,40 @@ En la pantalla de resultado (`/resultado`) y en «Tu carta» (`/perfil`), una mi
 | **`alias` desincronizado respecto a `color_id`** (el alias nombra un color distinto a `color_id`) | **86** | **74.8 %** |
 | **`alias` desincronizado en ambos (`animal_id` y `color_id`)** | **31** | **27.0 %** |
 
+#### Re-medición el 2026-11-06 (población actual, misma metodología)
+
+Seis personas completaron el test entre la primera medición y esta, así que la base pasa de 115 a 121;
+los activos siguen siendo 149 y las filas totales 164.
+
+| Categoría | Conteo | Porcentaje (sobre 121) |
+| :--- | ---: | ---: |
+| Activos con test principal completo | 121 | 100.0 % |
+| Activos sin test principal completo (`huevo`) | 28 | — |
+| Filas con `eliminado_en IS NOT NULL` (fuera de todo cálculo) | 15 | — |
+| Activos con `alias` no nulo | 121 | 100.0 % |
+| **`alias` desincronizado respecto a `animal_id`** | **40** | **33.1 %** |
+| **`alias` desincronizado respecto a `color_id`** | **88** | **72.7 %** |
+| **`alias` desincronizado en ambos** | **33** | **27.3 %** |
+| Colores distintos usados | 27 de 28 | — |
+| Color más frecuente (`Verde bosque`) | 11 | 9.1 % |
+| `Gris neblina` | 7 | 5.8 % |
+
+Predicados exactos (lectura sola, sin tocar datos; `pref = split_part(alias, ' · ', 1)`):
+
+```sql
+-- animal desincronizado: el alias no empieza por el diminutivo del animal guardado
+left(pref, length(an.diminutivo_es)) <> an.diminutivo_es
+-- color desincronizado: el nombre del color guardado no aparece en el alias
+position(lower(c.nombre) in pref) = 0
+```
+
+La última fila confirma el síntoma reportado («casi todo el mundo tiene gris neblina») como un
+defecto del *texto* del alias, no del dato guardado: **74 alias (61.2 %) dicen «gris neblina»**
+mientras que solo **7 personas (5.8 %) tienen `color_id = 'ennea-neblina'`**; en 69 de esos 74 el
+color guardado es otro. El respaldo universal estaba en la ruta de cálculo del alias, no en la
+asignación de color.
+
+
 Otros ejemplos reales anonimizados de desincronización de animal en producción:
 - `P-b1f8c0a3`: `alias = "ballenita gris neblina · UMN2"` vs `animal_id = "garcita"`, `color_id = "ennea-8"` (`INTJ`).
 - `P-9c668f6f`: `alias = "focita gris neblina · M8KF"` vs `animal_id = "zorrito"`, `color_id = "ennea-8"` (`ENTP`).
@@ -70,4 +104,25 @@ node --no-warnings scripts/db-restore.mts --from .backups/pre-identidad-fija --d
 # Restauración completa en caso de fallo:
 node --no-warnings scripts/db-restore.mts --from .backups/pre-identidad-fija --apply --confirm-restore=yes
 ```
+
+---
+
+## 4. Estado de la corrección (2026-11-06)
+
+Las cuatro causas del §2 están cerradas en el código de `main`; **la base de datos todavía no**,
+porque las migraciones `20261114000000_identity_single_source.sql` (paso 1) y
+`20261116000000_identity_drop_legacy.sql` (paso 2) están pendientes de aplicar con autorización
+explícita. Mientras el paso 1 no esté aplicado, `scripts/identity-backfill.mts` se niega a correr
+y el §1 seguirá midiendo lo mismo.
+
+| Causa | Ruta cerrada | Cómo se verifica |
+|---|---|---|
+| Escritura parcial del alias vs `animal_id` | `hatch_profile_identity` es el único escritor y `reject_identity_mutation` congela la fila | migración paso 1 + prueba `hatch-identity.test.ts` (idempotencia y concurrencia) |
+| Lecturas concatenadas en UI y casos de uso | `IdentityDTO` + `formatIdentity()` (`src/application/identity-dto.ts`) | `src/domain/identity/golden-rule.guard.test.ts`, que falla `npm run check` si aparece una segunda ruta |
+| Falta de concordancia gramatical | conjugación del adjetivo por el género del diminutivo | tabla catálogo × color completa en `hatch-identity.test.ts` |
+| Sufijo acoplado al perfil | semilla `HMAC(SECRETO, user_id)` y alfabeto de 21 consonantes | determinismo, unicidad sobre 5000 perfiles sintéticos y blocklist de palabras |
+
+Evidencia adicional del cierre: 82 archivos de prueba y 959 tests en verde, `eslint` sin avisos,
+`tsc --noEmit` limpio y `next build` correcto. Detalle de decisiones en ADR-038 y del efecto en
+personas reales en `docs/CHANGELOG_IDENTIDAD.md` (se rellena al aplicar el backfill).
 
