@@ -1060,6 +1060,13 @@ vez, al eclosionar, se guarda y nunca se recalcula.** Todo lo demás lee el regi
   la RPC a las 17 claves que realmente envía `profile-repository.ts`. El backfill
   (`scripts/identity-backfill.mts`) se puede correr entre los dos pasos y después: detecta qué
   columnas existen.
+- **Exención de las bajas lógicas en el paso 2** (descubierta al aplicar, no de diseño). El backfill
+  recorre `eliminado_en IS NULL`, de modo que las 3 filas dadas de baja nunca van a quedar
+  congeladas, y `profiles_identity_shape` las habría rechazado: el paso 2 sería inalcanzable hasta
+  que corriera un job ajeno. Las dos restricciones nuevas y la precondición excluyen ahora
+  `eliminado_en IS NOT NULL`; la precondición aborta igual ante una fila **viva** sin congelar y
+  avisa por conteo (`RAISE NOTICE`) de las excluidas. La regla de oro sigue siendo tal para todo
+  lo que alguien puede ver.
 - **Aviso de nombre fijo.** `notifications` con `type = 'identity'` e índice único parcial
   (por usuario y tipo) hace el aviso idempotente: nadie recibe dos.
 - **Eneagrama legible.** `enneagramWords` falla cerrado al tipo cuando el código guardado no
@@ -1086,10 +1093,17 @@ vez, al eclosionar, se guarda y nunca se recalcula.** Todo lo demás lee el regi
     identidad psicométrica; lo que se corrigió fue la etiqueta.
 - El panel admin anida la identidad (`identity` en lugar de campos sueltos) y el dashboard cita
   el catálogo en las etiquetas de distribución; ningún DTO expone matrícula, hash ni respuestas.
-- Los matches del pool hay que recalcularlos después del backfill (la identidad fija puede mover
-  la capa 4). El script deja el aviso en cola, no los recalcula.
-- Queda pendiente operativo, no código: aplicar el paso 1, correr el backfill en `--check`,
-  aplicar en `--apply` con respaldo verificado, recalcular matches y aplicar el paso 2.
+- Los matches del pool se recalculan después del backfill, pero **la corrección de identidad no
+  mueve ningún porcentaje**: medido con el motor de la app en lectura sobre las 735 filas
+  guardadas, el Δ máximo de similitud fue 8.9·10⁻¹⁶ (ruido de punto flotante) y ningún par cambia
+  su porcentaje redondeado. La razón es que la proyección del pool no incluye `animal_id` ni
+  `color_id`. Lo que sí hace el recálculo es retirar las filas de quienes tienen `eliminado_en`
+  (56 filas, 3 personas) y completar el top-k (30 filas nuevas).
+- Operativo ejecutado el 2026-11-06: paso 1 aplicado, respaldo verificado, `--check` leído,
+  `--apply --confirm` corrido (121 eclosiones, 121 avisos en cola), paso 2 aplicado con su propio
+  respaldo y `--check` final en 0. Queda pendiente: pulsar «Recomputar» en el observatorio
+  (necesita la sesión de administrador real porque escribe `admin_audit`) y cerrar la fuga de
+  contrapartes con `eliminado_en` en `get_user_matches` / `findCounterparts`.
 - No se añadió un huevito a `/perfil` ni `/cuestionario`: la única semilla legítima del huevito
   es la del DTO, que exige el secreto del servidor. Crear una segunda fuente de seeds sería
   reproducir la clase de bug que este ADR elimina. Haría falta un campo nuevo en la API.

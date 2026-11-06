@@ -289,14 +289,33 @@ El recuento de alias se leyó del reporte `--check` guardado fuera del repositor
 partió en `diminutivo_es` + forma de color con concordancia de género, así que los 121 casos son
 `24 + 57 + 3 + 37` sin residuos.
 
-**Pendiente operativo (en orden, con autorización)**
+**Pendiente operativo (en orden)**
 
 1. Aplicar el paso 1 y verificar el respaldo otra vez (`.backups/pre-identidad-fija`). ✅ 2026-11-06
 2. `node --no-warnings scripts/identity-backfill.mts --check` → leer el reporte. ✅ 2026-11-06
-3. `… --apply --confirm` (una transacción; restaura automáticamente si algo falla).
-4. Recalcular matches desde el observatorio y revisar duplicados/huérfanos.
-5. Aplicar el paso 2 y volver a correr el `--check` (debe salir sin diferencias).
-6. Desplegar: el paso 1 es compatible con el código anterior; el paso 2 exige el código nuevo ya en producción.
+3. `… --apply --confirm` (una transacción; dry-run `BEGIN … ROLLBACK` verificado antes). ✅ 2026-11-06
+4. Aplicar el paso 2 con respaldo propio (`.backups/pre-identidad-paso2`) y volver a correr el
+   `--check`. ✅ 2026-11-06 — el `--check` posterior reporta `pending = 0`, `frozenUntouched = 121`,
+   `nameChanged = 0` y sale con código 0, ya sin la columna heredada.
+
+**Queda pendiente de verdad**
+
+- **Recalcular matches desde el observatorio** (botón «Recomputar» → `POST /api/admin/recompute`).
+  Falta la credencial de administrador: el endpoint exige login de consola y no se sustituye con
+  la `service_role` key, porque ese camino escribe `admin_audit` con un actor real. Medido en
+  lectura: su efecto aquí es retirar **56 filas** que apuntan a **3 personas dadas de baja** y
+  añadir **30** del top-k resultante; **ningún porcentaje visible cambia** (Δ máximo de similitud
+  8.9·10⁻¹⁶, 0 pares cambian el entero del porcentaje).
+- **Fuga de contrapartes dadas de baja** (existente antes de este trabajo, medida el 2026-11-06):
+  `get_user_matches` y `findCounterparts` filtran `estado_identidad = 'eclosionado'` pero **no**
+  `eliminado_en IS NULL`, así que 43 personas ven hoy 56 tarjetas de match que nombran a 3 personas
+  que borraron su cuenta. Se cierra con dos filtros (`AND p.eliminado_en IS NULL` en la RPC e
+  `.is("eliminado_en", null)` en `findCounterparts`) y no con una tercera ruta de lectura.
+- **Purga de retención**: las 3 bajas sin congelar (y 12 huevos dados de baja) se van con la purga;
+  `soft_delete_grace_days = 7` y `purge-garbage.mts` borra los matches cuya fila de perfil ya no
+  existe. `profiles_identity_shape` las exime mientras tanto (ADR-038, paso 2).
+- Operativo viejo que sigue en pie: Upstash distribuido en vez de fail-open, prueba real de 50
+  envíos concurrentes, CSV del evento y `purge_event.sql` al cerrar.
 
 **Verificación**: 82 archivos y 959 tests en verde, `eslint` 0 avisos, `tsc --noEmit` limpio y
 `next build` correcto. La prueba guardia del ADR-038 entra en `npm run check`.

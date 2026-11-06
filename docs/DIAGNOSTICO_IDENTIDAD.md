@@ -109,11 +109,15 @@ node --no-warnings scripts/db-restore.mts --from .backups/pre-identidad-fija --a
 
 ## 4. Estado de la corrección (2026-11-06)
 
-Las cuatro causas del §2 están cerradas en el código de `main`; **la base de datos todavía no**,
-porque las migraciones `20261114000000_identity_single_source.sql` (paso 1) y
-`20261116000000_identity_drop_legacy.sql` (paso 2) están pendientes de aplicar con autorización
-explícita. Mientras el paso 1 no esté aplicado, `scripts/identity-backfill.mts` se niega a correr
-y el §1 seguirá midiendo lo mismo.
+Las cuatro causas del §2 están cerradas en el código de `main` **y en la base de datos**: el paso 1
+(`20261114000000_identity_single_source.sql`) y el paso 2 (`20261116000000_identity_drop_legacy.sql`)
+se aplicaron el 2026-11-06, cada uno con su respaldo verificado (`.backups/pre-identidad-fija`,
+`.backups/pre-identidad-paso2`), y el backfill congeló a las 121 personas vivas con test completo.
+Re-mediado después de la limpieza: `profiles.alias` ya no existe, las 121 filas vivas eclosionadas
+llevan `eclosionado_en` y las cuatro partes del alias, los 28 huevos viven sin ninguna columna de
+identidad escrita, 0 alias duplicadas, 0 filas fuera del formato y `--check` reporta `pending = 0`.
+La columna heredada se cayó con la RPC de 19 argumentos adentro, y `submit_quiz_result` quedó en la
+firma de 17 que es la única que manda `profile-repository.ts`.
 
 | Causa | Ruta cerrada | Cómo se verifica |
 |---|---|---|
@@ -124,5 +128,5 @@ y el §1 seguirá midiendo lo mismo.
 
 Evidencia adicional del cierre: 82 archivos de prueba y 959 tests en verde, `eslint` sin avisos,
 `tsc --noEmit` limpio y `next build` correcto. Detalle de decisiones en ADR-038 y del efecto en
-personas reales en `docs/CHANGELOG_IDENTIDAD.md` (se rellena al aplicar el backfill).
+personas reales —los 121 alias antes/después, seudónimos `P-###-TAG`— en `docs/CHANGELOG_IDENTIDAD.md`.
 
