@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import type { ProfileDto } from "@/contracts/profile";
 import { EXPERIENCE } from "@/config";
 import { formatIdentity } from "@/domain/identity/format-identity";
+import { clipName, NAME_MAX_WIDTH_PX } from "@/ui/shared/clip-label";
 import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
 import { isRadiantPercent } from "@/ui/constellation/render-helpers";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
@@ -25,6 +26,16 @@ import { RefineInvite } from "@/ui/refine/refine-invite";
 import { parseProfile } from "./parse-profile";
 import { ProfileSections } from "./profile-sections";
 import { EnneagramPlate, ReadingGuide } from "./reading-guide";
+
+/**
+ * The card paints its name at `clamp(1.25rem, 4.5vw, 1.75rem)` (card.css), so
+ * 28 px is the widest its glyphs ever get, and the title may use two lines of
+ * the shared budget: enough to keep the `· Sufijo` that tells two people
+ * apart, short enough that an alias of the stored maximum (64) cannot push
+ * the page sideways at 320 px.
+ */
+const CARD_NAME_FONT_PX = 28;
+const CARD_NAME_LINES = 2;
 
 type State =
   | { kind: "loading" }
@@ -93,7 +104,9 @@ function Hero({ profile }: { profile: ProfileDto }) {
         />
       </span>
       <div className="zm-card__who">
-        <h1 className="zm-card__alias">{name.title}</h1>
+        <h1 className="zm-card__alias" title={name.title}>
+          {clipName(name.title, CARD_NAME_FONT_PX, NAME_MAX_WIDTH_PX * CARD_NAME_LINES)}
+        </h1>
         <p className="zm-card__identity">{name.subtitle}</p>
         <div className="zm-card__chips">
           <Chip icon="personalidad">

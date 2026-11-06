@@ -9,9 +9,9 @@ import { categoryIcon } from "@/ui/design/category-icons";
 import { Button } from "@/ui/kit/button";
 import { PixelNumber } from "@/ui/kit/pixel-number";
 import { Chip, Frame } from "@/ui/kit/surfaces";
+import { clipName } from "@/ui/shared/clip-label";
 import type { MatchTrack } from "@/types/microtest";
 
-import { clipName } from "./clip-label";
 import { EXPLANATION_COPY_UI, ExplanationBlocks } from "./explanation-blocks";
 import { normalizeBadges } from "./parse-result";
 

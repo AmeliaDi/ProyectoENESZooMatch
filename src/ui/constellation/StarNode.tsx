@@ -8,7 +8,7 @@
 
 import { memo, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 
-import { clipName } from "@/ui/result/clip-label";
+import { clipName } from "@/ui/shared/clip-label";
 
 import { FOCO_PATTERN_ID, GLOW_REACH, suavePatternId } from "./glow";
 import { PixelAnimal } from "./PixelAnimal";

@@ -17,7 +17,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
-import type { QuizSubmittedDto } from "@/contracts/result";
+import type { IdentityDto } from "@/contracts/identity";
 import { EXPERIENCE } from "@/config";
 import { GRID_SIZE, getSpriteFrame } from "@/domain/avatars/pixel-sprites";
 import { formatIdentity } from "@/domain/identity/format-identity";
@@ -31,13 +31,35 @@ import { revealOrder } from "./reveal-order";
 const ORDER = revealOrder(GRID_SIZE, EXPERIENCE.reveal.seed);
 const DELAY_BY_CELL = new Map(ORDER.map((cell, rank) => [cell, rank]));
 
+/**
+ * Everything the reveal reads. The same screen serves the moment right after
+ * the test and the recovery from `/resultado`, so it takes only the stored
+ * identity plus the reading text — never a second, richer submission shape.
+ */
+export interface RevealProfile {
+  identity: IdentityDto;
+  narrative: string;
+  progressPercent: number;
+}
+
 /** First two sentences of the narrative: "cómo te vemos" stays short. */
 function firstSentences(text: string, count: number): string {
   const parts = text.match(/[^.!?]+[.!?]+/g) ?? [text];
   return parts.slice(0, count).join(" ").trim();
 }
 
-function Sprite({ profile }: { profile: QuizSubmittedDto["profile"] }) {
+/**
+ * "INFJ · 5w6, la observadora", built only from the stored readout so the
+ * reveal can be rebuilt from `/api/result` alone. With no enneagram reading
+ * the type words are simply omitted: no screen invents a type here.
+ */
+function typologyLine(identity: IdentityDto, subtitle: string): string | null {
+  const kind = identity.enneagramCode ? identity.enneagramName?.toLowerCase() : undefined;
+  const line = kind ? `${subtitle}, ${kind}` : subtitle;
+  return line.trim() === "" ? null : line;
+}
+
+function Sprite({ profile }: { profile: RevealProfile }) {
   const { identity } = profile;
   const name = formatIdentity(identity);
   const sprite = useMemo(
@@ -107,7 +129,7 @@ export function Reveal({
   profile,
   onContinue,
 }: {
-  profile: QuizSubmittedDto["profile"];
+  profile: RevealProfile;
   onContinue: () => void;
 }) {
   const { identity } = profile;
@@ -170,10 +192,7 @@ export function Reveal({
           {name.title}
         </h1>
         <p className="zm-reveal__kind">
-          {name.shortName} · {profile.mbtiCode} ·{" "}
-          {profile.enneagram.code === "—"
-            ? profile.enneagram.arquetipo.toLowerCase()
-            : `${profile.enneagram.code}, ${profile.enneagram.arquetipo.toLowerCase()}`}
+          {[name.shortName, typologyLine(identity, name.subtitle)].filter(Boolean).join(" · ")}
         </p>
         <p className="zm-reveal__seen">
           <strong>Cómo te vemos.</strong> {firstSentences(profile.narrative, 2)}

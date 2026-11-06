@@ -14,7 +14,7 @@ import { useMemo } from "react";
 import { formatIdentity } from "@/domain/identity/format-identity";
 import { InterestAction } from "@/ui/chat/interest-action";
 import { categoryIcon } from "@/ui/design/category-icons";
-import { clipName } from "@/ui/result/clip-label";
+import { clipName } from "@/ui/shared/clip-label";
 import { Chip } from "@/ui/kit/surfaces";
 import { Dialog } from "@/ui/kit/dialog";
 import { Icon } from "@/ui/kit/icon";

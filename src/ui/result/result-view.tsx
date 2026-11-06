@@ -15,12 +15,14 @@ import { EmptyState, ErrorState, LoadingState } from "@/ui/kit/states";
 import { Tabs } from "@/ui/kit/tabs";
 import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
 import { adaptResult } from "@/ui/constellation/adapt-result";
+import { clipName } from "@/ui/shared/clip-label";
+import { hasPendingRevelation } from "@/ui/shared/parse-identity";
 import { type ApiError, RECOMPUTE_PENDING_KEY } from "@/ui/shared/chrome";
 import { ExitButton } from "@/ui/shared/exit-button";
+import { Reveal } from "@/ui/quiz/reveal";
 
 import { MatchCard } from "./match-card";
 import { parsePublicResult } from "./parse-result";
-import { clipName } from "./clip-label";
 
 // The sky (physics + sprites) is the heaviest part of the page: load it only
 // when it is shown, after the result itself has painted.
@@ -37,6 +39,9 @@ export const FEW_PEOPLE_COPY =
   "Todavía somos pocxs en el cielo. Cuando entre más gente, tu constelación puede crecer.";
 
 type View = "cielo" | "lista";
+
+/** A hatched person has finished the core by definition; the reveal asks for the number anyway. */
+const FULL_CORE = 100;
 
 function useResult(attempt: number) {
   const [state, setState] = useState<{ result: ResultDto | null; error: ApiError; loading: boolean }>({
@@ -114,6 +119,7 @@ export function PublicResultView() {
   const [track, setTrack] = useState<MatchTrack>("romance");
   const [view, setView] = useState<View>("cielo");
   const [skyKey, setSkyKey] = useState(0);
+  const [revealDismissed, setRevealDismissed] = useState(false);
   const [pending] = useState(
     () => typeof window !== "undefined" && window.sessionStorage.getItem(RECOMPUTE_PENDING_KEY) === "1",
   );
@@ -168,8 +174,24 @@ export function PublicResultView() {
     );
   }
 
-  const matches = result.matches[track];
-  const total = result.matches.romance.length + result.matches.amistad.length;
+  // Recovery of the one-time revelation (Fase 4): whoever's name froze but
+  // never saw it painted — closed tab, dead battery, failed POST — meets the
+  // reveal here. The stored flag decides, not a local note, and the reveal
+  // spends it, so no second visit repeats anything.
+  if (!revealDismissed && hasPendingRevelation(result.identity)) {
+    return (
+      <AtlasShell plate="Lámina 03 · revelación" actions={actions}>
+        <main className="zm-center">
+          <Reveal
+            profile={{ identity: result.identity, narrative: result.narrative, progressPercent: FULL_CORE }}
+            onContinue={() => setRevealDismissed(true)}
+          />
+        </main>
+      </AtlasShell>
+    );
+  }
+
+  const matches = result.matches[track];  const total = result.matches.romance.length + result.matches.amistad.length;
   const mine = formatIdentity(result.identity);
   const self = adaptResult(result)?.me ?? null;
   const emptyMessage = result.few_people ? FEW_PEOPLE_COPY : result.no_match_message;

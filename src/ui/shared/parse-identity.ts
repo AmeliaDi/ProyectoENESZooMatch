@@ -105,3 +105,13 @@ export function parseIdentity(raw: unknown): IdentityDto {
 export function isHatched(identity: IdentityDto): boolean {
   return identity.estadoIdentidad === "eclosionado" && identity.aliasCompleto !== null;
 }
+
+/**
+ * True when the identity is frozen but the stored flag says the reveal never
+ * painted: the recovery path for a tab closed mid-animation. The flag is
+ * `revelacion_vista` read straight from the row, and the reveal spends it on
+ * mount, so the next visit goes to the sky.
+ */
+export function hasPendingRevelation(identity: IdentityDto): boolean {
+  return isHatched(identity) && identity.revelacionVista === false;
+}
