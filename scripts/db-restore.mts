@@ -93,13 +93,24 @@ async function main(): Promise<void> {
     const rows = tableRows.get(entry.table) ?? [];
     for (let offset = 0; offset < Math.max(1, rows.length); offset += CHUNK_SIZE) {
       const slice = rows.slice(offset, offset + CHUNK_SIZE);
-      const statements: string[] = ["BEGIN;", "SET LOCAL session_replication_role = 'replica';"];
+      const statements: string[] = [
+        "BEGIN;",
+        "SET LOCAL session_replication_role = 'replica';",
+        "ALTER TABLE public.conversation_rounds DROP CONSTRAINT IF EXISTS conversation_rounds_three_questions_check;",
+        "ALTER TABLE public.conversation_answers DROP CONSTRAINT IF EXISTS conversation_answers_three_questions_check;",
+        "ALTER TABLE public.conversation_reactions DROP CONSTRAINT IF EXISTS conversation_reactions_three_questions_check;",
+      ];
       if (slice.length > 0) {
         statements.push(
           `INSERT INTO ${entry.table} SELECT * FROM jsonb_populate_recordset(NULL::${entry.table}, ${sqlLiteralJson(slice)}) ON CONFLICT DO NOTHING;`,
         );
       }
-      statements.push(`SELECT count(*)::int AS cnt FROM ${entry.table};`);
+      statements.push(
+        "ALTER TABLE public.conversation_rounds ADD CONSTRAINT conversation_rounds_three_questions_check CHECK (idx BETWEEN 0 AND 2) NOT VALID;",
+        "ALTER TABLE public.conversation_answers ADD CONSTRAINT conversation_answers_three_questions_check CHECK (round BETWEEN 0 AND 2) NOT VALID;",
+        "ALTER TABLE public.conversation_reactions ADD CONSTRAINT conversation_reactions_three_questions_check CHECK (idx BETWEEN 0 AND 2) NOT VALID;",
+        `SELECT count(*)::int AS cnt FROM ${entry.table};`,
+      );
       statements.push(apply ? "COMMIT;" : "ROLLBACK;");
       await querySql(projectRef, token, statements.join("\n"));
     }
