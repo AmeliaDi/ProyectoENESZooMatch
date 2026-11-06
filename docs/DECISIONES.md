@@ -1039,9 +1039,9 @@ vez, al eclosionar, se guarda y nunca se recalcula.** Todo lo demás lee el regi
 - **Condición de eclosión.** `hatch_required_modules = ["nucleo"]`, evaluada por ítems
   (53 ítems Likert no sensibles del núcleo), no por la lista `completed_modules`. Está medido:
   las 121 personas con `quiz_completed_at` cumplen hoy esa condición y las 28 restantes no, así
-  que el backfill no le quita el nombre a nadie. Exigir los módulos opcionales `mbti` y
-  `eneagrama` habría devuelto a huevo a **68 de 121 (56.2 %)**. Los módulos opcionales nunca
-  cambian animal, color ni alias después.
+  que el backfill no devuelve a nadie a huevo por falta de respuestas. Exigir los módulos
+  opcionales `mbti` y `eneagrama` habría devuelto a huevo a **68 de 121 (56.2 %)**. Los módulos
+  opcionales nunca cambian animal, color ni alias después.
 - **Huevo.** Quien no ha terminado el test principal es un huevo: se ve solo en sus propias
   pantallas, no entra en la constelación de nadie, no recibe matches, señales ni chat y en los
   DTO su identidad es `null` (`parseIdentity` lo garantiza). El sprite del huevito varía en
@@ -1068,9 +1068,22 @@ vez, al eclosionar, se guarda y nunca se recalcula.** Todo lo demás lee el regi
   tipo×ala, solo 18 son alas adyacentes reales; un test lo fija.
 
 **Consecuencias.**
-- Nadie existente pierde el nombre: el backfill reescribe alias **solo** cuando el guardado
-  estaba desincronizado respecto a `animal_id`/`color_id`; a quien ya tenía el nombre canónico
-  se le respeta incluso `revelacion_vista`.
+- **Las 121 filas heredadas reciben alias canónica; ninguna fila congelada se toca.** La
+  promesa «nunca se renombra a nadie existente» aplica a quien ya tiene identidad canónica
+  (`eclosionado_en IS NOT NULL`): hoy eso es **0 filas**, porque la columna la escribe solo este
+  backfill. Medido en el `--check` previo a la ejecución (`scripts/identity-backfill.mts`):
+  - **121 de 121 cambian el sufijo.** No es una decisión de gusto: el `CHECK` de `alias_sufijo`
+    exige `^[BCDFGHJKLMNPQRSTVWXYZ]{4}$` y **108 de los 121 sufijos heredados llevan dígitos o
+    vocales**, así que ningún alias viejo puede seguir existiendo bajo el esquema nuevo. Los 13
+    sufijos que por azar ya eran legales también cambian, porque el sufijo es función de
+    `HMAC(SECRETO, user_id)` y de la asignación anti-colisión, no del texto anterior.
+  - **24 conservan animal y color** (cambio de sufijo y nada más; 1 de ellas además corrige la
+    concordancia de género: `llamita rojo carmín` → `llamita roja carmín`).
+  - **97 cambian animal y/o color** porque el alias guardado no coincidía con la identidad que
+    ya usaban los matches: **57 solo color, 3 solo animal, 37 ambos**.
+  - El texto nuevo es el que produce `hatchIdentity` sobre el perfil latente guardado, es decir:
+    el nombre pasa a decir lo mismo que el cálculo de compatibilidad ya decía. Nadie pierde su
+    identidad psicométrica; lo que se corrigió fue la etiqueta.
 - El panel admin anida la identidad (`identity` en lugar de campos sueltos) y el dashboard cita
   el catálogo en las etiquetas de distribución; ningún DTO expone matrícula, hash ni respuestas.
 - Los matches del pool hay que recalcularlos después del backfill (la identidad fija puede mover

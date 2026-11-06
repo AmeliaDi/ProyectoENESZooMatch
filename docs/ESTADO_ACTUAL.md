@@ -279,15 +279,20 @@ autorización explícita.
 
 | Grupo | Conteo | Efecto del backfill |
 |---|---:|---|
-| Activas con test principal completo | 121 | eclosionan con la identidad canónica; conservan su nombre las que ya lo tenían sincronizado; se corrige el alias en 40 (animal) y 88 (color) casos desincronizados |
+| Activas con test principal completo | 121 | eclosionan con la identidad canónica. **Las 121 cambian de sufijo** (108 de los viejos llevan dígitos o vocales y el `CHECK` de `alias_sufijo` no los admite; los 13 legales también se recalculan porque el sufijo sale de `HMAC(SECRETO, user_id)`). Del resto: **24 conservan animal y color**, **57 cambian solo color**, **3 solo animal**, **37 ambos** |
 | Activas sin test completo | 28 | pasan a `huevo`, salen de constelaciones, matches, señales y chat; **conservan sus respuestas parciales** |
 | Bajas lógicas (`eliminado_en`) | 15 | fuera de todo cálculo (les corresponde la política de retención) |
-| Cumplen la condición de núcleo (53 ítems) | 121 de 121 | nadie pierde el nombre por la condición; exigir `mbti` + `eneagrama` habría devuelto a huevo a 68 (56.2 %) |
+| Cumplen la condición de núcleo (53 ítems) | 121 de 121 | nadie vuelve a `huevo` por la condición; exigir `mbti` + `eneagrama` habría devuelto a huevo a 68 (56.2 %) |
+
+El recuento de alias se leyó del reporte `--check` guardado fuera del repositorio
+(`.backups/backfill-check.json`) y se reclasificó con `data/arquetipos.json`: cada alias se
+partió en `diminutivo_es` + forma de color con concordancia de género, así que los 121 casos son
+`24 + 57 + 3 + 37` sin residuos.
 
 **Pendiente operativo (en orden, con autorización)**
 
-1. Aplicar el paso 1 y verificar el respaldo otra vez (`.backups/pre-identidad-fija`).
-2. `node --no-warnings scripts/identity-backfill.mts --check` → leer el reporte.
+1. Aplicar el paso 1 y verificar el respaldo otra vez (`.backups/pre-identidad-fija`). ✅ 2026-11-06
+2. `node --no-warnings scripts/identity-backfill.mts --check` → leer el reporte. ✅ 2026-11-06
 3. `… --apply --confirm` (una transacción; restaura automáticamente si algo falla).
 4. Recalcular matches desde el observatorio y revisar duplicados/huérfanos.
 5. Aplicar el paso 2 y volver a correr el `--check` (debe salir sin diferencias).

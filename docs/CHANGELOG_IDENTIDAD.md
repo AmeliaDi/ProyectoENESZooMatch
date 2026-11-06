@@ -35,7 +35,27 @@ Estado medido antes de esa corrida (2026-11-06, solo lectura, 164 filas en `prof
 | Bajas lógicas, fuera de todo cálculo | 15 |
 | Cumplen la condición de núcleo (53 ítems Likert no sensibles) | 121 de 121 |
 
-Ninguna de las 121 pierde su nombre por la condición de eclosión: el backfill
-calcula la identidad canónica y solo reescribe el alias donde el guardado estaba
-desincronizado. Quien ya tenía el nombre canónico (`eclosionado_en` escrito) no
-aparecerá en este registro.
+Ninguna de las 121 vuelve a `huevo` por la condición de eclosión: el backfill calcula la
+identidad canónica sobre el perfil latente guardado y escribe ese resultado. Lo que sí cambia
+es la etiqueta, y hay que decirlo sin eufemismos. El `--check` del 2026-11-06 clasifica las
+121 alias reescritas así:
+
+| Cambio en el alias | Conteo | Por qué |
+|---|---:|---|
+| Solo el sufijo | 24 | animal y color ya eran los canónicos |
+| Solo el color | 57 | `pickAmbiguousColor` recalculado con la semilla canónica |
+| Solo el animal | 3 | el alias nombraba un animal distinto del calculado |
+| Animal y color | 37 | el alias venía del cálculo viejo, no del perfil latente |
+| **Cualquier cambio de sufijo** | **121 de 121** | el `CHECK` de `alias_sufijo` exige 4 consonantes sin vocales; 108 sufijos heredados llevan dígitos o vocales y los otros 13 se recalculan igual, porque el sufijo es `HMAC(SECRETO, user_id)` + asignación anti-colisión |
+
+Ninguna de estas 121 filas tenía `eclosionado_en` escrito (`frozenUntouched = 0`): la columna la
+introduce este mismo backfill. Quien ya tenga identidad canónica no aparecerá aquí en futuras
+corridas, porque la regla de oro protege esas filas. El texto nuevo es el que produce
+`hatchIdentity` sobre el perfil latente, así que el nombre pasa a coincidir con lo que el
+cálculo de compatibilidad ya usaba; nadie pierde su identidad psicométrica.
+
+## Ejecución del 2026-11-06 (pendiente de registrar aquí al correr `--apply --confirm`)
+
+La tabla anterior es un `--check`. Al correr `--apply --confirm` este archivo debe recibir, por
+cada fila escrita, `seudónimo | alias antes | alias después` y el conteo de avisos en cola, junto
+con el resultado de las 7 aserciones internas del script.
