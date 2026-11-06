@@ -141,3 +141,17 @@ export function eggCrackStage(answered: number, total: number, stages: number): 
   const ratio = Math.min(1, answered / total);
   return Math.max(0, Math.min(stages, Math.floor(ratio * (stages + 1) - (ratio >= 1 ? 1 : 0))));
 }
+
+/**
+ * Aura opacity: the highest stage reaches exactly the `--egg-glow` default that
+ * `kit.css` declares, so the glow ramp stays inside the range the CSS animates
+ * between no matter how many stages the config asks for.
+ */
+export const EGG_AURA_MIN = 0.1;
+export const EGG_AURA_MAX = 0.28;
+
+export function eggAuraGlow(stage: number, stages: number): number {
+  if (stages <= 0) return EGG_AURA_MAX;
+  const progress = Math.max(0, Math.min(1, stage / stages));
+  return EGG_AURA_MIN + (EGG_AURA_MAX - EGG_AURA_MIN) * progress;
+}

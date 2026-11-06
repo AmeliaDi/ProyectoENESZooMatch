@@ -10,10 +10,17 @@
  * `prefers-reduced-motion`, where the only thing left is an opacity fade.
  */
 
+import { AVATAR_CONFIG } from "@/config";
 import { GRID_SIZE } from "@/domain/avatars/pixel-sprites";
-import { EGG_BOTTOM_ROW, EGG_TOP_ROW, eggCrackStage, getEggSprite } from "@/domain/avatars/egg-sprite";
+import {
+  EGG_BOTTOM_ROW,
+  EGG_TOP_ROW,
+  eggAuraGlow,
+  eggCrackStage,
+  getEggSprite,
+} from "@/domain/avatars/egg-sprite";
 
-const CRACK_STAGES = 4;
+const CRACK_STAGES = AVATAR_CONFIG.identity.egg_crack_stages.valor;
 
 export interface PixelEggProps {
   /** Cosmetic seed from the server; any stable string works as its carrier. */
@@ -52,7 +59,7 @@ export function PixelEgg({ seed, answered, total, progressPercent, size = 128, c
   const sprite = getEggSprite(numericSeed(seed), stage, CRACK_STAGES);
   const glow = sprite.glow;
   /** Tope del aura: crece con el núcleo (0.10 → 0.28), no con el azar. */
-  const auraGlow = 0.1 + 0.06 * stage;
+  const auraGlow = eggAuraGlow(stage, CRACK_STAGES);
 
   return (
     <svg
