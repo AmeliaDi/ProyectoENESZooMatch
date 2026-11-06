@@ -306,7 +306,14 @@ En caso de requerir restaurar el estado previo de las tablas desde cualquiera de
 node --no-warnings scripts/db-restore.mts --from .backups/pre-fase3-purge --dry-run
 
 # 2. Aplicar restauración transaccional completa si se requiere revertir datos
-node --no-warnings scripts/db-restore.mts --from .backups/pre-fase3-purge --apply --confirm-restore
+node --no-warnings scripts/db-restore.mts --from .backups/pre-fase3-purge --apply --confirm-restore=yes
 ```
+
+> El literal `--confirm-restore=yes` no es decorativo: `scripts/db-restore.mts:71` enciende la escritura solo
+> si ese argumento aparece **exactamente** así. Con `--confirm-restore` a secas el script hace `ROLLBACK` y
+> responde `VERIFIED (--dry-run)`, es decir, creyendo que revirtió deja la base intacta. Antes de restaurar,
+> además: el respaldo exporta 21 tablas y la restauración escribe las 20 de `public`/`private`
+> (`scripts/db-restore.mts:90` salta `auth.*`); si hace falta rehacer cuentas, eso se hace por el panel de
+> Supabase, no con este script.
 
 

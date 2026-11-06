@@ -198,6 +198,34 @@ la matrícula maestra.
 | Ruido que sí deja correr el suite en producción | 24 avisos nuevos entre 15:40 y 16:11 UTC; 14 `match_amistad` y 6 `match_romance` mencionan **solo alias de personas que siguen activas** (el *top-k* se mueve cuando entran y salen las dos cuentas falsas). Ningún aviso de chat quedó apuntando a una conversación borrada |
 | Personas reales que aparecieron durante la corrida | 2: una se dio de alta a las 16:04:09 y completó el test a las 16:08:36 (4 min 27 s entre entrar y terminar: ritmo humano, no del suite, que tarda segundos) y a las 16:11:25 mandó su primera señal de chat a otra persona |
 
+## 4.7 Auditoría de la identidad fija: nueve hallazgos cerrados (2026-11-06)
+
+El QA posterior al backfill dejó nueve hallazgos (A–I). Cada uno se cerró con prueba en código, y
+ningún nombre se recalculó ni se renombró: la identidad sigue congelada donde estaba.
+
+| # | Hallazgo | Cierre y evidencia |
+|---|---|---|
+| A | Nada probaba que las pantallas dijeran **el mismo nombre** | `src/app/identity-surfaces.test.ts` (4 tests): 20 personas sintéticas llegan, y su nombre —20 distintos, todos con sufijo de 4 consonantes— se compara tal cual en la revelación, tras afinar un módulo opcional, en `/api/result`, en el cielo (nodos emparejados por `matchHandle`), en la carta, en la cabecera del chat y al gastar el aviso de revelación pendiente. 0 divergencias |
+| B | El huevo no tenía variación estética propia | `eggCosmeticSeed(userId, secret)` viaja solo con el estado `huevo`. `hatch-identity.test.ts`: 512 semillas enteras en `[0, 2³²)` y las 512 distintas. `identity-dto.test.ts`: `NULL` para un eclosionado y `NULL` si no se pasa semilla |
+| C | `pixel-egg.tsx` inventaba el número de grietas y el brillo | Lee `AVATAR_CONFIG.identity.egg_crack_stages.valor` (4) y `eggAuraGlow(stage, stages)` crece de 0.10 hasta el 0.28 que ya declara `kit.css`. `pixel-egg.test.ts` (7 tests) falla si reaparece un literal como `0.1 + 0.06 * stage` |
+| D | Si la pestaña se cerraba a media animación, la eclosión se perdía | `hasPendingRevelation(identity)` lee el flag `revelacion_vista` y `/resultado` vuelve a montar el `Reveal`; el componente ya no pide un `QuizSubmittedDto`, solo `IdentityDto` + narrativa, así que se reconstruye con lo almacenado |
+| E | Un alias largo desbordaba la carta en 320 px | `clipName` pasó de `src/ui/result/` a `src/ui/shared/` y la carta lo usa con su tipografía real (28 px, dos líneas ⇒ 640 px). `clip-label.test.ts` (11 tests) comprueba que el alias máximo que permite el `CHECK` (64 caracteres) cabe entero, con sufijo y sin elipsis |
+| F | Las contrapartes dadas de baja seguían nombrándose | Migración `20261117000000_filter_soft_deleted_matches.sql` (aplicada en producción, con respaldo verificado antes) + `.is("eliminado_en", null)` en `findCounterparts`, `peers` y `latents`. Medido antes y después: 168 perfiles, 15 con `eliminado_en` (3 eclosionados), **0** filas de `matches` y **0** conversaciones tocándolos, así que el cierre es preventivo para la ventana de 7 días |
+| G | El guardia de la regla de oro solo leía una línea | `golden-rule.guard.test.ts` gana 7 reglas multilínea (plantillas que continúan el nombre en la línea siguiente, arrays unidos con `.join`, `.concat`) y un auto-test que demuestra que cada forma prohibida dispara y que dos formas legales no |
+| H | `DIAGNOSTICO_IDENTIDAD.md` decía que el respaldo vivía fuera del repo | Corregido: vive en `.backups/`, ignorado por git; se exportan 21 tablas y `db-restore.mts` omite `auth.*` (restaura 20). Falta la copia fuera de la máquina |
+| I | El comando de restauración estaba mal transcrito | `DIAGNOSTICO_BUGS.md` §8.4 ahora exige `--apply --confirm-restore=yes` y avisa que `--confirm-restore` a secas solo hace `ROLLBACK` |
+
+**Lo que NO tocó nada de esto.** `docs/CHANGELOG_IDENTIDAD.md` no gana entrada nueva: ese archivo
+registra ejecuciones que escribieron o corrigieron una identidad congelada, y aquí no se reescribió
+ni un alias. La única migración aplicada (F) cambia quién es visible, no quién es quién.
+
+**Base después del cierre (2026-11-06, solo lectura).** 168 perfiles —124 eclosionados vivos y 29
+huevos vivos, más 15 bajas lógicas (3 eclosionadas y 12 huevos)—, 732 `matches`, 58 conversaciones,
+565 avisos, 0 alias duplicados y 0 alias fuera de la invariante
+`animal ‾ color ‾ sufijo` (longitud real máxima 47 de 64).
+`get_user_matches` queda `SECURITY DEFINER` con
+`EXECUTE` solo para `service_role` (lectura de `pg_proc.proacl`: `{postgres=X/postgres,service_role=X/postgres}`).
+
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
 
 - **Chat en dos teléfonos reales:** el flujo se probó por API (85/85) y con tests de casos de

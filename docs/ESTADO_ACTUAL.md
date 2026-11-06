@@ -11,10 +11,11 @@ Las secciones §1–§4 son la **foto histórica** de la auditoría inicial del
 
 | Comprobación | Hoy |
 |---|---|
-| Tests | 959 en 82 archivos, en verde (`npm run check`) |
+| Tests | 985 en 85 archivos, en verde (`npm run check`) |
 | Lint, typecheck, secretos y build | En verde |
-| Identidad única y fija (huevo → eclosión) | Código cerrado (ADR-038, §10); **migraciones y backfill pendientes de aplicar** |
-| QA de API contra producción | 85/85 (`docs/QA.md` §4.4) |
+| Auditoría QA de la identidad fija (hallazgos A–I) | Cerrada (2026-11-06): `docs/QA.md` §4.7; la migración `20261117000000_filter_soft_deleted_matches.sql` ya está aplicada en producción |
+| Identidad única y fija (huevo → eclosión) | Cerrada (2026-11-06): código en `main` (ADR-038, §10), las dos migraciones y el backfill **ya aplicados** en producción |
+| QA de API contra producción | 88/88 (`docs/QA.md` §4.4) |
 | Chat completo (señales, rondas guiadas selladas, seguridad, emojis) | Implementado y en producción (ADR-035, `docs/CHAT.md` §10–14) |
 | HEXACO, MBTI continuo, Eneagrama con softmax y entropía | Implementados (Fases 3–5) |
 | `QA.md`, `VALIDACION.md`, `MEDICION.md`, `TRAZABILIDAD.md`, `PREREGISTRO.md` | Existen |
@@ -181,7 +182,7 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | Cierre de pendientes (Φ, alias, avisos, docs) | Cerrada (2026-11-04) | ADR-034, migración `20261105000000_alias_collision.sql` (aplicada) |
 | Dorado por pista y física de cielos llenos | Cerrada | ADR-031, `docs/FISICA.md` |
 | Ráfaga concurrente (H-02) y verificación `[VERIFICAR]` | Cerrada (2026-11-03) | `docs/QA.md` §4.3, `docs/EVIDENCIA.md` §6 (quedan 3 sin fuente accesible) |
-| Identidad única y fija (huevo → eclosión, fases 0–6) | Código cerrado (2026-11-06); **aplicar migraciones y backfill pendiente de autorización** | ADR-038, `docs/DIAGNOSTICO_IDENTIDAD.md`, `docs/CHANGELOG_IDENTIDAD.md`, §10 de este documento |
+| Identidad única y fija (huevo → eclosión, fases 0–6) | Cerrada (2026-11-06): código, las dos migraciones y el backfill aplicados en producción con respaldo previo | ADR-038, `docs/DIAGNOSTICO_IDENTIDAD.md`, `docs/CHANGELOG_IDENTIDAD.md`, §10 de este documento |
 
 **Pendiente solo manual** (no automatizable aquí, ver `docs/QA.md` §5): teléfono real de gama
 media, TalkBack/VoiceOver y panel admin con sesión.
@@ -307,18 +308,21 @@ partió en `diminutivo_es` + forma de color con concordancia de género, así qu
   lectura: su efecto aquí es retirar **56 filas** que apuntan a **3 personas dadas de baja** y
   añadir **30** del top-k resultante; **ningún porcentaje visible cambia** (Δ máximo de similitud
   8.9·10⁻¹⁶, 0 pares cambian el entero del porcentaje).
-- **Fuga de contrapartes dadas de baja** (existente antes de este trabajo, medida el 2026-11-06):
-  `get_user_matches` y `findCounterparts` filtran `estado_identidad = 'eclosionado'` pero **no**
-  `eliminado_en IS NULL`, así que 43 personas ven hoy 56 tarjetas de match que nombran a 3 personas
-  que borraron su cuenta. Se cierra con dos filtros (`AND p.eliminado_en IS NULL` en la RPC e
-  `.is("eliminado_en", null)` en `findCounterparts`) y no con una tercera ruta de lectura.
+- ~~**Fuga de contrapartes dadas de baja**~~ Cerrada el 2026-11-06 con la migración
+  `20261117000000_filter_soft_deleted_matches.sql` (`AND p.eliminado_en IS NULL` en la RPC) y
+  `.is("eliminado_en", null)` en las tres lecturas de código que nombran a alguien:
+  `findCounterparts` (cielo y carta), `peers` y `latents` (chat). **Medido hoy, 0 de las 732 filas
+  de `matches` y 0 de las 58 conversaciones tocan a alguno de los 15 perfiles con `eliminado_en`**,
+  así que el cierre es preventivo: protege la ventana entre la baja suave y el borrado físico,
+  cuando el purge todavía no ha corrido. Las 56 tarjetas que nombraban a 3 personas sí existieron,
+  pero sobre perfiles sintéticos del QA y ya se habían ido con el purge (`2099d7e`).
 - **Purga de retención**: las 3 bajas sin congelar (y 12 huevos dados de baja) se van con la purga;
   `soft_delete_grace_days = 7` y `purge-garbage.mts` borra los matches cuya fila de perfil ya no
   existe. `profiles_identity_shape` las exime mientras tanto (ADR-038, paso 2).
 - Operativo viejo que sigue en pie: Upstash distribuido en vez de fail-open, prueba real de 50
   envíos concurrentes, CSV del evento y `purge_event.sql` al cerrar.
 
-**Verificación**: 82 archivos y 959 tests en verde, `eslint` 0 avisos, `tsc --noEmit` limpio y
+**Verificación**: 85 archivos y 985 tests en verde, `eslint` 0 avisos, `tsc --noEmit` limpio y
 `next build` correcto. La prueba guardia del ADR-038 entra en `npm run check`. El suite de API
 sobre la base real quedó **88/88 OK** después de corregir el `qa-api.mjs`/`qa-admin.mjs`, que aún
 leían el campo `alias` eliminado (detalle y conteos post-corrida en `docs/QA.md` §4.6).

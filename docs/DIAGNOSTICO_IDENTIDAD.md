@@ -1,7 +1,11 @@
 # Diagnóstico: Desincronización de identidad (`alias` vs `animal_id` / `color_id` / `mbti_code`)
 
 > Fecha: 2026-11-06  
-> Respaldo verificado fuera del repo: `.backups/pre-identidad-fija` (`Restore VERIFIED (--dry-run)` sobre 20 tablas, 164 perfiles, 14 255 respuestas).
+> Respaldo verificado: `.backups/pre-identidad-fija` (`Restore VERIFIED (--dry-run)`, 164 perfiles y 14 255
+> respuestas). Vive **dentro del árbol de trabajo pero fuera de git** (`.gitignore:33`): el `manifiesto.json`
+> registra 21 tablas y la restauración reconstruye las 20 de `public`/`private` (`scripts/db-restore.mts:90`
+> omite `auth.*`, que solo sirve como evidencia de conteos). Para cubrir un desastre de disco hay que copiar
+> esa carpeta a otro medio; mientras esté solo en esta máquina no es un respaldo externo.
 
 ---
 
