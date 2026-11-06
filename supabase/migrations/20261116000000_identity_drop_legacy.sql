@@ -12,7 +12,9 @@
 --
 -- El borrado es en transacción y condicional: si queda alguna fila que todavía
 -- depende de `profiles.alias` (build antiguo, fila provisional o alias huérfano)
--- la excepción hace rollback de todo y no se pierde nada.
+-- la excepción hace rollback de todo y no se pierde nada. Es idempotente: cada
+-- objeto usa DROP ... IF EXISTS / CREATE OR REPLACE y `DROP COLUMN IF EXISTS`,
+-- así que volver a ejecutarlo sobre un esquema ya limpio no hace nada.
 --
 -- Cada objeto que leía o escribía la columna se reescribe aquí antes de borrarla,
 -- copiado del paso 1 menos la línea que la tocaba: `reject_identity_mutation` y
@@ -31,10 +33,25 @@ DO $$
 DECLARE
   v_provisional INTEGER;
   v_huerfanos INTEGER;
+  v_bajas INTEGER;
 BEGIN
+  -- Solo perfiles vivos: `identity-backfill.mts` recorre `eliminado_en IS NULL` y
+  -- no congela a quien ya se fue, así que exigirles la marca habría hecho este
+  -- paso inalcanzable. Esas filas se van con la purga de retención junto con sus
+  -- matches; se cuentan y se avisan, no se ignoran en silencio.
+  SELECT count(*) INTO v_bajas
+  FROM public.profiles
+  WHERE estado_identidad = 'eclosionado' AND eclosionado_en IS NULL
+    AND eliminado_en IS NOT NULL;
+  IF v_bajas > 0 THEN
+    RAISE NOTICE '% bajas lógicas siguen sin congelar; las retira la purga de retención',
+      v_bajas USING ERRCODE = '01000';
+  END IF;
+
   SELECT count(*) INTO v_provisional
   FROM public.profiles
-  WHERE estado_identidad = 'eclosionado' AND eclosionado_en IS NULL;
+  WHERE estado_identidad = 'eclosionado' AND eclosionado_en IS NULL
+    AND eliminado_en IS NULL;
   IF v_provisional > 0 THEN
     RAISE EXCEPTION '% perfiles siguen con alias heredado sin congelar; ejecuta scripts/identity-backfill.mts primero',
       v_provisional USING ERRCODE = '22023';
@@ -44,7 +61,7 @@ BEGIN
   -- backfill debió resolverlos antes de permitir este paso.
   SELECT count(*) INTO v_huerfanos
   FROM public.profiles
-  WHERE estado_identidad = 'eclosionado'
+  WHERE estado_identidad = 'eclosionado' AND eliminado_en IS NULL
     AND (alias_completo IS DISTINCT FROM alias
          OR alias_completo NOT LIKE alias_animal || ' ' || alias_color || ' %');
   IF v_huerfanos > 0 THEN
@@ -373,7 +390,12 @@ $$;
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_identity_shape;
 ALTER TABLE public.profiles
   ADD CONSTRAINT profiles_identity_shape CHECK (
-    CASE estado_identidad
+    -- La fila ya no es visible cuando `eliminado_en` está escrito: la regla de oro
+    -- habla de identidades que alguien puede ver, y estas filas esperan la purga de
+    -- retención (7 días de gracia). Exigirles el congelamiento habría hecho este
+    -- paso dependiente de un job, no del backfill.
+    eliminado_en IS NOT NULL
+    OR CASE estado_identidad
       WHEN 'huevo' THEN
         animal_id IS NULL AND color_id IS NULL AND alias_completo IS NULL
         AND alias_animal IS NULL AND alias_color IS NULL AND alias_sufijo IS NULL
@@ -389,7 +411,11 @@ ALTER TABLE public.profiles
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_alias_completo_format;
 ALTER TABLE public.profiles
   ADD CONSTRAINT profiles_alias_completo_format CHECK (
-    estado_identidad = 'huevo' OR (
+    -- Misma exención: el texto heredado de una baja lógica puede conservar un
+    -- sufijo ilegal; no se muestra y se va con la purga.
+    eliminado_en IS NOT NULL
+    OR estado_identidad = 'huevo'
+    OR (
       char_length(alias_completo) BETWEEN 8 AND 64
       AND alias_completo ~ '^[a-záéíóúüñ]+( [a-záéíóúüñ]+)* · [BCDFGHJKLMNPQRSTVWXYZ]{4}$'
       AND alias_completo = alias_animal || ' ' || alias_color || ' · ' || alias_sufijo
