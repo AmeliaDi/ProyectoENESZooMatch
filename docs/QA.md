@@ -186,6 +186,18 @@ se usan sus ítems) y los originales de Bhattacharyya 1943 y Mahalanobis 1936.
 El QA usa cuentas falsas `42614489x`: se promueve una a admin y se borra la otra. Nunca se usa
 la matrícula maestra.
 
+## 4.6 Identidad fija: el suite QA contra la base real (2026-11-06, tras ADR-038)
+
+| Comprobación | Resultado |
+|---|---|
+| `scripts/qa/qa-api.mjs` con `BASE` apuntando a un `next dev` sobre la base de producción | **88/88 OK** |
+| «alias fijo al rehacer el test (ADR-024)» | fallaba y era un error del *harness*: leía `profile.alias`, el campo que borró la Fase 5. Ahora lee `profile.identity.aliasCompleto` y el alias sale igual al rehacer |
+| Riesgo encontrado en `entryFor` | con el campo viejo, `bAlias` era `undefined` y `m.alias === alias` comparaba `undefined === undefined`: el chat podía recaer en **cualquier persona real** del top-k. Se añade `if (!alias) return null` además de leer `identity.aliasCompleto` |
+| Misma corrección en `scripts/qa/qa-admin.mjs` | `u.alias` → `u.identity.aliasCompleto`; `session → alias` → `session → identity` (`AdminSessionDto` ahora es `{ identity }`) |
+| Base después del QA | 165 perfiles (122 eclosionados + 28 huevos + 15 bajas lógicas), 716 `matches`, 58 conversaciones, 0 alias duplicados. 0 filas huérfanas en `matches`, `conversations`, `chat_interests`, `chat_pins` ni `notifications`: las cuentas falsas `42614489x` se van por `ON DELETE CASCADE` |
+| Ruido que sí deja correr el suite en producción | 24 avisos nuevos entre 15:40 y 16:11 UTC; 14 `match_amistad` y 6 `match_romance` mencionan **solo alias de personas que siguen activas** (el *top-k* se mueve cuando entran y salen las dos cuentas falsas). Ningún aviso de chat quedó apuntando a una conversación borrada |
+| Personas reales que aparecieron durante la corrida | 2: una se dio de alta a las 16:04:09 y completó el test a las 16:08:36 (4 min 27 s entre entrar y terminar: ritmo humano, no del suite, que tarda segundos) y a las 16:11:25 mandó su primera señal de chat a otra persona |
+
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
 
 - **Chat en dos teléfonos reales:** el flujo se probó por API (85/85) y con tests de casos de

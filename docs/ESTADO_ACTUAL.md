@@ -257,8 +257,8 @@ hay que volver a correrlo: un test compara el hash del banco con el de
 ## 10. Changelog de identidad fija (2026-11-06)
 
 Código cerrado en `main` (ADR-038, `docs/DIAGNOSTICO_IDENTIDAD.md`, `docs/AVATARES.md` §5 y
-`docs/ARQUITECTURA.md` §7.2). **Las migraciones no se han aplicado**: quedan a la espera de
-autorización explícita.
+`docs/ARQUITECTURA.md` §7.2). **Las dos migraciones ya están aplicadas en producción** (paso 1 y
+paso 2, el 2026-11-06, cada una con su respaldo verificado) y el backfill corrió con `--confirm`.
 
 **Archivos tocados**
 
@@ -273,6 +273,7 @@ autorización explícita.
 | UI | `src/ui/shared/parse-identity.ts`; `src/ui/kit/pixel-egg.tsx` + `src/app/kit.css` (huevito); pantallas de resultado, carta, constelación, chat, ajustes y admin; `src/ui/quiz/reveal.tsx` (eclosión) |
 | Datos | `data/avatar-config.json` (`identity`: alfabeto, bloqueos, concordancia, `egg_crack_stages`, `hatch_required_modules`); `data/arquetipos.json` y `supabase/seed.sql` (diminutivos `libélula`, `pinguinito`) |
 | Migración de datos | `scripts/identity-backfill.mts` (`--check` / `--apply --confirm`, transacción única, 7 aserciones internas) |
+| Suite QA | `scripts/qa/qa-api.mjs` y `scripts/qa/qa-admin.mjs` leían `profile.alias` / `u.alias`, campos que la Fase 5 eliminó; ahora leen `identity.aliasCompleto` y `entryFor` se niega a buscar contraparte si no hay alias |
 | Docs | `docs/CHANGELOG_IDENTIDAD.md` (nuevo), `docs/DIAGNOSTICO_IDENTIDAD.md`, ADR-038 y las secciones citadas arriba |
 
 **Personas afectadas (medido en producción el 2026-11-06, 164 filas)**
@@ -318,7 +319,14 @@ partió en `diminutivo_es` + forma de color con concordancia de género, así qu
   envíos concurrentes, CSV del evento y `purge_event.sql` al cerrar.
 
 **Verificación**: 82 archivos y 959 tests en verde, `eslint` 0 avisos, `tsc --noEmit` limpio y
-`next build` correcto. La prueba guardia del ADR-038 entra en `npm run check`.
+`next build` correcto. La prueba guardia del ADR-038 entra en `npm run check`. El suite de API
+sobre la base real quedó **88/88 OK** después de corregir el `qa-api.mjs`/`qa-admin.mjs`, que aún
+leían el campo `alias` eliminado (detalle y conteos post-corrida en `docs/QA.md` §4.6).
+
+**Estado de la base al cerrar (2026-11-06, 16:15 UTC)**: 165 perfiles — 122 eclosionados, 28
+huevos, 15 bajas lógicas — 716 `matches`, 58 conversaciones, 0 alias duplicados y 0 filas huérfanas
+en `matches`, `conversations`, `chat_interests`, `chat_pins` ni `notifications`. Entraron 2 personas
+reales durante la verificación, así que los 121 del backfill ahora son 122.
 
 ## 7. Lo que no se puede afirmar (se mantiene)
 
