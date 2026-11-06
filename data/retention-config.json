@@ -1,0 +1,48 @@
+{
+  "abandoned_incomplete_days": {
+    "valor": 3,
+    "etiqueta": "supuesto_diseno",
+    "nota": "Días sin completar el cuestionario antes de marcar el perfil con eliminado_en (soft delete)"
+  },
+  "soft_delete_grace_days": {
+    "valor": 7,
+    "etiqueta": "supuesto_diseno",
+    "nota": "Días en estado eliminado_en antes de purga definitiva"
+  },
+  "read_notifications_days": {
+    "valor": 1,
+    "etiqueta": "supuesto_diseno",
+    "nota": "Días de retención para notificaciones ya leídas (read = true)"
+  },
+  "chat_security_events_days": {
+    "valor": 7,
+    "etiqueta": "supuesto_diseno",
+    "nota": "Días de retención para eventos agregados de seguridad de PIN de chat"
+  },
+  "access_guard_hours": {
+    "valor": 24,
+    "etiqueta": "supuesto_diseno",
+    "nota": "Horas tras las cuales expiran ventanas inactivas de private.access_guard"
+  },
+  "chat_message_days": {
+    "valor": 30,
+    "etiqueta": "supuesto_diseno",
+    "nota": "Días de retención de mensajes de chat libre (public.purge_chat)"
+  },
+  "chat_inactive_days": {
+    "valor": 14,
+    "etiqueta": "supuesto_diseno",
+    "nota": "Días de inactividad antes de cerrar conversaciones abandonadas (public.purge_chat)"
+  },
+  "chat_signal_days": {
+    "valor": 7,
+    "etiqueta": "supuesto_diseno",
+    "nota": "Días de vigencia de señales unilaterales de interés en chat (public.purge_chat)"
+  },
+  "chat_cooldown_days": {
+    "valor": 7,
+    "etiqueta": "supuesto_diseno",
+    "nota": "Días de enfriamiento tras cerrar una conversación (public.purge_chat)"
+  }
+}
+

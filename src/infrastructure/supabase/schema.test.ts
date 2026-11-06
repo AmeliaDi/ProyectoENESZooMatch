@@ -45,6 +45,8 @@ const ADMIN_RPCS = ["admin_list_users", "admin_list_reports", "admin_reset_quiz"
 const FASE1_MIGRATION = "20261108000000_fase1_idempotency_and_soft_delete.sql";
 const FASE2_MIGRATION = "20261109000000_fase2_color_stability.sql";
 const FASE2_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE2_MIGRATION), "utf8");
+const FASE3_MIGRATION = "20261110000000_fase3_retention_policy.sql";
+const FASE3_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE3_MIGRATION), "utf8");
 const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
 describe("base migration", () => {
@@ -59,6 +61,7 @@ describe("base migration", () => {
       ADMIN_MIGRATION,
       FASE1_MIGRATION,
       FASE2_MIGRATION,
+      FASE3_MIGRATION,
     ]);
   });
 
@@ -454,5 +457,19 @@ describe("fase 2 color stability migration", () => {
     expect(submitFn).toContain("p_preserve_color BOOLEAN DEFAULT false");
     expect(submitFn).toContain("WHEN COALESCE(p_preserve_color, false) AND public.profiles.color_id IS NOT NULL");
     expect(submitFn).toContain("color_asignado_en = CASE");
+  });
+});
+
+describe("fase 3 retention policy migration", () => {
+  it("defines apply_retention_policy guarded by service_role and returning counts only", () => {
+    const fase3Sql = lf(FASE3_SQL);
+    expect(fase3Sql).not.toMatch(/\/\*|\*\//);
+    expect(fase3Sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
+    const fn = PUBLIC_FUNCTIONS.get("apply_retention_policy") ?? "";
+    expect(fn).toContain("PERFORM private.assert_service_role();");
+    expect(fn).toContain("SECURITY DEFINER");
+    expect(fn).toContain("SET search_path = ''");
+    expect(fn).toContain("'softDeletedAbandoned'");
+    expect(fn).toContain("'purgedReadNotifications'");
   });
 });

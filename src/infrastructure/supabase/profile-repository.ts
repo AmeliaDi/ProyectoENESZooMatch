@@ -209,6 +209,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
             )
             .not("quiz_completed_at", "is", null)
             .is("paused_at", null)
+            .is("eliminado_en", null)
             .order("user_id")
             .range(from, from + PROFILE_PAGE_SIZE - 1),
         );
@@ -226,7 +227,8 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
           .from(TABLE.profiles)
           .select("user_id", { count: "exact", head: true })
           .not("quiz_completed_at", "is", null)
-          .is("paused_at", null),
+          .is("paused_at", null)
+          .is("eliminado_en", null),
       );
       return res && !res.error && typeof res.count === "number" ? res.count : null;
     },

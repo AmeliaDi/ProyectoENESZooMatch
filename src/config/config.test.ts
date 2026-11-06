@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import rawMatching from "../../data/matching-config.json";
 import rawQuiz from "../../data/microtest.json";
+import rawRetention from "../../data/retention-config.json";
 import {
   CATALOG,
   CATALOG_ANIMALS,
@@ -9,6 +10,8 @@ import {
   LIKERT_SCALE,
   MATCHING_CONFIG,
   QUIZ_ITEMS,
+  RETENTION_CONFIG,
+  retentionConfigSchema,
 } from "./index";
 import { deepFreeze, loadConfig } from "./load";
 import { matchingConfigSchema } from "./matching";
@@ -25,6 +28,16 @@ describe("config loading", () => {
     expect(CATALOG_ANIMALS.length).toBe(CATALOG.metadatos.total_animales);
     expect(Object.keys(MATCHING_CONFIG.tracks.romance.core).length).toBeGreaterThan(0);
     expect(ENNEAGRAM_DATA).toBeDefined();
+    expect(RETENTION_CONFIG.abandoned_incomplete_days.valor).toBe(3);
+  });
+
+  it("rejects retention config when soft-delete grace window is shorter than abandonment window", () => {
+    const bad = clone(rawRetention);
+    bad.soft_delete_grace_days.valor = 1;
+    bad.abandoned_incomplete_days.valor = 5;
+    expect(() => loadConfig("retention-config", retentionConfigSchema, bad)).toThrow(
+      /soft_delete_grace_days must be >= abandoned_incomplete_days/,
+    );
   });
 
   it("freezes loaded objects deeply", () => {

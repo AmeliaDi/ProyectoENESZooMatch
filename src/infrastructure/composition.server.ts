@@ -11,8 +11,10 @@ import type { GetResultDeps } from "@/application/get-result";
 import type { PrivacyDeps } from "@/application/privacy";
 import type { AdminRepository, NotificationRepository, PinHasher, Scheduler } from "@/application/ports";
 import type { RecomputeDeps } from "@/application/recompute-matches";
+import { recomputeMatches } from "@/application/recompute-matches";
 import type { RefineDeps } from "@/application/refine-profile";
 import type { SubmitQuizDeps } from "@/application/submit-quiz";
+import { RETENTION_CONFIG } from "@/config";
 import { err, ok, type Clock, type Result } from "@/domain/shared";
 
 import { supabaseAdminConsoleRepository } from "./admin/console-repository";
@@ -25,6 +27,7 @@ import { getChatPinPepper, getServerEnv } from "./env/env.server";
 import { serverLatentScorer } from "./latent-scorer.server";
 import { createAdminClient } from "./supabase/admin.server";
 import {
+  RPC,
   supabaseAdminRepository,
   supabaseMatchRepository,
   supabaseNotificationRepository,
@@ -239,5 +242,54 @@ export function recomputeDeps(): Result<RecomputeDeps, Failure> {
     profiles: supabaseProfileRepository(admin),
     matches: supabaseMatchRepository(admin),
     scheduler: systemScheduler,
+  });
+}
+
+export interface RetentionSummary {
+  softDeletedAbandoned: number;
+  purgedSoftDeleted: number;
+  purgedReadNotifications: number;
+  purgedSecurityEvents: number;
+  purgedAccessGuard: number;
+  purgedChatRows: number;
+  matchesRecomputed: boolean;
+}
+
+export async function runScheduledRetention(): Promise<Result<RetentionSummary, Failure | "storage.failed">> {
+  const admin = createAdminClient();
+  if (!admin) return err("service.unavailable");
+
+  const retentionRes = await admin.rpc(RPC.applyRetention, {
+    p_abandoned_days: RETENTION_CONFIG.abandoned_incomplete_days.valor,
+    p_grace_days: RETENTION_CONFIG.soft_delete_grace_days.valor,
+    p_read_notification_days: RETENTION_CONFIG.read_notifications_days.valor,
+    p_security_event_days: RETENTION_CONFIG.chat_security_events_days.valor,
+    p_access_guard_hours: RETENTION_CONFIG.access_guard_hours.valor,
+  });
+  if (retentionRes.error) return err("storage.failed");
+
+  const chatRes = await admin.rpc(RPC.purgeChat, {
+    p_message_days: RETENTION_CONFIG.chat_message_days.valor,
+    p_inactive_days: RETENTION_CONFIG.chat_inactive_days.valor,
+    p_signal_days: RETENTION_CONFIG.chat_signal_days.valor,
+    p_cooldown_days: RETENTION_CONFIG.chat_cooldown_days.valor,
+  });
+  if (chatRes.error) return err("storage.failed");
+
+  const recomputed = await recomputeMatches({
+    profiles: supabaseProfileRepository(admin),
+    matches: supabaseMatchRepository(admin),
+    scheduler: systemScheduler,
+  });
+
+  const data = (retentionRes.data ?? {}) as Record<string, unknown>;
+  return ok({
+    softDeletedAbandoned: Number(data.softDeletedAbandoned ?? 0),
+    purgedSoftDeleted: Number(data.purgedSoftDeleted ?? 0),
+    purgedReadNotifications: Number(data.purgedReadNotifications ?? 0),
+    purgedSecurityEvents: Number(data.purgedSecurityEvents ?? 0),
+    purgedAccessGuard: Number(data.purgedAccessGuard ?? 0),
+    purgedChatRows: typeof chatRes.data === "number" ? chatRes.data : 0,
+    matchesRecomputed: recomputed.ok,
   });
 }

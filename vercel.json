@@ -6,6 +6,15 @@
     },
     "src/app/api/admin/recompute/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/retention/route.ts": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/retention",
+      "schedule": "0 10 * * *"
+    }
+  ]
 }

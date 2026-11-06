@@ -41,6 +41,11 @@ BEGIN
     SELECT 1
     FROM public.user_roles r
     WHERE r.user_id = u.id AND r.role = 'admin'
+  )
+  AND NOT EXISTS (
+    SELECT 1
+    FROM public.admin_credentials a
+    WHERE a.user_id = u.id
   );
 
   DELETE FROM auth.users u
@@ -48,6 +53,11 @@ BEGIN
     SELECT 1
     FROM public.user_roles r
     WHERE r.user_id = u.id AND r.role = 'admin'
+  )
+  AND NOT EXISTS (
+    SELECT 1
+    FROM public.admin_credentials a
+    WHERE a.user_id = u.id
   );
 
   RAISE NOTICE 'Purged % participant account(s); admin accounts were preserved.', v_participants;

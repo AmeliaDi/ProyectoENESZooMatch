@@ -25,6 +25,8 @@ export type { Experience } from "./experience";
 export { MATCHING_CONFIG } from "./matching";
 export { PHYSICS, physicsSchema } from "./physics";
 export type { PhysicsConfig } from "./physics";
+export { RETENTION_CONFIG, retentionConfigSchema } from "./retention";
+export type { RetentionConfig } from "./retention";
 export {
   CORE_ITEMS,
   LIKERT_SCALE,

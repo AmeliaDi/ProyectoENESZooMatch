@@ -39,6 +39,7 @@ export const RPC = {
   reportConversation: "report_conversation",
   roundFeedback: "record_round_feedback",
   purgeChat: "purge_chat",
+  applyRetention: "apply_retention_policy",
   adminListUsers: "admin_list_users",
   adminResetQuiz: "admin_reset_quiz",
   adminListReports: "admin_list_reports",
