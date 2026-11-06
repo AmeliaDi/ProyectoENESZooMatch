@@ -160,7 +160,27 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
       });
     },
     loadAnswers: async (userId) => ok([...(store.results.get(userId)?.answers ?? [])]),
-    findCounterparts: async (ids) => store.counterparts.filter((c) => ids.includes(c.userId)),
+    findCounterparts: async (ids) => {
+      if (store.counterparts.length > 0) {
+        return store.counterparts.filter((c) => ids.includes(c.userId));
+      }
+      return ids.flatMap((id): CounterpartProfile[] => {
+        const rec = store.results.get(id);
+        if (!rec) return [];
+        return [
+          {
+            userId: id,
+            mbtiCode: rec.scored.mbtiCode,
+            latent: rec.scored.latent,
+            animalId: rec.identity.animalId,
+            colorId: rec.identity.colorId,
+            mark: rec.identity.mark,
+            showAvatarDetail: store.showDetail.has(id),
+            sharedLayers: [...(store.sharedLayers.get(id) ?? [])],
+          },
+        ];
+      });
+    },
   };
 }
 
@@ -176,7 +196,26 @@ export function memoryMatches(store: MemoryStore): MatchRepository {
       store.matches = normalizeMatchPairs(pairs);
       return ok("replaced");
     },
-    listFor: async () => ok(store.stored),
+    listFor: async (userId) => {
+      if (store.stored.length > 0) return ok(store.stored);
+      const self = userId.toLowerCase();
+      const out: StoredMatch[] = [];
+      for (const m of store.matches) {
+        if (m.userA !== self && m.userB !== self) continue;
+        const otherId = m.userA === self ? m.userB : m.userA;
+        const otherRec = store.results.get(otherId);
+        out.push({
+          track: m.track,
+          otherUser: otherId,
+          otherAlias: otherRec?.identity.alias ?? null,
+          otherAnimal: otherRec?.identity.animalDiminutivo ?? null,
+          otherColor: otherRec?.identity.colorNombre ?? null,
+          similarity: m.similarity,
+          badges: [...m.badges],
+        });
+      }
+      return ok(out);
+    },
   };
 }
 
@@ -184,7 +223,75 @@ export function memoryNotifications(store: MemoryStore): NotificationRepository 
   return {
     async notifyMatches(userId) {
       if (store.faults.notify) return failed;
-      store.notified.push(userId);
+      const self = userId.toLowerCase();
+      const romancePeers = store.matches
+        .filter((m) => m.track === "romance" && (m.userA === self || m.userB === self))
+        .map((m) => (m.userA === self ? m.userB : m.userA))
+        .sort();
+      const amistadPeers = store.matches
+        .filter((m) => m.track === "amistad" && (m.userA === self || m.userB === self))
+        .map((m) => (m.userA === self ? m.userB : m.userA))
+        .sort();
+
+      const romanceSig = romancePeers.join(",");
+      const amistadSig = amistadPeers.join(",");
+
+      let inserted = false;
+      for (const [track, peers, sig, type] of [
+        ["romance", romancePeers, romanceSig, "match_romance"],
+        ["amistad", amistadPeers, amistadSig, "match_amistad"],
+      ] as const) {
+        if (peers.length === 0) continue;
+        const latest = [...store.notifications]
+          .reverse()
+          .find((n) => n.userId === userId && n.type === type);
+        if (latest && latest.metadata?.["match_set_hash"] === sig) continue;
+        // Remove previous unread notifications of this track or no_match
+        for (let i = store.notifications.length - 1; i >= 0; i--) {
+          const item = store.notifications[i]!;
+          if (item.userId === userId && !item.read && (item.type === type || item.type === "no_match")) {
+            store.notifications.splice(i, 1);
+          }
+        }
+        store.notifications.push({
+          userId,
+          id: `n${store.notifications.length}`,
+          type,
+          title: track === "romance" ? "El universo conspiró a tu favor" : "Tu vibra resonó con alguien",
+          body: `Matches (${peers.length})`,
+          metadata: { match_count: peers.length, track, match_set_hash: sig },
+          read: false,
+          created_at: "2026-10-31T00:00:00.000Z",
+        });
+        inserted = true;
+      }
+
+      if (romancePeers.length === 0 && amistadPeers.length === 0) {
+        const latestMatchNotif = [...store.notifications]
+          .reverse()
+          .find(
+            (n) =>
+              n.userId === userId &&
+              (n.type === "match_romance" || n.type === "match_amistad" || n.type === "no_match"),
+          );
+        if (!latestMatchNotif || latestMatchNotif.type !== "no_match") {
+          store.notifications.push({
+            userId,
+            id: `n${store.notifications.length}`,
+            type: "no_match",
+            title: "Tu momento llegará",
+            body: "Sin matches por ahora",
+            metadata: {},
+            read: false,
+            created_at: "2026-10-31T00:00:00.000Z",
+          });
+          inserted = true;
+        }
+      }
+
+      if (inserted) {
+        store.notified.push(userId);
+      }
       return ok(undefined);
     },
     async insertWelcome(userId, message, metadata) {

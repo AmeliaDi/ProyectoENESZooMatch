@@ -96,8 +96,12 @@ function useRefreshOnReturn(current: PublicResult | null, apply: (result: Public
       if (next && JSON.stringify(next) !== JSON.stringify(latest.current.current)) latest.current.apply(next);
     }
     const onVisible = () => void refresh();
+    const timer = window.setInterval(() => void refresh(), EXPERIENCE.result.refreshOnReturnMs);
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 }
 

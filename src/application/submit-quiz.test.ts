@@ -5,6 +5,7 @@ import { PSYCHOMETRIC_PARAMS } from "@/config/psychometric-params";
 import { buildMeasurementModel, scoreLatent } from "@/domain/psychometrics/latent";
 import type { LikertValue, QuizSubmission } from "@/types/microtest";
 
+import { getResult } from "./get-result";
 import { submitQuiz, type SubmitQuizDeps } from "./submit-quiz";
 import {
   MemoryStore,
@@ -171,5 +172,90 @@ describe("submitQuiz", () => {
     );
     expect(retry).toEqual(first);
     expect(saveCalls).toBe(1);
+  });
+
+  it("produces identical romance and amistad match sets and scores across 3 permutations of N=20 arrivals", async () => {
+    const likertItems = QUIZ_ITEMS.filter((i) => i.tipo_respuesta === "likert_5");
+    const filterItems = QUIZ_ITEMS.filter((i) => i.tipo_respuesta === "seleccion_multiple");
+
+    const users = Array.from({ length: 20 }, (_, idx) => {
+      const userId = `00000000-0000-4000-8000-${String(idx + 1).padStart(12, "0")}`;
+      const sub: QuizSubmission = {
+        likert: likertItems.map((item, qIdx) => ({
+          itemId: item.id,
+          value: (((idx * 7 + qIdx * 3) % 5) + 1) as LikertValue,
+        })),
+        filters: filterItems.map((item) => {
+          if (item.subcategoria === "identidad_genero") {
+            return { itemId: item.id, selected: [idx % 2 === 0 ? "mujer" : "hombre"] };
+          }
+          if (item.subcategoria === "orientacion_sexual") {
+            return { itemId: item.id, selected: ["bisexual/pansexual"] };
+          }
+          return { itemId: item.id, selected: ["relación seria", "amistad"] };
+        }),
+      };
+      return { userId, submission: sub };
+    });
+
+    const permutations = [
+      users,
+      [...users].reverse(),
+      users.filter((_, i) => i % 2 === 0).concat(users.filter((_, i) => i % 2 === 1)),
+    ];
+
+    const snapshots: string[] = [];
+    for (const order of permutations) {
+      const store = new MemoryStore();
+      const deps = wire(store);
+      for (const u of order) {
+        const res = await submitQuiz(u, deps);
+        expect(res.ok).toBe(true);
+      }
+      const canonical = [...store.matches]
+        .sort((a, b) =>
+          `${a.track}:${a.userA}:${a.userB}`.localeCompare(`${b.track}:${b.userA}:${b.userB}`),
+        )
+        .map((m) => `${m.track}:${m.userA}:${m.userB}:${m.similarity.toFixed(6)}`)
+        .join("|");
+      snapshots.push(canonical);
+    }
+
+    expect(snapshots[0]?.length).toBeGreaterThan(0);
+    expect(snapshots[1]).toBe(snapshots[0]);
+    expect(snapshots[2]).toBe(snapshots[0]);
+  });
+
+  it("incrementally updates existing user results when user k+1 joins and sends notification only once per match set change", async () => {
+    const store = new MemoryStore();
+    const deps = wire(store);
+    const resultDeps = {
+      profiles: memoryProfiles(store),
+      matches: memoryMatches(store),
+      digest: (s: string) => s.slice(0, 16).padEnd(16, "0"),
+    };
+
+    // User A joins alone: 0 matches initially
+    await submitQuiz({ userId: USER_A, submission: submission(4) }, deps);
+    const beforeB = await getResult(USER_A, resultDeps);
+    expect(beforeB.ok && beforeB.value.matches.amistad).toHaveLength(0);
+
+    // User B joins with compatible profile: User A immediately sees User B on next getResult without re-submitting
+    await submitQuiz({ userId: USER_B, submission: submission(4) }, deps);
+    const afterB = await getResult(USER_A, resultDeps);
+    expect(afterB.ok && afterB.value.matches.amistad.length).toBeGreaterThan(0);
+
+    // Count notifications for USER_A so far
+    const countAfterB = store.notifications.filter(
+      (n) => n.userId === USER_A && (n.type === "match_amistad" || n.type === "match_romance"),
+    ).length;
+    expect(countAfterB).toBeGreaterThan(0);
+
+    // Calling notifyMatches again when USER_A's match set has NOT changed must be idempotent (no new notification)
+    await deps.notifications.notifyMatches(USER_A);
+    const countAfterDuplicateNotify = store.notifications.filter(
+      (n) => n.userId === USER_A && (n.type === "match_amistad" || n.type === "match_romance"),
+    ).length;
+    expect(countAfterDuplicateNotify).toBe(countAfterB);
   });
 });

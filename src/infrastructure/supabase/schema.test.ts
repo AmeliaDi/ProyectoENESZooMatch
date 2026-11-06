@@ -49,6 +49,8 @@ const FASE3_MIGRATION = "20261110000000_fase3_retention_policy.sql";
 const FASE3_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE3_MIGRATION), "utf8");
 const FASE4_MIGRATION = "20261111000000_fase4_chat_three_rounds.sql";
 const FASE4_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE4_MIGRATION), "utf8");
+const FASE5_MIGRATION = "20261112000000_fase5_match_notifications_idempotent.sql";
+const FASE5_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE5_MIGRATION), "utf8");
 const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
 describe("base migration", () => {
@@ -65,6 +67,7 @@ describe("base migration", () => {
       FASE2_MIGRATION,
       FASE3_MIGRATION,
       FASE4_MIGRATION,
+      FASE5_MIGRATION,
     ]);
   });
 
@@ -488,5 +491,18 @@ describe("fase 4 chat three rounds migration", () => {
     expect(SQL).toContain("conversation_rounds_three_questions_check CHECK (idx BETWEEN 0 AND 2) NOT VALID");
     expect(SQL).toContain("conversation_answers_three_questions_check CHECK (round BETWEEN 0 AND 2) NOT VALID");
     expect(SQL).toContain("conversation_reactions_three_questions_check CHECK (idx BETWEEN 0 AND 2) NOT VALID");
+  });
+});
+
+describe("fase 5 idempotent match notifications migration", () => {
+  it("tracks match_set_hash in notify_matches so unchanged match sets do not emit duplicate notifications", () => {
+    const fase5Sql = lf(FASE5_SQL);
+    expect(fase5Sql).not.toMatch(/\/\*|\*\//);
+    expect(fase5Sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
+    const fn = PUBLIC_FUNCTIONS.get("notify_matches") ?? "";
+    expect(fn).toContain("PERFORM private.assert_service_role();");
+    expect(fn).toContain("match_set_hash");
+    expect(fn).toContain("v_last_romance_hash IS DISTINCT FROM v_romance_hash");
+    expect(fn).toContain("v_last_amistad_hash IS DISTINCT FROM v_amistad_hash");
   });
 });
