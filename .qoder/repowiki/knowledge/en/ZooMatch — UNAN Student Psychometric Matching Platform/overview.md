@@ -1,1 +1,0 @@
-Next.js mobile-first web app that pairs UNAM students by psychometric similarity, wiring a Supabase-backed dual-track matching engine with deterministic data pipelines and an admin dashboard.

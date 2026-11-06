@@ -1,1 +1,0 @@
-Builds the project's archetype catalogs, psychometric item database, and synthetic user profiles from curated data, remote sources, and deterministic seed-based generation.

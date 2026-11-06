@@ -1,5 +1,6 @@
 -- =============================================================================
 -- Fase 2: Color stability (color_asignado_en + p_preserve_color in submit_quiz_result)
+-- Idempotent: safe to apply on a populated project and to re-run.
 -- =============================================================================
 
 BEGIN;
