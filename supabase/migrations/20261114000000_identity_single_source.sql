@@ -473,6 +473,12 @@ $$;
 -- used to return (`other_alias`, `other_animal`, `other_color`) are gone: the
 -- application reads the counterpart's stored identity with `findCounterparts`,
 -- so a match row can never disagree with the profile screen about a name.
+--
+-- Quitando columnas se cambia el tipo de fila, y Postgres no deja modificar el
+-- retorno de una función existente (`42P13`): hay que dropear y recrear. El
+-- `GRANT` del §7 devuelve el permiso, porque DROP se lleva los otorgados.
+DROP FUNCTION IF EXISTS public.get_user_matches(UUID);
+
 CREATE OR REPLACE FUNCTION public.get_user_matches(p_user_id UUID)
 RETURNS TABLE (
   track TEXT,
@@ -843,6 +849,7 @@ REVOKE ALL ON FUNCTION
   public.hatch_profile_identity(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT),
   public.mark_identity_revealed(UUID),
   public.admin_reset_quiz(UUID),
+  public.get_user_matches(UUID),
   public.notify_matches(UUID)
 FROM PUBLIC, anon, authenticated;
 
@@ -851,6 +858,7 @@ GRANT EXECUTE ON FUNCTION
   public.hatch_profile_identity(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT),
   public.mark_identity_revealed(UUID),
   public.admin_reset_quiz(UUID),
+  public.get_user_matches(UUID),
   public.notify_matches(UUID)
 TO service_role;
 
