@@ -54,6 +54,18 @@ export async function chatChecks({ a, b, aLock, row, post, get, withLock, lockCo
   const early = await post(`/api/chat/conversations/${conv}/messages`, { body: "hola", clientKey: "00000000-0000-4000-9000-00000000a001" }, aLock.cookie);
   row("sin chat libre antes de 3 rondas", early.status, early.status === 409);
 
+  const thirdTurn = await (await get(`/api/chat/conversations/${conv}`, askerLock)).json();
+  await post(`/api/chat/conversations/${conv}/ask`, { promptId: thirdTurn.ask?.suggestions?.[0]?.id }, askerLock.cookie);
+  await post(`/api/chat/conversations/${conv}/answer`, { round: 2, body: "Respuesta QA de ronda 3 (A)" }, askerLock.cookie);
+  const round3Done = await (await post(`/api/chat/conversations/${conv}/answer`, { round: 2, body: "Respuesta QA de ronda 3 (B)" }, otherLock.cookie)).json();
+  row("ronda 3 revelada pasa automáticamente a chat libre", round3Done.stage, round3Done.stage === "free" && round3Done.completedRounds === 3);
+
+  const round4Attempt = await post(`/api/chat/conversations/${conv}/ask`, { customText: "¿Ronda 4?" }, otherLock.cookie);
+  row("ronda 4 (idx >= 3) rechazada", round4Attempt.status, round4Attempt.status === 409);
+
+  const freeSent = await post(`/api/chat/conversations/${conv}/messages`, { body: "Hola en chat libre ✨", clientKey: "00000000-0000-4000-9000-00000000a002" }, aLock.cookie);
+  row("mensaje libre aceptado tras 3 rondas", freeSent.status, freeSent.status === 200);
+
   const blocked = await post(`/api/chat/conversations/${conv}/block`, {}, bLock.cookie);
   row("bloquear (silencioso)", blocked.status, blocked.status === 200);
   const after = await get(`/api/chat/conversations/${conv}`, aLock);

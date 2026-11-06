@@ -256,3 +256,57 @@ Antes de ejecutar cualquier migración o script que modifique o elimine datos en
    - Todo script de fusión (Fase 1), reasignación de color (Fase 2) o purga (Fase 3) correrá **primero con `--dry-run`** e imprimirá la lista exacta con ids seudónimos y conteos.
    - Preferiremos *soft delete* (`eliminado_en TIMESTAMPTZ`) antes de cualquier `DELETE` físico, y esperaremos tu aprobación explícita sobre la salida de `--dry-run`.
 
+---
+
+## 8. Plan de despliegue ejecutado, verificación post-deploy y reversión (Fase 6)
+
+### 8.1 Orden exacto de migraciones aplicadas en producción (`uchrlfvhaiisoyndwprf`)
+
+| Orden | Migración | Propósito | Estado |
+| :--- | :--- | :--- | :--- |
+| 1 | `20261108000000_fase1_idempotency_and_soft_delete.sql` | Columnas `eliminado_en` y `quiz_submission_key`, restricción `profiles_matricula_hash_lower_check`, exclusión de perfiles con `eliminado_en IS NOT NULL` en `recompute_matches_for`. | Aplicada |
+| 2 | `20261109000000_fase2_color_stability.sql` | Columnas `color_id` y `color_asignado_en` en `profiles` con backfill inicial determinista. | Aplicada |
+| 3 | `20261110000000_fase3_retention_policy.sql` | Índices parciales para retención (`profiles_abandoned_incomplete_idx`, `notifications_read_cleanup_idx`). | Aplicada |
+| 4 | `20261111000000_fase4_chat_three_rounds.sql` | Restricciones `CHECK (idx BETWEEN 0 AND 2) NOT VALID` en `conversation_rounds`, `conversation_answers` y `conversation_reactions`; auto-desbloqueo (`free_ready_a = true, free_ready_b = true`) para conversaciones con $\ge 3$ rondas completadas. | Aplicada |
+| 5 | `20261112000000_fase5_match_notifications_idempotent.sql` | Columna `match_set_hash` en `notifications` y función `public.notify_matches(UUID)` idempotente por hash de contrapartes activas por track. | Aplicada |
+
+### 8.2 Scripts de datos ejecutados (con respaldo previo y `--dry-run` verificado)
+
+1. **Respaldos completos (`scripts/db-backup.mts`)**:
+   - `.backups/pre-fase1` (verificado con `scripts/db-restore.mts --from .backups/pre-fase1 --dry-run`)
+   - `.backups/pre-fase2-apply`
+   - `.backups/pre-fase3-purge`
+2. **Fusión de duplicados (`scripts/merge-duplicate-profiles.mts`)**:
+   - `0` grupos de duplicados en producción (`123` perfiles con `matricula_hash` único).
+3. **Reasignación de color "neblina" (`scripts/reassign-neblina-colors.mts --apply`)**:
+   - Redujo `"ennea-neblina"` de **84 / 123 (68.29%)** a **5 / 123 (4.07%)**.
+   - Entropía de Shannon de colores aumentó de **1.4480 nats** a **3.1597 nats** (ningún color supera el 7.32%).
+4. **Purga categorizada (`scripts/purge-garbage.mts --apply --confirm-purge`)**:
+   - `5` perfiles sintéticos/QA sin chats activos marcados con `eliminado_en` y sus matches limpiados.
+   - `11` perfiles incompletos abandonados ($> 3$ días) marcados con `eliminado_en`.
+   - `1,177` notificaciones leídas antiguas ($> 24\text{ h}$) purgadas.
+   - Segunda pasada `--dry-run` confirmó `0` registros pendientes en todas las categorías.
+
+### 8.3 Verificación E2E y humo (`npm run check` + `src/app/e2e-smoke.test.ts`)
+
+- **Flujo completo verificado**:
+  1. Registro y envío del test de 2 usuarios compatibles con clave de idempotencia (`idempotencyKey`), verificando que el reintento con la misma clave no duplica perfiles ni recalcula innecesariamente.
+  2. Color base asignado al completar el test (`colorId`, `colorAssignedAt`) y preservado sin cambios al refinar módulos opcionales (`preserveColor: true`).
+  3. Cálculo incremental y simétrico de matches en ambos tracks (`romance` y `amistad`), constelación deduplicada y notificaciones idempotentes.
+  4. Señal mutua de chat (`requestChat`) → desbloqueo de conversación con PIN de 4 dígitos.
+  5. Exactamente 3 rondas de preguntas guiadas selladas (`idx` 0, 1 y 2; límite de 300 grafemas por respuesta) y bloqueo de ronda 4 (`idx = 3` rechazada con `409 Conflict`).
+  6. Transición automática a `Chat libre` al revelarse la ronda 3 sin paso extra de consentimiento, aceptando mensajes de hasta 300 grafemas y rechazando 301 grafemas con `400 Bad Request`.
+
+### 8.4 Procedimiento de reversión (Rollback)
+
+En caso de requerir restaurar el estado previo de las tablas desde cualquiera de los respaldos locales:
+
+```bash
+# 1. Verificar integridad y conteos sin modificar la base (ROLLBACK automático)
+node --no-warnings scripts/db-restore.mts --from .backups/pre-fase3-purge --dry-run
+
+# 2. Aplicar restauración transaccional completa si se requiere revertir datos
+node --no-warnings scripts/db-restore.mts --from .backups/pre-fase3-purge --apply --confirm-restore
+```
+
+
