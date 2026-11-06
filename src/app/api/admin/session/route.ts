@@ -5,8 +5,8 @@ import { createPreflightHandler, withApiSecurity } from "@/infrastructure/securi
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Who is signed in (alias only); 401 without a console session. */
-const handleGet = adminRoute(async (gate) => ok({ alias: gate.actor.alias }));
+/** Who is signed in (their stored identity, nothing else); 401 without a console session. */
+const handleGet = adminRoute(async (gate) => ok({ identity: gate.actor.identity }));
 
 const methods = ["GET"] as const;
 

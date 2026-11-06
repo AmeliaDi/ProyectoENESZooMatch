@@ -3,9 +3,10 @@
  * of the Supabase repositories (pool-size guard, notify-clears-unread) without
  * any network.
  */
-import { CATALOG_COLORS } from "@/config";
+import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 import { normalizeMatchPairs, type GlobalMatch } from "@/domain/matching";
 import { clearAttempts } from "@/domain/chat";
+import { enneagramCodeOf, type HatchedIdentity } from "@/domain/identity/hatch-identity";
 import { err, ok } from "@/domain/shared";
 import type { ShareLayerId } from "@/types/sharing";
 
@@ -15,6 +16,8 @@ import type {
   ChatPinRepository,
   ChatSecurityEvent,
   CounterpartProfile,
+  HatchOutcome,
+  IdentityRecord,
   MatriculaVerifier,
   PinHasher,
   MatchRepository,
@@ -35,6 +38,8 @@ export interface Faults {
 
 export class MemoryStore {
   readonly results = new Map<string, QuizResultRecord>();
+  /** Stored identity — the only source names are read from, like the DB columns. */
+  readonly identities = new Map<string, IdentityRecord>();
   readonly inclusiveModes = new Map<string, string>();
   readonly paused = new Set<string>();
   readonly showDetail = new Set<string>();
@@ -57,14 +62,73 @@ export class MemoryStore {
   /** Matrícula per account (the real adapter compares HMAC digests). */
   readonly matriculas = new Map<string, string>();
 
+  /** Only hatched and not paused people take part in matching. */
   pool(): PoolProfile[] {
     return [...this.results.values()]
       .filter((r) => !this.paused.has(r.userId))
+      .filter((r) => this.identities.get(r.userId)?.estadoIdentidad === "eclosionado")
       .map((r) => ({ userId: r.userId, profile: r.scored }));
   }
 }
 
 const failed = err<StorageError>("storage.failed");
+
+const FIXED_AT = "2026-10-31T00:00:00.000Z";
+
+function eggIdentity(): IdentityRecord {
+  return {
+    estadoIdentidad: "huevo",
+    aliasCompleto: null,
+    aliasAnimal: null,
+    aliasColor: null,
+    aliasSufijo: null,
+    animalId: null,
+    colorId: null,
+    mbtiCode: null,
+    enneagramCode: null,
+    narrative: null,
+    mark: null,
+    revelacionVista: false,
+    quizCompletedAt: null,
+  };
+}
+
+/** Mirrors `hatch_profile_identity`: one write, then frozen forever. */
+function freeze(store: MemoryStore, userId: string, hatch: HatchedIdentity): HatchOutcome {
+  const current = store.identities.get(userId);
+  if (current?.estadoIdentidad === "eclosionado") {
+    return { outcome: "already", aliasCompleto: current.aliasCompleto ?? "", estadoIdentidad: "eclosionado" };
+  }
+  const taken = [...store.identities.entries()]
+    .some(([other, record]) => other !== userId && record.aliasCompleto === hatch.aliasCompleto);
+  if (taken) {
+    return { outcome: "collision", aliasCompleto: hatch.aliasCompleto, estadoIdentidad: "huevo" };
+  }
+  store.identities.set(userId, {
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: hatch.aliasCompleto,
+    aliasAnimal: hatch.aliasAnimal,
+    aliasColor: hatch.aliasColor,
+    aliasSufijo: hatch.aliasSufijo,
+    animalId: hatch.animalId,
+    colorId: hatch.colorId,
+    mbtiCode: hatch.mbtiCode,
+    enneagramCode: enneagramCodeOf(hatch.enneagram),
+    narrative: hatch.narrative,
+    mark: hatch.mark,
+    revelacionVista: false,
+    quizCompletedAt: FIXED_AT,
+  });
+  return { outcome: "written", aliasCompleto: hatch.aliasCompleto, estadoIdentidad: "eclosionado" };
+}
+
+function outcomeOf(store: MemoryStore, userId: string): HatchOutcome {
+  const record = store.identities.get(userId);
+  if (!record || record.estadoIdentidad === "huevo") {
+    return { outcome: "already", aliasCompleto: "", estadoIdentidad: "huevo" };
+  }
+  return { outcome: "already", aliasCompleto: record.aliasCompleto ?? "", estadoIdentidad: "eclosionado" };
+}
 
 export function memoryProfiles(store: MemoryStore): ProfileRepository {
   return {
@@ -82,25 +146,26 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
       else store.showDetail.delete(userId);
       return ok(undefined);
     },
-    async setColor(userId, colorId) {
+    async identityState(userId) {
+      return ok(store.identities.get(userId) ?? null);
+    },
+    async writeIdentity(userId, hatch) {
       if (store.faults.save) return failed;
-      const catalogColor = CATALOG_COLORS.find((c) => c.id === colorId);
-      const existing = store.results.get(userId);
-      if (existing) {
-        store.results.set(userId, {
-          ...existing,
-          identity: {
-            ...existing.identity,
-            colorId,
-            colorNombre: catalogColor?.nombre ?? existing.identity.colorNombre,
-            colorHex: catalogColor?.hex ?? existing.identity.colorHex,
-          },
-        });
-      }
-      if (store.own && catalogColor) {
-        store.own = { ...store.own, color: { id: catalogColor.id, nombre: catalogColor.nombre, hex: catalogColor.hex } };
-      }
-      return ok(undefined);
+      return ok(freeze(store, userId, hatch));
+    },
+    async markRevealed(userId) {
+      if (store.faults.save) return failed;
+      const record = store.identities.get(userId);
+      if (!record || record.revelacionVista) return ok(false);
+      store.identities.set(userId, { ...record, revelacionVista: true });
+      return ok(true);
+    },
+    async listAliases() {
+      return ok(
+        [...store.identities.values()]
+          .map((r) => r.aliasCompleto)
+          .filter((a): a is string => a !== null),
+      );
     },
     async setPaused(userId, paused) {
       if (store.faults.save) return failed;
@@ -112,6 +177,7 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
     async deleteAccount(userId) {
       if (store.faults.save) return failed;
       store.results.delete(userId);
+      store.identities.delete(userId);
       store.paused.delete(userId);
       store.chatPins.delete(userId);
       store.chatEvents.splice(0, store.chatEvents.length, ...store.chatEvents.filter((e) => e.userId !== userId));
@@ -120,22 +186,12 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
     },
     async saveQuizResult(record) {
       if (store.faults.save) return failed;
-      const existing = store.results.get(record.userId);
-      const alias = existing?.identity.alias ?? record.identity.alias;
-      const preservedColor =
-        record.preserveColor && existing
-          ? {
-              colorId: existing.identity.colorId,
-              colorNombre: existing.identity.colorNombre,
-              colorHex: existing.identity.colorHex,
-            }
-          : {};
-      store.results.set(record.userId, {
-        ...record,
-        identity: { ...record.identity, alias, ...preservedColor },
-      });
+      const frozen = store.identities.get(record.userId)?.estadoIdentidad === "eclosionado";
+      store.results.set(record.userId, record);
       store.version += 1;
-      return ok({ alias });
+      if (record.hatch && !frozen) return ok(freeze(store, record.userId, record.hatch));
+      if (!store.identities.has(record.userId)) store.identities.set(record.userId, eggIdentity());
+      return ok(outcomeOf(store, record.userId));
     },
     async setInclusiveMode(userId, mode) {
       store.inclusiveModes.set(userId, mode);
@@ -148,14 +204,16 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
       if (store.own) return ok(store.own);
       const record = store.results.get(userId);
       if (!record) return ok(null);
+      const identity = store.identities.get(userId) ?? eggIdentity();
+      const color = CATALOG_COLORS.find((c) => c.id === identity.colorId) ?? null;
+      const animal = CATALOG_ANIMALS.find((a) => a.id === identity.animalId) ?? null;
       return ok({
-        alias: record.identity.alias,
-        narrative: record.identity.narrative,
-        mbtiCode: record.scored.mbtiCode,
-        animal: { id: record.identity.animalId, diminutivo_es: record.identity.animalDiminutivo, categoria_fauna: "" },
-        color: { id: record.identity.colorId, nombre: record.identity.colorNombre, hex: record.identity.colorHex },
-        mark: record.identity.mark,
+        identity,
+        narrative: identity.narrative ?? record.narrative ?? "",
+        animal: animal === null ? null : { id: animal.id, diminutivo_es: animal.diminutivo, categoria_fauna: "" },
+        color: color === null ? null : { id: color.id, nombre: color.nombre, hex: color.hex },
         latent: record.scored.latent,
+        normalizedScores: record.scored.normalizedScores,
         completedModules: record.completedModules,
       });
     },
@@ -166,15 +224,22 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
       }
       return ids.flatMap((id): CounterpartProfile[] => {
         const rec = store.results.get(id);
-        if (!rec) return [];
+        const identity = store.identities.get(id);
+        if (!rec || !identity) return [];
         return [
           {
             userId: id,
-            mbtiCode: rec.scored.mbtiCode,
+            estadoIdentidad: identity.estadoIdentidad,
+            aliasCompleto: identity.aliasCompleto,
+            aliasAnimal: identity.aliasAnimal,
+            aliasColor: identity.aliasColor,
+            aliasSufijo: identity.aliasSufijo,
+            mbtiCode: identity.mbtiCode,
+            enneagramCode: identity.enneagramCode,
             latent: rec.scored.latent,
-            animalId: rec.identity.animalId,
-            colorId: rec.identity.colorId,
-            mark: rec.identity.mark,
+            animalId: identity.animalId,
+            colorId: identity.colorId,
+            mark: identity.mark,
             showAvatarDetail: store.showDetail.has(id),
             sharedLayers: [...(store.sharedLayers.get(id) ?? [])],
           },
@@ -203,13 +268,10 @@ export function memoryMatches(store: MemoryStore): MatchRepository {
       for (const m of store.matches) {
         if (m.userA !== self && m.userB !== self) continue;
         const otherId = m.userA === self ? m.userB : m.userA;
-        const otherRec = store.results.get(otherId);
+        if (store.identities.get(otherId)?.estadoIdentidad !== "eclosionado") continue;
         out.push({
           track: m.track,
           otherUser: otherId,
-          otherAlias: otherRec?.identity.alias ?? null,
-          otherAnimal: otherRec?.identity.animalDiminutivo ?? null,
-          otherColor: otherRec?.identity.colorNombre ?? null,
           similarity: m.similarity,
           badges: [...m.badges],
         });

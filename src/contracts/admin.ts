@@ -1,22 +1,47 @@
 /**
  * Admin console contract (ADR-036). Rows carry the pseudonymous account id
- * (needed to act on it), the alias and counts. Never a matrícula, its hash,
- * answers, vectors, θ, hard filters or chat content outside a report snapshot.
+ * (needed to act on it), the identity frozen at hatching and counts. Never a
+ * matrícula, its hash, answers, vectors, θ, hard filters or chat content
+ * outside a report snapshot.
  */
 import { z } from "zod";
 
 import { REPORT_REASONS } from "./chat";
+import type { IdentityDto } from "./identity";
 
 const isoDate = z.string().min(1);
 const count = z.number().int().min(0);
+/** Same ceiling as the stored `alias_completo`; a longer text is not an alias. */
+const word = z.string().max(64);
+const catalogueId = z.string().max(40);
+
+/**
+ * The identity of one person as the console receives it: the projection of
+ * the stored columns, never a name assembled here. `satisfies` keeps it glued
+ * to `IdentityDto`, so a field added to the wire contract breaks this file.
+ */
+export const identitySchema = z.object({
+  estadoIdentidad: z.enum(["huevo", "eclosionado"]),
+  aliasCompleto: word.nullable(),
+  aliasAnimal: word.nullable(),
+  aliasColor: word.nullable(),
+  aliasSufijo: z.string().max(8).nullable(),
+  animalId: catalogueId.nullable(),
+  colorId: catalogueId.nullable(),
+  colorHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/).nullable(),
+  mbtiCode: z.string().max(4).nullable(),
+  enneagramCode: z.string().max(3).nullable(),
+  // Kind words of the enneagram are read from the catalogue, not stored.
+  enneagramName: word.nullable().default(null),
+  mark: z.enum(["sp", "so", "sx"]).nullable(),
+  revelacionVista: z.boolean(),
+  // The shell seed needs the server secret, so the console never holds it.
+  huevitoSeed: z.number().int().min(0).nullable().default(null),
+}) satisfies z.ZodType<IdentityDto>;
 
 export const adminUserSchema = z.object({
   id: z.uuid(),
-  alias: z.string().nullable(),
-  animal: z.string().nullable(),
-  color: z.string().nullable(),
-  colorHex: z.string().nullable(),
-  mbti: z.string().nullable(),
+  identity: identitySchema,
   createdAt: isoDate,
   quizCompletedAt: isoDate.nullable(),
   paused: z.boolean(),
@@ -81,7 +106,7 @@ export const adminAuditPageSchema = z.object({ total: count, entries: z.array(ad
 export type AdminAuditPage = z.infer<typeof adminAuditPageSchema>;
 
 /** Who is signed in to the console (shown in the header). */
-export const adminSessionSchema = z.object({ alias: z.string().nullable() });
+export const adminSessionSchema = z.object({ identity: identitySchema });
 export type AdminSessionDto = z.infer<typeof adminSessionSchema>;
 
 /** Actions the user detail offers; each one is audited. */

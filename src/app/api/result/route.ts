@@ -1,4 +1,5 @@
 import { getResult } from "@/application/get-result";
+import { ensureIdentity } from "@/application/hatch";
 import { resultContext } from "@/infrastructure/composition.server";
 import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
 import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
@@ -9,6 +10,11 @@ export const runtime = "nodejs";
 async function handleGet() {
   const context = await resultContext();
   if (!context.ok) return errorResponse(context.error);
+
+  // A core that was completed but never hatched (lost request, deploy window)
+  // is settled here, once; afterwards the stored row is the only authority.
+  const hatched = await ensureIdentity(context.value.userId, context.value.hatch);
+  if (!hatched.ok) return errorResponse(hatched.error);
 
   const result = await getResult(context.value.userId, context.value.deps);
   return result.ok ? jsonResponse(result.value) : errorResponse(result.error);

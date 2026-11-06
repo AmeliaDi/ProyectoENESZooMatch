@@ -5,7 +5,6 @@
  */
 import { SELF_READING } from "@/config/self-reading";
 import type { AffinitySummaryDto, ProfileDto } from "@/contracts/profile";
-import { buildAvatarSpec } from "@/domain/avatars/avatar-spec";
 import { MATCHING_CONFIG } from "@/domain/matching";
 import { mbtiFromLatent } from "@/domain/psychometrics/derived";
 import { openScaleCount, readSections, readVirtues } from "@/domain/psychometrics/self-reading";
@@ -14,42 +13,54 @@ import type { LatentProfile } from "@/types/latent";
 import type { MatchTrack } from "@/types/microtest";
 
 import type { AppError } from "./errors";
-import { avatarParams, enneagramLabel, EXPLORING_ENNEAGRAM } from "./identity-readout";
-import type { MatchRepository, ProfileRepository, StoredMatch } from "./ports";
+import { EXPLORING_ENNEAGRAM } from "./identity-readout";
+import { counterpartIdentity, enneagramWords, toIdentityDto } from "./identity-dto";
+import type { IdentityDto } from "@/contracts/identity";
+import type { CounterpartProfile, MatchRepository, ProfileRepository, StoredMatch } from "./ports";
 
 export interface GetProfileDeps {
-  profiles: Pick<ProfileRepository, "findOwn">;
+  profiles: Pick<ProfileRepository, "findOwn" | "findCounterparts">;
   matches: Pick<MatchRepository, "listFor">;
 }
 
 /** Population prior: every scale reads as "abierta" until it is answered. */
 const PRIOR_LATENT: LatentProfile = { theta: {}, se: {}, quality: 1, answered: 0 };
 const PERCENT = 100;
-const FALLBACK_ALIAS = "alguien especial";
 
-function affinities(matches: readonly StoredMatch[], track: MatchTrack) {
+function affinities(
+  matches: readonly StoredMatch[],
+  byId: ReadonlyMap<string, IdentityDto>,
+  track: MatchTrack,
+): { count: number; top: AffinitySummaryDto[] } {
   const mine = matches.filter((m) => m.track === track);
   const top: AffinitySummaryDto[] = [...mine]
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, SELF_READING.affinitiesTop)
+    .filter((m) => m.otherUser !== null && byId.has(m.otherUser ?? ""))
     .map((m) => ({
-      alias: m.otherAlias ?? FALLBACK_ALIAS,
-      animal: m.otherAnimal ?? "",
+      identity: byId.get(m.otherUser ?? "")!,
       percent: Math.round(m.similarity * PERCENT),
     }));
   return { count: mine.length, top };
 }
 
-function identityReadout(latent: LatentProfile | null, storedCode: string | null) {
-  if (!latent) {
-    return { mbti: { code: storedCode ?? "—", balancedAxes: 0 }, enneagram: { ...EXPLORING_ENNEAGRAM, exploring: true } };
-  }
-  const mbti = mbtiFromLatent(latent, MATCHING_CONFIG.scoring.mbti_ambiguity_se);
-  const spec = buildAvatarSpec(latent, avatarParams());
-  const label = enneagramLabel(spec);
+/**
+ * MBTI and Enneagram of the card come from the stored readout: the numbers a
+ * person sees are the ones their identity was built with, not a second
+ * calculation of the same latent profile.
+ */
+function identityReadout(identity: IdentityDto, latent: LatentProfile | null) {
+  const axes = latent ? mbtiFromLatent(latent, MATCHING_CONFIG.scoring.mbti_ambiguity_se).axes : [];
+  const ennea = enneagramWords(identity.enneagramCode);
+  const exploring = ennea.code === null;
   return {
-    mbti: { code: mbti.code, balancedAxes: mbti.axes.filter((a) => a.ambiguous).length },
-    enneagram: { ...label, exploring: spec.enneagram.type === null },
+    mbti: { code: identity.mbtiCode ?? "—", balancedAxes: axes.filter((a) => a.ambiguous).length },
+    enneagram: {
+      code: ennea.code ?? EXPLORING_ENNEAGRAM.code,
+      name: ennea.name ?? EXPLORING_ENNEAGRAM.nombre,
+      archetype: ennea.archetype ?? EXPLORING_ENNEAGRAM.arquetipo,
+      exploring,
+    },
   };
 }
 
@@ -58,23 +69,30 @@ export async function getProfile(viewerId: string, deps: GetProfileDeps): Promis
   if (!own.ok) return own;
   if (!matches.ok) return matches;
   const profile = own.value;
-  if (!profile?.animal || !profile.color) return err("quiz.not_completed");
+  if (!profile || profile.identity.estadoIdentidad !== "eclosionado") return err("quiz.not_completed");
+
+  const identity = toIdentityDto(profile.identity);
+  const otherIds = [...new Set(matches.value.flatMap((m) => (m.otherUser ? [m.otherUser] : [])))];
+  const counterparts: readonly CounterpartProfile[] =
+    otherIds.length > 0 ? await deps.profiles.findCounterparts(otherIds) : [];
+  const byId = new Map(
+    counterparts
+      .filter((c) => c.estadoIdentidad === "eclosionado")
+      .map((c) => [c.userId, counterpartIdentity(c)]),
+  );
 
   const latent = profile.latent ?? PRIOR_LATENT;
   const sections = readSections(latent);
-  const { mbti, enneagram } = identityReadout(profile.latent, profile.mbtiCode);
+  const { mbti, enneagram } = identityReadout(identity, profile.latent);
   return ok({
-    alias: profile.alias,
-    animal: { id: profile.animal.id, name: profile.animal.diminutivo_es },
-    color: { id: profile.color.id, name: profile.color.nombre, hex: profile.color.hex },
-    mark: profile.mark,
+    identity,
     narrative: profile.narrative,
     mbti,
-    enneagram: { code: enneagram.code, name: enneagram.nombre, archetype: enneagram.arquetipo, exploring: enneagram.exploring },
+    enneagram,
     virtues: readVirtues(latent).map(({ title, text }) => ({ title, text })),
     sections: sections.map((s) => ({ ...s, scales: s.scales.map((x) => ({ ...x, range: [x.range[0], x.range[1]] })) })),
     openScales: openScaleCount(sections),
     completedModules: [...profile.completedModules],
-    affinities: { romance: affinities(matches.value, "romance"), amistad: affinities(matches.value, "amistad") },
+    affinities: { romance: affinities(matches.value, byId, "romance"), amistad: affinities(matches.value, byId, "amistad") },
   });
 }

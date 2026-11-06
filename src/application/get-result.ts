@@ -1,5 +1,4 @@
-import { CATALOG_COLORS, EXPERIENCE } from "@/config";
-import { buildAvatarSpec, publicVisual } from "@/domain/avatars/avatar-spec";
+import { EXPERIENCE } from "@/config";
 import {
   computeChemistrySummary,
   explainPair,
@@ -9,27 +8,13 @@ import {
 import { MATCHING_CONFIG, pairScore, type PairScore } from "@/domain/matching";
 import { NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
 import { err, ok, type Result } from "@/domain/shared";
-import type { LatentProfile } from "@/types/latent";
 
 import type { MatchEntryDto, ResultDto } from "./dto";
+import { counterpartIdentity, enneagramWords, toIdentityDto } from "./identity-dto";
 import { layerBands, sharedProfile } from "./counterpart-view";
 import type { AppError } from "./errors";
-import { avatarParams } from "./identity-readout";
 import { matchHandle } from "./match-handle";
 import type { CounterpartProfile, MatchRepository, OwnProfile, ProfileRepository, StoredMatch } from "./ports";
-
-const COLOR_BY_ID = new Map(CATALOG_COLORS.map((c) => [c.id, c]));
-
-/** What the viewer may see of a counterpart's avatar (wing/mark only with opt-in). */
-function disclosed(other: CounterpartProfile | undefined) {
-  if (!other?.animalId || !other.colorId) return null;
-  const visual = publicVisual({ animalId: other.animalId, colorId: other.colorId, mark: other.mark }, other.showAvatarDetail);
-  const color = COLOR_BY_ID.get(visual.colorId);
-  return color ? { ...visual, colorName: color.nombre, colorHex: color.hex } : null;
-}
-
-/** Shown when the counterpart has no alias yet (should not happen after the quiz). */
-const FALLBACK_ALIAS = "alguien especial";
 
 export interface GetResultDeps {
   profiles: Pick<ProfileRepository, "findOwn" | "findCounterparts" | "countActive">;
@@ -38,9 +23,16 @@ export interface GetResultDeps {
   digest(input: string): string;
 }
 
-/** Main enneagram type only (already readable from the public colour family). */
-function narrativeSide(latent: LatentProfile, mbti: string | null): NarrativeSide {
-  return { enneagramType: buildAvatarSpec(latent, avatarParams()).enneagram.type, mbti };
+/**
+ * The two typology labels the explanation may mention. They are the stored
+ * readout of each person, so the story always matches the displayed name.
+ */
+function narrativeSide(other: CounterpartProfile): NarrativeSide {
+  return { enneagramType: enneagramWords(other.enneagramCode).type, mbti: other.mbtiCode };
+}
+
+function ownNarrative(own: OwnProfile): NarrativeSide {
+  return { enneagramType: enneagramWords(own.identity.enneagramCode).type, mbti: own.identity.mbtiCode };
 }
 
 /**
@@ -60,8 +52,8 @@ function explain(match: StoredMatch, own: OwnProfile, other: CounterpartProfile 
     track: match.track,
     self: own.latent,
     other: other.latent,
-    selfNarrative: narrativeSide(own.latent, own.mbtiCode),
-    otherNarrative: narrativeSide(other.latent, other.mbtiCode),
+    selfNarrative: ownNarrative(own),
+    otherNarrative: narrativeSide(other),
   });
 }
 
@@ -69,29 +61,19 @@ function toEntry(
   match: StoredMatch,
   viewerId: string,
   own: OwnProfile,
-  other: CounterpartProfile | undefined,
+  other: CounterpartProfile,
   digest: GetResultDeps["digest"],
 ): MatchEntryDto {
-  const alias = match.otherAlias ?? FALLBACK_ALIAS;
-  const visual = disclosed(other);
   const score = scoreOf(match, own, other);
-  const shared = sharedProfile(other);
   return {
     id: match.otherUser ? matchHandle(viewerId, match.otherUser, digest) : null,
-    alias,
-    animal: match.otherAnimal ?? "",
-    animal_id: visual?.animalId ?? null,
-    color: visual?.colorName ?? "",
-    color_id: visual?.colorId ?? null,
-    color_hex: visual?.colorHex ?? null,
-    mark: visual?.mark ?? null,
-    mbti_code: shared.mbti?.code ?? null,
+    identity: counterpartIdentity(other),
     similarity: match.similarity,
     chemistry: computeChemistrySummary(match.similarity, match.track),
     badges: match.badges,
     explanation: explain(match, own, other, score),
     layers: layerBands(score),
-    shared,
+    shared: sharedProfile(other),
   };
 }
 
@@ -103,7 +85,7 @@ export async function getResult(viewerId: string, deps: GetResultDeps): Promise<
   ]);
   if (!own.ok) return own;
   if (!matches.ok) return matches;
-  if (!own.value) return err("quiz.not_completed");
+  if (!own.value || own.value.identity.estadoIdentidad !== "eclosionado") return err("quiz.not_completed");
   const profile = own.value;
 
   const otherIds = [...new Set(matches.value.flatMap((m) => (m.otherUser ? [m.otherUser] : [])))];
@@ -114,17 +96,16 @@ export async function getResult(viewerId: string, deps: GetResultDeps): Promise<
   const amistad: MatchEntryDto[] = [];
   for (const match of matches.value) {
     const other = match.otherUser ? byId.get(match.otherUser) : undefined;
+    // A pair only renders when the other side really exists and already
+    // hatched; an egg or a deleted account never shows a name in the cielo.
+    if (!other || other.estadoIdentidad !== "eclosionado") continue;
     const entry = toEntry(match, viewerId, profile, other, deps.digest);
     (match.track === "romance" ? romance : amistad).push(entry);
   }
 
   return ok({
-    alias: profile.alias,
-    animal: profile.animal,
-    color: profile.color,
-    mark: profile.mark,
+    identity: toIdentityDto(profile.identity),
     narrative: profile.narrative,
-    mbti_code: profile.mbtiCode,
     matches: { romance, amistad },
     few_people: active !== null && active < EXPERIENCE.result.fewPeopleThreshold,
     no_match_message: NO_MATCH_MESSAGE,

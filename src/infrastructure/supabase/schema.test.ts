@@ -16,10 +16,20 @@ const MIGRATIONS_DIR = resolve(process.cwd(), "supabase/migrations");
 const SQL = readFileSync(resolve(MIGRATIONS_DIR, "00000000000000_base.sql"), "utf8");
 const SEED = readFileSync(resolve(process.cwd(), "supabase/seed.sql"), "utf8");
 
-/** Every `CREATE FUNCTION public.x(...)` body, keyed by name. */
-const PUBLIC_FUNCTIONS = new Map(
-  [...SQL.matchAll(/CREATE FUNCTION public\.(\w+)\(([\s\S]*?)\$\$;/g)].map((m) => [m[1]!, m[0]]),
-);
+const lf = (s: string) => s.replace(/\r\n/g, "\n");
+const IDENTITY_MIGRATION = "20261114000000_identity_single_source.sql";
+const IDENTITY_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, IDENTITY_MIGRATION), "utf8"));
+const IDENTITY_DROP_MIGRATION = "20261116000000_identity_drop_legacy.sql";
+const IDENTITY_DROP_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, IDENTITY_DROP_MIGRATION), "utf8"));
+
+/** Every `CREATE FUNCTION public.x(...)` body, keyed by name, across migrations. */
+function publicFunctionsOf(sql: string): [string, string][] {
+  return [...sql.matchAll(/CREATE (?:OR REPLACE )?FUNCTION public\.(\w+)\(([\s\S]*?)\$\$;/g)].map((m) => [m[1]!, m[0]]);
+}
+const PUBLIC_FUNCTIONS = new Map([
+  ...publicFunctionsOf(lf(SQL)),
+  ...publicFunctionsOf(IDENTITY_SQL),
+]);
 
 const CHAT_MIGRATION = "20261102000000_chat_pin.sql";
 const CHAT_SQL = readFileSync(resolve(MIGRATIONS_DIR, CHAT_MIGRATION), "utf8");
@@ -51,7 +61,6 @@ const FASE4_MIGRATION = "20261111000000_fase4_chat_three_rounds.sql";
 const FASE4_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE4_MIGRATION), "utf8");
 const FASE5_MIGRATION = "20261112000000_fase5_match_notifications_idempotent.sql";
 const FASE5_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE5_MIGRATION), "utf8");
-const lf = (s: string) => s.replace(/\r\n/g, "\n");
 
 describe("base migration", () => {
   it("is the base plus the idempotent incremental migrations", () => {
@@ -68,6 +77,8 @@ describe("base migration", () => {
       FASE3_MIGRATION,
       FASE4_MIGRATION,
       FASE5_MIGRATION,
+      IDENTITY_MIGRATION,
+      IDENTITY_DROP_MIGRATION,
     ]);
   });
 
@@ -108,17 +119,27 @@ describe("base migration", () => {
     expect(PUBLIC_FUNCTIONS.get("submit_quiz_result")).toContain("p_completed_modules TEXT[]");
   });
 
-  it("never renames an alias once assigned (ADR-024)", () => {
-    const body = PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "";
-    expect(body).toContain("alias = COALESCE(public.profiles.alias, v_candidate)");
-    expect(body).toContain("RETURNS TEXT");
-    expect(body).toContain("RETURNING public.profiles.alias INTO v_alias");
+  it("never renames an alias once assigned (ADR-024, now the golden rule)", () => {
+    // Writing a name is no longer a side effect of submitting the test: the
+    // only function that can do it returns the stored one when the person
+    // already hatched, so nobody who has a name ever gets a different one.
+    const hatch = PUBLIC_FUNCTIONS.get("hatch_profile_identity") ?? "";
+    expect(hatch).toContain("IF v_estado = 'eclosionado' AND v_congelado IS NOT NULL THEN");
+    expect(hatch).toContain("RETURN v_alias");
+    expect(hatch).toContain("FOR UPDATE");
+    expect(hatch).toContain("RETURNING public.profiles.alias_completo INTO v_alias");
+    const submit = PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "";
+    expect(submit).not.toContain("alias = COALESCE(public.profiles.alias");
+    expect(submit).not.toContain("alias = p_alias");
   });
 
-  it("resolves alias collisions with a deterministic suffix in base and migration (ADR-034)", () => {
-    const body = lf(PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "");
-    expect(body).toContain("WHERE alias = v_candidate AND user_id <> p_user_id");
-    expect(body).toContain("md5(p_user_id::TEXT || v_attempt::TEXT)");
+  it("resolves alias collisions with the unique index plus a deterministic retry (ADR-034)", () => {
+    // The candidate suffix is built in `domain/identity/hatch-identity.ts` from
+    // HMAC(server secret, user id); SQL only arbitrates the race.
+    const hatch = PUBLIC_FUNCTIONS.get("hatch_profile_identity") ?? "";
+    expect(hatch).toContain("alias % is already taken");
+    expect(hatch).toContain("ERRCODE = '23505'");
+    expect(IDENTITY_SQL).toContain("CREATE UNIQUE INDEX IF NOT EXISTS profiles_alias_completo_key");
     expect(lf(ALIAS_SQL)).toContain("md5(p_user_id::TEXT || v_attempt::TEXT)");
     expect(ALIAS_SQL).not.toMatch(/(DROP|TRUNCATE|DELETE FROM|GRANT|REVOKE)/);
   });
@@ -420,10 +441,16 @@ describe("admin console migration (ADR-036)", () => {
     }
   });
 
-  it("resets a quiz keeping the alias and satisfying profiles_completed_is_whole", () => {
+  it("resets a quiz by returning the person to an egg, identity included", () => {
     const reset = lf(PUBLIC_FUNCTIONS.get("admin_reset_quiz") ?? "");
     expect(reset).toContain("quiz_completed_at = NULL");
-    expect(reset).not.toMatch(/\balias\s*=/);
+    // An admin reset means "start over": every identity column is cleared and
+    // the state goes back to `huevo`, which is what the shape constraint needs.
+    expect(reset).toContain("estado_identidad = 'huevo'");
+    expect(reset).toContain("alias = NULL");
+    expect(reset).toContain("alias_completo = NULL");
+    expect(reset).toContain("eclosionado_en = NULL");
+    expect(reset).toContain("revelacion_vista = false");
     expect(reset).toContain("DELETE FROM public.quiz_responses WHERE user_id = p_user;");
     expect(reset).toContain("DELETE FROM public.matches WHERE p_user IN (user_a, user_b);");
   });
@@ -453,16 +480,20 @@ describe("fase 1 idempotency & soft-delete migration", () => {
 });
 
 describe("fase 2 color stability migration", () => {
-  it("adds color_asignado_en and preserves color_id in submit_quiz_result when p_preserve_color is true", () => {
+  it("keeps color_asignado_en and hands the color to the hatch, not to submit_quiz_result", () => {
     const fase2Sql = lf(FASE2_SQL);
     expect(fase2Sql).not.toMatch(/\/\*|\*\//);
     expect(fase2Sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
     expect(fase2Sql).toContain("ADD COLUMN IF NOT EXISTS color_asignado_en TIMESTAMPTZ");
     expect(SQL).toContain("color_asignado_en TIMESTAMPTZ");
+    // The parameter stays in the signature so an older server build keeps resolving
+    // during the deploy window, but it no longer moves the frozen colour.
     const submitFn = PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "";
     expect(submitFn).toContain("p_preserve_color BOOLEAN DEFAULT false");
-    expect(submitFn).toContain("WHEN COALESCE(p_preserve_color, false) AND public.profiles.color_id IS NOT NULL");
-    expect(submitFn).toContain("color_asignado_en = CASE");
+    expect(submitFn).not.toContain("WHEN COALESCE(p_preserve_color, false)");
+    expect(submitFn).not.toContain("color_asignado_en = CASE");
+    const hatchFn = PUBLIC_FUNCTIONS.get("hatch_profile_identity") ?? "";
+    expect(hatchFn).toContain("color_asignado_en = COALESCE(color_asignado_en, now())");
   });
 });
 
@@ -504,5 +535,209 @@ describe("fase 5 idempotent match notifications migration", () => {
     expect(fn).toContain("match_set_hash");
     expect(fn).toContain("v_last_romance_hash IS DISTINCT FROM v_romance_hash");
     expect(fn).toContain("v_last_amistad_hash IS DISTINCT FROM v_amistad_hash");
+  });
+});
+
+/**
+ * The identity contract, checked textually because CI has no database.
+ * Each assertion is one clause of the golden rule: the name is stored, unique,
+ * uneditable after hatching, absent while in the egg, and never reassembled.
+ */
+describe("identity single source migration", () => {
+  const COLUMNS = [
+    "estado_identidad",
+    "alias_animal",
+    "alias_color",
+    "alias_sufijo",
+    "alias_completo",
+    "enneagram_code",
+    "eclosionado_en",
+    "revelacion_vista",
+  ];
+
+  it("adds every identity column and keeps both states well formed", () => {
+    for (const column of COLUMNS) {
+      expect(IDENTITY_SQL).toContain(`ADD COLUMN IF NOT EXISTS ${column}`);
+    }
+    expect(IDENTITY_SQL).toContain("CHECK (estado_identidad IN ('huevo', 'eclosionado'))");
+    expect(IDENTITY_SQL).toContain("profiles_enneagram_code_format");
+    expect(IDENTITY_SQL).toMatch(/enneagram_code ~ '\^\[1-9\]\(w\[1-9\]\)\?\$'/);
+  });
+
+  it("an egg carries no animal, colour or alias at all", () => {
+    expect(IDENTITY_SQL).toContain("profiles_identity_shape");
+    expect(IDENTITY_SQL).toContain("WHEN 'huevo' THEN");
+    for (const column of ["animal_id", "color_id", "alias", "alias_animal", "alias_color", "alias_sufijo", "alias_completo", "eclosionado_en"]) {
+      expect(IDENTITY_SQL).toContain(`${column} IS NULL`);
+    }
+  });
+
+  it("makes the canonical name unique and non-editable", () => {
+    expect(IDENTITY_SQL).toContain("CREATE UNIQUE INDEX IF NOT EXISTS profiles_alias_completo_key");
+    expect(IDENTITY_SQL).toContain("private.reject_identity_mutation()");
+    expect(IDENTITY_SQL).toContain("CREATE TRIGGER profiles_identity_immutable");
+    expect(IDENTITY_SQL).toContain("RAISE EXCEPTION 'identity is frozen after hatching");
+    // The suffix alphabet is 21 letters, no vowels, exactly four of them.
+    expect(IDENTITY_SQL).toContain("[BCDFGHJKLMNPQRSTVWXYZ]{4}");
+  });
+
+  it("hatches once, idempotently, and lets the unique index break ties", () => {
+    const fn = PUBLIC_FUNCTIONS.get("hatch_profile_identity") ?? "";
+    expect(fn).toContain("FOR UPDATE");
+    expect(fn).toContain("RETURN v_alias");
+    expect(fn).toContain("ERRCODE = '23505'");
+    expect(fn).toContain("eclosionado_en = now()");
+    expect(fn).toContain("public.animals");
+    expect(fn).toContain("public.colors");
+  });
+
+  it("writes the submission and the hatch inside one function, so one transaction covers both", () => {
+    const fn = PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "";
+    expect(fn).toContain("public.hatch_profile_identity(");
+    // `p_alias` is ignored: the three parts are the only way in.
+    expect(fn).not.toMatch(/alias\s*=\s*p_alias\b/);
+    // The emblem is only ever written by the hatch itself.
+    expect(fn).not.toContain("avatar_mark = p_avatar_mark");
+  });
+
+  it("reads names from the stored record and never reassembles them", () => {
+    const matches = PUBLIC_FUNCTIONS.get("get_user_matches") ?? "";
+    for (const column of ["other_alias", "other_animal", "other_color"]) {
+      expect(matches).not.toContain(column);
+    }
+    expect(matches).toContain("p.estado_identidad = 'eclosionado'");
+
+    const notify = PUBLIC_FUNCTIONS.get("notify_matches") ?? "";
+    expect(notify).toContain("COALESCE(p.alias_completo, p.alias)");
+    expect(notify).not.toContain("p.alias_animal || ' ' || p.alias_color");
+    // A notification never announces a match for somebody still in the egg.
+    expect(notify).toContain("v_estado = 'huevo'");
+
+    const list = PUBLIC_FUNCTIONS.get("admin_list_users") ?? "";
+    expect(list).toContain("p.alias_completo");
+    expect(list).toContain("p.estado_identidad");
+    // The console gets one nested `identity` object: the stored record
+    // projected, never a flat name assembled here or from the catalogue.
+    expect(list).toContain("'identity', jsonb_build_object(");
+    for (const field of [
+      "'estadoIdentidad', p.estado_identidad",
+      "'aliasCompleto', p.alias_completo",
+      "'aliasAnimal', p.alias_animal",
+      "'aliasColor', p.alias_color",
+      "'aliasSufijo', p.alias_sufijo",
+      "'animalId', p.animal_id",
+      "'colorId', p.color_id",
+      "'mbtiCode', p.mbti_code",
+      "'enneagramCode', p.enneagram_code",
+      "'mark', p.avatar_mark",
+      "'revelacionVista', p.revelacion_vista",
+    ]) {
+      expect(list, field).toContain(field);
+    }
+    // A flat `alias`/`animal`/`color`/`mbti` field is a second route to a name.
+    for (const flat of ["'alias'", "'animal'", "'color'", "'mbti'"]) {
+      expect(list, flat).not.toContain(flat);
+    }
+    // Searching a legacy alias would keep the dropped column alive.
+    expect(list.match(/alias_completo, ''\) ILIKE v_pattern/g)?.length).toBe(2);
+    expect(list).not.toMatch(/p\.alias[,)]/);
+
+    // Metrics aggregate over the stored record; an egg has no animal or colour,
+    // so it is counted separately and stays out of both breakdowns.
+    const dashboard = PUBLIC_FUNCTIONS.get("get_admin_dashboard") ?? "";
+    expect(dashboard).toContain("'huevos', (SELECT count(*) FROM public.profiles WHERE estado_identidad = 'huevo')");
+    expect(dashboard).toContain("jsonb_build_object('id', t.id, 'name', t.name, 'count', t.total)");
+    expect(dashboard).toContain("GROUP BY p.animal_id, a.diminutivo_es");
+    expect(dashboard).toContain("GROUP BY p.color_id, c.nombre");
+    expect(dashboard.match(/WHERE p\.estado_identidad = 'eclosionado'/g)?.length).toBe(2);
+
+    // Moderation names the people from the frozen alias too.
+    const reports = PUBLIC_FUNCTIONS.get("admin_list_reports") ?? "";
+    expect(reports).toContain("'reporterAlias', rp.alias_completo");
+    expect(reports).toContain("'reportedAlias', rd.alias_completo");
+    expect(reports).not.toMatch(/r[pd]\.alias[,)]/);
+
+    // No SQL anywhere concatenates a catalogue diminutive with a colour name.
+    expect(IDENTITY_SQL).not.toMatch(/diminutivo_es\s*\|\|\s*' '\s*\|\|\s*\w*\.?nombre/);
+    expect(IDENTITY_SQL).not.toMatch(/a\.diminutivo_es\s*\|\|\s*' '\s*\|\|\s*c\.nombre/);
+  });
+
+  it("keeps the reset path honest: an admin reset returns the person to an egg", () => {
+    const fn = PUBLIC_FUNCTIONS.get("admin_reset_quiz") ?? "";
+    for (const column of COLUMNS) {
+      expect(fn).toContain(`${column} = `);
+    }
+    expect(fn).toContain("estado_identidad = 'huevo'");
+    expect(fn).toContain("revelacion_vista = false");
+  });
+
+  it("runs in one transaction and is repeatable", () => {
+    expect(IDENTITY_SQL).toMatch(/^BEGIN;/m);
+    expect(IDENTITY_SQL).toMatch(/^COMMIT;/m);
+    expect(IDENTITY_SQL).toContain("ADD COLUMN IF NOT EXISTS");
+    expect(IDENTITY_SQL).toContain("DROP CONSTRAINT IF EXISTS");
+    expect(IDENTITY_SQL).toContain("CREATE OR REPLACE FUNCTION");
+    expect(IDENTITY_SQL).toContain("DROP TRIGGER IF EXISTS");
+    // The only destructive verbs are scoped UPDATEs on profiles.
+    expect(IDENTITY_SQL).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
+  });
+
+  it("step 2 only drops what the new read path has already stopped using", () => {
+    expect(IDENTITY_DROP_SQL).toMatch(/^BEGIN;/m);
+    expect(IDENTITY_DROP_SQL).toMatch(/^COMMIT;/m);
+    expect(IDENTITY_DROP_SQL).toContain("DROP COLUMN IF EXISTS alias");
+    expect(IDENTITY_DROP_SQL).toContain("IF EXISTS");
+    // It never drops the canonical columns.
+    for (const column of ["alias_completo", "alias_animal", "alias_color", "alias_sufijo", "estado_identidad"]) {
+      expect(IDENTITY_DROP_SQL).not.toContain(`DROP COLUMN IF EXISTS ${column}`);
+    }
+    // Every object that still touched the legacy column is rewritten first.
+    for (const [qualifier, name] of [
+      ["private", "reject_identity_mutation"],
+      ["public", "hatch_profile_identity"],
+      ["public", "admin_reset_quiz"],
+      ["public", "notify_matches"],
+      ["public", "submit_quiz_result"],
+    ]) {
+      expect(IDENTITY_DROP_SQL, name).toContain(`CREATE OR REPLACE FUNCTION ${qualifier}.${name}(`);
+    }
+    // After those rewrites the only mentions left are the precondition that
+    // proves the column is redundant, its two error texts and the DROP itself.
+    const code = lf(IDENTITY_DROP_SQL)
+      .split("\n")
+      .map((line) => line.split("--")[0])
+      .join("\n");
+    expect(code).not.toMatch(/(?:\b\w+)\.alias(?![A-Za-z0-9_])/);
+    expect(code).not.toMatch(/^\s*alias\s*=/m);
+    const trigger = IDENTITY_DROP_SQL.match(/CREATE TRIGGER profiles_identity_immutable[\s\S]*?EXECUTE FUNCTION/)?.[0] ?? "";
+    expect(trigger).not.toMatch(/[,( ]alias[,\s)]/);
+    // The console functions are not rewritten twice: step 1 already reads only
+    // `alias_completo`, so a second version would be a second read path.
+    for (const name of ["get_user_matches", "admin_list_users", "admin_list_reports", "get_admin_dashboard"]) {
+      expect(IDENTITY_DROP_SQL, name).not.toContain(`FUNCTION public.${name}(`);
+    }
+  });
+
+  it("leaves no live name read on the legacy column", () => {
+    for (const [name, definition] of PUBLIC_FUNCTIONS) {
+      const code = lf(definition)
+        .split("\n")
+        .map((line) => line.split("--")[0])
+        .join("\n");
+      if (name === "notify_matches") {
+        // The one deliberate fallback, and it disappears in step 2.
+        expect(code).toContain("COALESCE(p.alias_completo, p.alias)");
+        continue;
+      }
+      expect(code, name).not.toMatch(/\w\.alias(?![A-Za-z0-9_])/);
+    }
+  });
+
+  it("adds the identity notice as one typed event per person", () => {
+    expect(IDENTITY_SQL).toContain(
+      "CHECK (type IN ('match_romance', 'match_amistad', 'no_match', 'welcome', 'chat', 'identity'))",
+    );
+    expect(IDENTITY_SQL).toContain("CREATE UNIQUE INDEX IF NOT EXISTS notifications_identity_unique_idx");
+    expect(IDENTITY_SQL).toContain("ON public.notifications (user_id) WHERE type = 'identity'");
   });
 });

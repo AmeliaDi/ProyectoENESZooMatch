@@ -4,7 +4,7 @@ import { ADMIN_CONFIG } from "@/config";
 import { MS_PER_MINUTE } from "@/domain/chat";
 
 import { MemoryStore, instantScheduler, memoryMatches, memoryProfiles, plainPinHasher } from "../testing/in-memory";
-import { MemoryAdmin, adminUser, memoryAdminConsole } from "../testing/memory-admin";
+import { MemoryAdmin, adminUser, hatchedIdentity, memoryAdminConsole } from "../testing/memory-admin";
 import { adminLogin } from "./login";
 import { listAudit, listUsers, recomputeAudited, reviewReport, runUserAction } from "./users";
 
@@ -14,9 +14,16 @@ const MATRICULA = "900000001";
 const PIN = "4826";
 const START = new Date("2026-11-03T12:00:00.000Z");
 
+const ADMIN_IDENTITY = hatchedIdentity({
+  aliasCompleto: "observadora gris neblina · KMPQ",
+  aliasAnimal: "observadora",
+  aliasColor: "gris neblina",
+});
+const ADMIN_ALIAS = ADMIN_IDENTITY.aliasCompleto;
+
 async function setup() {
   const store = new MemoryAdmin();
-  store.users.set(ADMIN, adminUser(ADMIN, { isAdmin: true, alias: "Observadora" }));
+  store.users.set(ADMIN, adminUser(ADMIN, { isAdmin: true, identity: ADMIN_IDENTITY }));
   store.users.set(OTHER, adminUser(OTHER, { hasChatPin: true }));
   store.matriculas.set(MATRICULA, ADMIN);
   store.matriculas.set("900000002", OTHER);
@@ -30,13 +37,14 @@ async function setup() {
   return { store, console, deps, login: { console, hasher: plainPinHasher, clock }, advance: (ms: number) => { now = new Date(now.getTime() + ms); } };
 }
 
-const actor = { userId: ADMIN, alias: "Observadora" };
+const actor = { userId: ADMIN, identity: ADMIN_IDENTITY };
 
 describe("admin login (ADR-036)", () => {
   it("opens with the right matrícula and PIN and audits the login", async () => {
     const { login, store } = await setup();
-    expect(await adminLogin(MATRICULA, PIN, login)).toEqual({ ok: true, value: { userId: ADMIN, alias: "Observadora" } });
+    expect(await adminLogin(MATRICULA, PIN, login)).toEqual({ ok: true, value: { userId: ADMIN, identity: ADMIN_IDENTITY } });
     expect(store.audit.map((e) => e.action)).toEqual(["login"]);
+    expect(store.audit.at(-1)?.adminAlias).toBe(ADMIN_ALIAS);
   });
 
   it("answers the same admin.invalid for an unknown matrícula, a non-admin and a wrong PIN", async () => {
@@ -78,17 +86,17 @@ describe("admin user control (ADR-036)", () => {
     expect(page.ok && page.value.users[0]?.id).toBe(ADMIN);
   });
 
-  it("resets a quiz keeping the alias, audits it and republishes matches", async () => {
+  it("resets a quiz keeping the frozen identity, audits it and republishes matches", async () => {
     const { deps, store } = await setup();
-    const alias = store.users.get(OTHER)?.alias;
+    const identity = store.users.get(OTHER)?.identity;
     expect(await runUserAction(actor, OTHER, "reset_quiz", deps)).toEqual({ ok: true, value: { recomputePending: false } });
-    expect(store.users.get(OTHER)).toMatchObject({ alias, quizCompletedAt: null, animal: null });
-    expect(store.audit.at(-1)).toMatchObject({ action: "reset_quiz", targetUser: OTHER, targetAlias: alias, adminId: ADMIN });
+    expect(store.users.get(OTHER)).toMatchObject({ identity, quizCompletedAt: null, romanceMatches: 0 });
+    expect(store.audit.at(-1)).toMatchObject({ action: "reset_quiz", targetUser: OTHER, targetAlias: identity?.aliasCompleto, adminId: ADMIN });
   });
 
-  it("deletes an account and keeps the audit entry with the captured alias", async () => {
+  it("deletes an account and keeps the audit entry with the captured name", async () => {
     const { deps, store } = await setup();
-    const alias = store.users.get(OTHER)?.alias;
+    const alias = store.users.get(OTHER)?.identity.aliasCompleto;
     expect((await runUserAction(actor, OTHER, "delete", deps)).ok).toBe(true);
     expect(store.users.has(OTHER)).toBe(false);
     expect(store.audit.at(-1)).toMatchObject({ action: "delete_user", targetAlias: alias });

@@ -1,3 +1,4 @@
+import { auditAlias } from "@/application/admin";
 import { clearAdminSession, requireAdmin } from "@/infrastructure/admin/admin-session.server";
 import { jsonResponse } from "@/infrastructure/http/responses";
 import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
@@ -10,7 +11,7 @@ async function handlePost(request: Request) {
   const gate = await requireAdmin(request);
   if (gate.ok) {
     const { actor, context } = gate.value;
-    await context.console.recordAudit({ adminId: actor.userId, adminAlias: actor.alias, action: "logout" });
+    await context.console.recordAudit({ adminId: actor.userId, adminAlias: auditAlias(actor.identity), action: "logout" });
   }
   const response = jsonResponse({ ok: true });
   clearAdminSession(response);

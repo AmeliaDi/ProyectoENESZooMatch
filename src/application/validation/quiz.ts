@@ -121,7 +121,6 @@ export const privacyUpdateSchema = z.union([
   z.strictObject({ paused: z.boolean() }),
   z.strictObject({ showAvatarDetail: z.boolean() }),
   z.strictObject({ sharedLayers: z.array(z.enum(SHARE_LAYER_IDS)).max(SHARE_LAYER_IDS.length) }),
-  z.strictObject({ reassignColor: z.literal(true) }),
 ]);
 
 export const notificationIdsSchema = z.object({

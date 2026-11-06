@@ -26,9 +26,6 @@ export { supabaseProfileRepository } from "./profile-repository";
 const matchRowSchema = z.object({
   track: z.enum(["romance", "amistad"]),
   other_user: z.string().nullable().optional(),
-  other_alias: z.string().nullable().optional(),
-  other_animal: z.string().nullable().optional(),
-  other_color: z.string().nullable().optional(),
   similarity: z.number(),
   badges: z.array(z.object({ dimension: z.string(), affinity: z.number() })).nullable().optional(),
 });
@@ -67,9 +64,6 @@ export function supabaseMatchRepository(admin: SupabaseClient): MatchRepository 
         rows.data.map((row) => ({
           track: row.track,
           otherUser: row.other_user ?? null,
-          otherAlias: row.other_alias ?? null,
-          otherAnimal: row.other_animal ?? null,
-          otherColor: row.other_color ?? null,
           similarity: row.similarity,
           badges: row.badges ?? [],
         })),

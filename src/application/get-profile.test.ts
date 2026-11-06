@@ -5,36 +5,64 @@ import { SELF_READING } from "@/config/self-reading";
 
 
 import { getProfile, type GetProfileDeps } from "./get-profile";
-import type { OwnProfile, StoredMatch } from "./ports";
+import type { CounterpartProfile, OwnProfile, StoredMatch } from "./ports";
 import { MemoryStore, memoryMatches, memoryProfiles } from "./testing/in-memory";
 
 const VIEWER = "00000000-0000-4000-8000-00000000000a";
 const FACTORS = SELF_READING.sections.flatMap((s) => s.scales.map((x) => x.factor));
 
 const OWN: OwnProfile = {
-  alias: "zorrito ámbar",
+  identity: {
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: "zorrito naranja mandarina · DRRS",
+    aliasAnimal: "zorrito",
+    aliasColor: "naranja mandarina",
+    aliasSufijo: "DRRS",
+    animalId: "zorrito",
+    colorId: "ennea-7",
+    mbtiCode: "INFP",
+    enneagramCode: "7w6",
+    narrative: "Una narrativa",
+    mark: "sx",
+    revelacionVista: false,
+    quizCompletedAt: "2026-10-31T00:00:00.000Z",
+  },
   narrative: "Una narrativa",
-  mbtiCode: "INFP",
   animal: { id: "zorrito", diminutivo_es: "zorrito", categoria_fauna: "mamifero" },
   color: { id: "ennea-7", nombre: "Naranja mandarina", hex: "#C05722" },
-  mark: "sx",
   latent: {
     theta: Object.fromEntries(FACTORS.map((f, i) => [f, i % 2 === 0 ? 1.3 : -0.2])),
     se: Object.fromEntries(FACTORS.map((f) => [f, 0.55])),
     quality: 0.9,
     answered: 60,
   },
+  normalizedScores: null,
   completedModules: [],
 };
 
 const match = (similarity: number, i: number): StoredMatch => ({
   track: "amistad",
   otherUser: `00000000-0000-4000-8000-0000000000${10 + i}`,
-  otherAlias: `alias ${i}`,
-  otherAnimal: "pulpito",
-  otherColor: "Azul abisal",
   similarity,
   badges: [],
+});
+
+/** The counterpart as the pool stores them: their own frozen identity, no names invented here. */
+const counterpart = (i: number): CounterpartProfile => ({
+  userId: `00000000-0000-4000-8000-0000000000${10 + i}`,
+  estadoIdentidad: "eclosionado",
+  aliasCompleto: `pulpito violeta amatista · KMP${i}`,
+  aliasAnimal: "pulpito",
+  aliasColor: "violeta amatista",
+  aliasSufijo: `KMP${i}`,
+  mbtiCode: "ENFP",
+  enneagramCode: "4w5",
+  latent: null,
+  animalId: "pulpito",
+  colorId: "ennea-4",
+  mark: "so",
+  showAvatarDetail: false,
+  sharedLayers: [],
 });
 
 function wire(store: MemoryStore): GetProfileDeps {
@@ -50,6 +78,7 @@ describe("getProfile", () => {
     const store = new MemoryStore();
     store.own = OWN;
     store.stored = [match(0.8, 1)];
+    store.counterparts = [counterpart(1)];
     const result = await getProfile(VIEWER, wire(store));
     if (!result.ok) throw new Error("expected ok");
     const json = JSON.stringify(result.value);
@@ -63,6 +92,7 @@ describe("getProfile", () => {
     const store = new MemoryStore();
     store.own = OWN;
     store.stored = [0.71, 0.93, 0.8, 0.88, 0.75].map(match);
+    store.counterparts = [0, 1, 2, 3, 4].map(counterpart);
     const result = await getProfile(VIEWER, wire(store));
     if (!result.ok) throw new Error("expected ok");
     const { amistad, romance } = result.value.affinities;

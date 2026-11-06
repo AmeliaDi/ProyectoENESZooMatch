@@ -26,6 +26,8 @@ export const TABLE = {
 } as const;
 export const RPC = {
   submit: "submit_quiz_result",
+  hatch: "hatch_profile_identity",
+  markRevealed: "mark_identity_revealed",
   poolVersion: "get_pool_version",
   replace: "replace_matches",
   userMatches: "get_user_matches",

@@ -3,7 +3,7 @@
  * never θ, SE, vectors, answers, filters or anything about other people
  * beyond the aliases already visible in the result.
  */
-import type { SpriteMark } from "./result";
+import type { IdentityDto } from "./identity";
 
 export type ReadingConfidenceDto = "clara" | "tentativa" | "abierta";
 export type ReadingLeaningDto = "bajo" | "medio" | "alto";
@@ -31,17 +31,15 @@ export interface SectionReadingDto {
 }
 
 export interface AffinitySummaryDto {
-  alias: string;
-  animal: string;
+  /** Counterpart identity, already filtered by their sharing choices. */
+  identity: IdentityDto;
   /** Rounded estimated affinity in %. */
   percent: number;
 }
 
 export interface ProfileDto {
-  alias: string;
-  animal: { id: string; name: string };
-  color: { id: string; name: string; hex: string };
-  mark: SpriteMark | null;
+  /** Stored identity of the owner; the only source of the displayed name. */
+  identity: IdentityDto;
   narrative: string;
   mbti: { code: string; balancedAxes: number };
   enneagram: { code: string; name: string; archetype: string; exploring: boolean };

@@ -8,7 +8,9 @@ import type { AdminConsoleRepository, AdminDeps, AdminLoginDeps } from "@/applic
 import type { ChatRecoveryDeps, ConversationRepository, InterestDeps, InvitationDeps } from "@/application/chat";
 import type { AppError } from "@/application/errors";
 import type { GetResultDeps } from "@/application/get-result";
+import type { HatchDeps } from "@/application/hatch";
 import type { PrivacyDeps } from "@/application/privacy";
+import type { RevelationDeps } from "@/application/revelation";
 import type { AdminRepository, NotificationRepository, PinHasher, Scheduler } from "@/application/ports";
 import type { RecomputeDeps } from "@/application/recompute-matches";
 import { recomputeMatches } from "@/application/recompute-matches";
@@ -67,34 +69,61 @@ export async function refineContext(): Promise<Result<{ userId: string; deps: Re
   if (!auth.ok) return auth;
   const admin = createAdminClient();
   if (!admin) return err("service.unavailable");
+  const profiles = supabaseProfileRepository(admin);
+  const env = getServerEnv();
+  if (!env) return err("service.unavailable");
   return ok({
     userId: auth.value.userId,
     deps: {
-      profiles: supabaseProfileRepository(admin),
+      profiles,
       matches: supabaseMatchRepository(admin),
       notifications: supabaseNotificationRepository(admin, auth.value.session),
       scheduler: systemScheduler,
       latentScorer: serverLatentScorer,
+      secret: env.MATRICULA_HMAC_SECRET,
     },
   });
 }
 
-
+/**
+ * Result and "Tu carta" both read the frozen identity, so both first make sure
+ * a person whose core is complete is no longer an egg (a submission that lost
+ * the deploy window self-heals here, once, and never again).
+ */
 export async function resultContext(): Promise<
-  Result<{ userId: string; deps: GetResultDeps }, Failure>
+  Result<{ userId: string; deps: GetResultDeps; hatch: HatchDeps }, Failure>
 > {
   const auth = await authenticated();
   if (!auth.ok) return auth;
   const admin = createAdminClient();
   if (!admin) return err("service.unavailable");
+  const env = getServerEnv();
+  if (!env) return err("service.unavailable");
+  const profiles = supabaseProfileRepository(admin);
   return ok({
     userId: auth.value.userId,
     deps: {
-      profiles: supabaseProfileRepository(admin),
+      profiles,
       matches: supabaseMatchRepository(admin),
       digest: sha256Hex,
     },
+    hatch: { profiles, secret: env.MATRICULA_HMAC_SECRET },
   });
+}
+
+/**
+ * Fase 4: the revelation is shown exactly once. The write is idempotent and
+ * concurrency-safe (the RPC flips one boolean inside a transaction), so a
+ * double tap or a reopened tab can never repeat the animation.
+ */
+export async function revelationContext(): Promise<
+  Result<{ userId: string; deps: RevelationDeps }, Failure>
+> {
+  const auth = await authenticated();
+  if (!auth.ok) return auth;
+  const admin = createAdminClient();
+  if (!admin) return err("service.unavailable");
+  return ok({ userId: auth.value.userId, deps: { profiles: supabaseProfileRepository(admin) } });
 }
 
 export async function privacyContext(): Promise<

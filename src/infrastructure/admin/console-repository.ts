@@ -9,12 +9,19 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import type { AdminAttempts, AdminConsoleRepository, AuditEntryInput } from "@/application/admin";
+import { toIdentityDto } from "@/application/identity-dto";
 import { adminAuditEntrySchema, adminReportPageSchema, adminUserPageSchema } from "@/contracts/admin";
 import { ok } from "@/domain/shared";
 import { hashMatricula } from "@/infrastructure/auth/identity.server";
 import { RPC, TABLE, attempt, failed } from "@/infrastructure/supabase/shared";
 
 const date = z.string().transform((value) => new Date(value));
+/**
+ * The identity as it is stored. `alias_completo` is the only name column and
+ * it is read as written on eclosion — the console never assembles a name.
+ */
+const IDENTITY_COLUMNS =
+  "user_id, matricula_hash, estado_identidad, alias_completo, alias_animal, alias_color, alias_sufijo, animal_id, color_id, mbti_code, enneagram_code, avatar_mark, revelacion_vista";
 const credentialSchema = z.object({
   pin_hash: z.string(),
   salt: z.string(),
@@ -23,6 +30,21 @@ const credentialSchema = z.object({
   pause_step: z.number().int(),
   locked_until: date.nullable(),
   revision: z.number().int(),
+});
+const accountRowSchema = z.object({
+  user_id: z.string(),
+  matricula_hash: z.string(),
+  estado_identidad: z.enum(["huevo", "eclosionado"]).catch("huevo"),
+  alias_completo: z.string().nullable().catch(null),
+  alias_animal: z.string().nullable().catch(null),
+  alias_color: z.string().nullable().catch(null),
+  alias_sufijo: z.string().nullable().catch(null),
+  animal_id: z.string().nullable().catch(null),
+  color_id: z.string().nullable().catch(null),
+  mbti_code: z.string().nullable().catch(null),
+  enneagram_code: z.string().nullable().catch(null),
+  avatar_mark: z.enum(["sp", "so", "sx"]).nullable().catch(null),
+  revelacion_vista: z.boolean().catch(false),
 });
 const auditRowSchema = z.object({
   id: z.string(),
@@ -55,14 +77,35 @@ function account(admin: SupabaseClient, secret: string): Pick<AdminConsoleReposi
     async findAccount(matricula) {
       const digest = hashMatricula(matricula, secret);
       const res = await attempt(() =>
-        admin.from(TABLE.profiles).select("user_id, alias, matricula_hash").eq("matricula_hash", digest)
-          .maybeSingle<{ user_id: string; alias: string | null; matricula_hash: string }>(),
+        admin.from(TABLE.profiles).select(IDENTITY_COLUMNS).eq("matricula_hash", digest).maybeSingle(),
       );
       if (!res || res.error) return failed;
-      const row = res.data;
-      if (!row) return ok(null);
+      if (!res.data) return ok(null);
+      const parsed = accountRowSchema.safeParse(res.data);
+      if (!parsed.success) return failed;
+      const row = parsed.data;
       const same = row.matricula_hash.length === digest.length && timingSafeEqual(Buffer.from(row.matricula_hash), Buffer.from(digest));
-      return ok(same ? { userId: row.user_id, alias: row.alias } : null);
+      if (!same) return ok(null);
+      // Only the name of the audit row needs projecting; the narrative and the
+      // quiz date are not columns of this read and never reach the console.
+      return ok({
+        userId: row.user_id,
+        identity: toIdentityDto({
+          estadoIdentidad: row.estado_identidad,
+          aliasCompleto: row.alias_completo,
+          aliasAnimal: row.alias_animal,
+          aliasColor: row.alias_color,
+          aliasSufijo: row.alias_sufijo,
+          animalId: row.animal_id,
+          colorId: row.color_id,
+          mbtiCode: row.mbti_code,
+          enneagramCode: row.enneagram_code,
+          narrative: null,
+          mark: row.avatar_mark,
+          revelacionVista: row.revelacion_vista,
+          quizCompletedAt: null,
+        }),
+      });
     },
     async isAdmin(userId) {
       const res = await attempt(() => admin.from(TABLE.roles).select("role").eq("user_id", userId).eq("role", "admin").maybeSingle());

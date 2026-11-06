@@ -6,6 +6,7 @@ import { buildMeasurementModel, scoreLatent } from "@/domain/psychometrics/laten
 import type { LikertValue, QuizSubmission } from "@/types/microtest";
 
 import { getResult } from "./get-result";
+import { identityOf } from "./hatch";
 import { submitQuiz, type SubmitQuizDeps } from "./submit-quiz";
 import {
   MemoryStore,
@@ -18,6 +19,8 @@ import {
 const MODEL = buildMeasurementModel(PSYCHOMETRIC_PARAMS);
 const USER_A = "00000000-0000-4000-8000-00000000000a";
 const USER_B = "00000000-0000-4000-8000-00000000000b";
+/** Fixed test seed: `hatchIdentity` is deterministic, so the alias is reproducible. */
+const SECRET = "zm-test-secret";
 
 function submission(value: LikertValue): QuizSubmission {
   return {
@@ -39,6 +42,7 @@ function wire(store: MemoryStore): SubmitQuizDeps {
     notifications: memoryNotifications(store),
     scheduler: instantScheduler,
     latentScorer: (responses) => scoreLatent(MODEL, responses, MATCHING_CONFIG.quality),
+    secret: SECRET,
   };
 }
 
@@ -53,20 +57,16 @@ describe("submitQuiz", () => {
     // Own profile only: display names, MBTI and enneagram for the reveal; no
     // vectors, scores or answers.
     expect(Object.keys(result.value.profile).sort()).toEqual([
-      "alias",
-      "animal",
-      "animalName",
-      "color",
-      "colorName",
       "enneagram",
-      "mark",
+      "identity",
       "mbtiCode",
       "narrative",
+      "progressPercent",
     ]);
     // A clear readout shows type (+ wing when it is distinguishable); an
     // ambiguous one never forces a type.
     expect(result.value.profile.enneagram.code).toMatch(/^([1-9](w[1-9])?|—)$/);
-    expect(result.value.profile.color).toMatch(/^ennea-/);
+    expect(result.value.profile.identity.colorId).toMatch(/^ennea-/);
     expect(store.results.get(USER_A)?.answers).toHaveLength(QUIZ_ITEMS.length);
   });
 
@@ -84,12 +84,18 @@ describe("submitQuiz", () => {
     const first = await submitQuiz({ userId: USER_A, submission: submission(5) }, deps);
     const second = await submitQuiz({ userId: USER_A, submission: submission(1) }, deps);
     if (!first.ok || !second.ok) throw new Error("submit failed");
-    // Opposite answers change the avatar, which would otherwise yield a new alias.
-    expect(second.value.profile.animal + second.value.profile.color).not.toBe(
-      first.value.profile.animal + first.value.profile.color,
-    );
-    expect(second.value.profile.alias).toBe(first.value.profile.alias);
-    expect(store.results.get(USER_A)?.identity.alias).toBe(first.value.profile.alias);
+    // Opposite answers change the avatar the hatch would propose, which would
+    // otherwise yield a new alias.
+    const rescored = store.results.get(USER_A)!;
+    const proposed = identityOf(USER_A, rescored.scored, SECRET, new Set());
+    expect([proposed.animalId, proposed.colorId, proposed.mark]).not.toEqual([
+      first.value.profile.identity.animalId,
+      first.value.profile.identity.colorId,
+      first.value.profile.identity.mark,
+    ]);
+    expect(second.value.profile.identity).toEqual(first.value.profile.identity);
+    expect(second.value.profile.identity.aliasCompleto).toBe(first.value.profile.identity.aliasCompleto);
+    expect(store.identities.get(USER_A)?.aliasCompleto).toBe(first.value.profile.identity.aliasCompleto);
   });
 
   it("is deterministic for the same user and answers", async () => {

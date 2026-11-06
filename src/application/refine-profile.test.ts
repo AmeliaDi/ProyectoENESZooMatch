@@ -12,6 +12,8 @@ import { MemoryStore, instantScheduler, memoryMatches, memoryNotifications, memo
 const MODEL = buildMeasurementModel(PSYCHOMETRIC_PARAMS);
 const USER = "00000000-0000-4000-8000-00000000000a";
 const MODULE: QuizModuleId = "intereses";
+/** Fixed test seed: `hatchIdentity` is deterministic, so the alias is reproducible. */
+const SECRET = "zm-test-secret";
 
 const coreOnly = (value: LikertValue): QuizSubmission => ({
   likert: CORE_ITEMS.filter((i) => i.tipo_respuesta === "likert_5").map((i) => ({ itemId: i.id, value })),
@@ -28,6 +30,7 @@ function wire(store: MemoryStore): RefineDeps {
     notifications: memoryNotifications(store),
     scheduler: instantScheduler,
     latentScorer: (responses) => scoreLatent(MODEL, responses, MATCHING_CONFIG.quality),
+    secret: SECRET,
   };
 }
 
@@ -76,7 +79,7 @@ describe("refineProfile", () => {
     const initial = await submitQuiz({ userId: USER, submission: coreOnly(3) }, deps);
     expect(initial.ok).toBe(true);
     if (!initial.ok) return;
-    const initialColor = initial.value.profile.color;
+    const initialColor = initial.value.profile.identity.colorId;
 
     // Now complete the eneagrama module with strongly polarized answers toward a single type
     const enneaItems = QUIZ_ITEMS.filter((i) => i.modulo === "eneagrama" && i.tipo_respuesta === "likert_5").map(
@@ -89,7 +92,8 @@ describe("refineProfile", () => {
     expect(refined.ok).toBe(true);
     if (!refined.ok) return;
 
-    expect(refined.value.profile.color).toBe(initialColor);
-    expect(store.results.get(USER)?.identity.colorId).toBe(initialColor);
+    expect(refined.value.profile.identity.colorId).toBe(initialColor);
+    expect(refined.value.profile.identity).toEqual(initial.value.profile.identity);
+    expect(store.identities.get(USER)?.colorId).toBe(initialColor);
   });
 });

@@ -9,7 +9,7 @@ import { chargeAttempt, clearAttempts, pauseSecondsLeft, type AttemptPolicy, typ
 import { err, ok, type Result } from "@/domain/shared";
 
 import type { AppFailure } from "../errors";
-import type { AdminAccount, AdminAttempts, AdminCredential, AdminLoginDeps } from "./ports";
+import { auditAlias, type AdminAccount, type AdminAttempts, type AdminCredential, type AdminLoginDeps } from "./ports";
 
 const POLICY: AttemptPolicy = {
   perStep: ADMIN_CONFIG.attempts.perStep,
@@ -60,14 +60,14 @@ export async function adminLogin(matricula: string, pin: string, deps: AdminLogi
     await deps.hasher.hash(DECOY_ID, pin);
     return err(invalid);
   }
-  const { userId, alias } = account.value;
+  const { userId, identity } = account.value;
   const matches = await deps.hasher.verify(userId, pin, charged.value.credential.digest);
   if (!matches) {
-    await deps.console.recordAudit({ adminId: userId, adminAlias: alias, action: "login_failed" });
+    await deps.console.recordAudit({ adminId: userId, adminAlias: auditAlias(identity), action: "login_failed" });
     const paused = charged.value.paused;
     return err(paused > 0 ? { code: "admin.paused", retryAfter: paused } : invalid);
   }
   await deps.console.updateAttempts(userId, null, fromState(clearAttempts()));
-  await deps.console.recordAudit({ adminId: userId, adminAlias: alias, action: "login" });
+  await deps.console.recordAudit({ adminId: userId, adminAlias: auditAlias(identity), action: "login" });
   return ok(account.value);
 }

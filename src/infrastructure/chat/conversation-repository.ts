@@ -8,7 +8,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import type { ConversationRepository, ConversationRow } from "@/application/chat";
+import { counterpartIdentity } from "@/application/identity-dto";
 import { CHAT_CONFIG } from "@/config";
+import type { IdentityDto } from "@/contracts/identity";
+import type { SpriteMark } from "@/contracts/result";
 import { ok } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
 import { latentSchema } from "@/infrastructure/supabase/profile-repository";
@@ -31,6 +34,9 @@ const conversationSchema = z.object({
   last_actor: z.string().nullable(), created_at: date, updated_at: date,
 });
 const interestSchema = z.object({ from_user: z.string(), to_user: z.string(), track, created_at: date, declined_at: z.string().nullable() });
+/** The stored identity, read as written on eclosion; no name is built here. */
+const PEER_COLUMNS =
+  "user_id, estado_identidad, alias_completo, alias_animal, alias_color, alias_sufijo, animal_id, color_id, mbti_code, enneagram_code, avatar_mark, show_avatar_detail";
 const roundSchema = z.object({
   conversation_id: z.string(), idx: z.number().int(), asker: z.string(),
   prompt_id: z.string().nullable(), custom_text: z.string().nullable(),
@@ -39,7 +45,12 @@ const roundSchema = z.object({
 const answerSchema = z.object({ conversation_id: z.string(), author: z.string(), round: z.number().int(), passed: z.boolean(), body: z.string().optional() });
 const messageSchema = z.object({ id: z.string(), author: z.string(), body: z.string(), created_at: date });
 const peerSchema = z.object({
-  user_id: z.string(), alias: z.string().nullable(), animal_id: z.string().nullable(), color_id: z.string().nullable(),
+  user_id: z.string(),
+  estado_identidad: z.enum(["huevo", "eclosionado"]).catch("huevo"),
+  alias_completo: z.string().nullable(), alias_animal: z.string().nullable(),
+  alias_color: z.string().nullable(), alias_sufijo: z.string().nullable(),
+  animal_id: z.string().nullable(), color_id: z.string().nullable(),
+  mbti_code: z.string().nullable(), enneagram_code: z.string().nullable(),
   avatar_mark: z.enum(["sp", "so", "sx"]).nullable().catch(null), show_avatar_detail: z.boolean(),
 });
 const outcomeSchema = z.discriminatedUnion("kind", [
@@ -136,6 +147,60 @@ function conversationReads(admin: SupabaseClient): Pick<Reads, "listFor" | "find
   };
 }
 
+/**
+ * One counterpart as the chat reads them. `identity` is what every screen
+ * renders; the loose name fields only mirror it, because the port row still
+ * carries them — they are projections of the same stored columns, never a
+ * second source of a name. `userId` stays on the server.
+ */
+export interface ChatPeerRecord {
+  userId: string;
+  alias: string | null;
+  animalId: string | null;
+  colorId: string | null;
+  mark: SpriteMark | null;
+  showAvatarDetail: boolean;
+  identity: IdentityDto;
+}
+
+/**
+ * `null` for anyone the chat must not show: an egg has no name, and a hatched
+ * row still missing any identity part would be read as an egg by the client,
+ * so it is dropped here instead of half-rendered on screen.
+ */
+function toPeerRecord(row: z.output<typeof peerSchema>): ChatPeerRecord | null {
+  if (row.estado_identidad !== "eclosionado") return null;
+  if (!row.alias_completo || !row.alias_sufijo || !row.animal_id || !row.color_id) return null;
+
+  // The chat reads neither the latent profile nor the shared reading layers.
+  const identity = counterpartIdentity({
+    userId: row.user_id,
+    estadoIdentidad: row.estado_identidad,
+    aliasCompleto: row.alias_completo,
+    aliasAnimal: row.alias_animal,
+    aliasColor: row.alias_color,
+    aliasSufijo: row.alias_sufijo,
+    mbtiCode: row.mbti_code,
+    enneagramCode: row.enneagram_code,
+    latent: null,
+    animalId: row.animal_id,
+    colorId: row.color_id,
+    mark: row.avatar_mark,
+    showAvatarDetail: row.show_avatar_detail,
+    sharedLayers: [],
+  });
+
+  return {
+    userId: row.user_id,
+    alias: identity.aliasCompleto,
+    animalId: identity.animalId,
+    colorId: identity.colorId,
+    mark: identity.mark,
+    showAvatarDetail: row.show_avatar_detail,
+    identity,
+  };
+}
+
 function otherReads(admin: SupabaseClient): Pick<Reads, "messages" | "recentMessagesBy" | "peers" | "latents"> {
   const toMessage = (m: z.output<typeof messageSchema>) => ({ id: m.id, author: m.author, body: m.body, at: m.created_at });
   return {
@@ -152,10 +217,10 @@ function otherReads(admin: SupabaseClient): Pick<Reads, "messages" | "recentMess
       return rows.ok ? ok(rows.value.map(toMessage)) : rows;
     },
     async peers(userIds) {
-      const rows = await select(() => admin.from(TABLE.profiles).select("user_id, alias, animal_id, color_id, avatar_mark, show_avatar_detail").in("user_id", [...userIds]), peerSchema);
-      return rows.ok ? ok(rows.value.map((p) => ({
-        userId: p.user_id, alias: p.alias, animalId: p.animal_id, colorId: p.color_id, mark: p.avatar_mark, showAvatarDetail: p.show_avatar_detail,
-      }))) : rows;
+      const rows = await select(() => admin.from(TABLE.profiles).select(PEER_COLUMNS).in("user_id", [...userIds])
+        .eq("estado_identidad", "eclosionado"), peerSchema);
+      if (!rows.ok) return rows;
+      return ok(rows.value.map(toPeerRecord).filter((p): p is ChatPeerRecord => p !== null));
     },
     async latents(userIds) {
       const rows = await select(() => admin.from(TABLE.profiles).select("user_id, latent_profile").in("user_id", [...userIds]), z.object({ user_id: z.string(), latent_profile: latentSchema }));

@@ -1,9 +1,11 @@
 /**
  * In-memory `AdminConsoleRepository` for use-case tests. Models the contract
- * of the Supabase adapter: revision-guarded attempts, alias kept on reset,
- * an audit trail that survives the deletion of its target.
+ * of the Supabase adapter: revision-guarded attempts, the identity kept
+ * frozen across a quiz reset, an audit trail that survives the deletion of
+ * its target.
  */
 import type { AdminUser, AdminUserPage, ReportStatus } from "@/contracts/admin";
+import type { IdentityDto } from "@/contracts/identity";
 import { err, ok } from "@/domain/shared";
 
 import type { StorageError } from "../errors";
@@ -11,10 +13,34 @@ import type { AdminConsoleRepository, AdminCredential, AuditEntryInput } from ".
 
 const failed = err<StorageError>("storage.failed");
 
+/** Identity as it would sit in the row after eclosion; nothing is computed here. */
+export function hatchedIdentity(patch: Partial<IdentityDto> = {}): IdentityDto {
+  return {
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: "cervatillo gris neblina · KMPQ",
+    aliasAnimal: "cervatillo",
+    aliasColor: "gris neblina",
+    aliasSufijo: "KMPQ",
+    animalId: "cervatillo",
+    colorId: "gris-neblina",
+    colorHex: "#888888",
+    mbtiCode: "INFP",
+    enneagramCode: "4w5",
+    enneagramName: "El individuo",
+    mark: "sp",
+    revelacionVista: true,
+    huevitoSeed: null,
+    ...patch,
+  };
+}
+
 export function adminUser(id: string, patch: Partial<AdminUser> = {}): AdminUser {
   return {
-    id, alias: `alias-${id.slice(0, 4)}`, animal: "Cervatillo", color: "Gris neblina", colorHex: "#888888", mbti: "INFP",
-    createdAt: "2026-11-01T00:00:00.000Z", quizCompletedAt: "2026-11-01T00:10:00.000Z", paused: false, adult: true,
+    id,
+    identity: hatchedIdentity(),
+    createdAt: "2026-11-01T00:00:00.000Z",
+    quizCompletedAt: "2026-11-01T00:10:00.000Z",
+    paused: false, adult: true,
     modules: 0, isAdmin: false, hasChatPin: false, romanceMatches: 1, amistadMatches: 2, conversations: 0, reportsReceived: 0,
     ...patch,
   };
@@ -35,12 +61,14 @@ function listing(store: MemoryAdmin): Pick<AdminConsoleRepository, "listUsers" |
     async findAccount(matricula) {
       const id = store.matriculas.get(matricula);
       const user = id ? store.users.get(id) : undefined;
-      return store.failRead ? failed : ok(user ? { userId: user.id, alias: user.alias } : null);
+      return store.failRead ? failed : ok(user ? { userId: user.id, identity: user.identity } : null);
     },
     isAdmin: async (userId) => ok(store.users.get(userId)?.isAdmin ?? false),
     async listUsers({ search, limit, offset }): Promise<ReturnType<typeof ok<AdminUserPage>> | typeof failed> {
       if (store.failRead) return failed;
-      const all = [...store.users.values()].filter((u) => (u.alias ?? "").toLowerCase().includes(search.toLowerCase()));
+      const all = [...store.users.values()].filter((u) =>
+        (u.identity.aliasCompleto ?? "").toLowerCase().includes(search.toLowerCase()),
+      );
       return ok({ total: all.length, users: all.slice(offset, offset + limit) });
     },
     findUser: async (userId) => (store.failRead ? failed : ok(store.users.get(userId) ?? null)),
@@ -61,8 +89,10 @@ function writes(store: MemoryAdmin): Omit<AdminConsoleRepository, "listUsers" | 
       store.credentials.set(userId, { ...current, attempts, revision: current.revision + 1 });
       return ok(true);
     },
+    // Eclosion happens once: a reset clears the readings and the affinities,
+    // never the identity already fixed on the row.
     resetQuiz: async (id) =>
-      ok(patch(id, { quizCompletedAt: null, animal: null, color: null, colorHex: null, mbti: null, modules: 0, romanceMatches: 0, amistadMatches: 0 })),
+      ok(patch(id, { quizCompletedAt: null, modules: 0, romanceMatches: 0, amistadMatches: 0 })),
     async setPaused(id, paused) {
       patch(id, { paused });
       return ok(undefined);

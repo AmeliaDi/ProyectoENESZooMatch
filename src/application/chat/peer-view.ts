@@ -1,29 +1,35 @@
 /**
- * What a participant may see of the other person in a chat: alias and the
- * public sprite, with the wing tone and mark only under the same opt-in as
- * the constellation. Never a user id.
+ * What a participant may see of the other person in a chat: their stored
+ * identity, with the wing tone and mark only under the same opt-in as the
+ * constellation. Never a user id, and never a name assembled here — the chat
+ * renders it through `formatIdentity()`, so the alias in a row, in a bubble
+ * and in the constellation is the very same string.
  */
-import { CATALOG_COLORS } from "@/config";
 import type { ChatPeerDto } from "@/contracts/chat";
-import { publicVisual } from "@/domain/avatars/avatar-spec";
+
+import { counterpartIdentity, EGG_IDENTITY_DTO } from "../identity-dto";
 
 import type { ChatPeer } from "./conversation-ports";
 
-const COLOR_BY_ID = new Map(CATALOG_COLORS.map((c) => [c.id, c]));
-/** Same fallback as the result view when an alias is missing. */
-export const PEER_FALLBACK_ALIAS = "alguien especial";
-
 export function toPeerDto(peer: ChatPeer | undefined): ChatPeerDto {
-  const alias = peer?.alias ?? PEER_FALLBACK_ALIAS;
-  if (!peer?.animalId || !peer.colorId) {
-    return { alias, animal_id: null, color_id: null, color_hex: null, mark: null };
-  }
-  const visual = publicVisual({ animalId: peer.animalId, colorId: peer.colorId, mark: peer.mark }, peer.showAvatarDetail);
+  if (!peer || peer.alias === null) return { identity: EGG_IDENTITY_DTO };
   return {
-    alias,
-    animal_id: visual.animalId,
-    color_id: visual.colorId,
-    color_hex: COLOR_BY_ID.get(visual.colorId)?.hex ?? null,
-    mark: visual.mark,
+    identity: counterpartIdentity({
+      userId: peer.userId,
+      estadoIdentidad: "eclosionado",
+      aliasCompleto: peer.alias,
+      aliasAnimal: null,
+      aliasColor: null,
+      aliasSufijo: null,
+      mbtiCode: null,
+      enneagramCode: null,
+      // The chat reads neither the latent profile nor the shared reading layers.
+      latent: null,
+      animalId: peer.animalId,
+      colorId: peer.colorId,
+      mark: peer.mark,
+      showAvatarDetail: peer.showAvatarDetail,
+      sharedLayers: [],
+    }),
   };
 }

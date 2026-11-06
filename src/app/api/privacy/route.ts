@@ -1,7 +1,6 @@
 import {
   deleteMyData,
   getPrivacyState,
-  reassignProfileColor,
   setProfilePaused,
   setSharedLayers,
   setShowAvatarDetail,
@@ -35,10 +34,6 @@ async function handlePatch(request: Request) {
   if ("sharedLayers" in parsed.data) {
     const shared = await setSharedLayers(userId, parsed.data.sharedLayers, deps);
     return shared.ok ? jsonResponse({ sharedLayers: shared.value }) : errorResponse(shared.error);
-  }
-  if ("reassignColor" in parsed.data) {
-    const color = await reassignProfileColor(userId, deps);
-    return color.ok ? jsonResponse({ color: color.value }) : errorResponse(color.error);
   }
   const result = await setProfilePaused(userId, parsed.data.paused, deps);
   return result.ok ? jsonResponse(result.value) : errorResponse(result.error);

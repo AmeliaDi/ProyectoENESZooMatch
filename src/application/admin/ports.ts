@@ -11,6 +11,8 @@ import type {
   AdminUserPage,
   ReportStatus,
 } from "@/contracts/admin";
+import type { IdentityDto } from "@/contracts/identity";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import type { Clock, Result } from "@/domain/shared";
 
 import type { StorageError } from "../errors";
@@ -32,8 +34,12 @@ export interface AdminCredential {
 
 export interface AdminAccount {
   userId: string;
-  alias: string | null;
+  /** Identity as stored; it is the only name the console may show or record. */
+  identity: IdentityDto;
 }
+
+/** Name written into the audit trail: the very string the console displays. */
+export const auditAlias = (identity: IdentityDto): string => formatIdentity(identity).title;
 
 export interface AuditEntryInput {
   adminId: string | null;
@@ -82,5 +88,6 @@ export interface AdminLoginDeps {
 /** The admin acting, as resolved from the console session. */
 export interface AdminActor {
   userId: string;
-  alias: string | null;
+  /** Their own stored identity; the header names it, the trail records it. */
+  identity: IdentityDto;
 }

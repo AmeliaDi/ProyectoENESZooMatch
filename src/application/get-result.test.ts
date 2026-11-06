@@ -26,19 +26,38 @@ const OTHER_LATENT = latent(0.2);
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 
 const OWN: OwnProfile = {
-  alias: "zorrito ámbar",
+  identity: {
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: "zorrito naranja mandarina · DRRS",
+    aliasAnimal: "zorrito",
+    aliasColor: "naranja mandarina",
+    aliasSufijo: "DRRS",
+    animalId: "zorrito",
+    colorId: "ennea-7",
+    mbtiCode: "INFP",
+    enneagramCode: "7w6",
+    narrative: "Una narrativa",
+    mark: "sx",
+    revelacionVista: false,
+    quizCompletedAt: "2026-10-31T00:00:00.000Z",
+  },
   narrative: "Una narrativa",
-  mbtiCode: "INFP",
   animal: { id: "zorrito", diminutivo_es: "zorrito", categoria_fauna: "mamifero" },
   color: { id: "ennea-7", nombre: "Naranja mandarina", hex: "#C05722" },
-  mark: "sx",
   latent: OWN_LATENT,
+  normalizedScores: null,
   completedModules: [],
 };
 
 const COUNTERPART: CounterpartProfile = {
   userId: OTHER,
+  estadoIdentidad: "eclosionado",
+  aliasCompleto: "pulpito violeta amatista claro · KMPQ",
+  aliasAnimal: "pulpito",
+  aliasColor: "violeta amatista claro",
+  aliasSufijo: "KMPQ",
   mbtiCode: "ENFP",
+  enneagramCode: "4w5",
   latent: OTHER_LATENT,
   animalId: "pulpito",
   colorId: "ennea-4-w5",
@@ -50,9 +69,6 @@ const COUNTERPART: CounterpartProfile = {
 const MATCH: StoredMatch = {
   track: "amistad",
   otherUser: OTHER,
-  otherAlias: "pulpito azul",
-  otherAnimal: "pulpito",
-  otherColor: "Azul abisal",
   similarity: 0.87,
   badges: [{ dimension: "personalidad_apertura", affinity: 0.9 }],
 };
@@ -74,7 +90,7 @@ describe("getResult", () => {
     store.own = OWN;
     const result = await getResult(VIEWER, wire(store));
     expect(result.ok && result.value).toMatchObject({
-      alias: OWN.alias,
+      identity: { aliasCompleto: OWN.identity.aliasCompleto },
       matches: { romance: [], amistad: [] },
       few_people: true,
       no_match_message: NO_MATCH_MESSAGE,
@@ -118,7 +134,7 @@ describe("getResult", () => {
     store.counterparts = [{ ...COUNTERPART, latent: null }];
     const degraded = await getResult(VIEWER, wire(store));
     expect(degraded.ok && degraded.value.matches.amistad[0]?.explanation).toBeNull();
-    expect(degraded.ok && degraded.value.matches.amistad[0]?.color_hex).toBe("#9D56C7");
+    expect(degraded.ok && degraded.value.matches.amistad[0]?.identity.colorHex).toBe("#9D56C7");
   });
 
   it("hides the counterpart's wing tone and subtype mark unless they opted in", async () => {
@@ -128,26 +144,29 @@ describe("getResult", () => {
     store.counterparts = [COUNTERPART];
     const hidden = await getResult(VIEWER, wire(store));
     if (!hidden.ok) throw new Error("expected ok");
-    expect(hidden.value.matches.amistad[0]).toMatchObject({ color_id: "ennea-4", mark: null, color: "Violeta amatista" });
+    expect(hidden.value.matches.amistad[0]).toMatchObject({
+      identity: { colorId: "ennea-4", colorHex: "#9D56C7", mark: null },
+    });
     expect(JSON.stringify(hidden.value)).not.toContain("ennea-4-w5");
 
     store.counterparts = [{ ...COUNTERPART, showAvatarDetail: true }];
     const shown = await getResult(VIEWER, wire(store));
     if (!shown.ok) throw new Error("expected ok");
-    expect(shown.value.matches.amistad[0]).toMatchObject({ color_id: "ennea-4-w5", mark: "so" });
+    expect(shown.value.matches.amistad[0]).toMatchObject({ identity: { colorId: "ennea-4-w5", mark: "so" } });
   });
 
   it("always shows the viewer their own full avatar", async () => {
     const store = new MemoryStore();
     store.own = OWN;
     const result = await getResult(VIEWER, wire(store));
-    expect(result.ok && result.value.mark).toBe("sx");
+    expect(result.ok && result.value.identity.mark).toBe("sx");
   });
 
   it("splits matches by track", async () => {
     const store = new MemoryStore();
     store.own = OWN;
     store.stored = [MATCH, { ...MATCH, track: "romance", similarity: 0.91 }];
+    store.counterparts = [COUNTERPART];
     const result = await getResult(VIEWER, wire(store));
     if (!result.ok) throw new Error("expected ok");
     expect(result.value.matches.romance).toHaveLength(1);
@@ -185,7 +204,9 @@ describe("getResult", () => {
     const result = await getResult(VIEWER, wire(store));
     const entry = result.ok ? result.value.matches.amistad[0] : undefined;
     expect(entry?.shared).toEqual({ sections: [], mbti: null, enneagram: null });
-    expect(entry?.mbti_code).toBeNull();
+    expect(entry?.identity.mbtiCode).toBe("ENFP");
+    expect(entry?.identity.enneagramCode).toBe("4");
+    expect(entry?.identity.mark).toBeNull();
   });
 
   it("shows only the chosen layers, as bands, and never the never-share scales", async () => {
@@ -197,7 +218,7 @@ describe("getResult", () => {
     const entry = result.ok ? result.value.matches.amistad[0] : undefined;
     expect(entry?.shared.sections.map((s) => s.id)).toEqual(["hexaco", "mbti", "valores"]);
     expect(entry?.shared.mbti).toEqual({ code: "ENFP" });
-    expect(entry?.mbti_code).toBe("ENFP");
+    expect(entry?.identity.mbtiCode).toBe("ENFP");
     expect(entry?.shared.enneagram).toBeNull();
     const keys = entry?.shared.sections.flatMap((s) => s.scales.map((x) => x.key)) ?? [];
     for (const hidden of ["val_espiritualidad", "soc_politica", "act_igualdad", "rel_exclusividad", "meta_crianza"]) {

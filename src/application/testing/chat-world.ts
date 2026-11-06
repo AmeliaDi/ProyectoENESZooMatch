@@ -25,8 +25,8 @@ export function world(): World {
     ok: true as const,
     value: [...store.matches].map((key) => key.split(":")).filter(([, a, b]) => a === viewer || b === viewer)
       .map(([track, a, b]): StoredMatch => ({
-        track: track as StoredMatch["track"], otherUser: a === viewer ? b! : a!, otherAlias: null,
-        otherAnimal: null, otherColor: null, similarity: 0.6, badges: [],
+        track: track as StoredMatch["track"], otherUser: a === viewer ? b! : a!,
+        similarity: 0.6, badges: [],
       })),
   });
   store.addMatch("amistad", ANA, BEA);

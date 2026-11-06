@@ -7,6 +7,7 @@
 import type { NextResponse } from "next/server";
 
 import type { AdminActor } from "@/application/admin";
+import { EGG_IDENTITY_DTO } from "@/application/identity-dto";
 import { ADMIN_CONFIG } from "@/config";
 import { checkLockSession, lockSessionMaxAge, openLockSession, touchLockSession, type LockSession } from "@/domain/chat";
 import { err, ok, type Result } from "@/domain/shared";
@@ -77,10 +78,12 @@ export async function requireAdmin(request: Request): Promise<Result<AdminGate, 
   if (!role.ok) return err(errorResponse(role.error));
   if (!role.value) return err(unauthorized());
   const user = await context.value.console.findUser(session.uid);
-  const alias = user.ok ? (user.value?.alias ?? null) : null;
+  // An unreadable name stays an egg: the console shows no identity rather
+  // than a guessed one.
+  const identity = user.ok ? (user.value?.identity ?? EGG_IDENTITY_DTO) : EGG_IDENTITY_DTO;
   return ok({
     context: context.value,
-    actor: { userId: session.uid, alias },
+    actor: { userId: session.uid, identity },
     renew(response) {
       const now = context.value.clock.now();
       writeSession(response, touchLockSession(session, now), now, context.value.pepper);

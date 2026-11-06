@@ -6,6 +6,8 @@
 import type { ChemistrySummary, MatchExplanation } from "@/domain/explainability";
 import type { LayerAffinityBand } from "@/domain/explainability/layer-bands";
 
+import type { IdentityDto } from "./identity";
+
 export type {
   ChemistrySummary,
   HealthyTension,
@@ -48,32 +50,21 @@ export interface QuizSubmittedDto {
   ok: true;
   recomputePending: boolean;
   profile: {
-    alias: string;
-    animal: string;
-    color: string;
-    /** Enneagram subtype mark on the sprite (own profile; `null` = none). */
-    mark: SpriteMark | null;
+    /** Frozen identity of the owner; the reveal renders only this. */
+    identity: IdentityDto;
     narrative: string;
-    /** Display names for the reveal (own profile only). */
-    animalName: string;
-    colorName: string;
     mbtiCode: string;
-    enneagram: { code: string; nombre: string; arquetipo: string };
+    enneagram: { code: string; nombre: string; arquetipo: string; exploring: boolean };
+    /** Core progress in %, so the reveal can say what is still missing. */
+    progressPercent: number;
   };
 }
 
 export interface MatchEntryDto {
   /** Opaque per-viewer handle (React key only); not reversible to a user id. */
   id: string | null;
-  alias: string;
-  animal: string;
-  animal_id: string | null;
-  color: string;
-  color_id: string | null;
-  color_hex: string | null;
-  /** Subtype mark, only when the counterpart opted in to show avatar detail. */
-  mark: SpriteMark | null;
-  mbti_code: string | null;
+  /** Counterpart identity, already filtered by what they chose to share. */
+  identity: IdentityDto;
   similarity: number;
   /** Always present, even when the full explanation could not be built. */
   chemistry: ChemistrySummary;
@@ -86,12 +77,9 @@ export interface MatchEntryDto {
 }
 
 export interface ResultDto {
-  alias: string;
-  animal: { id: string; diminutivo_es: string; categoria_fauna: string } | null;
-  color: { id: string; nombre: string; hex: string } | null;
-  mark: SpriteMark | null;
+  /** Owner identity; every screen reads the name from here. */
+  identity: IdentityDto;
   narrative: string;
-  mbti_code: string | null;
   matches: { romance: MatchEntryDto[]; amistad: MatchEntryDto[] };
   /** Coarse flag (never the count) so the empty state can say "somos pocxs". */
   few_people: boolean;

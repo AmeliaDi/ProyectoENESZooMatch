@@ -5,11 +5,17 @@
  */
 import type { SubtypeMark } from "@/domain/avatars/avatar-spec";
 import type { AttemptState } from "@/domain/chat";
+import type { HatchedIdentity, IdentityState } from "@/domain/identity/hatch-identity";
 import type { GlobalMatch } from "@/domain/matching";
 import type { InclusiveMode } from "@/domain/messages/inclusive-text";
 import type { Result } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
-import type { MatchTrack, ProfileIdentity, QuizModuleId, ScoredProfile } from "@/types/microtest";
+import type {
+  DimensionScores,
+  MatchTrack,
+  QuizModuleId,
+  ScoredProfile,
+} from "@/types/microtest";
 import type { ShareLayerId } from "@/types/sharing";
 
 import type { AppError, StorageError } from "./errors";
@@ -26,15 +32,45 @@ export interface StoredAnswer {
   selected?: string[];
 }
 
+/**
+ * The only write of an identity. `hatchIdentity` produces it and the
+ * `hatch_profile_identity` RPC applies it once; `outcome` says whether the row
+ * was written, already frozen (idempotent replay) or rejected by the unique
+ * alias index, which is the signal to retry with the next deterministic suffix.
+ */
+export interface HatchOutcome {
+  outcome: "written" | "already" | "collision";
+  aliasCompleto: string;
+  estadoIdentidad: IdentityState;
+}
+
+/** Stored identity — what every screen reads. Never recomputed from the profile. */
+export interface IdentityRecord {
+  estadoIdentidad: IdentityState;
+  aliasCompleto: string | null;
+  aliasAnimal: string | null;
+  aliasColor: string | null;
+  aliasSufijo: string | null;
+  animalId: string | null;
+  colorId: string | null;
+  mbtiCode: string | null;
+  enneagramCode: string | null;
+  narrative: string | null;
+  mark: SubtypeMark | null;
+  revelacionVista: boolean;
+  quizCompletedAt: string | null;
+}
+
 export interface QuizResultRecord {
   userId: string;
   answers: readonly StoredAnswer[];
   scored: ScoredProfile;
-  identity: ProfileIdentity;
+  /** Reading text; refinable. It is prose, never a name. */
+  narrative: string | null;
+  /** Present only on the submission that hatches; ignored once the identity is frozen. */
+  hatch?: HatchedIdentity | undefined;
   /** Optional modules whose non-sensitive items are all answered. */
   completedModules: readonly QuizModuleId[];
-  /** Keeps the existing assigned color fixed during optional-module refinement. */
-  preserveColor?: boolean | undefined;
 }
 
 export interface PoolProfile {
@@ -43,20 +79,26 @@ export interface PoolProfile {
 }
 
 export interface OwnProfile {
-  alias: string;
+  identity: IdentityRecord;
   narrative: string;
-  mbtiCode: string | null;
   animal: { id: string; diminutivo_es: string; categoria_fauna: string } | null;
   color: { id: string; nombre: string; hex: string } | null;
-  mark: SubtypeMark | null;
   /** Posterior θ̂/SE: input of "Tu carta" and of the explanation, never serialized. */
   latent: LatentProfile | null;
+  /** Only the input of the hatch narrative; never shown on its own. */
+  normalizedScores: DimensionScores | null;
   completedModules: readonly QuizModuleId[];
 }
 
 export interface CounterpartProfile {
   userId: string;
+  estadoIdentidad: IdentityState;
+  aliasCompleto: string | null;
+  aliasAnimal: string | null;
+  aliasColor: string | null;
+  aliasSufijo: string | null;
   mbtiCode: string | null;
+  enneagramCode: string | null;
   /** Server-only: lets the explanation recompute the exact pair score. */
   latent: LatentProfile | null;
   animalId: string | null;
@@ -80,12 +122,18 @@ export interface ProfileRepository {
   setPaused(userId: string, paused: boolean): Promise<Result<void, StorageError>>;
   setShowAvatarDetail(userId: string, show: boolean): Promise<Result<void, StorageError>>;
   setSharedLayers(userId: string, layers: readonly ShareLayerId[]): Promise<Result<void, StorageError>>;
-  /** Explicitly updates the assigned base color and `color_asignado_en`. */
-  setColor(userId: string, colorId: string): Promise<Result<void, StorageError>>;
+  /** Stored identity of one person (`null` when the row is missing). */
+  identityState(userId: string): Promise<Result<IdentityRecord | null, StorageError>>;
+  /** Writes a hatched identity once and only once; safe under concurrency. */
+  writeIdentity(userId: string, hatch: HatchedIdentity): Promise<Result<HatchOutcome, StorageError>>;
+  /** The first call marks the revelation seen and returns true; later calls false. */
+  markRevealed(userId: string): Promise<Result<boolean, StorageError>>;
+  /** Aliases already taken, so the deterministic retry can skip them. */
+  listAliases(): Promise<Result<string[], StorageError>>;
   /** Deletes the auth user; every participant row cascades from it. */
   deleteAccount(userId: string): Promise<Result<void, StorageError>>;
-  /** Resolves to the effective alias: the first one ever assigned is kept. */
-  saveQuizResult(record: QuizResultRecord): Promise<Result<{ alias: string }, StorageError>>;
+  /** Persists the scoring and, when `record.hatch` is present, hatches in the same write. */
+  saveQuizResult(record: QuizResultRecord): Promise<Result<HatchOutcome, StorageError>>;
   /** Cosmetic preference; best-effort. */
   setInclusiveMode(userId: string, mode: InclusiveMode): Promise<void>;
   /** Completed and not paused: the only profiles that take part in matching. */
@@ -99,12 +147,14 @@ export interface ProfileRepository {
   findCounterparts(userIds: readonly string[]): Promise<CounterpartProfile[]>;
 }
 
+/**
+ * A stored pair. It carries no name: every display string comes from the
+ * counterpart's identity columns, so the match table can never disagree with
+ * the frozen identity.
+ */
 export interface StoredMatch {
   track: MatchTrack;
   otherUser: string | null;
-  otherAlias: string | null;
-  otherAnimal: string | null;
-  otherColor: string | null;
   similarity: number;
   badges: Array<{ dimension: string; affinity: number }>;
 }

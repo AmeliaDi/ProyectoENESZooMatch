@@ -6,11 +6,11 @@ import type { ScoredProfile } from "@/types/microtest";
 import {
   deleteMyData,
   getPrivacyState,
-  reassignProfileColor,
   setProfilePaused,
   setSharedLayers,
   setShowAvatarDetail,
 } from "./privacy";
+import type { IdentityRecord } from "./ports";
 import { MemoryStore, instantScheduler, memoryMatches, memoryProfiles } from "./testing/in-memory";
 
 function profile(): ScoredProfile {
@@ -25,13 +25,45 @@ function profile(): ScoredProfile {
   };
 }
 
+/** The identity each row carries after eclosion: read from the store, never built here. */
+const HATCHED: Record<string, IdentityRecord> = {
+  a: {
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: "zorrito naranja mandarina · DRRS",
+    aliasAnimal: "zorrito",
+    aliasColor: "naranja mandarina",
+    aliasSufijo: "DRRS",
+    animalId: "zorrito",
+    colorId: "ennea-7",
+    mbtiCode: "INFP",
+    enneagramCode: "7w6",
+    narrative: null,
+    mark: "sx",
+    revelacionVista: true,
+    quizCompletedAt: "2026-10-31T00:00:00.000Z",
+  },
+  b: {
+    estadoIdentidad: "eclosionado",
+    aliasCompleto: "pulpito violeta amatista · KMPQ",
+    aliasAnimal: "pulpito",
+    aliasColor: "violeta amatista",
+    aliasSufijo: "KMPQ",
+    animalId: "pulpito",
+    colorId: "ennea-4",
+    mbtiCode: "ENFP",
+    enneagramCode: "4w5",
+    narrative: null,
+    mark: "so",
+    revelacionVista: true,
+    quizCompletedAt: "2026-10-31T00:00:00.000Z",
+  },
+};
+
 function setup() {
   const store = new MemoryStore();
   for (const userId of ["a", "b"]) {
-    store.results.set(userId, { userId, answers: [], completedModules: [], scored: profile(), identity: {
-      animalId: "x", animalDiminutivo: "x", colorId: "y", colorNombre: "y", colorHex: "#000000",
-      mark: null, alias: userId, narrative: "",
-    } });
+    store.results.set(userId, { userId, answers: [], completedModules: [], scored: profile(), narrative: null });
+    store.identities.set(userId, HATCHED[userId]!);
   }
   const deps = {
     profiles: memoryProfiles(store),
@@ -87,39 +119,5 @@ describe("privacy use cases", () => {
     store.faults.save = true;
     expect(await deleteMyData("a", deps)).toEqual({ ok: false, error: "storage.failed" });
     expect(store.results.has("a")).toBe(true);
-  });
-
-  it("reassigns profile color explicitly when requested in Ajustes", async () => {
-    const { store, deps } = setup();
-    const record = store.results.get("a")!;
-    store.results.set("a", {
-      ...record,
-      scored: {
-        ...record.scored,
-        latent: {
-          theta: {
-            ennea_1: 2.5,
-            ennea_2: 1.2,
-            ennea_3: -0.5,
-            ennea_4: -0.5,
-            ennea_5: -0.5,
-            ennea_6: -0.5,
-            ennea_7: -0.5,
-            ennea_8: -0.5,
-            ennea_9: -0.5,
-          },
-          se: { ennea_1: 0.3, ennea_2: 0.4 },
-          quality: 1,
-          answered: 30,
-        },
-      },
-      identity: { ...record.identity, colorId: "ennea-neblina" },
-    });
-    const result = await reassignProfileColor("a", deps);
-    expect(result).toEqual({
-      ok: true,
-      value: { colorId: "ennea-1-w2", colorName: "Azul cobalto claro", colorHex: "#597AD6" },
-    });
-    expect(store.results.get("a")?.identity.colorId).toBe("ennea-1-w2");
   });
 });

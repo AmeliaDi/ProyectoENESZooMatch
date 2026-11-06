@@ -4,24 +4,22 @@
  * bands; positions, θ, SE, answers and hard filters never leave the server.
  */
 import type { SharedProfileDto } from "@/contracts/result";
-import { buildAvatarSpec } from "@/domain/avatars/avatar-spec";
 import { layerAffinityBands, type LayerAffinityBand } from "@/domain/explainability/layer-bands";
 import type { PairScore } from "@/domain/matching/pair-score";
 import { readSharedSections } from "@/domain/psychometrics/shared-reading";
 import type { ShareLayerId } from "@/types/sharing";
 
-import { avatarParams, enneagramLabel } from "./identity-readout";
+import { enneagramWords } from "./identity-dto";
 import type { CounterpartProfile } from "./ports";
 
 export const NOTHING_SHARED: SharedProfileDto = { sections: [], mbti: null, enneagram: null };
 
+/** Main type always; the wing only with the avatar-detail opt-in. Both read the stored code. */
 function sharedEnneagram(other: CounterpartProfile): SharedProfileDto["enneagram"] {
-  if (!other.latent) return null;
-  const spec = buildAvatarSpec(other.latent, avatarParams());
-  if (spec.enneagram.type === null) return null;
-  const label = enneagramLabel(spec);
-  const code = other.showAvatarDetail ? label.code : String(spec.enneagram.type);
-  return { code, name: label.nombre };
+  const words = enneagramWords(other.enneagramCode);
+  if (words.type === null) return null;
+  const code = other.showAvatarDetail ? words.code : String(words.type);
+  return { code: code ?? String(words.type), name: words.name ?? "" };
 }
 
 export function sharedProfile(other: CounterpartProfile | undefined): SharedProfileDto {

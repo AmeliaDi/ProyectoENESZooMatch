@@ -4,7 +4,7 @@
  * Never carries user ids, matrícula hashes, the other person's sealed
  * answers, read receipts or anything about a declined signal.
  */
-import type { SpriteMark } from "./result";
+import type { IdentityDto } from "./identity";
 
 export type ChatTrack = "romance" | "amistad";
 
@@ -15,13 +15,15 @@ export type ChatTrack = "romance" | "amistad";
  */
 export type ConversationStage = "rounds" | "free" | "paused";
 
-/** What the viewer may see of the other person (same rules as the result). */
+/**
+ * What the viewer may see of the other person: their stored identity, already
+ * filtered by the counterpart's sharing choice. The chat renders it through
+ * `formatIdentity()` and never assembles a name here, so the alias in a row,
+ * in a bubble and in the constellation is literally the same string.
+ * An egg is never sent: it has no name to show and cannot chat.
+ */
 export interface ChatPeerDto {
-  alias: string;
-  animal_id: string | null;
-  color_id: string | null;
-  color_hex: string | null;
-  mark: SpriteMark | null;
+  identity: IdentityDto;
 }
 
 export interface InboxEntryDto {

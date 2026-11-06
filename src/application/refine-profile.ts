@@ -2,8 +2,9 @@
  * "¿Quieres afinar tu perfil?": answers of ONE optional module are merged
  * with the stored answers and the whole profile is re-scored (the Bayesian
  * scorer narrows the posterior; nothing is imputed). Then it goes through the
- * same publish path as the full test. The animal may become more specific:
- * avatars are derived from the latent profile (docs/AVATARES.md).
+ * same write path as the full test — but the identity is already frozen, so
+ * refining only sharpens the reading and the matches. The animal, the colour
+ * and the alias never move again (see the golden rule in docs/DECISIONES.md).
  */
 import { MICROTEST_ITEMS } from "@/domain/matching";
 import { err, type Result } from "@/domain/shared";
@@ -44,5 +45,5 @@ export async function refineProfile(input: RefineInput, deps: RefineDeps): Promi
   if (!stored.ok) return stored;
   const submission = mergeModule(stored.value, input);
   if (!submission) return err("request.invalid");
-  return submitQuiz({ userId: input.userId, submission, preserveColor: true }, deps);
+  return submitQuiz({ userId: input.userId, submission }, deps);
 }

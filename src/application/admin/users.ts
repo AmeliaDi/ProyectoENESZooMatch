@@ -9,7 +9,7 @@ import { err, ok, type Result } from "@/domain/shared";
 
 import type { AppError } from "../errors";
 import { recomputeMatches } from "../recompute-matches";
-import type { AdminActor, AdminDeps } from "./ports";
+import { auditAlias, type AdminActor, type AdminDeps } from "./ports";
 
 export interface ActionOutcome {
   /** `true` when the shared match set could not be republished yet. */
@@ -67,10 +67,10 @@ export async function runUserAction(
   if (!done.ok) return done;
   await deps.console.recordAudit({
     adminId: actor.userId,
-    adminAlias: actor.alias,
+    adminAlias: auditAlias(actor.identity),
     action: AUDIT_OF[action],
     targetUser: userId,
-    targetAlias: target.value.alias,
+    targetAlias: auditAlias(target.value.identity),
   });
   if (!CHANGES_POOL.has(action)) return ok({ recomputePending: false });
   const recomputed = await recomputeMatches(deps);
@@ -82,7 +82,7 @@ export async function recomputeAudited(actor: AdminActor, deps: AdminDeps): Prom
   if (!pairs.ok) return pairs;
   await deps.console.recordAudit({
     adminId: actor.userId,
-    adminAlias: actor.alias,
+    adminAlias: auditAlias(actor.identity),
     action: "recompute",
     detail: { pairs: pairs.value.length },
   });
@@ -109,7 +109,7 @@ export async function reviewReport(
   if (!done.value) return err("admin.not_found");
   await deps.console.recordAudit({
     adminId: actor.userId,
-    adminAlias: actor.alias,
+    adminAlias: auditAlias(actor.identity),
     action: status === "revisado" ? "report_revisado" : "report_cerrado",
     detail: { report: reportId },
   });

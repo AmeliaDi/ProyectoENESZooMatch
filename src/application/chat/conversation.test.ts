@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { CHAT_CONFIG } from "@/config";
+import { formatIdentity } from "@/domain/identity/format-identity";
 import { CHAT_NOTICE } from "@/domain/messages/chat-notice";
 
 import { ANA, BEA, EVE, askerOf, handle, open, playRounds, world, type World } from "../testing/chat-world";
@@ -40,8 +41,14 @@ describe("interest signals", () => {
     expect(theirs.ok && theirs.value.states).toEqual({ [`amistad:${handle(BEA, ANA)}`]: { state: "invited" } });
     const inbox = await getInbox(BEA, w.deps());
     expect(inbox.ok && inbox.value.invitations).toEqual([
-      { match: handle(BEA, ANA), track: "amistad", peer: expect.objectContaining({ alias: "Zorro Calmo" }) },
+      {
+        match: handle(BEA, ANA),
+        track: "amistad",
+        peer: { identity: expect.objectContaining({ aliasCompleto: "Zorro Calmo" }) },
+      },
     ]);
+    const invitation = inbox.ok ? inbox.value.invitations[0]?.peer : undefined;
+    expect(invitation && formatIdentity(invitation.identity).title).toBe("Zorro Calmo");
     await declineInterest(BEA, { match: handle(BEA, ANA), track: "amistad" }, w.deps());
     const after = await interestStates(BEA, w.deps());
     expect(after.ok && after.value.states).toEqual({});
@@ -205,7 +212,17 @@ describe("privacy", () => {
     const json = JSON.stringify(view);
     expect(json).not.toContain(ANA);
     expect(json).not.toContain(BEA);
-    expect(view.ok && view.value.peer).toEqual({ alias: "Nutria Serena", animal_id: "nutria", color_id: "ennea-2", color_hex: expect.any(String), mark: null });
+    expect(view.ok && view.value.peer).toEqual({
+      identity: expect.objectContaining({
+        estadoIdentidad: "eclosionado",
+        aliasCompleto: "Nutria Serena",
+        animalId: "nutria",
+        colorId: "ennea-2",
+        colorHex: expect.any(String),
+        mark: null,
+      }),
+    });
+    expect(view.ok && formatIdentity(view.value.peer.identity).title).toBe("Nutria Serena");
     expect(JSON.stringify(await getInbox(ANA, w.deps()))).not.toContain(BEA);
     expect(await getConversation(id, EVE, w.deps())).toEqual({ ok: false, error: "chat.not_found" });
   });

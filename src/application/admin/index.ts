@@ -1,4 +1,5 @@
 export { adminLogin } from "./login";
+export { auditAlias } from "./ports";
 export type {
   AdminAccount,
   AdminActor,
