@@ -70,3 +70,4 @@ node --no-warnings scripts/db-restore.mts --from .backups/pre-identidad-fija --d
 # Restauración completa en caso de fallo:
 node --no-warnings scripts/db-restore.mts --from .backups/pre-identidad-fija --apply --confirm-restore=yes
 ```
+

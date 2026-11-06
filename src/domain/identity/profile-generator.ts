@@ -5,11 +5,11 @@
  * unique, empowering narrative.
  */
 
-import type { ArchetypeAnimal, ArchetypeColor } from "@/types/archetype";
+import type { ArchetypeAnimal, ArchetypeColor, GrammaticalGender } from "@/types/archetype";
 import type { DimensionScores, ProfileIdentity } from "@/types/microtest";
 import type { AvatarVisual } from "@/domain/avatars/avatar-spec";
-import { stringHash } from "@/domain/shared";
-import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
+import { hmacSha256Hex, stringHash } from "@/domain/shared";
+import { AVATAR_CONFIG, CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 
 // ─── Helper Types ─────────────────────────────────────────────────────────────
 
@@ -421,17 +421,15 @@ const CLOSING_AFFIRMATIONS: string[] = [
   "Tu autenticidad es tu mayor regalo. Compártela sin miedo.",
 ];
 
-// ─── Gender Article Helpers ───────────────────────────────────────────────────
+// ─── Gender & Concordance Helpers ─────────────────────────────────────────────
 
-/** Animals whose diminutive ends in feminine-sounding patterns */
-const FEMININE_ANIMALS = new Set([
-  "nutria", "mariposita", "libelula", "polillita", "estrellita", "medusita",
-  "salamandrita", "langostita", "suricatita",
-]);
+function getArticleByGender(genero: GrammaticalGender): string {
+  return genero === "femenino" ? "una" : "un";
+}
 
-/** Spanish diminutives in -a (garcita, ballenita, nutria) take "una". */
-function getArticle(diminutivo: string): string {
-  return FEMININE_ANIMALS.has(diminutivo) || diminutivo.endsWith("a") ? "una" : "un";
+function agreeCatalogColor(color: CatalogColor, genero: GrammaticalGender): string {
+  if (color.invariable) return color.masculino;
+  return genero === "femenino" ? color.femenino : color.masculino;
 }
 
 
@@ -468,12 +466,13 @@ export function generateProfileNarrative(
   color: CatalogColor,
   topDimensions: DimensionAffinity[]
 ): string {
-  const article = getArticle(animal.diminutivo_es);
+  const article = getArticleByGender(animal.genero);
+  const agreedColor = agreeCatalogColor(color, animal.genero);
   const sentences: string[] = [];
 
-  // 1. Opening sentence
+  // 1. Opening sentence (grammatically agreed animal diminutive + color)
   sentences.push(
-    `Eres ${article} ${animal.diminutivo_es} ${color.nombre.toLowerCase()}.`
+    `Eres ${article} ${animal.diminutivo} ${agreedColor}.`
   );
 
   // 2. Core trait from animal metaphor
@@ -482,7 +481,7 @@ export function generateProfileNarrative(
   const animalTrait = ANIMAL_TRAITS[animal.nombre_fuente] ?? fallbackTrait;
   sentences.push(
     // `nombre_fuente` is the English source name; user-facing copy stays es-MX.
-    `Tu naturaleza de ${animal.diminutivo_es} te dota de ${animalTrait}, ` +
+    `Tu naturaleza de ${animal.diminutivo} te dota de ${animalTrait}, ` +
     `una cualidad que se siente en cada interacción contigo.`
   );
 
@@ -526,7 +525,7 @@ export function generateProfileNarrative(
 
   // 7. Closing affirmation (optional, included ~60% of the time based on hash)
   const closingIdx = stringHash(animal.id + color.hex) % CLOSING_AFFIRMATIONS.length;
-  if (stringHash(color.id + animal.diminutivo_es) % 5 < 3) {
+  if (stringHash(color.id + animal.diminutivo) % 5 < 3) {
     sentences.push(CLOSING_AFFIRMATIONS[closingIdx]!);
   }
 
@@ -543,27 +542,45 @@ function fillNarrativeTemplate(
   color: CatalogColor,
 ): string {
   const [first = "", second = "", third = ""] = animal.rasgos_personalidad;
+  const agreedColor = agreeCatalogColor(color, animal.genero);
   return template
     .replaceAll("{nombre}", animal.nombre)
     .replaceAll("{familia_label}", animal.familia_morfologica_label)
     .replaceAll("{rasgo_1}", first)
     .replaceAll("{rasgo_2}", second)
     .replaceAll("{rasgo_3}", third)
-    .replaceAll("{color}", color.nombre.toLowerCase());
+    .replaceAll("{color}", agreedColor);
 }
 
-/** "ajolotito verde esmeralda · X7K2" */
+/** "ajolotito verde esmeralda · XBCD" (4 consonants, agreed gender) */
 function generateAlias(animal: CatalogAnimal, color: CatalogColor, userId: string): string {
-  const hash = stringHash(userId + animal.id + color.id);
-  const shortHash = hash.toString(36).toUpperCase().slice(0, 4).padEnd(4, "0");
-  return `${animal.diminutivo_es} ${color.nombre.toLowerCase()} · ${shortHash}`;
+  const alphabet = AVATAR_CONFIG.identity.suffix_alphabet.valor;
+  const len = AVATAR_CONFIG.identity.suffix_length.valor;
+  const blocked = new Set(AVATAR_CONFIG.identity.blocked_suffixes.valor);
+  const agreedColor = agreeCatalogColor(color, animal.genero);
+
+  let suffix = "BCDF";
+  for (let attempt = 0; attempt < AVATAR_CONFIG.identity.max_collision_attempts.valor; attempt += 1) {
+    const hex = hmacSha256Hex("zoomatch-profile-generator-v1", `${userId.trim().toLowerCase()}:${attempt}`);
+    let word = parseInt(hex.slice(0, 8), 16) >>> 0;
+    let candidate = "";
+    for (let i = 0; i < len; i += 1) {
+      candidate += alphabet[word % alphabet.length]!;
+      word = Math.floor(word / alphabet.length);
+    }
+    if (!blocked.has(candidate)) {
+      suffix = candidate;
+      break;
+    }
+  }
+  return `${animal.diminutivo} ${agreedColor}${AVATAR_CONFIG.identity.separator.valor}${suffix}`;
 }
 
 // ─── Full Profile Generation ──────────────────────────────────────────────────
 
 /**
  * Complete profile identity generation pipeline.
- * Called after quiz scoring to produce the user's public identity.
+ * Prefer `hatchIdentity` from `domain/identity` for single-shot identity hatching.
  */
 export function generateProfileIdentity(
   normalizedScores: DimensionScores,
@@ -579,7 +596,7 @@ export function generateProfileIdentity(
 
   return {
     animalId: animal.id,
-    animalDiminutivo: animal.diminutivo_es,
+    animalDiminutivo: animal.diminutivo,
     colorId: color.id,
     colorNombre: color.nombre,
     colorHex: color.hex,

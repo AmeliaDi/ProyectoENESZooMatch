@@ -76,11 +76,14 @@ export function subtypeMark(profile: LatentProfile): SubtypeMark | null {
 }
 
 function latentProfileQuantile(profile: LatentProfile, seed?: string): number {
+  if (seed && seed.trim().length > 0) {
+    return mulberry32(fnv1a32(`avatar-color-seed:${seed.trim()}`))();
+  }
   const keys = Object.keys(profile.theta).sort();
   const thetaPart = keys.map((k) => `${k}:${(profile.theta[k] ?? 0).toFixed(6)}`).join("|");
   const seKeys = Object.keys(profile.se).sort();
   const sePart = seKeys.map((k) => `${k}:${(profile.se[k] ?? 1).toFixed(4)}`).join("|");
-  const raw = `avatar-color:${seed ?? ""}:${profile.answered}:${thetaPart}:${sePart}`;
+  const raw = `avatar-color::${profile.answered}:${thetaPart}:${sePart}`;
   return mulberry32(fnv1a32(raw))();
 }
 

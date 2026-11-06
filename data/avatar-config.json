@@ -41,5 +41,18 @@
     "sp": { "id": "punto_bajo", "nombre": "conservación", "razon": "Una marca a ras de suelo: arraigo y cuidado de lo propio." },
     "so": { "id": "punto_lateral", "nombre": "social", "razon": "Dos marcas a los lados: atención al grupo." },
     "sx": { "id": "punto_alto", "nombre": "vínculo", "razon": "Una marca alta y central: intensidad uno a uno." }
+  },
+  "identity": {
+    "suffix_alphabet": { "valor": "BCDFGHJKLMNPQRSTVWXYZ", "etiqueta": "supuesto_diseno", "fuente": "21 consonantes ASCII sin vocales para evitar formar palabras accidentales en el sufijo de 4 letras" },
+    "suffix_length": { "valor": 4, "etiqueta": "supuesto_diseno", "fuente": "4 consonantes dan 21^4 = 194,481 combinaciones por par animal+color" },
+    "separator": { "valor": " · ", "etiqueta": "supuesto_diseno", "fuente": "Separador tipográfico entre {animal-diminutivo} {color-concordado} y el sufijo XXXX" },
+    "max_alias_length": { "valor": 64, "etiqueta": "supuesto_diseno", "fuente": "Cota superior para alias_completo en base de datos y layout móvil (320 px)" },
+    "max_collision_attempts": { "valor": 64, "etiqueta": "supuesto_diseno", "fuente": "Reintentos deterministas sobre HMAC(secreto, user_id:attempt) ante colisión o lista de bloqueo" },
+    "blocked_suffixes": {
+      "valor": ["MTRZ", "PRRS", "PTSS", "CTMR", "CNCH", "VRGS", "PNCH", "MRCN", "CLRN", "KKSS", "XXXX", "ZZZZ", "BBBB", "CCCC", "DDDD", "FFFF", "GGGG", "HHHH", "JJJJ", "KKKK", "LLLL", "MMMM", "NNNN", "PPPP", "QQQQ", "RRRR", "SSSS", "TTTT", "VVVV", "WWWW", "YYYY"],
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lista de bloqueo de abreviaturas ofensivas en es-MX y repeticiones triviales de 4 letras iguales"
+    },
+    "egg_crack_stages": { "valor": 4, "etiqueta": "supuesto_diseno", "fuente": "4 niveles de grietas en el huevito según el progreso (0 %, 25 %, 50 %, 75 %, 100 %) del test principal" }
   }
 }

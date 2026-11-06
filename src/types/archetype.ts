@@ -118,12 +118,18 @@ export interface ArchetypeInclusiveNarrative {
   neutro_universal: string;
 }
 
+export type GrammaticalGender = "masculino" | "femenino";
+
 export interface ArchetypeAnimal {
   id: string;
   /** Friendly Spanish display name, e.g. "Abejita gordita". */
   nombre: string;
   nombre_fuente: string;
   diminutivo_es: string;
+  /** Canonical diminutive for the fixed identity alias (same as diminutivo_es). */
+  diminutivo: string;
+  /** Grammatical gender in Spanish used to agree the color adjective. */
+  genero: GrammaticalGender;
   categoria_fauna: FaunaCategory;
   familia_morfologica: MorphologicalFamily;
   familia_morfologica_label: string;
@@ -148,6 +154,12 @@ export interface ArchetypeAnimal {
 export interface ArchetypeColor {
   id: string;
   nombre: string;
+  /** Lowercase masculine form for grammatical concordance (e.g. "rojo carmín"). */
+  masculino: string;
+  /** Lowercase feminine form for grammatical concordance (e.g. "roja carmín"). */
+  femenino: string;
+  /** True when masculine and feminine forms are identical (e.g. "gris neblina", "azul cobalto"). */
+  invariable: boolean;
   hex: `#${string}`;
   textura: ColorTexture;
   temperatura: ColorTemperature;

@@ -37,6 +37,15 @@ const avatarSchema = z
     emblem_tone: annotated(z.string().regex(/^#[0-9A-F]{6}$/)),
     emblems: z.record(z.enum(TYPE_KEYS), glyph),
     subtypes: z.strictObject({ sp: glyph, so: glyph, sx: glyph }),
+    identity: z.strictObject({
+      suffix_alphabet: annotated(z.string().regex(/^[BCDFGHJKLMNPQRSTVWXYZ]+$/)),
+      suffix_length: annotated(z.number().int().min(4).max(8)),
+      separator: annotated(z.string().min(1).max(5)),
+      max_alias_length: annotated(z.number().int().min(32).max(128)),
+      max_collision_attempts: annotated(z.number().int().min(8).max(256)),
+      blocked_suffixes: annotated(z.array(z.string().regex(/^[BCDFGHJKLMNPQRSTVWXYZ]{4}$/))),
+      egg_crack_stages: annotated(z.number().int().min(1).max(8)),
+    }),
   })
   .refine((c) => MBTI_CODES.every((code) => (c.species_pools.pools[code]?.length ?? 0) > 0), "every MBTI code needs a pool")
   .refine((c) => {

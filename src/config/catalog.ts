@@ -56,6 +56,8 @@ const animalSchema = z.strictObject({
   nombre: text,
   nombre_fuente: text,
   diminutivo_es: text,
+  diminutivo: text,
+  genero: z.enum(["masculino", "femenino"]),
   categoria_fauna: z.enum(FAUNA),
   familia_morfologica: z.enum(MORPHOLOGICAL),
   familia_morfologica_label: text,
@@ -81,13 +83,21 @@ const animalSchema = z.strictObject({
   }),
 }) satisfies z.ZodType<ArchetypeAnimal>;
 
-const colorSchema = z.strictObject({
-  id: z.string().regex(/^[a-z0-9-]+$/),
-  nombre: text,
-  hex,
-  textura: z.enum(TEXTURES),
-  temperatura: z.enum(TEMPERATURES),
-}) satisfies z.ZodType<ArchetypeColor>;
+const colorSchema = z
+  .strictObject({
+    id: z.string().regex(/^[a-z0-9-]+$/),
+    nombre: text,
+    masculino: text,
+    femenino: text,
+    invariable: z.boolean(),
+    hex,
+    textura: z.enum(TEXTURES),
+    temperatura: z.enum(TEMPERATURES),
+  })
+  .refine(
+    (c) => (c.invariable ? c.masculino === c.femenino : c.masculino !== c.femenino),
+    "invariable flag must match whether masculino and femenino are identical",
+  ) satisfies z.ZodType<ArchetypeColor>;
 
 function uniqueIds(entries: readonly { id: string }[]): boolean {
   return new Set(entries.map((entry) => entry.id)).size === entries.length;
