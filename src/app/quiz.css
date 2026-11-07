@@ -5,11 +5,13 @@
 
 /* ─── Quizzes Hub ──────────────────────────────────────────── */
 .zm-quizzes {
-  display: grid;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   gap: calc(var(--zm-px) * 10);
-  padding: calc(var(--zm-px) * 8);
-  max-width: 48rem;
+  width: min(100%, 72rem);
   margin: 0 auto;
+  padding: calc(var(--zm-px) * 8);
 }
 
 @media (max-width: 768px) {
