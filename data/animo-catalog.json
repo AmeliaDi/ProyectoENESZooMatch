@@ -1,0 +1,2052 @@
+{
+  "version": "1.0",
+  "fuente": "Catálogo de mensajes de ánimo para ZooMatch, voz tierna y juguetona, es-MX.",
+  "mensajes": [
+    {
+      "id": "manana_01",
+      "categoria": "momento_del_dia",
+      "contexto": "manana",
+      "texto": "Buenos días ✨ Tu {animal} {color} apenas se está estirando",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "manana_02",
+      "categoria": "momento_del_dia",
+      "contexto": "manana",
+      "texto": "Que este día te trate suave, dice tu {animal} {color} <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "manana_03",
+      "categoria": "momento_del_dia",
+      "contexto": "manana",
+      "texto": "Un nuevo día para ir a tu ritmo. Tu {animal} {color} te acompaña",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "manana_04",
+      "categoria": "momento_del_dia",
+      "contexto": "manana",
+      "texto": "Tu {animal} {color} te manda un saludo con olor a café ☕",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "manana_05",
+      "categoria": "momento_del_dia",
+      "contexto": "manana",
+      "texto": "Hoy es buen día para ser tú. Tu {animal} {color} lo sabe :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "manana_06",
+      "categoria": "momento_del_dia",
+      "contexto": "manana",
+      "texto": "Tu {animal} {color} te recibe esta mañana con muchas ganas ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tarde_01",
+      "categoria": "momento_del_dia",
+      "contexto": "tarde",
+      "texto": "Buenas tardes. Tu {animal} {color} te trae un descansito <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tarde_02",
+      "categoria": "momento_del_dia",
+      "contexto": "tarde",
+      "texto": "La tarde va tranquila y tu {animal} {color} lo celebra :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tarde_03",
+      "categoria": "momento_del_dia",
+      "contexto": "tarde",
+      "texto": "Si necesitas una pausa, tu {animal} {color} también la pide ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tarde_04",
+      "categoria": "momento_del_dia",
+      "contexto": "tarde",
+      "texto": "Tu {animal} {color} se asoma para acompañarte un ratito 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tarde_05",
+      "categoria": "momento_del_dia",
+      "contexto": "tarde",
+      "texto": "Mediotiempo del día. Tu {animal} {color} te echa porras <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "tarde_06",
+      "categoria": "momento_del_dia",
+      "contexto": "tarde",
+      "texto": "La tarde sigue y tu {animal} {color} está aquí contigo ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "noche_01",
+      "categoria": "momento_del_dia",
+      "contexto": "noche",
+      "texto": "Buenas noches. Tu {animal} {color} baja la voz para arrullarte 🌙",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "noche_02",
+      "categoria": "momento_del_dia",
+      "contexto": "noche",
+      "texto": "La noche es tuya. Tu {animal} {color} cuida tu rincón <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "noche_03",
+      "categoria": "momento_del_dia",
+      "contexto": "noche",
+      "texto": "Si hoy fue un día pesado, aquí hay calma con estrellitas 🌙",
+      "placeholders": [],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "noche_04",
+      "categoria": "momento_del_dia",
+      "contexto": "noche",
+      "texto": "Tu {animal} {color} te deja un ratito de silencio bonito ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "noche_05",
+      "categoria": "momento_del_dia",
+      "contexto": "noche",
+      "texto": "Descansa un ratito. Tu {animal} {color} se queda aquí 🌙",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "noche_06",
+      "categoria": "momento_del_dia",
+      "contexto": "noche",
+      "texto": "La luna salió y tu {animal} {color} te acompaña bajo ella <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "madrugada_01",
+      "categoria": "momento_del_dia",
+      "contexto": "madrugada",
+      "texto": "De madrugada todo calla. Tu {animal} {color} sigue aquí 🌙",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "madrugada_02",
+      "categoria": "momento_del_dia",
+      "contexto": "madrugada",
+      "texto": "Si aún andas por aquí, tu {animal} {color} te hace compañía ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "madrugada_03",
+      "categoria": "momento_del_dia",
+      "contexto": "madrugada",
+      "texto": "La noche es larga y tu {animal} {color} no se va a ir <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "madrugada_04",
+      "categoria": "momento_del_dia",
+      "contexto": "madrugada",
+      "texto": "Entre tantitas estrellas, tu {animal} {color} te saluda ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "madrugada_05",
+      "categoria": "momento_del_dia",
+      "contexto": "madrugada",
+      "texto": "Tu {animal} {color} te cuida en el silencio de la madrugada 🌙",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "madrugada_06",
+      "categoria": "momento_del_dia",
+      "contexto": "madrugada",
+      "texto": "Aquí hay un rinconcito para ti a estas horas. Tu {animal} {color} lo sabe 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_eclosion_01",
+      "categoria": "primera_entrada",
+      "contexto": "tras_eclosion",
+      "texto": "¡Acabas de eclosionar! Tu {animal} {color} te recibe en el mundo ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "tras_eclosion_02",
+      "categoria": "primera_entrada",
+      "contexto": "tras_eclosion",
+      "texto": "Tu {animal} {color} acaba de nacer y ya te está eligiendo como su persona <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "tras_eclosion_03",
+      "categoria": "primera_entrada",
+      "contexto": "tras_eclosion",
+      "texto": "Algo chiquito acaba de aparecer: es tu {animal} {color}. Hola, mundo nuevo ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "tras_eclosion_04",
+      "categoria": "primera_entrada",
+      "contexto": "tras_eclosion",
+      "texto": "Tu {animal} {color} abrió los ojitos por primera vez. Qué gusto que estés aquí :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_eclosion_05",
+      "categoria": "primera_entrada",
+      "contexto": "tras_eclosion",
+      "texto": "Hay un nuevo {animal} {color} en el zoo y eres tú. Qué emoción tan bonita 🥚",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "tras_eclosion_06",
+      "categoria": "primera_entrada",
+      "contexto": "tras_eclosion",
+      "texto": "Tu {animal} {color} aún no sabe muchas palabras, pero ya te quiere <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_eclosion_07",
+      "categoria": "primera_entrada",
+      "contexto": "tras_eclosion",
+      "texto": "El cascarón se rompió y apareó tu {animal} {color}. Hola, criaturita ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "tras_eclosion_08",
+      "categoria": "primera_entrada",
+      "contexto": "tras_eclosion",
+      "texto": "Tu {animal} {color} está aprendiendo a existir. Tú también puedes ir despacio 🥚",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "del_dia_01",
+      "categoria": "primera_entrada",
+      "contexto": "del_dia",
+      "texto": "Qué bueno que pasaste por aquí. Tu {animal} {color} te recibe con gusto ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "del_dia_02",
+      "categoria": "primera_entrada",
+      "contexto": "del_dia",
+      "texto": "Tu {animal} {color} nota que llegaste y se pone a celebrar :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "del_dia_03",
+      "categoria": "primera_entrada",
+      "contexto": "del_dia",
+      "texto": "Hoy tu {animal} {color} te tiene un saludadito especial 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "del_dia_04",
+      "categoria": "primera_entrada",
+      "contexto": "del_dia",
+      "texto": "Pasaste por el zoo y tu {animal} {color} se puso a brincar de gusto <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "del_dia_05",
+      "categoria": "primera_entrada",
+      "contexto": "del_dia",
+      "texto": "Tu {animal} {color} te guarda un rinconcito tranquilo para hoy ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "del_dia_06",
+      "categoria": "primera_entrada",
+      "contexto": "del_dia",
+      "texto": "Cada vez que {alias} entra, tu {animal} {color} mueve la colita de gusto :3",
+      "placeholders": [
+        "{animal}",
+        "{color}",
+        "{alias}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "del_dia_07",
+      "categoria": "primera_entrada",
+      "contexto": "del_dia",
+      "texto": "Tu {animal} {color} se alegra de verte por aquí un día más 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "del_dia_08",
+      "categoria": "primera_entrada",
+      "contexto": "del_dia",
+      "texto": "Hola de nuevo. Tu {animal} {color} te estaba esperando tranquilo ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_varios_dias_01",
+      "categoria": "primera_entrada",
+      "contexto": "tras_varios_dias",
+      "texto": "Tu {animal} {color} sigue aquí, esperándote sin prisa <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_varios_dias_02",
+      "categoria": "primera_entrada",
+      "contexto": "tras_varios_dias",
+      "texto": "Volviste y tu {animal} {color} mueve la colita suavemente. Qué gusto ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_varios_dias_03",
+      "categoria": "primera_entrada",
+      "contexto": "tras_varios_dias",
+      "texto": "Tu {animal} {color} guardó tu lugar con cariño 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_varios_dias_04",
+      "categoria": "primera_entrada",
+      "contexto": "tras_varios_dias",
+      "texto": "Qué gusto que regreses. Tu {animal} {color} te recibe con alegría :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_varios_dias_05",
+      "categoria": "primera_entrada",
+      "contexto": "tras_varios_dias",
+      "texto": "Tu {animal} {color} sigue aquí, a tu ritmo <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_varios_dias_06",
+      "categoria": "primera_entrada",
+      "contexto": "tras_varios_dias",
+      "texto": "Tu {animal} {color} se acomoda para que te sientas como en casa ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_varios_dias_07",
+      "categoria": "primera_entrada",
+      "contexto": "tras_varios_dias",
+      "texto": "Pasó un tiempito y tu {animal} {color} sigue siendo tu lugar seguro 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "tras_varios_dias_08",
+      "categoria": "primera_entrada",
+      "contexto": "tras_varios_dias",
+      "texto": "Tu {animal} {color} te recibe con un abrazo chiquito. Qué bueno verte de vuelta :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "match_nuevo_01",
+      "categoria": "contexto_social",
+      "contexto": "match_nuevo",
+      "texto": "Apareció alguien nuevo en tu zoo. Tu {animal} {color} te lo presenta con gusto ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "match_nuevo_02",
+      "categoria": "contexto_social",
+      "contexto": "match_nuevo",
+      "texto": "Tu {animal} {color} nota que hay una conexión nueva. Qué lindo <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "match_nuevo_03",
+      "categoria": "contexto_social",
+      "contexto": "match_nuevo",
+      "texto": "Alguien más se suma a tu órbita. Tu {animal} {color} te lo señala emocionado :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "match_nuevo_04",
+      "categoria": "contexto_social",
+      "contexto": "match_nuevo",
+      "texto": "Tu {animal} {color} te dice: hay match nuevo, sin prisa para saludar 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "match_nuevo_05",
+      "categoria": "contexto_social",
+      "contexto": "match_nuevo",
+      "texto": "Tu zoo creció un poquito. Tu {animal} {color} te lo celebra ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "match_nuevo_06",
+      "categoria": "contexto_social",
+      "contexto": "match_nuevo",
+      "texto": "Tu {animal} {color} te avisa: hay alguien nuevo por aquí. Tú decides cuándo <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "invitacion_chat_01",
+      "categoria": "contexto_social",
+      "contexto": "invitacion_chat",
+      "texto": "Tienes una invitación para platicar. Tu {animal} {color} te la deja ahí 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "invitacion_chat_02",
+      "categoria": "contexto_social",
+      "contexto": "invitacion_chat",
+      "texto": "Alguien te mandó un saludito. Tu {animal} {color} te lo avisa con gusto :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "invitacion_chat_03",
+      "categoria": "contexto_social",
+      "contexto": "invitacion_chat",
+      "texto": "Hay una puerta abierta para conversar. Tu {animal} {color} te la señala ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "invitacion_chat_04",
+      "categoria": "contexto_social",
+      "contexto": "invitacion_chat",
+      "texto": "Tu {animal} {color} te dice: hay alguien que quiere platicar, sin compromiso <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "invitacion_chat_05",
+      "categoria": "contexto_social",
+      "contexto": "invitacion_chat",
+      "texto": "Tu {animal} {color} te alcanza un mensajito nuevo. Lo lees cuando quieras 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "invitacion_chat_06",
+      "categoria": "contexto_social",
+      "contexto": "invitacion_chat",
+      "texto": "Tu {animal} {color} se asoma: hay una invitación de chat esperándote :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "sin_matches_01",
+      "categoria": "contexto_social",
+      "contexto": "sin_matches",
+      "texto": "Tu {animal} {color} te recuerda: las buenas conexiones se dan a su tiempo <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "sin_matches_02",
+      "categoria": "contexto_social",
+      "contexto": "sin_matches",
+      "texto": "Aún no hay matches, pero tu {animal} {color} está aquí contigo ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "sin_matches_03",
+      "categoria": "contexto_social",
+      "contexto": "sin_matches",
+      "texto": "Tu {animal} {color} te dice que tu vibra es única y eso ya es mucho 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "sin_matches_04",
+      "categoria": "contexto_social",
+      "contexto": "sin_matches",
+      "texto": "Mientras tanto, tu {animal} {color} te hace compañía sin prisa :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "sin_matches_05",
+      "categoria": "contexto_social",
+      "contexto": "sin_matches",
+      "texto": "Tu {animal} {color} te echa porras. Lo que tiene que llegar, llegará <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "sin_matches_06",
+      "categoria": "contexto_social",
+      "contexto": "sin_matches",
+      "texto": "Tu {animal} {color} se acurruca contigo. Cada quien va a su ritmo ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "despues_de_quiz_01",
+      "categoria": "contexto_social",
+      "contexto": "despues_de_quiz",
+      "texto": "Terminaste el quiz y tu {animal} {color} te aplaude el esfuerzo ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "despues_de_quiz_02",
+      "categoria": "contexto_social",
+      "contexto": "despues_de_quiz",
+      "texto": "Tu {animal} {color} dice que conocerte mejor vale la pena <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "despues_de_quiz_03",
+      "categoria": "contexto_social",
+      "contexto": "despues_de_quiz",
+      "texto": "Darte un ratito para pensarte es un regalito. Tu {animal} {color} lo celebra 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "despues_de_quiz_04",
+      "categoria": "contexto_social",
+      "contexto": "despues_de_quiz",
+      "texto": "Tu {animal} {color} te dice: cada respuesta tuya suma al retrato :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "despues_de_quiz_05",
+      "categoria": "contexto_social",
+      "contexto": "despues_de_quiz",
+      "texto": "Tu {animal} {color} te echa porras por tomarte el tiempo de conocerte ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "despues_de_quiz_06",
+      "categoria": "contexto_social",
+      "contexto": "despues_de_quiz",
+      "texto": "Ganaste una insignia más. Tu {animal} {color} te la pone con cariño <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "animo_cansancio_01",
+      "categoria": "animo_publicado",
+      "contexto": "cansancio",
+      "texto": "Tu {animal} {color} se acurruca despacito a tu lado sin pedir nada 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_cansancio_02",
+      "categoria": "animo_publicado",
+      "contexto": "cansancio",
+      "texto": "Aquí hay un lugar tranquilo para ti. Tu {animal} {color} lo cuida ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_cansancio_03",
+      "categoria": "animo_publicado",
+      "contexto": "cansancio",
+      "texto": "Tu {animal} {color} te dice que hoy no hay que demostrar nada <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_cansancio_04",
+      "categoria": "animo_publicado",
+      "contexto": "cansancio",
+      "texto": "Si hoy fue un día pesado, tu {animal} {color} te guarda un rincón suave 🌙",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_cansancio_05",
+      "categoria": "animo_publicado",
+      "contexto": "cansancio",
+      "texto": "Tu {animal} {color} te acompaña en silencio. No hace falta decir nada 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_cansancio_06",
+      "categoria": "animo_publicado",
+      "contexto": "cansancio",
+      "texto": "Tu {animal} {color} se sienta cerquita de ti. A tu ritmo está bien :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ansiedad_01",
+      "categoria": "animo_publicado",
+      "contexto": "ansiedad",
+      "texto": "Tu {animal} {color} se sienta a tu lado. No hay prisa para nada ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ansiedad_02",
+      "categoria": "animo_publicado",
+      "contexto": "ansiedad",
+      "texto": "Tu {animal} {color} te dice: un pasito a la vez también es avanzar <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ansiedad_03",
+      "categoria": "animo_publicado",
+      "contexto": "ansiedad",
+      "texto": "Si hay mucho ruido afuera, tu {animal} {color} te ofrece un ratito de calma 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ansiedad_04",
+      "categoria": "animo_publicado",
+      "contexto": "ansiedad",
+      "texto": "Tu {animal} {color} te recuerda que no necesitas resolver todo hoy :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ansiedad_05",
+      "categoria": "animo_publicado",
+      "contexto": "ansiedad",
+      "texto": "Tu {animal} {color} se queda aquí, a tu lado, sin moverse ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ansiedad_06",
+      "categoria": "animo_publicado",
+      "contexto": "ansiedad",
+      "texto": "Tu {animal} {color} te dice que está bien ir despacio hoy 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ganas_platicar_01",
+      "categoria": "animo_publicado",
+      "contexto": "ganas_de_platicar",
+      "texto": "Tu {animal} {color} te dice: si quieres platicar, aquí hay oídos sin prisa ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "animo_ganas_platicar_02",
+      "categoria": "animo_publicado",
+      "contexto": "ganas_de_platicar",
+      "texto": "Tu {animal} {color} se ofrece de compañía. A lo mejor alguien se acerca <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ganas_platicar_03",
+      "categoria": "animo_publicado",
+      "contexto": "ganas_de_platicar",
+      "texto": "Tu {animal} {color} te dice que tu voz vale y hay quien quiere escucharla 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "animo_ganas_platicar_04",
+      "categoria": "animo_publicado",
+      "contexto": "ganas_de_platicar",
+      "texto": "Si te nace decir algo, tu {animal} {color} te anima sin presionar :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ganas_platicar_05",
+      "categoria": "animo_publicado",
+      "contexto": "ganas_de_platicar",
+      "texto": "Tu {animal} {color} se acerca un ratito. La conversación fluye cuando quiere ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_ganas_platicar_06",
+      "categoria": "animo_publicado",
+      "contexto": "ganas_de_platicar",
+      "texto": "Tu {animal} {color} te dice: cada mensaje tuyo es bien recibido aquí <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_abrazo_01",
+      "categoria": "animo_publicado",
+      "contexto": "necesito_un_abrazo",
+      "texto": "Tu {animal} {color} te envuelve en un abrazo chiquito de pixel 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_abrazo_02",
+      "categoria": "animo_publicado",
+      "contexto": "necesito_un_abrazo",
+      "texto": "Aquí hay un abrazo tibio esperándote. Tu {animal} {color} lo guarda para ti ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_abrazo_03",
+      "categoria": "animo_publicado",
+      "contexto": "necesito_un_abrazo",
+      "texto": "Tu {animal} {color} se acerca despacito. Todo está bien aquí <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_abrazo_04",
+      "categoria": "animo_publicado",
+      "contexto": "necesito_un_abrazo",
+      "texto": "Tu {animal} {color} te dice que mereces un ratito de cariño 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_abrazo_05",
+      "categoria": "animo_publicado",
+      "contexto": "necesito_un_abrazo",
+      "texto": "Tu {animal} {color} se acurruca contigo. Hay compañía en este ratito :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_abrazo_06",
+      "categoria": "animo_publicado",
+      "contexto": "necesito_un_abrazo",
+      "texto": "Tu {animal} {color} te manda un abrazo de los que reconfortan ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_alegria_01",
+      "categoria": "animo_publicado",
+      "contexto": "alegria",
+      "texto": "Tu {animal} {color} se pone a bailar porque hoy irradias algo bonito :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "animo_alegria_02",
+      "categoria": "animo_publicado",
+      "contexto": "alegria",
+      "texto": "Tu {animal} {color} brilla un ratito con tu buena vibra ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "animo_alegria_03",
+      "categoria": "animo_publicado",
+      "contexto": "alegria",
+      "texto": "Tu {animal} {color} brinca de gusto al verte así de bien 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "animo_alegria_04",
+      "categoria": "animo_publicado",
+      "contexto": "alegria",
+      "texto": "Tu {animal} {color} brinca de gusto porque hoy estás de buen humor <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "animo_alegria_05",
+      "categoria": "animo_publicado",
+      "contexto": "alegria",
+      "texto": "Tu {animal} {color} te dice: hoy traes una vibra muy bonita y se nota ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "animo_alegria_06",
+      "categoria": "animo_publicado",
+      "contexto": "alegria",
+      "texto": "Tu {animal} {color} celebra contigo este ratito bonito :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_concentracion_01",
+      "categoria": "animo_publicado",
+      "contexto": "concentracion",
+      "texto": "Tu {animal} {color} se pone en modo silencioso para no distraerte ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_concentracion_02",
+      "categoria": "animo_publicado",
+      "contexto": "concentracion",
+      "texto": "Tu {animal} {color} te dice: tú le echas ganas, yo te cuido el rato 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_concentracion_03",
+      "categoria": "animo_publicado",
+      "contexto": "concentracion",
+      "texto": "Tu {animal} {color} se queda calladito a tu lado mientras te concentras <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_concentracion_04",
+      "categoria": "animo_publicado",
+      "contexto": "concentracion",
+      "texto": "Tu {animal} {color} admira tu enfoque. Cuando termines, aquí sigue :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_concentracion_05",
+      "categoria": "animo_publicado",
+      "contexto": "concentracion",
+      "texto": "Tu {animal} {color} te cuida el espacio para que le vayas a lo tuyo ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "animo_concentracion_06",
+      "categoria": "animo_publicado",
+      "contexto": "concentracion",
+      "texto": "Tu {animal} {color} te dice: tu dedicación de hoy vale mucho 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "inicio_semestre_ago_01",
+      "categoria": "estacional",
+      "contexto": "inicio_semestre",
+      "texto": "Empieza un semestre nuevo. Tu {animal} {color} te desea un inicio suave ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "08-01",
+        "fin": "08-15"
+      }
+    },
+    {
+      "id": "inicio_semestre_ago_02",
+      "categoria": "estacional",
+      "contexto": "inicio_semestre",
+      "texto": "Tu {animal} {color} te dice: un comienzo es una página en blanco, sin prisa <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "08-01",
+        "fin": "08-15"
+      }
+    },
+    {
+      "id": "inicio_semestre_ago_03",
+      "categoria": "estacional",
+      "contexto": "inicio_semestre",
+      "texto": "Tu {animal} {color} te acompaña en este arranque de semestre 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "08-01",
+        "fin": "08-15"
+      }
+    },
+    {
+      "id": "inicio_semestre_ene_01",
+      "categoria": "estacional",
+      "contexto": "inicio_semestre",
+      "texto": "Arranca el año y tu {animal} {color} te manda un saludo fresco ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "01-15",
+        "fin": "01-31"
+      }
+    },
+    {
+      "id": "inicio_semestre_ene_02",
+      "categoria": "estacional",
+      "contexto": "inicio_semestre",
+      "texto": "Tu {animal} {color} te dice: este semestre es tuyo, a tu ritmo <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "01-15",
+        "fin": "01-31"
+      }
+    },
+    {
+      "id": "inicio_semestre_ene_03",
+      "categoria": "estacional",
+      "contexto": "inicio_semestre",
+      "texto": "Tu {animal} {color} te acompaña a empezar de nuevo este semestre 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "01-15",
+        "fin": "01-31"
+      }
+    },
+    {
+      "id": "fin_semestre_dic_01",
+      "categoria": "estacional",
+      "contexto": "fin_semestre",
+      "texto": "Tu {animal} {color} te dice: acabas un semestre y mereces descansar <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "12-01",
+        "fin": "12-20"
+      }
+    },
+    {
+      "id": "fin_semestre_dic_02",
+      "categoria": "estacional",
+      "contexto": "fin_semestre",
+      "texto": "Tu {animal} {color} celebra contigo que ya casi termina el semestre ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "12-01",
+        "fin": "12-20"
+      }
+    },
+    {
+      "id": "fin_semestre_dic_03",
+      "categoria": "estacional",
+      "contexto": "fin_semestre",
+      "texto": "Tu {animal} {color} te recuerda que parar también es avanzar 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "12-01",
+        "fin": "12-20"
+      }
+    },
+    {
+      "id": "fin_semestre_may_01",
+      "categoria": "estacional",
+      "contexto": "fin_semestre",
+      "texto": "Tu {animal} {color} te dice: otro semestre más que logras. Qué bonito esfuerzo <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "05-15",
+        "fin": "05-31"
+      }
+    },
+    {
+      "id": "fin_semestre_may_02",
+      "categoria": "estacional",
+      "contexto": "fin_semestre",
+      "texto": "Tu {animal} {color} te acompaña a cerrar este ciclo con calma ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "05-15",
+        "fin": "05-31"
+      }
+    },
+    {
+      "id": "fin_semestre_may_03",
+      "categoria": "estacional",
+      "contexto": "fin_semestre",
+      "texto": "Tu {animal} {color} te dice que ya viene la parte de respirar profundo 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "05-15",
+        "fin": "05-31"
+      }
+    },
+    {
+      "id": "epoca_examenes_may_01",
+      "categoria": "estacional",
+      "contexto": "epoca_examenes",
+      "texto": "Tu {animal} {color} te dice: tú le echas ganas, pero también date ratitos de aire ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "05-01",
+        "fin": "05-31"
+      }
+    },
+    {
+      "id": "epoca_examenes_may_02",
+      "categoria": "estacional",
+      "contexto": "epoca_examenes",
+      "texto": "Tu {animal} {color} te echa porras en esta recta final del semestre <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "05-01",
+        "fin": "05-31"
+      }
+    },
+    {
+      "id": "epoca_examenes_may_03",
+      "categoria": "estacional",
+      "contexto": "epoca_examenes",
+      "texto": "Tu {animal} {color} te recuerda: estudiar también es saber cuándo parar 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "05-01",
+        "fin": "05-31"
+      }
+    },
+    {
+      "id": "epoca_examenes_nov_01",
+      "categoria": "estacional",
+      "contexto": "epoca_examenes",
+      "texto": "Tu {animal} {color} te dice: un examen no te define, pero tu esfuerzo sí ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "11-01",
+        "fin": "11-30"
+      }
+    },
+    {
+      "id": "epoca_examenes_nov_02",
+      "categoria": "estacional",
+      "contexto": "epoca_examenes",
+      "texto": "Tu {animal} {color} te cuida el ratito mientras estudias. Hay compañía <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "11-01",
+        "fin": "11-30"
+      }
+    },
+    {
+      "id": "epoca_examenes_nov_03",
+      "categoria": "estacional",
+      "contexto": "epoca_examenes",
+      "texto": "Tu {animal} {color} te dice: ve un poquito cada día, así se puede 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "11-01",
+        "fin": "11-30"
+      }
+    },
+    {
+      "id": "dia_de_muertos_01",
+      "categoria": "estacional",
+      "contexto": "dia_de_muertos",
+      "texto": "Tu {animal} {color} prende una velita de pixel por los que ya se fueron 🌙",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "11-01",
+        "fin": "11-02"
+      }
+    },
+    {
+      "id": "dia_de_muertos_02",
+      "categoria": "estacional",
+      "contexto": "dia_de_muertos",
+      "texto": "Tu {animal} {color} te dice: hoy recordamos con cariño a quienes nos marcaron ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "11-01",
+        "fin": "11-02"
+      }
+    },
+    {
+      "id": "dia_de_muertos_03",
+      "categoria": "estacional",
+      "contexto": "dia_de_muertos",
+      "texto": "Tu {animal} {color} adorna su altar con flores y un ratito de memoria <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "11-01",
+        "fin": "11-02"
+      }
+    },
+    {
+      "id": "dia_de_muertos_04",
+      "categoria": "estacional",
+      "contexto": "dia_de_muertos",
+      "texto": "Tu {animal} {color} te dice: hoy las estrellas brillan distinto 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "11-01",
+        "fin": "11-02"
+      }
+    },
+    {
+      "id": "dia_de_muertos_05",
+      "categoria": "estacional",
+      "contexto": "dia_de_muertos",
+      "texto": "Tu {animal} {color} se suma a esta noche tan bonita de recordar ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "11-01",
+        "fin": "11-02"
+      }
+    },
+    {
+      "id": "dia_de_muertos_06",
+      "categoria": "estacional",
+      "contexto": "dia_de_muertos",
+      "texto": "Tu {animal} {color} te dice: los que se fueron siguen en lo que nos enseñaron 🌙",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "11-01",
+        "fin": "11-02"
+      }
+    },
+    {
+      "id": "fin_de_anio_dic_01",
+      "categoria": "estacional",
+      "contexto": "fin_de_anio",
+      "texto": "Tu {animal} {color} te dice: cierra el año y tú también puedes soltar un poquito ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "12-20",
+        "fin": "01-05"
+      }
+    },
+    {
+      "id": "fin_de_anio_dic_02",
+      "categoria": "estacional",
+      "contexto": "fin_de_anio",
+      "texto": "Tu {animal} {color} te manda un abrazo de cierre de año. Fue mucho lo que lograste <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "12-20",
+        "fin": "01-05"
+      }
+    },
+    {
+      "id": "fin_de_anio_dic_03",
+      "categoria": "estacional",
+      "contexto": "fin_de_anio",
+      "texto": "Tu {animal} {color} te dice: el año que viene también será tuyo 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "12-20",
+        "fin": "01-05"
+      }
+    },
+    {
+      "id": "fin_de_anio_ene_01",
+      "categoria": "estacional",
+      "contexto": "fin_de_anio",
+      "texto": "Tu {animal} {color} te dice: empieza un año nuevo y tú vas con él ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "12-20",
+        "fin": "01-05"
+      }
+    },
+    {
+      "id": "fin_de_anio_ene_02",
+      "categoria": "estacional",
+      "contexto": "fin_de_anio",
+      "texto": "Tu {animal} {color} te desea un año nuevo lleno de ratitos bonitos <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "12-20",
+        "fin": "01-05"
+      }
+    },
+    {
+      "id": "fin_de_anio_ene_03",
+      "categoria": "estacional",
+      "contexto": "fin_de_anio",
+      "texto": "Tu {animal} {color} te dice: lo que viene lo vas a vivir a tu manera 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "12-20",
+        "fin": "01-05"
+      }
+    },
+    {
+      "id": "vacaciones_dic_01",
+      "categoria": "estacional",
+      "contexto": "vacaciones",
+      "texto": "Tu {animal} {color} te dice: por fin vacaciones. A descansar sin culpa ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "12-15",
+        "fin": "01-15"
+      }
+    },
+    {
+      "id": "vacaciones_dic_02",
+      "categoria": "estacional",
+      "contexto": "vacaciones",
+      "texto": "Tu {animal} {color} se echa una siestecita de invierno contigo <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "12-15",
+        "fin": "01-15"
+      }
+    },
+    {
+      "id": "vacaciones_dic_03",
+      "categoria": "estacional",
+      "contexto": "vacaciones",
+      "texto": "Tu {animal} {color} te dice: estas fechas son para ti, sin horarios 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "12-15",
+        "fin": "01-15"
+      }
+    },
+    {
+      "id": "vacaciones_jun_01",
+      "categoria": "estacional",
+      "contexto": "vacaciones",
+      "texto": "Tu {animal} {color} te dice: llegaron las vacaciones de verano. A disfrutarlas ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "06-01",
+        "fin": "08-31"
+      }
+    },
+    {
+      "id": "vacaciones_jun_02",
+      "categoria": "estacional",
+      "contexto": "vacaciones",
+      "texto": "Tu {animal} {color} se pone cómodo para estas semanas de descanso <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "06-01",
+        "fin": "08-31"
+      }
+    },
+    {
+      "id": "vacaciones_jun_03",
+      "categoria": "estacional",
+      "contexto": "vacaciones",
+      "texto": "Tu {animal} {color} te dice: el verano es tuyo, sin prisas ni pendientes 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "06-01",
+        "fin": "08-31"
+      }
+    },
+    {
+      "id": "cumpleanos_zooenes_01",
+      "categoria": "estacional",
+      "contexto": "cumpleanos_zooenes",
+      "texto": "Tu {animal} {color} te dice: hoy es el cumple del zoo y tú eres parte de la fiesta ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "10-15",
+        "fin": "10-17"
+      }
+    },
+    {
+      "id": "cumpleanos_zooenes_02",
+      "categoria": "estacional",
+      "contexto": "cumpleanos_zooenes",
+      "texto": "Tu {animal} {color} prende las velitas para celebrar contigo <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "10-15",
+        "fin": "10-17"
+      }
+    },
+    {
+      "id": "cumpleanos_zooenes_03",
+      "categoria": "estacional",
+      "contexto": "cumpleanos_zooenes",
+      "texto": "Tu {animal} {color} te dice: hoy el zoo cumple años y tú lo haces especial 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "10-15",
+        "fin": "10-17"
+      }
+    },
+    {
+      "id": "cumpleanos_zooenes_04",
+      "categoria": "estacional",
+      "contexto": "cumpleanos_zooenes",
+      "texto": "Tu {animal} {color} te manda un confeti de pixel en este día tan bonito ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "10-15",
+        "fin": "10-17"
+      }
+    },
+    {
+      "id": "cumpleanos_zooenes_05",
+      "categoria": "estacional",
+      "contexto": "cumpleanos_zooenes",
+      "texto": "Tu {animal} {color} te dice: gracias por ser parte de esta manada <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": {
+        "inicio": "10-15",
+        "fin": "10-17"
+      }
+    },
+    {
+      "id": "cumpleanos_zooenes_06",
+      "categoria": "estacional",
+      "contexto": "cumpleanos_zooenes",
+      "texto": "Tu {animal} {color} baila de gusto porque hoy celebramos juntos 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": {
+        "inicio": "10-15",
+        "fin": "10-17"
+      }
+    },
+    {
+      "id": "generico_01",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} te manda un saludito porque sí ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "generico_02",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} te dice: tu vibra es única y ninguna estadística la mide :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "generico_03",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} se acerca un ratito para acompañarte 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "generico_04",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} te dice: no necesitas hacer nada especial hoy para estar aquí <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "generico_05",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} te recuerda que está bien ir a tu propio ritmo ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "generico_06",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} te dice: {alias}, aquí hay un lugar para ti 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}",
+        "{alias}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "generico_07",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} te manda un ratito de calma en medio del día :3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "generico_08",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} te dice: eres más de lo que cualquier pantalla puede mostrar ✨",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "media",
+      "estacional": null
+    },
+    {
+      "id": "generico_09",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} se asoma para recordarte que te quiere tal como eres <3",
+      "placeholders": [
+        "{animal}",
+        "{color}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    },
+    {
+      "id": "generico_10",
+      "categoria": "generico",
+      "contexto": "generico",
+      "texto": "Tu {animal} {color} te dice: {alias}, hoy también vale la pena que estés aquí 💛",
+      "placeholders": [
+        "{animal}",
+        "{color}",
+        "{alias}"
+      ],
+      "intensidad": "suave",
+      "estacional": null
+    }
+  ]
+}
