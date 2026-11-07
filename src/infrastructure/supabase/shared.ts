@@ -23,6 +23,10 @@ export const TABLE = {
   reportAudit: "chat_report_audit",
   adminCredentials: "admin_credentials",
   adminAudit: "admin_audit",
+  quizAttempts: "quiz_attempts",
+  quizAnswers: "quiz_answers",
+  quizSharing: "quiz_sharing",
+  quizPicanteConsent: "quiz_picante_consent",
 } as const;
 export const RPC = {
   submit: "submit_quiz_result",
