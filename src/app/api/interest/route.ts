@@ -1,7 +1,7 @@
 import { expressInterest, interestStates, withdrawInterest } from "@/application/chat";
 import { interestSchema } from "@/application/validation/chat";
 import { interestBody, withInterest } from "@/infrastructure/chat/interest-route.server";
-import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { createChatPreflightHandler, withChatApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ const handleDelete = (request: Request) =>
 
 const methods = ["GET", "POST", "DELETE"] as const;
 
-export const GET = withApiSecurity(handleGet, { name: "interest-read", limit: 30, windowSeconds: 60, methods });
-export const POST = withApiSecurity(handlePost, { name: "interest-send", limit: 20, windowSeconds: 60, methods });
-export const DELETE = withApiSecurity(handleDelete, { name: "interest-withdraw", limit: 20, windowSeconds: 60, methods });
-export const OPTIONS = createPreflightHandler(methods);
+export const GET = withChatApiSecurity(handleGet, { name: "interest-read", limit: 30, windowSeconds: 60, methods });
+export const POST = withChatApiSecurity(handlePost, { name: "interest-send", limit: 20, windowSeconds: 60, methods });
+export const DELETE = withChatApiSecurity(handleDelete, { name: "interest-withdraw", limit: 20, windowSeconds: 60, methods });
+export const OPTIONS = createChatPreflightHandler(methods);

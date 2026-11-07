@@ -88,3 +88,12 @@ export function attemptsMessage(left: number): string {
   const plural = left === 1 ? "intento" : "intentos";
   return `${CHAT_COPY.invalid} Te ${left === 1 ? "queda" : "quedan"} ${left} ${plural} antes de una pausa.`;
 }
+
+/**
+ * Last resort only: a generic message plus the short reference that appears
+ * in the server log, so a person can report it without anyone reading their
+ * messages. The id is a random UUID, never derived from their data.
+ */
+export function failedWithReference(requestId?: string): string {
+  return requestId ? `${CHAT_COPY.failed} (ref. ${requestId.slice(0, 8)})` : CHAT_COPY.failed;
+}

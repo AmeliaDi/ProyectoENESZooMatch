@@ -6,9 +6,9 @@ import {
   openedResponse,
   parseChatBody,
 } from "@/infrastructure/chat/chat-route.server";
-import { errorResponse } from "@/infrastructure/http/responses";
+import { errorResponse } from "@/infrastructure/http/chat-responses";
 import { logServerEvent } from "@/infrastructure/observability/log.server";
-import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { createChatPreflightHandler, withChatApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,5 +27,5 @@ async function handlePost(request: Request) {
 
 const methods = ["POST"] as const;
 
-export const POST = withApiSecurity(handlePost, { name: "chat-recovery-complete", limit: 10, windowSeconds: 60, methods });
-export const OPTIONS = createPreflightHandler(methods);
+export const POST = withChatApiSecurity(handlePost, { name: "chat-recovery-complete", limit: 10, windowSeconds: 60, methods });
+export const OPTIONS = createChatPreflightHandler(methods);

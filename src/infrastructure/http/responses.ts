@@ -2,16 +2,21 @@ import { NextResponse } from "next/server";
 
 import type { AppError, AppFailure } from "@/application/errors";
 
+import { currentRequestId, recordFailureCode } from "./request-id.server";
+
 const NO_STORE = { "Cache-Control": "no-store" } as const;
 
 const STATUS: Record<AppError, number> = {
   "request.invalid": 400,
+  "request.rate_limited": 429,
+  "request.unknown_route": 404,
   "auth.unauthorized": 401,
   "auth.locked": 429,
   "auth.forbidden": 403,
   "quiz.not_completed": 404,
   "service.unavailable": 503,
   "service.misconfigured": 503,
+  "service.internal": 500,
   "storage.failed": 503,
   "match.pool_unstable": 503,
   "admin.invalid": 401,
@@ -45,12 +50,15 @@ const STATUS: Record<AppError, number> = {
 
 const MESSAGE: Record<AppError, string> = {
   "request.invalid": "La solicitud no es válida.",
+  "request.rate_limited": "Vamos con calma. Puedes intentar de nuevo en un momento.",
+  "request.unknown_route": "Esa dirección no existe en la app.",
   "auth.unauthorized": "Necesitas una sesión activa.",
   "auth.locked": "Demasiados intentos. Espera unos minutos.",
   "auth.forbidden": "No tienes permiso para esta acción.",
   "quiz.not_completed": "Aún no completas el cuestionario.",
   "service.unavailable": "El servicio no está disponible por ahora.",
   "service.misconfigured": "El servicio aún no está configurado.",
+  "service.internal": "Algo falló de nuestro lado. Ya lo estamos revisando.",
   "storage.failed": "No pudimos guardar o leer tus datos. Intenta de nuevo.",
   "match.pool_unstable": "Las afinidades se están recalculando. Intenta en un momento.",
   "admin.invalid": "No pudimos verificar el acceso administrativo.",
@@ -87,6 +95,7 @@ const MESSAGE: Record<AppError, string> = {
 export function errorResponse(error: AppError | AppFailure): NextResponse {
   const failure: AppFailure = typeof error === "string" ? { code: error } : error;
   const { code, retryAfter, attemptsLeft } = failure;
+  recordFailureCode(code);
   const response = NextResponse.json(
     {
       error: MESSAGE[code],
@@ -102,4 +111,35 @@ export function errorResponse(error: AppError | AppFailure): NextResponse {
 
 export function jsonResponse(body: unknown): NextResponse {
   return NextResponse.json(body, { headers: NO_STORE });
+}
+
+/**
+ * The chat surface speaks one envelope (ADR-040): `{ok:true,data}` on success
+ * and `{ok:false,error:{codigo,mensaje,requestId}}` on failure, always JSON
+ * and never cached. The rest of the API keeps the flat shape above; the two
+ * are deliberately separate contracts, not a migration in progress.
+ */
+export function chatJsonResponse(data: unknown): NextResponse {
+  return NextResponse.json({ ok: true, data: data ?? null }, { headers: NO_STORE });
+}
+
+export function chatErrorResponse(error: AppError | AppFailure): NextResponse {
+  const failure: AppFailure = typeof error === "string" ? { code: error } : error;
+  const { code, retryAfter, attemptsLeft } = failure;
+  recordFailureCode(code);
+  const response = NextResponse.json(
+    {
+      ok: false,
+      error: {
+        codigo: code,
+        mensaje: MESSAGE[code],
+        requestId: currentRequestId(),
+        ...(retryAfter === undefined ? {} : { reintentoEn: retryAfter }),
+        ...(attemptsLeft === undefined ? {} : { intentosRestantes: attemptsLeft }),
+      },
+    },
+    { status: STATUS[code], headers: NO_STORE },
+  );
+  if (retryAfter !== undefined) response.headers.set("Retry-After", String(retryAfter));
+  return response;
 }

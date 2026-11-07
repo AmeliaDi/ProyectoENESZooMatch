@@ -17,10 +17,10 @@ export interface ChatStatus {
 
 export type ChatReply =
   | { ok: true; body: Record<string, unknown> }
-  | { ok: false; code: string; retryAfter?: number; attemptsLeft?: number };
+  | { ok: false; code: string; requestId?: string; retryAfter?: number; attemptsLeft?: number };
 
 /** A reply already parsed into its contract shape. */
-export type ApiResult<T> = { ok: true; data: T } | { ok: false; code: string };
+export type ApiResult<T> = { ok: true; data: T } | { ok: false; code: string; requestId?: string };
 
 const NETWORK_FAILURE = "network.failed";
 /** The server answered 2xx but the body did not match the contract. */
@@ -31,7 +31,30 @@ export const LOCKED = "chat.locked";
 export const NOT_FOUND = "chat.not_found";
 export { NETWORK_FAILURE };
 
-/** Shared by the chat and interest clients: same-origin JSON, never cached. */
+/**
+ * Failures worth retrying on their own: the network, the service or the
+ * storage had a moment. A contract break or a refusal is not transient —
+ * retrying it would only hide the cause.
+ */
+const TRANSIENT = new Set([
+  NETWORK_FAILURE,
+  "service.unavailable",
+  "service.internal",
+  "storage.failed",
+  "request.rate_limited",
+  "match.pool_unstable",
+]);
+
+export function isTransientFailure(code: string): boolean {
+  return TRANSIENT.has(code);
+}
+
+/**
+ * Shared by the chat and interest clients: same-origin JSON, never cached.
+ * The chat surface speaks one envelope (ADR-040), `{ok:true,data}` or
+ * `{ok:false,error:{codigo,mensaje,requestId}}`; a reply that is not JSON or
+ * not that shape is a contract failure, not a silent empty success.
+ */
 export async function request(url: string, method: string, body?: unknown): Promise<ChatReply> {
   const init: RequestInit = { method, cache: "no-store", credentials: "same-origin" };
   if (body !== undefined) {
@@ -42,13 +65,19 @@ export async function request(url: string, method: string, body?: unknown): Prom
   if (!res) return { ok: false, code: NETWORK_FAILURE };
   const raw: unknown = await res.json().catch(() => null);
   const json = isRecord(raw) ? raw : {};
-  if (res.ok) return { ok: true, body: json };
-  const numberOf = (key: string) => (typeof json[key] === "number" ? (json[key] as number) : undefined);
-  const retryAfter = numberOf("retryAfter");
-  const attemptsLeft = numberOf("attemptsLeft");
+  if (res.ok) {
+    if (json.ok !== true) return { ok: false, code: INVALID_REPLY };
+    return { ok: true, body: isRecord(json.data) ? json.data : {} };
+  }
+  const error = isRecord(json.error) ? json.error : {};
+  const numberOf = (key: string) => (typeof error[key] === "number" ? (error[key] as number) : undefined);
+  const retryAfter = numberOf("reintentoEn");
+  const attemptsLeft = numberOf("intentosRestantes");
+  const requestId = typeof error.requestId === "string" ? error.requestId : undefined;
   return {
     ok: false,
-    code: typeof json.code === "string" ? json.code : "service.unavailable",
+    code: typeof error.codigo === "string" ? error.codigo : "service.unavailable",
+    ...(requestId === undefined ? {} : { requestId }),
     ...(retryAfter === undefined ? {} : { retryAfter }),
     ...(attemptsLeft === undefined ? {} : { attemptsLeft }),
   };
@@ -60,7 +89,9 @@ function call(path: string, method: string, body?: unknown): Promise<ChatReply> 
 
 export async function parsed<T>(reply: Promise<ChatReply>, parse: (body: unknown) => T | null): Promise<ApiResult<T>> {
   const settled = await reply;
-  if (!settled.ok) return { ok: false, code: settled.code };
+  if (!settled.ok) {
+    return { ok: false, code: settled.code, ...(settled.requestId === undefined ? {} : { requestId: settled.requestId }) };
+  }
   const data = parse(settled.body);
   return data === null ? { ok: false, code: INVALID_REPLY } : { ok: true, data };
 }

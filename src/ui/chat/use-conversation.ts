@@ -12,14 +12,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CHAT_CONFIG } from "@/config";
 import type { ConversationDto, ReportReason } from "@/contracts/chat";
 
-import { INVALID_REPLY, LOCKED, NETWORK_FAILURE, NOT_FOUND, conversationApi, type ApiResult } from "./chat-api";
-import { CHAT_COPY, CONVERSATION_COPY, errorCopy } from "./chat-copy";
+import { INVALID_REPLY, LOCKED, NETWORK_FAILURE, NOT_FOUND, conversationApi, isTransientFailure, type ApiResult } from "./chat-api";
+import { CHAT_COPY, CONVERSATION_COPY, errorCopy, failedWithReference } from "./chat-copy";
 import { useBackoffPoll } from "./use-visible-poll";
 
 export type ConversationState =
   | { kind: "loading" }
   | { kind: "gone" }
-  | { kind: "error"; message: string }
+  | { kind: "error"; message: string; code: string }
   | { kind: "ready"; convo: ConversationDto };
 
 export interface PendingMessage {
@@ -28,11 +28,20 @@ export interface PendingMessage {
   status: "sending" | "failed";
 }
 
-export function conversationError(code: string): string {
+/**
+ * Each failure says what is actually happening. The generic message is the
+ * last resort and carries the short reference of the server log; a transient
+ * failure says "reintentando…" because the poll below is already retrying.
+ */
+export function conversationError(code: string, requestId?: string): string {
   if (code === "auth.unauthorized") return CHAT_COPY.noSession;
+  if (code === LOCKED || code === "chat.pin_missing" || code === "chat.reset_required" || code === "chat.recovery_pending") {
+    return CONVERSATION_COPY.needPin;
+  }
+  if (code === NOT_FOUND || code === "request.unknown_route") return CONVERSATION_COPY.goneTitle;
+  if (isTransientFailure(code)) return CONVERSATION_COPY.retrying;
   if (code === INVALID_REPLY) return CONVERSATION_COPY.invalidReply;
-  if (code === "service.unavailable" || code === "service.misconfigured") return CHAT_COPY.unavailable;
-  return errorCopy(code) ?? CHAT_COPY.failed;
+  return errorCopy(code) ?? failedWithReference(requestId);
 }
 
 export interface ConversationActions {
@@ -76,12 +85,15 @@ export function useConversation(id: string, onLocked: () => void) {
     }
     if (reply.code === LOCKED) onLocked();
     if (reply.code === NOT_FOUND) setState({ kind: "gone" });
-    return conversationError(reply.code);
+    return conversationError(reply.code, reply.requestId);
   }, [onLocked]);
 
   const reload = useCallback(async () => {
-    const message = settle(await conversationApi.conversation(id, { refresh }));
-    if (message !== null) setState((prev) => (prev.kind === "loading" || prev.kind === "error" ? { kind: "error", message } : prev));
+    const reply = await conversationApi.conversation(id, { refresh });
+    const message = settle(reply);
+    if (message === null || reply.ok) return;
+    const code = reply.code;
+    setState((prev) => (prev.kind === "loading" || prev.kind === "error" ? { kind: "error", message, code } : prev));
   }, [id, settle, refresh]);
 
   useEffect(() => {
@@ -92,7 +104,10 @@ export function useConversation(id: string, onLocked: () => void) {
     changed.current = false;
     await reload();
     return changed.current;
-  }, CHAT_CONFIG.conversation.pollSeconds, CHAT_CONFIG.conversation.pollMaxSeconds, state.kind === "ready");
+  }, CHAT_CONFIG.conversation.pollSeconds, CHAT_CONFIG.conversation.pollMaxSeconds,
+  // A first load that failed for a transient reason retries on its own; the
+  // person never has to press a button to recover from a moment of network.
+  state.kind === "ready" || (state.kind === "error" && isTransientFailure(state.code)));
 
   const oldestAt = state.kind === "ready" ? (state.convo.messages[0]?.at ?? null) : null;
   const actions = useMemo(
@@ -148,7 +163,7 @@ function buildActions(d: ActionDeps): ConversationActions {
       return null;
     }
     if (reply.code === LOCKED) d.onLocked();
-    return conversationError(reply.code);
+    return conversationError(reply.code, reply.requestId);
   }
   return {
     ask: async (question) => {

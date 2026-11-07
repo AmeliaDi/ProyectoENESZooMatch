@@ -1,6 +1,6 @@
 /**
  * Shared plumbing of `/api/chat/conversations/[id]/*`: the chat lock gate,
- * the id taken from the path (route handlers are wrapped by withApiSecurity,
+ * the id taken from the path (route handlers are wrapped by withChatApiSecurity,
  * which only forwards the request) and the uniform result → response mapping.
  */
 import type { NextResponse } from "next/server";
@@ -10,7 +10,7 @@ import type { ConversationDeps } from "@/application/chat";
 import type { AppError, AppFailure } from "@/application/errors";
 import { conversationIdSchema } from "@/application/validation/chat";
 import { err, ok, type Result } from "@/domain/shared";
-import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
+import { errorResponse, jsonResponse } from "@/infrastructure/http/chat-responses";
 
 import { parseChatBody, requireChatLock, type OpenChat } from "./chat-route.server";
 

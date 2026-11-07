@@ -16,7 +16,7 @@ import { Icon } from "@/ui/kit/icon";
 import { EmptyState, ErrorState, LoadingState } from "@/ui/kit/states";
 import { isHatched } from "@/ui/shared/parse-identity";
 
-import { LOCKED, conversationApi } from "./chat-api";
+import { LOCKED, conversationApi, isTransientFailure } from "./chat-api";
 import { CHAT_COPY, CONVERSATION_COPY, INTEREST_COPY, stageLabel, trackLabel } from "./chat-copy";
 import type { InboxEntry } from "./chat-parse";
 import { InvitationCard } from "./invitation-card";
@@ -28,7 +28,7 @@ const SPRITE_SIZE = 40;
 
 type InboxState =
   | { kind: "loading" }
-  | { kind: "error"; message: string }
+  | { kind: "error"; message: string; code: string }
   | { kind: "ready"; list: InboxEntry[]; invitations: InvitationDto[] };
 
 function useInbox(onLocked: () => void) {
@@ -44,8 +44,9 @@ function useInbox(onLocked: () => void) {
       return changed;
     }
     if (reply.code === LOCKED) onLocked();
-    const message = conversationError(reply.code);
-    setState((prev) => (prev.kind === "ready" ? prev : { kind: "error", message }));
+    const message = conversationError(reply.code, reply.requestId);
+    const code = reply.code;
+    setState((prev) => (prev.kind === "ready" ? prev : { kind: "error", message, code }));
     return false;
   }, [onLocked]);
   useEffect(() => {
@@ -53,7 +54,8 @@ function useInbox(onLocked: () => void) {
     return () => window.clearTimeout(first);
   }, [reload]);
   const { inboxPollSeconds, pollMaxSeconds } = CHAT_CONFIG.conversation;
-  useBackoffPoll(reload, inboxPollSeconds, Math.max(inboxPollSeconds, pollMaxSeconds), state.kind === "ready");
+  useBackoffPoll(reload, inboxPollSeconds, Math.max(inboxPollSeconds, pollMaxSeconds),
+    state.kind === "ready" || (state.kind === "error" && isTransientFailure(state.code)));
   return [state, reload] as const;
 }
 

@@ -89,12 +89,39 @@ function expectJson(reply: Reply, path: string): Record<string, unknown> {
   return reply.json!;
 }
 
+/** The chat surface speaks the ADR-040 envelope; unwrap it or fail loudly. */
+function envelopeOf(reply: Reply, path: string): Record<string, unknown> {
+  const body = expectJson(reply, path);
+  expect(body.ok, `${path} carries ok`).toBeTypeOf("boolean");
+  expect(body.code, `${path} has no flat code`).toBeUndefined();
+  return body;
+}
+
+function chatData(reply: Reply, path: string): Record<string, unknown> {
+  expect(reply.status, `${path} succeeds`).toBe(200);
+  const body = envelopeOf(reply, path);
+  expect(body.ok, `${path} ok`).toBe(true);
+  expect(body.data, `${path} carries data`).toBeTypeOf("object");
+  return body.data as Record<string, unknown>;
+}
+
+function chatError(reply: Reply, path: string, status: number): Record<string, unknown> {
+  expect(reply.status, `${path} status`).toBe(status);
+  const body = envelopeOf(reply, path);
+  expect(body.ok, `${path} failed`).toBe(false);
+  const error = body.error as Record<string, unknown> | undefined;
+  expect(error?.codigo, `${path} error code`).toMatch(/^[a-z][a-z0-9_.]*$/);
+  expect(error?.mensaje, `${path} kind message`).toBeTruthy();
+  expect(error?.requestId, `${path} request id`).toBeTruthy();
+  return error!;
+}
+
 async function lockFor(cookie: string, pin: string): Promise<string> {
-  const status = expectJson(await get("/api/chat/status", cookie), "status");
+  const status = chatData(await get("/api/chat/status", cookie), "status");
   const reply = status.hasPin === true
     ? await post("/api/chat/unlock", { pin }, cookie)
     : await post("/api/chat/pin", { pin, confirm: pin }, cookie);
-  expect(reply.status, "open the chat lock").toBe(200);
+  chatData(reply, "open the chat lock");
   const lock = reply.cookies.find((c) => /lock/i.test(c));
   expect(lock, "lock cookie issued").toBeTruthy();
   return [cookie, lock].join("; ");
@@ -146,35 +173,35 @@ suite("chat smoke against a running deploy", () => {
     expect(aSeesB && bSeesA, "the two synthetic accounts must match each other").toBeTruthy();
     const track = aSeesB!.track;
     if (track === "romance") {
-      for (const cookie of [a, b]) expect((await post("/api/interest/adult", {}, cookie)).status).toBe(200);
+      for (const cookie of [a, b]) chatData(await post("/api/interest/adult", {}, cookie), "adult confirm");
     }
 
     // A signals; B must see the invitation, and the inbox must survive the parser.
-    const sent = expectJson(await post("/api/interest", { match: aSeesB!.id, track }, a), "signal A");
+    const sent = chatData(await post("/api/interest", { match: aSeesB!.id, track }, a), "signal A");
     expect(sent.state, "A signal is sent").toBe("sent");
-    const bStates = parseInterestStates(expectJson(await get("/api/interest", b), "interest B"));
+    const bStates = parseInterestStates(chatData(await get("/api/interest", b), "interest B"));
     expect(Object.values(bStates?.states ?? {}).some((s) => s.state === "invited"), "B sees the invitation").toBe(true);
 
     const bLock = await lockFor(b, "5926");
-    const bInboxRaw = expectJson(await get("/api/chat/inbox", bLock), "inbox B");
+    const bInboxRaw = chatData(await get("/api/chat/inbox", bLock), "inbox B");
     const bInbox = parseInbox(bInboxRaw);
     expect(bInbox, "B inbox parses").not.toBeNull();
     expect(bInbox!.invitations.length, "B sees the invitation in the inbox").toBe(1);
 
     // B answers with the same gesture: the conversation opens in one transaction.
-    const opened = expectJson(await post("/api/interest", { match: bSeesA!.id, track }, b), "signal B");
+    const opened = chatData(await post("/api/interest", { match: bSeesA!.id, track }, b), "signal B");
     expect(opened.state, "mutual signal opens the chat").toBe("open");
     const id = opened.conversation;
     expect(typeof id, "conversation id returned").toBe("string");
 
     const aLock = await lockFor(a, "4817");
-    const aInbox = parseInbox(expectJson(await get("/api/chat/inbox", aLock), "inbox A"));
+    const aInbox = parseInbox(chatData(await get("/api/chat/inbox", aLock), "inbox A"));
     expect(aInbox, "A inbox parses").not.toBeNull();
     expect(aInbox!.conversations.some((c) => c.id === id), "A sees the new conversation without reloading").toBe(true);
 
     // Both sides read the same conversation, and the peer keeps a renderable name.
     for (const [cookie, expected] of [[aLock, nameB], [bLock, nameA]] as const) {
-      const raw = expectJson(await get(`/api/chat/conversations/${id}`, cookie), "conversation");
+      const raw = chatData(await get(`/api/chat/conversations/${id}`, cookie), "conversation");
       const view = parseConversation(raw);
       expect(view, "the conversation survives the browser parser").not.toBeNull();
       expect(isHatched(view!.peer.identity), "the peer is hatched, not an egg").toBe(true);
@@ -185,43 +212,42 @@ suite("chat smoke against a running deploy", () => {
 
     // Three guided rounds, then free chat.
     for (let round = 0; round < 3; round += 1) {
-      const viewA = parseConversation(expectJson(await get(`/api/chat/conversations/${id}`, aLock), "view A"));
-      const viewB = parseConversation(expectJson(await get(`/api/chat/conversations/${id}`, bLock), "view B"));
+      const viewA = parseConversation(chatData(await get(`/api/chat/conversations/${id}`, aLock), "view A"));
+      const viewB = parseConversation(chatData(await get(`/api/chat/conversations/${id}`, bLock), "view B"));
       expect(viewA && viewB).not.toBeNull();
       const asker = viewA!.ask ? aLock : bLock;
       const other = asker === aLock ? bLock : aLock;
       const card = (asker === aLock ? viewA : viewB)!.ask?.suggestions[0];
       expect(card, `round ${round} has a card`).toBeTruthy();
-      const asked = await post(`/api/chat/conversations/${id}/ask`, { promptId: card!.id }, asker);
-      expect(asked.status, `ask round ${round}`).toBe(200);
-      expect((await post(`/api/chat/conversations/${id}/answer`, { round, body: `ronda ${round} a` }, asker)).status).toBe(200);
-      const sealed = parseConversation(expectJson(await get(`/api/chat/conversations/${id}`, other), "sealed"));
+      chatData(await post(`/api/chat/conversations/${id}/ask`, { promptId: card!.id }, asker), `ask round ${round}`);
+      chatData(await post(`/api/chat/conversations/${id}/answer`, { round, body: `ronda ${round} a` }, asker), "answer A");
+      const sealed = parseConversation(chatData(await get(`/api/chat/conversations/${id}`, other), "sealed"));
       expect(sealed!.rounds[round]?.theirs, "the other answer stays sealed").toBeNull();
-      expect((await post(`/api/chat/conversations/${id}/answer`, { round, body: `ronda ${round} b` }, other)).status).toBe(200);
+      chatData(await post(`/api/chat/conversations/${id}/answer`, { round, body: `ronda ${round} b` }, other), "answer B");
     }
 
-    const free = parseConversation(expectJson(await get(`/api/chat/conversations/${id}`, aLock), "free stage"));
+    const free = parseConversation(chatData(await get(`/api/chat/conversations/${id}`, aLock), "free stage"));
     expect(free!.stage, "three rounds open the free chat automatically").toBe("free");
     const message = "Smoke test ✨";
-    const sentMessage = await post(`/api/chat/conversations/${id}/messages`, { body: message, clientKey: crypto.randomUUID() }, aLock);
-    expect(sentMessage.status, "free message accepted").toBe(200);
-    const seen = parseConversation(expectJson(await get(`/api/chat/conversations/${id}`, bLock), "B reads"));
+    chatData(
+      await post(`/api/chat/conversations/${id}/messages`, { body: message, clientKey: crypto.randomUUID() }, aLock),
+      "free message accepted",
+    );
+    const seen = parseConversation(chatData(await get(`/api/chat/conversations/${id}`, bLock), "B reads"));
     expect(seen!.messages.some((m) => m.body === message && !m.mine), "B reads A's message").toBe(true);
 
     // A third person's session cannot read it, and closing removes it for both.
     const stranger = await enter("426144895");
     const strangerLock = await lockFor(stranger, "7391");
     const intruder = await get(`/api/chat/conversations/${id}`, strangerLock);
-    expect(intruder.status, "a non-participant reads nothing").toBe(404);
-    expectJson(intruder, "intruder reply is JSON");
-    expect((await call(`/api/chat/conversations/${id}`, "DELETE", undefined, aLock)).status).toBe(200);
-    expect((await get(`/api/chat/conversations/${id}`, bLock)).status, "gone for the other side too").toBe(404);
+    chatError(intruder, "a non-participant reads nothing", 404);
+    chatData(await call(`/api/chat/conversations/${id}`, "DELETE", undefined, aLock), "close");
+    chatError(await get(`/api/chat/conversations/${id}`, bLock), "gone for the other side too", 404);
 
     // No chat route may answer HTML or an empty body, even on a bad path.
-    for (const path of ["/api/chat/inbox", "/api/chat/status", "/api/chat/does-not-exist"]) {
-      const reply = await get(path, aLock);
-      expect(reply.contentType, `${path} answers JSON even when it fails`).toContain("application/json");
-    }
+    chatError(await get("/api/chat/does-not-exist", aLock), "unknown chat path", 404);
+    chatError(await get("/api/chat/inbox", ""), "no session", 401);
+    chatError(await get(`/api/chat/conversations/${id}`, a), "lock still closed", 423);
     expect(trace.filter((line) => line.includes("NO-JSON")), `non-JSON replies:\n${trace.join("\n")}`).toEqual([]);
   }, 240_000);
 });

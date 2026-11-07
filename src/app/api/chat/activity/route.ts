@@ -1,8 +1,8 @@
 import { getChatActivity } from "@/application/chat";
 import { CHAT_CONFIG } from "@/config";
 import { failureResponse, resolveChat } from "@/infrastructure/chat/chat-route.server";
-import { jsonResponse } from "@/infrastructure/http/responses";
-import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { jsonResponse } from "@/infrastructure/http/chat-responses";
+import { createChatPreflightHandler, withChatApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,5 +20,5 @@ async function handleGet() {
 
 const methods = ["GET"] as const;
 
-export const GET = withApiSecurity(handleGet, { name: "chat-activity", limit: 30, windowSeconds: 60, methods });
-export const OPTIONS = createPreflightHandler(methods);
+export const GET = withChatApiSecurity(handleGet, { name: "chat-activity", limit: 30, windowSeconds: 60, methods });
+export const OPTIONS = createChatPreflightHandler(methods);

@@ -18,8 +18,8 @@ const mocks = vi.hoisted(() => ({ chatContext: vi.fn(), log: vi.fn() }));
 vi.mock("@/infrastructure/composition.server", () => ({ chatContext: mocks.chatContext }));
 vi.mock("@/infrastructure/observability/log.server", () => ({ logServerEvent: mocks.log }));
 vi.mock("@/infrastructure/security/api.server", () => ({
-  withApiSecurity: (handler: (request: Request) => Promise<Response>) => handler,
-  createPreflightHandler: () => async () => new Response(null, { status: 204 }),
+  withChatApiSecurity: (handler: (request: Request) => Promise<Response>) => handler,
+  createChatPreflightHandler: () => async () => new Response(null, { status: 204 }),
 }));
 
 import { POST as answer } from "./conversations/[id]/answer/route";
@@ -75,6 +75,20 @@ function lockCookieOf(response: Response): string {
   return `${LOCK_COOKIE}=${match?.[1] ?? ""}`;
 }
 
+/** The chat surface answers `{ok:true,data}` / `{ok:false,error:{codigo,…}}`. */
+async function dataOf(response: Promise<Response> | Response): Promise<Record<string, unknown>> {
+  const body = (await (await response).json()) as { ok: boolean; data: Record<string, unknown> };
+  expect(body.ok).toBe(true);
+  return body.data;
+}
+
+async function errorOf(response: Promise<Response> | Response): Promise<Record<string, unknown>> {
+  const body = (await (await response).json()) as { ok: boolean; error: Record<string, unknown> };
+  expect(body.ok).toBe(false);
+  expect(body.error.requestId).toBeTypeOf("string");
+  return body.error;
+}
+
 async function createAndOpen(): Promise<string> {
   const response = await createPin(request("pin", { method: "POST", body: { pin: PIN, confirm: PIN } }));
   expect(response.status).toBe(200);
@@ -96,16 +110,17 @@ describe("GET /api/chat/inbox", () => {
     await createAndOpen();
     const response = await inbox(request("inbox"));
     expect(response.status).toBe(423);
-    const body = await response.json();
-    expect(body).toMatchObject({ code: "chat.locked" });
+    const body = (await response.clone().json()) as Record<string, unknown>;
+    expect(await errorOf(response)).toMatchObject({ codigo: "chat.locked" });
     expect(body).not.toHaveProperty("conversations");
+    expect(body).not.toHaveProperty("data");
   });
 
   it("opens with the cookie issued by the PIN and renews it", async () => {
     const cookie = await createAndOpen();
     const response = await inbox(request("inbox", { cookie }));
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ conversations: [], invitations: [] });
+    expect(await dataOf(response)).toEqual({ conversations: [], invitations: [] });
     expect(response.headers.get("set-cookie")).toContain(LOCK_COOKIE);
   });
 
@@ -128,7 +143,7 @@ describe("GET /api/chat/inbox", () => {
     await requestRecovery(request("recovery", { method: "POST", body: { matricula: "000000001" } }));
     const response = await inbox(request("inbox", { cookie }));
     expect(response.status).toBe(423);
-    await expect(response.json()).resolves.toMatchObject({ code: "chat.recovery_pending" });
+    expect(await errorOf(response)).toMatchObject({ codigo: "chat.recovery_pending" });
   });
 
   it("is unavailable without the pepper, never crashing", async () => {
@@ -154,7 +169,7 @@ describe("conversation routes", () => {
     await createAndOpen();
     const read = await conversation(request(`conversations/${id}`));
     expect(read.status).toBe(423);
-    expect(await read.json()).not.toHaveProperty("rounds");
+    expect(await read.json()).not.toHaveProperty("data");
     const write = await answer(request(`conversations/${id}/answer`, { method: "POST", body: { round: 0, body: "hola" } }));
     expect(write.status).toBe(423);
     expect(conversations.answers).toEqual([]);
@@ -166,29 +181,29 @@ describe("conversation routes", () => {
     const id = await seeded();
     const cookie = await createAndOpen();
     const listed = await inbox(request("inbox", { cookie }));
-    expect((await listed.json()).conversations).toHaveLength(1);
+    expect(((await dataOf(listed)).conversations as unknown[]).length).toBe(1);
     await memoryConversations(conversations).openRound(id, 0, OTHER, { promptId: "p001" }, new Date(now));
     const sent = await answer(request(`conversations/${id}/answer`, { method: "POST", cookie, body: { round: 0, body: "hola" } }));
     expect(sent.status).toBe(200);
-    expect((await sent.json()).rounds[0]).toMatchObject({ mine: "hola", theirs: null, revealed: false });
+    expect(((await dataOf(sent)).rounds as Record<string, unknown>[])[0]).toMatchObject({ mine: "hola", theirs: null, revealed: false });
   });
 
   it("ask with an unknown card is invalid and an open card is accepted", async () => {
     const id = await seeded();
     const cookie = await createAndOpen();
-    let view = await (await conversation(request(`conversations/${id}`, { cookie }))).json();
+    let view = await dataOf(conversation(request(`conversations/${id}`, { cookie })));
     if (!view.ask) {
       // The other person asks first in this conversation: play their round so it is USER's turn.
       const repo = memoryConversations(conversations);
       await repo.openRound(id, 0, OTHER, { promptId: "p001" }, new Date(now));
       await repo.saveAnswer(id, OTHER, 0, { body: "x" }, new Date(now));
       await repo.saveAnswer(id, USER, 0, { body: "y" }, new Date(now));
-      view = await (await conversation(request(`conversations/${id}`, { cookie }))).json();
+      view = await dataOf(conversation(request(`conversations/${id}`, { cookie })));
     }
-    expect(view.ask.suggestions).toHaveLength(CHAT_CONFIG.conversation.rounds.suggestions);
+    expect((view.ask as { suggestions: unknown[] }).suggestions).toHaveLength(CHAT_CONFIG.conversation.rounds.suggestions);
     const bad = await ask(request(`conversations/${id}/ask`, { method: "POST", cookie, body: { promptId: "p999" } }));
     expect(bad.status).toBe(400);
-    const good = await ask(request(`conversations/${id}/ask`, { method: "POST", cookie, body: { promptId: view.ask.suggestions[0].id } }));
+    const good = await ask(request(`conversations/${id}/ask`, { method: "POST", cookie, body: { promptId: (view.ask as { suggestions: { id: string }[] }).suggestions[0]!.id } }));
     expect(good.status).toBe(200);
   });
 
@@ -232,7 +247,7 @@ describe("PIN routes", () => {
     await createAndOpen();
     const response = await unlock(request("unlock", { method: "POST", body: { pin: "1357" } }));
     expect(response.status).toBe(403);
-    await expect(response.json()).resolves.toMatchObject({ code: "chat.pin_invalid", attemptsLeft: 4 });
+    expect(await errorOf(response)).toMatchObject({ codigo: "chat.pin_invalid", intentosRestantes: 4 });
     expect(response.headers.get("set-cookie")).toBeNull();
   });
 
@@ -240,7 +255,7 @@ describe("PIN routes", () => {
     await createAndOpen();
     const response = await requestRecovery(request("recovery", { method: "POST", body: { matricula: "000000002" } }));
     expect(response.status).toBe(403);
-    await expect(response.json()).resolves.toMatchObject({ code: "chat.recovery_invalid" });
+    expect(await errorOf(response)).toMatchObject({ codigo: "chat.recovery_invalid" });
   });
 
   it("cancel a recovery with the current PIN", async () => {
@@ -270,10 +285,10 @@ describe("PIN routes", () => {
 
 describe("status and lock", () => {
   it("reports no PIN, then unlocked with the cookie", async () => {
-    await expect((await status(request("status"))).json()).resolves.toMatchObject({ hasPin: false, unlocked: false });
+    expect(await dataOf(status(request("status")))).toMatchObject({ hasPin: false, unlocked: false });
     const cookie = await createAndOpen();
-    await expect((await status(request("status", { cookie }))).json()).resolves.toMatchObject({ hasPin: true, unlocked: true });
-    await expect((await status(request("status"))).json()).resolves.toMatchObject({ hasPin: true, unlocked: false });
+    expect(await dataOf(status(request("status", { cookie })))).toMatchObject({ hasPin: true, unlocked: true });
+    expect(await dataOf(status(request("status")))).toMatchObject({ hasPin: true, unlocked: false });
   });
 
   it("lock clears the cookie without a body (sendBeacon)", async () => {

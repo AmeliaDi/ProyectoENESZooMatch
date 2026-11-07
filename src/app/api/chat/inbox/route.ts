@@ -1,7 +1,7 @@
 import { getInbox } from "@/application/chat";
 import { requireChatLock } from "@/infrastructure/chat/chat-route.server";
-import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
-import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { errorResponse, jsonResponse } from "@/infrastructure/http/chat-responses";
+import { createChatPreflightHandler, withChatApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,5 +25,5 @@ async function handleGet(request: Request) {
 
 const methods = ["GET"] as const;
 
-export const GET = withApiSecurity(handleGet, { name: "chat-inbox", limit: 60, windowSeconds: 60, methods });
-export const OPTIONS = createPreflightHandler(methods);
+export const GET = withChatApiSecurity(handleGet, { name: "chat-inbox", limit: 60, windowSeconds: 60, methods });
+export const OPTIONS = createChatPreflightHandler(methods);

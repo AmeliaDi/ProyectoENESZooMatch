@@ -5,11 +5,14 @@
  */
 export type AppError =
   | "request.invalid"
+  | "request.rate_limited"
+  | "request.unknown_route"
   | "auth.unauthorized"
   | "auth.forbidden"
   | "auth.locked"
   | "service.unavailable"
   | "service.misconfigured"
+  | "service.internal"
   | "quiz.not_completed"
   | "storage.failed"
   | "match.pool_unstable"

@@ -12,7 +12,7 @@ import { checkLockSession, openLockSession, touchLockSession, type LockSession }
 import { err, ok, type Result } from "@/domain/shared";
 import { clientAddress } from "@/infrastructure/auth/access-guard.server";
 import { chatContext, type ChatContext } from "@/infrastructure/composition.server";
-import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
+import { errorResponse, jsonResponse } from "@/infrastructure/http/chat-responses";
 import { logServerEvent } from "@/infrastructure/observability/log.server";
 
 import { LOCK_COOKIE, clearLockCookie, decodeLockSession, readCookie, setLockCookie } from "./lock-cookie.server";

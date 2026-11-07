@@ -2,9 +2,9 @@ import { cancelPinRecovery, requestPinRecovery } from "@/application/chat";
 import { recoveryCancelSchema, recoveryRequestSchema } from "@/application/validation/chat";
 import { failureResponse, guardedChat, parseChatBody } from "@/infrastructure/chat/chat-route.server";
 import { clearLockCookie } from "@/infrastructure/chat/lock-cookie.server";
-import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
+import { errorResponse, jsonResponse } from "@/infrastructure/http/chat-responses";
 import { logServerEvent } from "@/infrastructure/observability/log.server";
-import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { createChatPreflightHandler, withChatApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +41,6 @@ async function handleDelete(request: Request) {
 const methods = ["POST", "DELETE"] as const;
 const policy = { name: "chat-recovery", limit: 10, windowSeconds: 60, methods };
 
-export const POST = withApiSecurity(handlePost, policy);
-export const DELETE = withApiSecurity(handleDelete, policy);
-export const OPTIONS = createPreflightHandler(methods);
+export const POST = withChatApiSecurity(handlePost, policy);
+export const DELETE = withChatApiSecurity(handleDelete, policy);
+export const OPTIONS = createChatPreflightHandler(methods);

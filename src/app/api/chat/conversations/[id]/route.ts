@@ -1,7 +1,7 @@
 import { getConversation, leaveConversation } from "@/application/chat";
 import { viewQuerySchema } from "@/application/validation/chat";
 import { conversationDeps, withConversation } from "@/infrastructure/chat/conversation-route.server";
-import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { createChatPreflightHandler, withChatApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +32,6 @@ async function handleDelete(request: Request) {
 
 const methods = ["GET", "DELETE"] as const;
 
-export const GET = withApiSecurity(handleGet, { name: "chat-conversation", limit: 60, windowSeconds: 60, methods });
-export const DELETE = withApiSecurity(handleDelete, { name: "chat-leave", limit: 10, windowSeconds: 60, methods });
-export const OPTIONS = createPreflightHandler(methods);
+export const GET = withChatApiSecurity(handleGet, { name: "chat-conversation", limit: 60, windowSeconds: 60, methods });
+export const DELETE = withChatApiSecurity(handleDelete, { name: "chat-leave", limit: 10, windowSeconds: 60, methods });
+export const OPTIONS = createChatPreflightHandler(methods);

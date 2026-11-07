@@ -7,7 +7,7 @@ import type { AppError } from "@/application/errors";
 import { parseJsonBody } from "@/application/validation/common";
 import { err, ok, type Result } from "@/domain/shared";
 import { interestContext } from "@/infrastructure/composition.server";
-import { errorResponse, jsonResponse } from "@/infrastructure/http/responses";
+import { errorResponse, jsonResponse } from "@/infrastructure/http/chat-responses";
 
 export async function interestBody<S extends z.ZodType>(request: Request, schema: S): Promise<Result<z.output<S>, AppError>> {
   const parsed = schema.safeParse(await parseJsonBody(request));

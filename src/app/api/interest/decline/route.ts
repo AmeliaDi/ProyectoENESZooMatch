@@ -1,7 +1,7 @@
 import { declineInterest } from "@/application/chat";
 import { interestSchema } from "@/application/validation/chat";
 import { interestBody, withInterest } from "@/infrastructure/chat/interest-route.server";
-import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { createChatPreflightHandler, withChatApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,5 +15,5 @@ const handlePost = (request: Request) =>
 
 const methods = ["POST"] as const;
 
-export const POST = withApiSecurity(handlePost, { name: "interest-decline", limit: 20, windowSeconds: 60, methods });
-export const OPTIONS = createPreflightHandler(methods);
+export const POST = withChatApiSecurity(handlePost, { name: "interest-decline", limit: 20, windowSeconds: 60, methods });
+export const OPTIONS = createChatPreflightHandler(methods);

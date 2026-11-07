@@ -1,6 +1,6 @@
 import { clearLockCookie } from "@/infrastructure/chat/lock-cookie.server";
-import { jsonResponse } from "@/infrastructure/http/responses";
-import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
+import { jsonResponse } from "@/infrastructure/http/chat-responses";
+import { createChatPreflightHandler, withChatApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,5 +17,5 @@ async function handlePost() {
 
 const methods = ["POST"] as const;
 
-export const POST = withApiSecurity(handlePost, { name: "chat-lock", limit: 60, windowSeconds: 60, methods });
-export const OPTIONS = createPreflightHandler(methods);
+export const POST = withChatApiSecurity(handlePost, { name: "chat-lock", limit: 60, windowSeconds: 60, methods });
+export const OPTIONS = createChatPreflightHandler(methods);

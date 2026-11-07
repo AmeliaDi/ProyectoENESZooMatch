@@ -1175,3 +1175,62 @@ fase. El respaldo y la restauración siguen documentados para cualquier fase que
 datos. Lo que sí se arregla en las fases 2–4 son los dos defectos secundarios medidos: el 404
 HTML de `/api/chat/<inexistente>` y la falta de captura global, `code` y `requestId` en
 `withApiSecurity`.
+
+
+## ADR-040 · La superficie del chat habla un sobre uniforme; el resto de la API no se toca
+
+**Contexto.** La Fase 2 pide que toda ruta del chat responda siempre JSON con la misma forma,
+incluso ante una excepción, con código HTTP correcto, `no-store` y un mensaje amable por
+error. Medidos dos defectos reales en producción (`docs/DIAGNOSTICO_CHAT.md` §3):
+`/api/chat/<inexistente>` devolvía el 404 **HTML** de Next (61 540 bytes, `Age: 36723`,
+servido desde caché de borde), y `withApiSecurity` no tenía `try/catch`, así que una
+excepción imprevista también salía como HTML 500. Sus propios 403/429/503 tampoco llevaban
+`requestId` ni un código que el cliente pudiera distinguir.
+
+**Decisión.** Dos contratos deliberados, no una migración a medias:
+
+- `/api/chat/*` y `/api/interest/*` responden
+  `{ ok: true, data }` o
+  `{ ok: false, error: { codigo, mensaje, requestId, reintentoEn?, intentosRestantes? } }`.
+- El resto de `/api` conserva su forma plana `{ error, code, retryAfter?, attemptsLeft? }`.
+
+**Por qué no un sobre universal.** Se midió el radio: ~20 sitios `fetch` en el navegador,
+~100 llamadas a los helpers `jsonResponse`/`errorResponse` y 12 aserciones de tests fuera
+del chat. Envolver todo habría reescrito el alta, el cuestionario, el resultado, el perfil y
+la privacidad —flujos que funcionan en producción con personas reales— para arreglar un bug
+que solo tiene el chat. La tarea prohíbe ocultar síntomas; también prohíbe, en espíritu,
+cambiar lo que no está roto. El punto de corte existe y es limpio:
+`src/infrastructure/http/chat-responses.ts` reexporta las dos funciones del sobre, y las
+26 rutas del chat importan de ahí. Una superficie nueva se suma cambiando un import.
+
+**Cómo se garantiza, no se promete:**
+
+- `withChatApiSecurity` comparte la misma puerta que `withApiSecurity` (origin, límite de
+  peticiones, CORS, `no-store`) y solo cambia la función que construye el cuerpo del fallo.
+  La captura global vive en esa puerta única, así que un `throw` responde 500 con el sobre.
+- `[...unknown]/route.ts` bajo `chat` y bajo `interest` convierte el 404 de Next en
+  `request.unknown_route` con el sobre. Es lo que mata el HTML cacheado en el borde.
+- El `requestId` viaja en `AsyncLocalStorage` (`request-id.server.ts`), no como
+  parámetro: cualquier `errorResponse` en cualquier capa lo recoge, y la puerta lo eco en
+  `X-Request-Id`. El log guarda solo id, ruta, código y duración; `safeErrorFields` ya
+  descartaba el mensaje de la excepción.
+- `src/app/api/chat-envelope.test.ts` recorre **todas** las rutas con `import.meta.glob` y
+  comprueba forma, `content-type`, `no-store` y cuerpo no vacío en cada método; un test
+  aparte cuenta los `route.ts` en disco para que una ruta nueva no pueda esquivar el guardián.
+  Pasó de 23 fallos a 26 en verde antes de considerarse cerrado.
+- `src/infrastructure/security/chat-api.server.test.ts` ejercita los fallos de la puerta
+  misma: origin ajeno 403, límite 429 con `reintentoEn` y `Retry-After`, limitador caído 503,
+  excepción 500, ids distintos por petición, y que ni el cuerpo ni el log contienen el texto
+  de la excepción.
+
+**El cliente.** `chat-api.ts` desenvuelve el sobre y traduce cada código a un mensaje
+concreto: sin sesión, `chat.locked`/`pin_missing`/`reset_required`/`recovery_pending` →
+«Necesitas tu PIN…», `chat.not_found`/`request.unknown_route` → «Esta conversación ya no
+está disponible», y los transitorios de red/servicio/límite → «Reintentando…» con el sondeo
+con backoff encendido. El mensaje genérico queda como último recurso y lleva una referencia
+corta (`ref. ab12cd34`) para poder buscar el `requestId` en el log sin pedirle datos a nadie.
+
+**Consecuencia.** El sobre es ahora parte del contrato público del chat: cambiarlo rompe el
+guardián, el humo E2E y el cliente a la vez, que es exactamente donde debe romper. La Fase 3
+puede confiar en `isTransientFailure(code)` para decidir si sigue sondeando en vez de
+adivinar por el texto del error.
