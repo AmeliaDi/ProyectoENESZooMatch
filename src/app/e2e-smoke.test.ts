@@ -155,19 +155,11 @@ describe("Fase 6 E2E smoke flow", () => {
     convStore.addMatch("amistad", USER_A, USER_B);
     convStore.peers.set(USER_A, {
       userId: USER_A,
-      alias: resA.value.identity.aliasCompleto,
-      animalId: resA.value.identity.animalId,
-      colorId: resA.value.identity.colorId,
-      mark: resA.value.identity.mark,
-      showAvatarDetail: true,
+      identity: resB.value.matches.romance[0]!.identity,
     });
     convStore.peers.set(USER_B, {
       userId: USER_B,
-      alias: resB.value.identity.aliasCompleto,
-      animalId: resB.value.identity.animalId,
-      colorId: resB.value.identity.colorId,
-      mark: resB.value.identity.mark,
-      showAvatarDetail: false,
+      identity: resA.value.matches.romance[0]!.identity,
     });
 
     const chatDeps = () => ({

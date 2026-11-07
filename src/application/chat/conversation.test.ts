@@ -44,11 +44,11 @@ describe("interest signals", () => {
       {
         match: handle(BEA, ANA),
         track: "amistad",
-        peer: { identity: expect.objectContaining({ aliasCompleto: "Zorro Calmo" }) },
+        peer: { identity: expect.objectContaining({ aliasCompleto: "zorro calmo · DRRS" }) },
       },
     ]);
     const invitation = inbox.ok ? inbox.value.invitations[0]?.peer : undefined;
-    expect(invitation && formatIdentity(invitation.identity).title).toBe("Zorro Calmo");
+    expect(invitation && formatIdentity(invitation.identity).title).toBe("zorro calmo · DRRS");
     await declineInterest(BEA, { match: handle(BEA, ANA), track: "amistad" }, w.deps());
     const after = await interestStates(BEA, w.deps());
     expect(after.ok && after.value.states).toEqual({});
@@ -215,14 +215,14 @@ describe("privacy", () => {
     expect(view.ok && view.value.peer).toEqual({
       identity: expect.objectContaining({
         estadoIdentidad: "eclosionado",
-        aliasCompleto: "Nutria Serena",
+        aliasCompleto: "nutria serena · KMPQ",
         animalId: "nutria",
         colorId: "ennea-2",
         colorHex: expect.any(String),
         mark: null,
       }),
     });
-    expect(view.ok && formatIdentity(view.value.peer.identity).title).toBe("Nutria Serena");
+    expect(view.ok && formatIdentity(view.value.peer.identity).title).toBe("nutria serena · KMPQ");
     expect(JSON.stringify(await getInbox(ANA, w.deps()))).not.toContain(BEA);
     expect(await getConversation(id, EVE, w.deps())).toEqual({ ok: false, error: "chat.not_found" });
   });

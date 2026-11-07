@@ -181,11 +181,7 @@ describe("identity across every surface — 20 synthetic people", () => {
       const record = store.identities.get(userId)!;
       convStore.peers.set(userId, {
         userId,
-        alias: record.aliasCompleto,
-        animalId: record.animalId,
-        colorId: record.colorId,
-        mark: record.mark,
-        showAvatarDetail: true,
+        identity: toIdentityDto(record),
       });
     }
     const chatDeps = {

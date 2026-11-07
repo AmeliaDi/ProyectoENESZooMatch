@@ -4,7 +4,7 @@
  * proved to be part of, or is filtered by participant in the query itself.
  */
 import type { ReportReason } from "@/contracts/chat";
-import type { SubtypeMark } from "@/domain/avatars/avatar-spec";
+import type { IdentityDto } from "@/contracts/identity";
 import type { Result } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
 import type { MatchTrack } from "@/types/microtest";
@@ -63,13 +63,15 @@ export interface MessageRow {
   at: Date;
 }
 
+/**
+ * The counterpart as the chat may show them: the stored identity the adapter
+ * already projected, with that person's sharing choices applied. Carrying the
+ * DTO instead of loose name fields is what keeps the suffix — and therefore
+ * the client's `parseIdentity()` — intact; a name rebuilt here loses it.
+ */
 export interface ChatPeer {
   userId: string;
-  alias: string | null;
-  animalId: string | null;
-  colorId: string | null;
-  mark: SubtypeMark | null;
-  showAvatarDetail: boolean;
+  identity: IdentityDto;
 }
 
 export interface InterestRow {

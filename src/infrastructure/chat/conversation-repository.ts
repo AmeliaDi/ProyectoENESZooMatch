@@ -7,11 +7,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import type { ConversationRepository, ConversationRow } from "@/application/chat";
+import type { ChatPeer, ConversationRepository, ConversationRow } from "@/application/chat";
 import { counterpartIdentity } from "@/application/identity-dto";
 import { CHAT_CONFIG } from "@/config";
-import type { IdentityDto } from "@/contracts/identity";
-import type { SpriteMark } from "@/contracts/result";
 import { ok } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
 import { latentSchema } from "@/infrastructure/supabase/profile-repository";
@@ -148,27 +146,11 @@ function conversationReads(admin: SupabaseClient): Pick<Reads, "listFor" | "find
 }
 
 /**
- * One counterpart as the chat reads them. `identity` is what every screen
- * renders; the loose name fields only mirror it, because the port row still
- * carries them — they are projections of the same stored columns, never a
- * second source of a name. `userId` stays on the server.
- */
-export interface ChatPeerRecord {
-  userId: string;
-  alias: string | null;
-  animalId: string | null;
-  colorId: string | null;
-  mark: SpriteMark | null;
-  showAvatarDetail: boolean;
-  identity: IdentityDto;
-}
-
-/**
  * `null` for anyone the chat must not show: an egg has no name, and a hatched
  * row still missing any identity part would be read as an egg by the client,
  * so it is dropped here instead of half-rendered on screen.
  */
-function toPeerRecord(row: z.output<typeof peerSchema>): ChatPeerRecord | null {
+function toPeerRecord(row: z.output<typeof peerSchema>): ChatPeer | null {
   if (row.estado_identidad !== "eclosionado") return null;
   if (!row.alias_completo || !row.alias_sufijo || !row.animal_id || !row.color_id) return null;
 
@@ -190,15 +172,7 @@ function toPeerRecord(row: z.output<typeof peerSchema>): ChatPeerRecord | null {
     sharedLayers: [],
   });
 
-  return {
-    userId: row.user_id,
-    alias: identity.aliasCompleto,
-    animalId: identity.animalId,
-    colorId: identity.colorId,
-    mark: identity.mark,
-    showAvatarDetail: row.show_avatar_detail,
-    identity,
-  };
+  return { userId: row.user_id, identity };
 }
 
 function otherReads(admin: SupabaseClient): Pick<Reads, "messages" | "recentMessagesBy" | "peers" | "latents"> {
@@ -220,7 +194,7 @@ function otherReads(admin: SupabaseClient): Pick<Reads, "messages" | "recentMess
       const rows = await select(() => admin.from(TABLE.profiles).select(PEER_COLUMNS).in("user_id", [...userIds])
         .eq("estado_identidad", "eclosionado").is("eliminado_en", null), peerSchema);
       if (!rows.ok) return rows;
-      return ok(rows.value.map(toPeerRecord).filter((p): p is ChatPeerRecord => p !== null));
+      return ok(rows.value.map(toPeerRecord).filter((p): p is ChatPeer => p !== null));
     },
     async latents(userIds) {
       const rows = await select(() => admin.from(TABLE.profiles).select("user_id, latent_profile").in("user_id", [...userIds])

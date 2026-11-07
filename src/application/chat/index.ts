@@ -29,7 +29,7 @@ export {
   type AnswerInput,
   type AskInput,
 } from "./actions";
-export type { ConversationRepository, ConversationRow } from "./conversation-ports";
+export type { ChatPeer, ConversationRepository, ConversationRow } from "./conversation-ports";
 export {
   confirmAdult,
   declineInterest,
