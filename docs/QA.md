@@ -228,10 +228,28 @@ huevos vivos, más 15 bajas lógicas (3 eclosionadas y 12 huevos)—, 732 `match
 
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
 
-- **Chat en dos teléfonos reales:** el flujo se probó por API (85/85) y con tests de casos de
-  uso; falta recorrerlo a mano con dos personas: señal, invitación, tarjetas, respuestas
-  selladas, chat libre, selector de emojis, menú de seguridad y línea dorada en la
-  constelación.
+- **Chat en dos teléfonos reales:** el flujo se probó por API (88/88), con tests de casos de
+  uso (1051 pruebas) y con humo E2E automatizado (`scripts/qa/chat-e2e.test.ts`, 70s); falta
+  recorrerlo a mano con dos personas en dispositivos reales:
+
+  1. **Señal e invitación:** ambas partes mandan señal, la línea dorada aparece en la constelación,
+     el punto dorado aparece en el icono de chat, la bandeja muestra la invitación con el nombre
+     completo (sufijo incluido).
+  2. **Apertura mutua:** al aceptar, el aviso "Se abrió un chat con esta persona" aparece en ambas
+     pantallas sin recargar (polling con wake en `focus`/`visibilitychange`/`online`).
+  3. **PIN y candado:** el PIN de 4 dígitos abre el candado, las tarjetas de preguntas aparecen,
+     los turnos se sellan.
+  4. **Tres rondas guiadas:** cada ronda con su pregunta (fija o del banco), respuestas selladas,
+     revelado simultáneo.
+  5. **Chat libre:** tras las 3 rondas, el chat libre se desbloquea, los mensajes se entregan con
+     idempotencia (`client_key`), los emojis se renderizan.
+  6. **Menú de seguridad:** pausar, silenciar, bloquear y reportar funcionan; el bloqueo retira la
+     conversación de ambas bandejas.
+  7. **Icono de chat:** visible en las tres pantallas autenticadas (resultado, perfil, ajustes), el
+     punto dorado aparece cuando hay invitaciones pendientes, el aria-label cambia a "Chats, hay
+     novedades".
+  8. **Sobre uniforme:** todas las respuestas de `/api/chat/*` y `/api/interest/*` son JSON con
+     `{ok,data}` o `{ok:false,error:{codigo,mensaje,requestId}}`, nunca HTML ni cuerpo vacío.
 
 - **Teléfono real de gama media.** Los FPS medidos son de Chromium con CPU
   ×4 (`docs/FISICA.md`). Falta abrir `/resultado` en un teléfono y anotar la

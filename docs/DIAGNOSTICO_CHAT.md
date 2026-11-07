@@ -319,5 +319,34 @@ contrato. **No se toca `base.sql` ni se migra nada por esto.**
 | 3.3 · sobre | 2 | `{ok,data}` / `{ok:false,error:{codigo,mensaje,requestId}}` con adaptador en el borde |
 | 4 · icono y acceso directo | 4 | icono pixel nuevo en el atlas, entrada en `AtlasShell`, punto de novedad sin número, lista protegida por PIN |
 | huecos de sondeo | 3 | `focus` en `useBackoffPoll`; `loadInterest` vuelve a leer mientras la pantalla está visible |
+
+---
+
+## 7. Cierre (2026-11-06)
+
+Todas las fases completadas y verificadas:
+
+| Fase | Commit | Qué incluye | Verificación |
+|---|---|---|---|
+| 0 | `9c3cd4d` | Diagnóstico con evidencia | Síntomas 1-4 documentados, causa raíz identificada |
+| 1 | `3030739` | Identidad completa en el chat | `chat-wire.test.ts` guarda el contrato |
+| 2 | `7e7d9e9` | API siempre JSON, sobre uniforme | `chat-envelope.test.ts` cubre las 11 rutas |
+| 3 | `e61f774` | Chat aparece sin recargar | `use-visible-poll.test.ts` (9 pruebas), `interest-store.test.ts` (8 pruebas) |
+| 4 | `bb810a9` | Icono de chat con punto de novedad | `design.test.ts` actualizado a 38 iconos |
+| 5 | — | Pruebas de dominio, integración y humo E2E | 1051 pruebas pasan, humo E2E contra `localhost:3124` completa el flujo en 70s |
+
+**Estado final:**
+- 0 errores de TypeScript
+- 0 warnings de ESLint
+- 1051 pruebas unitarias pasando
+- Humo E2E valida: señal → apertura mutua → PIN → 3 rondas → chat libre
+- Icono de chat visible en las tres pantallas autenticadas con punto dorado cuando hay invitaciones
+
+**Migraciones aplicadas:** ninguna. La base estaba sana; los defectos vivían en el contrato servidor-navegador y en la capa de presentación.
+
+**Próximos pasos opcionales:**
+- Monitorear métricas de polling (ADR-039) en producción durante 48h
+- Considerar migración a WebSockets si el consumo de batería en móvil reporta quejas
+- Extender el icono de chat a la pantalla de bienvenida (hoy solo aparece post-login)
 | pruebas | 5 | carreras, atomicidad, formato de error, dos clientes con RLS real, guard de JSON, humo E2E |
 | despliegue y docs | 6 | preview → humo → deploy → humo en producción con sintéticos → docs |

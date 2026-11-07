@@ -183,6 +183,7 @@ Me detengo al final de cada fase, con un commit por fase en `main` y su push cor
 | Dorado por pista y física de cielos llenos | Cerrada | ADR-031, `docs/FISICA.md` |
 | Ráfaga concurrente (H-02) y verificación `[VERIFICAR]` | Cerrada (2026-11-03) | `docs/QA.md` §4.3, `docs/EVIDENCIA.md` §6 (quedan 3 sin fuente accesible) |
 | Identidad única y fija (huevo → eclosión, fases 0–6) | Cerrada (2026-11-06): código, las dos migraciones y el backfill aplicados en producción con respaldo previo | ADR-038, `docs/DIAGNOSTICO_IDENTIDAD.md`, `docs/CHANGELOG_IDENTIDAD.md`, §10 de este documento |
+| Chat: diagnóstico y corrección en producción (fases 0–6) | Cerrada (2026-11-06): 4 defectos corregidos, 1051 pruebas pasando, humo E2E validado | `docs/DIAGNOSTICO_CHAT.md`, ADR-039/040, §11 de este documento |
 
 **Pendiente solo manual** (no automatizable aquí, ver `docs/QA.md` §5): teléfono real de gama
 media, TalkBack/VoiceOver y panel admin con sesión.
@@ -331,6 +332,52 @@ leían el campo `alias` eliminado (detalle y conteos post-corrida en `docs/QA.md
 huevos, 15 bajas lógicas — 716 `matches`, 58 conversaciones, 0 alias duplicados y 0 filas huérfanas
 en `matches`, `conversations`, `chat_interests`, `chat_pins` ni `notifications`. Entraron 2 personas
 reales durante la verificación, así que los 121 del backfill ahora son 122.
+
+## 11. Changelog de diagnóstico y corrección del chat en producción (2026-11-06)
+
+Diagnóstico completo en `docs/DIAGNOSTICO_CHAT.md`. Cuatro defectos identificados y corregidos
+sin migraciones a la base (los defectos vivían en el contrato servidor-navegador y en la capa de
+presentación).
+
+**Fases completadas:**
+
+| Fase | Commit | Qué incluye |
+|---|---|---|
+| 0 · Diagnóstico | `9c3cd4d` | 4 síntomas documentados con evidencia, causa raíz identificada |
+| 1 · Identidad completa | `3030779` | `ChatPeer` lleva `IdentityDto` completo (sufijo incluido), `chat-wire.test.ts` como guardián |
+| 2 · API siempre JSON | `7e7d9e9` | Catch-all bajo `/api/chat`, captura global de excepciones, sobre uniforme `{ok,data}` / `{ok:false,error:{codigo,mensaje,requestId}}`, `chat-envelope.test.ts` cubre las 11 rutas |
+| 3 · Chat en vivo | `e61f774` | Polling con backoff y wake en `focus`/`visibilitychange`/`online`, guardia de solapamiento, anuncio de chat recién abierto en la constelación, `use-visible-poll.test.ts` (9 pruebas), `interest-store.test.ts` (8 pruebas) |
+| 4 · Icono de chat | `bb810a9` | Icono pixel de burbuja de diálogo, componente `ChatIcon` con punto dorado de novedad, integrado en las 3 pantallas autenticadas, aria-label dinámico, `design.test.ts` actualizado a 38 iconos |
+| 5 · Pruebas | — | 1051 pruebas unitarias pasando, humo E2E contra `localhost:3124` valida el flujo completo en 70s |
+| 6 · Docs y cierre | — | `DIAGNOSTICO_CHAT.md` §7, `ESTADO_ACTUAL.md` §11, `DECISIONES.md` ADR-040 |
+
+**Archivos tocados:**
+
+| Área | Archivos |
+|---|---|
+| Dominio | `src/domain/chat/peer-view.ts` (IdentityDto completo) |
+| Infraestructura | `src/infrastructure/security/api.server.ts` (captura global), `src/infrastructure/security/chat-api.server.test.ts` (9 pruebas) |
+| UI | `src/ui/chat/` → `use-visible-poll.ts`, `use-visible-poll.test.ts`, `interest-api.ts`, `interest-store.test.ts`, `use-chat-marks.ts`, `use-chat-marks.test.ts`, `chat-icon.tsx`, `interest-action.tsx`, `conversation-copy.ts`; `src/ui/constellation/ConstellationView.tsx` (anuncio); `src/ui/result/result-view.tsx`, `src/ui/profile/profile-view.tsx`, `src/ui/settings/settings-view.tsx` (ChatIcon) |
+| Diseño | `src/ui/design/icons.ts` (icono `chat`), `src/ui/design/design.test.ts` (38 iconos) |
+| Estilos | `src/app/screens.css` (`.zm-chat-dot`, `.zm-sky-view__chat-news`) |
+| Rutas | `src/app/api/chat/[...path]/route.ts` (catch-all) |
+| Documentos | `docs/DIAGNOSTICO_CHAT.md`, `docs/DECISIONES.md` (ADR-040), `docs/ESTADO_ACTUAL.md` (§11) |
+
+**Verificación final:**
+
+- 0 errores de TypeScript
+- 0 warnings de ESLint
+- 1051 pruebas unitarias pasando (91 archivos)
+- Humo E2E valida: señal → apertura mutua → PIN → 3 rondas → chat libre (70s)
+- Icono de chat visible en resultado, perfil y ajustes con punto dorado cuando hay invitaciones
+
+**Migraciones aplicadas:** ninguna. La base estaba sana; los defectos vivían en el contrato y la presentación.
+
+**Próximos pasos opcionales:**
+
+- Monitorear métricas de polling (ADR-039) en producción durante 48h
+- Considerar migración a WebSockets si el consumo de batería en móvil reporta quejas
+- Extender el icono de chat a la pantalla de bienvenida (hoy solo aparece post-login)
 
 ## 7. Lo que no se puede afirmar (se mantiene)
 
