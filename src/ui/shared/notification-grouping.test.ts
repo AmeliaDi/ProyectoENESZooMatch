@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { groupNotifications, type IncomingNotification } from "./notification-grouping";
+import { groupNotifications, notificationSound, type IncomingNotification } from "./notification-grouping";
 
 function n(id: string, type: string, created_at: string, read = false): IncomingNotification {
   return { id, type, title: `t-${id}`, body: `b-${id}`, read, created_at };
@@ -43,5 +43,35 @@ describe("groupNotifications", () => {
     expect(toast?.body).toBe("b-1");
     expect(toast?.body).not.toMatch(/prisa|ahora mismo|solo hoy/i);
     expect(toast?.action).toBeUndefined();
+  });
+});
+
+describe("notificationSound", () => {
+  it("al llegar no suena lo que ya esperaba", () => {
+    expect(notificationSound(null, [n("1", "match_romance", "1")])).toBeNull();
+  });
+
+  it("un match nuevo suena, sea romántico o de amistad", () => {
+    expect(notificationSound(new Set(), [n("1", "match_romance", "1")])).toBe("match_nuevo");
+    expect(notificationSound(new Set(), [n("1", "match_amistad", "1")])).toBe("match_nuevo");
+  });
+
+  it("las novedades de chat suenan a mensaje", () => {
+    expect(notificationSound(new Set(), [n("1", "chat", "1")])).toBe("mensaje_nuevo");
+  });
+
+  it("un match gana sobre el chat y nunca pide dos sonidos a la vez", () => {
+    expect(notificationSound(new Set(), [n("1", "chat", "1"), n("2", "match_amistad", "2")])).toBe("match_nuevo");
+  });
+
+  it("lo ya visto, lo leído y lo que no tiene sonido se quedan callados", () => {
+    const seen = new Set(["1"]);
+    expect(notificationSound(seen, [n("1", "match_romance", "1")])).toBeNull();
+    expect(notificationSound(seen, [n("2", "match_romance", "1", true)])).toBeNull();
+    expect(notificationSound(seen, [n("3", "welcome", "1"), n("4", "no_match", "1"), n("5", "identity", "1")])).toBeNull();
+  });
+
+  it("sin avisos no hay sonido", () => {
+    expect(notificationSound(new Set(), [])).toBeNull();
   });
 });

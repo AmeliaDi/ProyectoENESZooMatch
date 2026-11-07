@@ -36,7 +36,8 @@ import {
 import { REPORT_REASON_LABELS } from "./chat/conversation-copy";
 import { CONSTELLATION_COPY } from "./constellation/types";
 import { MATRICULA_COPY } from "./entry/matricula-entry";
-import { FEEDBACK_COPY } from "./feedback/feedback-toggles";
+import { SOUND_INVITE_COPY } from "./feedback/sound-invite";
+import { SOUND_COPY } from "./feedback/sound-settings";
 import { LOST_COPY } from "./shared/lost-view";
 import { ONBOARDING_PLATES } from "./entry/onboarding";
 import { revealOrder } from "./quiz/reveal-order";
@@ -92,7 +93,8 @@ describe("copy", () => {
     charsLeft(1),
     charsLeft(-4),
     ...Object.values(CHAT_EVENT_LABELS),
-    ...Object.values(FEEDBACK_COPY),
+    ...Object.values(SOUND_COPY),
+    ...Object.values(SOUND_INVITE_COPY),
     ...Object.values(LOST_COPY),
     attemptsMessage(1),
     attemptsMessage(4),

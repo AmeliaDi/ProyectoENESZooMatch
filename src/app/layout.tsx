@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { ThemeBootScript } from "@/ui/design/theme";
+import { SoundBoot } from "@/ui/feedback/sound-boot";
 
 import { atkinson, pixelify } from "./fonts";
 import "./globals.css";
@@ -17,7 +18,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <head>
         <ThemeBootScript />
       </head>
-      <body>{children}</body>
+      <body>
+        <SoundBoot />
+        {children}
+      </body>
     </html>
   );
 }

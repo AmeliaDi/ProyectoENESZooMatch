@@ -230,6 +230,13 @@
   .zm-dawn__mine { animation: none !important; opacity: 1 !important; }
 }
 
+/* Invitación a los soniditos: aparece una sola vez, después de la eclosión. */
+.zm-sound-invite { display: grid; gap: calc(var(--zm-px) * 4); width: 100%; padding: calc(var(--zm-px) * 8); text-align: left; animation: zm-rise var(--zm-dur-enter) var(--zm-ease-out); }
+.zm-sound-invite__title { display: flex; align-items: center; gap: calc(var(--zm-px) * 3); margin: 0; font-family: var(--font-pixel); font-size: 1.125rem; }
+.zm-sound-invite__body { margin: 0; font-size: 0.9375rem; }
+.zm-sound-invite__actions { display: flex; flex-wrap: wrap; gap: calc(var(--zm-px) * 4); }
+@media (prefers-reduced-motion: reduce) { .zm-sound-invite { animation: none; } }
+
 /* ─── Resultado ───────────────────────────────────────────── */
 .zm-result { display: flex; flex: 1; flex-direction: column; gap: calc(var(--zm-px) * 8); width: min(100%, 72rem); margin: 0 auto; padding: calc(var(--zm-px) * 8); }
 .zm-result__me { display: flex; align-items: center; gap: calc(var(--zm-px) * 6); }
@@ -365,6 +372,20 @@
 .zm-feedback__state { padding-left: calc(var(--zm-px) * 4); border-left: var(--zm-px) solid var(--zm-grid); color: var(--zm-fg-muted); font-family: var(--font-read); font-size: 0.875rem; }
 .zm-feedback__switch[aria-checked="true"] { --box-rim: var(--zm-fg); --box-fill: var(--zm-raised); --zm-rim-width: calc(var(--zm-px) * 2); }
 .zm-feedback__switch[aria-checked="true"] .zm-feedback__state { color: var(--zm-fg); font-weight: 700; }
+
+/* Sonido: volumen, categorías y horario de silencio (Ajustes → En este dispositivo). */
+.zm-sound__volume { display: grid; gap: calc(var(--zm-px) * 3); margin-top: calc(var(--zm-px) * 6); }
+.zm-sound__slider { display: flex; align-items: center; gap: calc(var(--zm-px) * 4); min-height: var(--zm-touch); color: var(--zm-fg-muted); }
+.zm-sound__range { flex: 1 1 auto; min-width: 0; height: var(--zm-touch); margin: 0; accent-color: var(--zm-gold); background: transparent; cursor: pointer; }
+.zm-sound__range:disabled { cursor: default; }
+.zm-sound__value { min-width: calc(var(--zm-px) * 22); color: var(--zm-fg); font-size: 0.875rem; text-align: right; }
+.zm-sound__group { display: grid; gap: calc(var(--zm-px) * 4); min-width: 0; margin: calc(var(--zm-px) * 6) 0 0; padding: 0; border: 0; }
+.zm-sound__group:disabled { opacity: 0.55; }
+.zm-sound__toque { display: grid; gap: calc(var(--zm-px) * 3); margin-top: calc(var(--zm-px) * 4); }
+.zm-sound__hours { display: flex; flex-wrap: wrap; gap: calc(var(--zm-px) * 6); }
+.zm-sound__hour { display: grid; gap: calc(var(--zm-px) * 2); font-family: var(--font-pixel); font-size: 0.875rem; }
+.zm-sound__time { --box-lift: 0px; min-height: var(--zm-touch); padding: 0 calc(var(--zm-px) * 4); color: var(--zm-fg); font-family: var(--font-read); font-size: 1rem; }
+.zm-sound__test { margin-top: calc(var(--zm-px) * 6); }
 
 /* ─── 404 y errores ───────────────────────────────────────── */
 .zm-lost { display: grid; place-items: center; min-height: 60vh; padding: calc(var(--zm-px) * 12) calc(var(--zm-px) * 8); }

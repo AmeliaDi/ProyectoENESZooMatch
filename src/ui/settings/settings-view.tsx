@@ -19,7 +19,7 @@ import { Icon } from "@/ui/kit/icon";
 import { ChatIcon } from "@/ui/chat/chat-icon";
 import { ExitButton } from "@/ui/shared/exit-button";
 import { Frame } from "@/ui/kit/surfaces";
-import { FeedbackToggles } from "@/ui/feedback/feedback-toggles";
+import { SoundSettings } from "@/ui/feedback/sound-settings";
 import { InclusiveModeSelector } from "@/ui/shared/inclusive-mode-selector";
 import { useNotificationsPaused } from "@/ui/shared/notification-provider";
 import { writeNotificationsPaused } from "@/ui/shared/notification-grouping";
@@ -155,7 +155,7 @@ export function SettingsView() {
               {notificationsPaused ? "Reanudar avisos" : "Pausar avisos"}
             </Button>
           </div>
-          <FeedbackToggles />
+          <SoundSettings />
         </Frame>
 
         <Frame title="Tu perfil" coord="AR 07h">

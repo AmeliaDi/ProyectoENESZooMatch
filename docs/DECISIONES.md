@@ -1275,3 +1275,81 @@ psicométricas con ruido superficial. La separación es deliberada y verificada 
 - Picante puede habilitarse/deshabilitarse sin afectar el resto de la app.
 - El linter de contenido y los tests de aislamiento previenen regresiones.
 
+## ADR-042 · Catálogo de soniditos sintetizados: recetas en config, política en domain, Web Audio en ui
+
+**Contexto.** ADR-033 dejó tres tonos «chip» (`answer`, `join`, `tap`) con un solo limitador
+global de 120 ms y sus parámetros en `experience.feedback`. El pulido móvil pide un catálogo
+completo (match, invitación, chat abierto, mensaje, respuesta revelada, eclosión, badge, quiz
+terminado, status publicado, error suave, toque), horario de silencio, volumen maestro,
+interruptores por categoría y una invitación amable después de eclosionar. Todo sigue
+**apagado por defecto** y sin archivos de audio: lo sintetiza el navegador.
+
+**Decisión.**
+
+1. **Una sola fuente de verdad: `data/sound-config.json`.** Catorce recetas con voces
+   (`onda`, `nota`, `hasta`, `esperaMs`, `ms`, `ataqueMs`, `volumen`), afinación A4 = 440 Hz,
+   escala pentatónica mayor de Mi, límites (`generalMs` 600, `eclosionMs` 2000,
+   `volumenVozMax` 0.2), cooldown por categoría y horario de silencio. Lo valida Zod 4 en
+   `src/config/sound.ts` con un `superRefine` que comprueba que toda nota pertenezca a la
+   escala, que ningún ataque dure más que su voz y que ninguna receta exceda su límite.
+   La duración de un evento es `máx(esperaMs + ms)` de sus voces, **no la suma**: las voces
+   se superponen en el tiempo.
+2. **Desviación deliberada de la tarea: no existe `src/infrastructure/audio`.** La tarea pedía
+   ese módulo, pero `eslint.config.mjs` prohíbe que `src/ui/**` importe `src/infrastructure/**`,
+   y `infrastructure/` en este repo es la capa de servidor (Supabase, HTTP, env, cookies).
+   Web Audio es un dispositivo del navegador, así que se partió en tres piezas que sí respetan
+   la arquitectura hexagonal existente:
+   - `src/domain/audio/notes.ts` y `policy.ts`: dominio puro (frecuencias, escala, ventana de
+     silencio, orden de bloqueos, volumen maestro, vibración). Sin framework ni config JSON.
+   - `src/ui/feedback/audio-engine.ts`: el adaptador de Web Audio (contexto, bus maestro,
+     envolventes, ruido determinista con LCG y filtro pasa-banda). Vive en `ui` junto a los
+     demás adaptadores de dispositivo (`haptics.ts`, `theme.tsx`, los stores de localStorage).
+   - `src/config/sound.ts`: el cargador validado, único punto que toca el JSON.
+3. **Un solo punto de entrada: `emitSound(id)`.** El núcleo puro `runSound(id, deps)` decide
+   y devuelve `{ sound, haptics, block }`, de modo que los tests no necesitan Web Audio. El
+   orden de bloqueo es fijo y testeado: maestro → categoría → toque → silencio → pestaña
+   oculta → contexto sin desbloquear → cooldown. `emitFeedback(kind)` se conserva como el
+   nombre que ya llamaban el lienzo y los quizzes, así que esos cinco sitios no se tocaron.
+4. **El cooldown remplaza al limitador global.** Una sola receta viva por categoría
+   (`conexion` 900 ms, `logros` 1500 ms, `interfaz` 120 ms): al llegar una nueva se detiene la
+   anterior en lugar de apilarse. Se eliminó `src/ui/feedback/throttle.ts`.
+5. **Tres reglas de dispositivo en un solo sitio: `SoundBoot`** (montado en `layout.tsx`).
+   Desbloquea el contexto en el primer gesto real (y no crea nada mientras el sonido esté
+   apagado), silencia todo lo que esté sonando cuando la pestaña pasa a segundo plano, y
+   emite `toque` en cualquier `.zm-btn`. Por eso **ningún botón lleva su propia llamada**.
+6. **La eclosión suena solo la primera vez confirmada.** `Reveal` distingue `justRevealed`
+   (animación) de `confirmed` (el servidor dijo que esta era la revelación pendiente); solo
+   `confirmed` emite `eclosion`. Volver a abrir la carta de identidad es silencioso.
+   La invitación «¿quieres soniditos?» aparece después de que termina la animación, una sola
+   vez, y se guarda en `zoomatch:sound-invite:v1`.
+7. **Dónde suena cada evento.** `match_nuevo` y `mensaje_nuevo` (aviso agrupado de chat) salen
+   del delta del sondeo en `NotificationProvider` mediante la función pura
+   `notificationSound`; lo que ya esperaba al llegar no es novedad. `invitacion_chat` sale del
+   delta de `pending` en `useChatMarks` (`firstNew`, antes `openedSince`, ahora genérica porque
+   sirve para abiertos e invitaciones). `chat_abierto` suena una vez por conversación cuando
+   `ConversationView` llega a `ready`. `mensaje_nuevo` y `respuesta_revelada` dentro del chat
+   salen de `conversationSound`, que silencia conversaciones muteadas y nunca suena al pagar
+   hacia atrás. `quiz_completado` suena en `/quizzes/[quiz_id]`, en el afinado y en el test
+   principal **solo cuando no hay eclosión**: si la hay, `eclosion` ya dice que el test terminó
+   y ambos eventos comparten categoría, así que uno cortaría al otro. `error_suave` vive en
+   `ErrorState`, la única superficie de error compartida (34 usos), y no en los fallos de
+   fondo que ya se callan a propósito (sondeo de avisos, store de interest).
+8. **La galería de `/dev/ui` auditiona sin permiso.** `auditionSound(id)` desbloquea y reproduce
+   a volumen de receta aunque el maestro esté apagado: quien pulsa «probar» está consintiendo.
+   El botón «Probar sonido» de Ajustes, en cambio, respeta tus preferencias y está deshabilitado
+   mientras el sonido esté apagado.
+
+**Consecuencias.**
+
+- Se eliminaron `chip-sound.ts`, `feedback-prefs.ts`, `feedback-toggles.tsx` y `throttle.ts`,
+  y el bloque `feedback` de `data/experience.json` con su esquema. No quedan dos sistemas de
+  sonido en paralelo.
+- `SoundSettings` sustituye a los antiguos interruptores en Ajustes: maestro, vibración,
+  volumen, tres categorías, toque, horario de silencio y prueba.
+- La preferencia sigue siendo solo local y falla cerrado; si el almacenamiento no está
+  disponible funciona en memoria durante la sesión y se dice en pantalla.
+- `status_publicado` y `badge` ya tienen receta pero aún no se emiten: llegan en las fases 4 y 5.
+  La prueba de «ningún evento del catálogo queda huérfano en la UI» se añade en la fase 6,
+  cuando todo esté conectado.
+- Ningún sonido, vibración ni preferencia escribe identificador alguno en logs o analítica.
+

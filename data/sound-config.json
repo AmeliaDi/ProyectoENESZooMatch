@@ -1,0 +1,172 @@
+{
+  "version": "1.0",
+  "fuente": "Recetas sintetizadas por código (Web Audio API). Sin archivos de audio, sin dependencias, sin licencias.",
+  "storageKey": "zoomatch:sound:v1",
+  "afinacionHz": 440,
+  "escala": {
+    "nombre": "pentatónica mayor de Mi",
+    "notas": ["E", "F#", "G#", "B", "C#"],
+    "octavas": [4, 5, 6]
+  },
+  "master": {
+    "porDefecto": 0.6,
+    "minimo": 0,
+    "maximo": 1
+  },
+  "limites": {
+    "generalMs": 600,
+    "eclosionMs": 2000,
+    "volumenVozMax": 0.2
+  },
+  "silencio": {
+    "activadoPorDefecto": false,
+    "inicio": "22:00",
+    "fin": "08:00"
+  },
+  "invitacion": {
+    "retrasoMs": 1200,
+    "storageKey": "zoomatch:sound-invite:v1"
+  },
+  "categorias": {
+    "conexion": {
+      "nombre": "Matches y chats",
+      "cooldownMs": 900
+    },
+    "logros": {
+      "nombre": "Logros",
+      "cooldownMs": 1500
+    },
+    "interfaz": {
+      "nombre": "Interfaz",
+      "cooldownMs": 120
+    }
+  },
+  "eventos": {
+    "toque": {
+      "categoria": "interfaz",
+      "nombre": "Toque de botón",
+      "voces": [
+        { "onda": "square", "nota": "B5", "ms": 25, "ataqueMs": 2, "volumen": 0.02 }
+      ]
+    },
+    "answer": {
+      "categoria": "interfaz",
+      "nombre": "Respuesta del test",
+      "voces": [
+        { "onda": "square", "nota": "G#5", "hasta": "B5", "ms": 45, "ataqueMs": 3, "volumen": 0.035 }
+      ],
+      "vibracion": [8]
+    },
+    "tap": {
+      "categoria": "interfaz",
+      "nombre": "Abrir una estrella",
+      "voces": [
+        { "onda": "square", "nota": "B5", "ms": 30, "ataqueMs": 3, "volumen": 0.025 }
+      ]
+    },
+    "status_publicado": {
+      "categoria": "interfaz",
+      "nombre": "Status publicado",
+      "voces": [
+        { "onda": "triangle", "nota": "B5", "ms": 70, "ataqueMs": 4, "volumen": 0.04 },
+        { "onda": "triangle", "nota": "E6", "esperaMs": 70, "ms": 130, "ataqueMs": 4, "volumen": 0.04 }
+      ],
+      "vibracion": [8]
+    },
+    "error_suave": {
+      "categoria": "interfaz",
+      "nombre": "Algo no salió",
+      "voces": [
+        { "onda": "triangle", "nota": "G#5", "hasta": "E5", "ms": 200, "ataqueMs": 6, "volumen": 0.04 }
+      ]
+    },
+    "join": {
+      "categoria": "conexion",
+      "nombre": "Dos estrellas se unen",
+      "voces": [
+        { "onda": "triangle", "nota": "E5", "hasta": "E6", "ms": 90, "ataqueMs": 5, "volumen": 0.05 }
+      ],
+      "vibracion": [10, 40, 10]
+    },
+    "match_nuevo": {
+      "categoria": "conexion",
+      "nombre": "Match nuevo",
+      "voces": [
+        { "onda": "triangle", "nota": "E5", "ms": 90, "ataqueMs": 4, "volumen": 0.06 },
+        { "onda": "triangle", "nota": "G#5", "esperaMs": 90, "ms": 90, "ataqueMs": 4, "volumen": 0.06 },
+        { "onda": "triangle", "nota": "B5", "esperaMs": 180, "ms": 200, "ataqueMs": 4, "volumen": 0.07 },
+        { "onda": "noise", "nota": "C#6", "esperaMs": 180, "ms": 220, "ataqueMs": 20, "volumen": 0.02 }
+      ],
+      "vibracion": [10, 40, 10]
+    },
+    "invitacion_chat": {
+      "categoria": "conexion",
+      "nombre": "Invitación de chat",
+      "voces": [
+        { "onda": "triangle", "nota": "B5", "ms": 80, "ataqueMs": 4, "volumen": 0.05 },
+        { "onda": "triangle", "nota": "E6", "esperaMs": 80, "ms": 160, "ataqueMs": 4, "volumen": 0.05 }
+      ],
+      "vibracion": [8, 30, 8]
+    },
+    "chat_abierto": {
+      "categoria": "conexion",
+      "nombre": "Chat abierto",
+      "voces": [
+        { "onda": "triangle", "nota": "E5", "ms": 70, "ataqueMs": 4, "volumen": 0.04 },
+        { "onda": "triangle", "nota": "B5", "esperaMs": 70, "ms": 110, "ataqueMs": 4, "volumen": 0.04 }
+      ]
+    },
+    "mensaje_nuevo": {
+      "categoria": "conexion",
+      "nombre": "Mensaje nuevo",
+      "voces": [
+        { "onda": "triangle", "nota": "G#5", "ms": 60, "ataqueMs": 3, "volumen": 0.045 },
+        { "onda": "triangle", "nota": "B5", "esperaMs": 60, "ms": 90, "ataqueMs": 3, "volumen": 0.04 }
+      ]
+    },
+    "respuesta_revelada": {
+      "categoria": "conexion",
+      "nombre": "Respuesta sellada revelada",
+      "voces": [
+        { "onda": "triangle", "nota": "E5", "ms": 90, "ataqueMs": 4, "volumen": 0.05 },
+        { "onda": "triangle", "nota": "G#5", "esperaMs": 90, "ms": 90, "ataqueMs": 4, "volumen": 0.05 },
+        { "onda": "triangle", "nota": "C#6", "esperaMs": 180, "ms": 200, "ataqueMs": 4, "volumen": 0.05 }
+      ],
+      "vibracion": [10, 40, 10]
+    },
+    "badge": {
+      "categoria": "logros",
+      "nombre": "Badge ganado",
+      "voces": [
+        { "onda": "triangle", "nota": "G#5", "ms": 80, "ataqueMs": 4, "volumen": 0.05 },
+        { "onda": "triangle", "nota": "B5", "esperaMs": 80, "ms": 80, "ataqueMs": 4, "volumen": 0.05 },
+        { "onda": "triangle", "nota": "E6", "esperaMs": 160, "ms": 240, "ataqueMs": 4, "volumen": 0.06 },
+        { "onda": "noise", "nota": "B5", "esperaMs": 160, "ms": 240, "ataqueMs": 20, "volumen": 0.015 }
+      ],
+      "vibracion": [10, 50, 10]
+    },
+    "quiz_completado": {
+      "categoria": "logros",
+      "nombre": "Quiz completado",
+      "voces": [
+        { "onda": "triangle", "nota": "E5", "ms": 100, "ataqueMs": 4, "volumen": 0.05 },
+        { "onda": "triangle", "nota": "G#5", "esperaMs": 100, "ms": 100, "ataqueMs": 4, "volumen": 0.05 },
+        { "onda": "triangle", "nota": "B5", "esperaMs": 200, "ms": 220, "ataqueMs": 4, "volumen": 0.06 }
+      ],
+      "vibracion": [10, 40, 10]
+    },
+    "eclosion": {
+      "categoria": "logros",
+      "nombre": "Eclosión",
+      "voces": [
+        { "onda": "triangle", "nota": "E4", "ms": 200, "ataqueMs": 12, "volumen": 0.05 },
+        { "onda": "triangle", "nota": "B4", "esperaMs": 180, "ms": 240, "ataqueMs": 12, "volumen": 0.05 },
+        { "onda": "triangle", "nota": "E5", "esperaMs": 400, "ms": 300, "ataqueMs": 10, "volumen": 0.06 },
+        { "onda": "triangle", "nota": "G#5", "esperaMs": 680, "ms": 260, "ataqueMs": 10, "volumen": 0.06 },
+        { "onda": "triangle", "nota": "B5", "esperaMs": 920, "ms": 400, "ataqueMs": 10, "volumen": 0.07 },
+        { "onda": "noise", "nota": "E6", "esperaMs": 1300, "ms": 700, "ataqueMs": 120, "volumen": 0.025 }
+      ],
+      "vibracion": [15, 60, 15, 60, 25]
+    }
+  }
+}

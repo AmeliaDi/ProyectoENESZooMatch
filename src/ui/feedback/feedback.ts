@@ -1,61 +1,116 @@
 /**
- * One entry point for every feedback moment. Call `emitFeedback(kind)` from a
- * user-gesture handler: it checks the device preference, applies the shared
- * limiter (never more than one chip/buzz per `throttleMs`) and then plays the
- * sound and/or vibration configured for that kind. Safe to call on the server.
+ * One entry point for every sound moment. `emitSound(id)` checks the device
+ * preferences, the quiet window, the tab visibility and the per-category
+ * cooldown, then plays the recipe and/or its vibration. `emitFeedback(kind)`
+ * stays as the name the quiz and the canvas already call. Safe on the server.
  */
 
-import { EXPERIENCE } from "@/config";
+import { SOUND, SOUND_CATEGORIES, type SoundCategory, type SoundConfig, type SoundEventId } from "@/config";
+import { masterVolume, soundBlock, vibrationFor, type SoundBlock, type SoundPrefs } from "@/domain/audio/policy";
 
-import { playChip, type ChipTone } from "./chip-sound";
-import { getFeedbackPrefsSnapshot, type FeedbackPrefs } from "./feedback-prefs";
+import { installAudioUnlock, isAudioUnlocked, playRecipe, stopCategory, unlockAudio } from "./audio-engine";
 import { vibrate } from "./haptics";
-import { createLimiter, type Limiter } from "./throttle";
+import { getSoundPrefsSnapshot } from "./sound-prefs";
 
+/** The three moments the quiz and the canvas already emit. */
 export type FeedbackKind = "answer" | "join" | "tap";
 
-/** Kinds that never vibrate (`tap` is sound-only by design). */
-type VibratingKind = keyof typeof EXPERIENCE.feedback.vibration;
-function vibrationFor(kind: FeedbackKind, config: typeof EXPERIENCE.feedback): readonly number[] | null {
-  return kind in config.vibration ? config.vibration[kind as VibratingKind] : null;
-}
-
-export interface FeedbackDeps {
-  prefs: () => FeedbackPrefs;
-  limiter: Limiter;
+export interface SoundDeps {
+  prefs: () => SoundPrefs;
   now: () => number;
-  sound: (tone: ChipTone) => void;
+  minutes: () => number;
+  hidden: () => boolean;
+  unlocked: () => boolean;
+  play: (id: SoundEventId, volume: number) => void;
   vibrate: (pattern: readonly number[]) => unknown;
-  config: typeof EXPERIENCE.feedback;
+  config: SoundConfig;
+  lastFired: Map<SoundCategory, number>;
 }
 
-/** Pure core: returns what fired, so tests can assert without WebAudio. */
-export function runFeedback(kind: FeedbackKind, deps: FeedbackDeps): { sound: boolean; haptics: boolean } {
+export interface SoundOutcome {
+  sound: boolean;
+  haptics: boolean;
+  block: SoundBlock | null;
+}
+
+/** Pure core: returns what fired and why not, so tests need no Web Audio. */
+export function runSound(id: SoundEventId, deps: SoundDeps): SoundOutcome {
   const prefs = deps.prefs();
-  const pattern = vibrationFor(kind, deps.config);
-  const haptics = prefs.haptics && pattern !== null;
-  if (!prefs.sound && !haptics) return { sound: false, haptics: false };
-  if (!deps.limiter.tryFire(deps.now())) return { sound: false, haptics: false };
-  if (prefs.sound) deps.sound(deps.config.sounds[kind]);
-  if (haptics && pattern) deps.vibrate(pattern);
-  return { sound: prefs.sound, haptics };
+  const recipe = deps.config.eventos[id];
+  const block = soundBlock(id, recipe.categoria, deps.config.categorias[recipe.categoria].cooldownMs, {
+    prefs,
+    hidden: deps.hidden(),
+    minutes: deps.minutes(),
+    nowMs: deps.now(),
+    lastFiredMs: Object.fromEntries(deps.lastFired),
+    unlocked: deps.unlocked(),
+  });
+  if (block !== null) return { sound: false, haptics: false, block };
+
+  deps.lastFired.set(recipe.categoria, deps.now());
+  deps.play(id, masterVolume(prefs, deps.config));
+  const pattern = vibrationFor(id, prefs, deps.config);
+  if (pattern) deps.vibrate(pattern);
+  return { sound: true, haptics: pattern !== null, block: null };
 }
 
-let defaults: FeedbackDeps | null = null;
+let defaults: SoundDeps | null = null;
 
-function defaultDeps(): FeedbackDeps {
+function localMinutes(): number {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+function defaultDeps(): SoundDeps {
   defaults ??= {
-    prefs: getFeedbackPrefsSnapshot,
-    limiter: createLimiter(EXPERIENCE.feedback.throttleMs),
+    prefs: getSoundPrefsSnapshot,
     now: () => performance.now(),
-    sound: playChip,
+    minutes: localMinutes,
+    hidden: () => document.hidden,
+    unlocked: isAudioUnlocked,
+    play: playRecipe,
     vibrate,
-    config: EXPERIENCE.feedback,
+    config: SOUND,
+    lastFired: new Map<SoundCategory, number>(),
   };
   return defaults;
 }
 
+export function emitSound(id: SoundEventId): SoundOutcome {
+  if (typeof window === "undefined") return { sound: false, haptics: false, block: "disabled" };
+  return runSound(id, defaultDeps());
+}
+
 export function emitFeedback(kind: FeedbackKind): void {
+  emitSound(kind);
+}
+
+/**
+ * Called from the click that turns sound on: the click is the gesture, so the
+ * context unlocks here and a sample confirms the choice.
+ */
+export function enableSoundPreview(id: SoundEventId = "answer"): void {
   if (typeof window === "undefined") return;
-  runFeedback(kind, defaultDeps());
+  unlockAudio();
+  emitSound(id);
+}
+
+/**
+ * An explicit "let me hear that one" press in the dev gallery: the press is the
+ * consent, so it plays at the recipe volume even with the master switch off.
+ */
+export function auditionSound(id: SoundEventId): void {
+  if (typeof window === "undefined") return;
+  unlockAudio();
+  playRecipe(id, SOUND.master.porDefecto);
+}
+
+/** Arms the one-time gesture listener. Returns its cleanup. */
+export function armAudioUnlock(): () => void {
+  return installAudioUnlock(() => getSoundPrefsSnapshot().sound);
+}
+
+/** A tab that goes to the background stops mid-note, not at the end of it. */
+export function silenceAllSounds(): void {
+  for (const category of SOUND_CATEGORIES) stopCategory(category);
 }

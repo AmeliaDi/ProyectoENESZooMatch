@@ -12,7 +12,7 @@ import { dropUnownedDeviceDrafts } from "@/ui/shared/device-drafts";
 import { ExitButton } from "@/ui/shared/exit-button";
 import { Button } from "@/ui/kit/button";
 import { ChoiceGroup } from "@/ui/kit/choice";
-import { emitFeedback } from "@/ui/feedback/feedback";
+import { emitFeedback, emitSound } from "@/ui/feedback/feedback";
 import { Likert } from "@/ui/kit/likert";
 import { ConstellationProgress } from "@/ui/kit/progress";
 import { ErrorState } from "@/ui/kit/states";
@@ -152,6 +152,8 @@ export function PublicQuiz() {
         setRevealed(body.profile);
         setStage("reveal");
       } else {
+        // Con eclosión, el tono de bienvenida ya dice que el test terminó.
+        emitSound("quiz_completado");
         router.replace("/resultado");
       }
     } catch {

@@ -3,6 +3,7 @@
  * never more than `maxVisible`. No countdowns, no urgency.
  */
 
+import type { SoundEventId } from "@/config";
 import type { ToastData, ToastTone } from "@/ui/kit/toast";
 
 export interface IncomingNotification {
@@ -29,6 +30,33 @@ const UNCOUNTED = new Set(["chat"]);
 const ACTION: Record<string, NonNullable<ToastData["action"]>> = {
   chat: { href: "/chats", label: "Ir a tus chats" },
 };
+
+const SOUND_FOR: Record<string, SoundEventId> = {
+  match_romance: "match_nuevo",
+  match_amistad: "match_nuevo",
+  chat: "mensaje_nuevo",
+};
+
+/**
+ * One sound for what arrived since the last poll. `previous === null` means
+ * "just arrived": whatever was already waiting is not news. A match outranks
+ * chat news, and no poll ever asks for two sounds at once.
+ */
+export function notificationSound(
+  previous: ReadonlySet<string> | null,
+  list: readonly IncomingNotification[],
+): SoundEventId | null {
+  if (previous === null) return null;
+  let fallback: SoundEventId | null = null;
+  for (const n of list) {
+    if (n.read || previous.has(n.id)) continue;
+    const event = SOUND_FOR[n.type];
+    if (event === undefined) continue;
+    if (event === "match_nuevo") return event;
+    fallback = event;
+  }
+  return fallback;
+}
 
 function foldedBody(type: string, body: string, extra: number): string {
   if (extra <= 0 || UNCOUNTED.has(type) || !body) return body;

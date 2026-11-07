@@ -11,7 +11,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { EXPERIENCE, LIKERT_SCALE } from "@/config";
 import type { QuizModuleId } from "@/types/microtest";
-import { emitFeedback } from "@/ui/feedback/feedback";
+import { emitFeedback, emitSound } from "@/ui/feedback/feedback";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { ChoiceGroup } from "@/ui/kit/choice";
@@ -78,6 +78,7 @@ export function RefineQuiz({ module }: { module: QuizModuleId }) {
       const body = (await res.json().catch(() => null)) as { recomputePending?: boolean } | null;
       window.localStorage.removeItem(draftKey(module));
       if (body?.recomputePending) window.sessionStorage.setItem(RECOMPUTE_PENDING_KEY, "1");
+      emitSound("quiz_completado");
       router.replace("/perfil?afinado=1");
     } catch {
       setStatus({ error: "generic" });

@@ -5,8 +5,11 @@
  * the first-time guide, the rounds, the question of the turn (cards), the free
  * chat invitation, the free chat, and the safety menu always one tap away.
  */
+import { useEffect, useRef } from "react";
+
 import type { ConversationDto } from "@/contracts/chat";
 import { formatIdentity } from "@/domain/identity/format-identity";
+import { emitSound } from "@/ui/feedback/feedback";
 import { Button } from "@/ui/kit/button";
 import { Chip } from "@/ui/kit/surfaces";
 import { EmptyState, ErrorState, LoadingState } from "@/ui/kit/states";
@@ -85,6 +88,12 @@ export interface ConversationViewProps {
 
 export function ConversationView({ id, onBack, onLock, onLocked }: ConversationViewProps) {
   const { state, pending, actions } = useConversation(id, onLocked);
+  const chimed = useRef(false);
+  useEffect(() => {
+    if (state.kind !== "ready" || chimed.current) return;
+    chimed.current = true;
+    emitSound("chat_abierto");
+  }, [state.kind]);
   return (
     <div className="zm-convo">
       <div className="zm-chat__actions zm-convo__bar">

@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 
 import type { InterestStateDto } from "@/contracts/chat";
 
-import { chatMarksFor, openedSince } from "./use-chat-marks";
+import { chatMarksFor, firstNew } from "./use-chat-marks";
 
 const CONVERSATION = "3f2b8c14-5d67-4a91-8e03-9b7c2d514a6f";
 
@@ -47,25 +47,31 @@ describe("chatMarksFor", () => {
   });
 });
 
-describe("openedSince", () => {
+describe("firstNew", () => {
   it("al llegar no anuncia los chats que ya estaban abiertos", () => {
-    expect(openedSince(null, new Set(["a", "b"]))).toBeNull();
+    expect(firstNew(null, new Set(["a", "b"]))).toBeNull();
   });
 
   it("anuncia el que se abrió delante de la persona", () => {
-    expect(openedSince(new Set(["a"]), new Set(["a", "b"]))).toBe("b");
+    expect(firstNew(new Set(["a"]), new Set(["a", "b"]))).toBe("b");
   });
 
   it("no vuelve a anunciar lo mismo en el siguiente sondeo", () => {
-    expect(openedSince(new Set(["a", "b"]), new Set(["a", "b"]))).toBeNull();
+    expect(firstNew(new Set(["a", "b"]), new Set(["a", "b"]))).toBeNull();
   });
 
   it("cambiar de vía no inventa una apertura", () => {
     // The hook passes null when the track changes, exactly like arriving.
-    expect(openedSince(null, new Set(["d"]))).toBeNull();
+    expect(firstNew(null, new Set(["d"]))).toBeNull();
   });
 
   it("una conversación que se cerró y volvió a abrirse sí es novedad", () => {
-    expect(openedSince(new Set(), new Set(["a"]))).toBe("a");
+    expect(firstNew(new Set(), new Set(["a"]))).toBe("a");
+  });
+
+  it("sirve igual para invitaciones: al llegar no suena lo que ya esperaba", () => {
+    expect(firstNew(null, new Set(["b"]))).toBeNull();
+    expect(firstNew(new Set(), new Set(["b"]))).toBe("b");
+    expect(firstNew(new Set(["b"]), new Set(["b"]))).toBeNull();
   });
 });

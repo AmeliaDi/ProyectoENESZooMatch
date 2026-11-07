@@ -1,4 +1,8 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useEffect, type ReactNode } from "react";
+
+import { emitSound } from "@/ui/feedback/feedback";
 
 import { Icon } from "./icon";
 
@@ -37,6 +41,7 @@ export function EmptyState({ title, body, action, art }: StateViewProps) {
 }
 
 export function ErrorState({ title, body, action, art }: StateViewProps) {
+  useEffect(() => { emitSound("error_suave"); }, []);
   return (
     <div className="zm-state zm-state--error" role="alert">
       {art ?? <Icon name="alert" scale={3} />}

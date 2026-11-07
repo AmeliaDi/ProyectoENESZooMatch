@@ -13,6 +13,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import type { ChatTrack, InterestStateDto } from "@/contracts/chat";
+import { emitSound } from "@/ui/feedback/feedback";
 
 import { loadInterest, readInterest, readInterestOnServer, subscribeInterest } from "./interest-api";
 
@@ -47,12 +48,12 @@ export function chatMarksFor(
 }
 
 /**
- * The first newly open handle, or null. `previous === null` means "just
- * arrived": whatever was already open is not news.
+ * The first id present now and absent before, or null. `previous === null`
+ * means "just arrived": whatever was already there is not news.
  */
-export function openedSince(previous: ReadonlySet<string> | null, open: ReadonlySet<string>): string | null {
+export function firstNew(previous: ReadonlySet<string> | null, current: ReadonlySet<string>): string | null {
   if (previous === null) return null;
-  for (const id of open) if (!previous.has(id)) return id;
+  for (const id of current) if (!previous.has(id)) return id;
   return null;
 }
 
@@ -64,14 +65,15 @@ export function useChatMarks(track: ChatTrack): ChatMarks {
     [snapshot, track],
   );
   const [justOpened, setJustOpened] = useState<{ match: string; conversation: string } | null>(null);
-  const seen = useRef<{ track: ChatTrack; open: ReadonlySet<string> } | null>(null);
+  const seen = useRef<{ track: ChatTrack; open: ReadonlySet<string>; pending: ReadonlySet<string> } | null>(null);
   useEffect(() => {
     // Switching tracks is not an opening: the new track starts from its own sky.
-    const previous = seen.current?.track === track ? seen.current.open : null;
-    seen.current = { track, open: marks.open };
-    const match = openedSince(previous, marks.open);
+    const previous = seen.current?.track === track ? seen.current : null;
+    seen.current = { track, open: marks.open, pending: marks.pending };
+    const match = firstNew(previous?.open ?? null, marks.open);
     const conversation = match === null ? undefined : marks.conversations.get(match);
     if (match !== null && conversation !== undefined) setJustOpened({ match, conversation });
+    if (firstNew(previous?.pending ?? null, marks.pending) !== null) emitSound("invitacion_chat");
   }, [marks, track]);
   return useMemo(
     () => ({ open: marks.open, pending: marks.pending, justOpened }),

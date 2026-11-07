@@ -11,9 +11,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CHAT_CONFIG } from "@/config";
 import type { ConversationDto, ReportReason } from "@/contracts/chat";
+import { emitSound } from "@/ui/feedback/feedback";
 
 import { INVALID_REPLY, LOCKED, NETWORK_FAILURE, NOT_FOUND, conversationApi, isTransientFailure, type ApiResult } from "./chat-api";
 import { CHAT_COPY, CONVERSATION_COPY, errorCopy, failedWithReference } from "./chat-copy";
+import { conversationSound } from "./conversation-sound";
 import { useBackoffPoll } from "./use-visible-poll";
 
 export type ConversationState =
@@ -108,6 +110,17 @@ export function useConversation(id: string, onLocked: () => void) {
   // A first load that failed for a transient reason retries on its own; the
   // person never has to press a button to recover from a moment of network.
   state.kind === "ready" || (state.kind === "error" && isTransientFailure(state.code)));
+
+  const heard = useRef<ConversationDto | null>(null);
+  useEffect(() => {
+    if (state.kind !== "ready") {
+      heard.current = null;
+      return;
+    }
+    const event = conversationSound(heard.current, state.convo);
+    heard.current = state.convo;
+    if (event !== null) emitSound(event);
+  }, [state]);
 
   const oldestAt = state.kind === "ready" ? (state.convo.messages[0]?.at ?? null) : null;
   const actions = useMemo(

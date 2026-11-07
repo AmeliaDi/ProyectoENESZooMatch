@@ -8,7 +8,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 
-import { COLOR_ROLES, DESIGN_TOKENS, THEME_MODES, type ColorRole, type ThemeMode } from "@/config";
+import { COLOR_ROLES, DESIGN_TOKENS, SOUND, SOUND_CATEGORIES, SOUND_EVENTS, THEME_MODES, soundDurationMs, type ColorRole, type ThemeMode } from "@/config";
 import { OUTLINE_COLOR } from "@/domain/avatars/pixel-sprites";
 import { GlowDefs } from "@/ui/constellation/GlowDefs";
 import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
@@ -19,6 +19,7 @@ import { contrastRatio } from "@/ui/design/contrast";
 import { auditMode } from "@/ui/design/contrast-audit";
 import { ICON_NAMES } from "@/ui/design/icons";
 import { useThemeMode } from "@/ui/design/theme";
+import { previewSound } from "@/ui/feedback/sound-settings";
 import { Button, IconButton } from "@/ui/kit/button";
 import { Dialog } from "@/ui/kit/dialog";
 import { Field } from "@/ui/kit/field";
@@ -387,6 +388,26 @@ export function UiGallery() {
           <div>
             <Button variant="ghost" onClick={() => setToasts(SAMPLE_TOASTS)}>Restaurar avisos</Button>
           </div>
+        </Section>
+
+        <Section title={`Soniditos (${SOUND_EVENTS.length})`}>
+          <p className="max-w-prose text-atlas-muted">
+            Recetas sintetizadas con Web Audio en la misma escala: ninguna es un archivo. Duran menos de{" "}
+            {SOUND.limites.generalMs} ms, salvo la eclosión ({SOUND.limites.eclosionMs} ms). Aquí suenan aunque el
+            interruptor maestro esté apagado, para poder compararlas; en la app vienen apagadas por defecto.
+          </p>
+          {SOUND_CATEGORIES.map((category) => (
+            <div key={category} className="grid gap-2">
+              <p className="font-pixel text-sm text-atlas-muted">{SOUND.categorias[category].nombre}</p>
+              <div className="flex flex-wrap gap-3">
+                {SOUND_EVENTS.filter((id) => SOUND.eventos[id].categoria === category).map((id) => (
+                  <Button key={id} variant="secondary" icon="sound-on" onClick={() => previewSound(id)}>
+                    {SOUND.eventos[id].nombre} · <span className="zm-num">{soundDurationMs(id)} ms</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ))}
         </Section>
 
         <Section title="Estados">

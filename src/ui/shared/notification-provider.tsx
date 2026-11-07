@@ -19,10 +19,12 @@ import {
 } from "react";
 
 import { EXPERIENCE } from "@/config";
+import { emitSound } from "@/ui/feedback/feedback";
 import { ToastStack } from "@/ui/kit/toast";
 
 import {
   groupNotifications,
+  notificationSound,
   readNotificationsPaused,
   subscribeNotificationsPaused,
   type IncomingNotification,
@@ -62,6 +64,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [list, setList] = useState<IncomingNotification[]>([]);
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
   const unauthorized = useRef(false);
+  const seen = useRef<ReadonlySet<string> | null>(null);
 
   useEffect(() => {
     if (paused) return;
@@ -71,8 +74,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       try {
         const res = await fetch("/api/notifications", { cache: "no-store" });
         if (res.status === 401) unauthorized.current = true;
-        if (!res.ok || !active) return;
-        setList(parseList(await res.json()));
+        if (!res.ok) return;
+        const next = parseList(await res.json());
+        if (!active) return;
+        const event = notificationSound(seen.current, next);
+        seen.current = new Set(next.map((n) => n.id));
+        if (event !== null) emitSound(event);
+        setList(next);
       } catch {
         // Non-critical: the next tick tries again.
       }

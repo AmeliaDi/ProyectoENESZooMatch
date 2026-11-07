@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { findQuiz, QUIZ_CATALOGUE, CATEGORY_META } from "@/config/quiz-catalogue";
+import { emitSound } from "@/ui/feedback/feedback";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { ChoiceGroup } from "@/ui/kit/choice";
@@ -160,6 +161,7 @@ export function QuizFlowView({ quizId, requireConsent }: { quizId: string; requi
       }
 
       clearDraft(quizId);
+      emitSound("quiz_completado");
       setStage("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al guardar");

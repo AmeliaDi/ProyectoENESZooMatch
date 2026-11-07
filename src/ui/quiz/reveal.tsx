@@ -25,6 +25,8 @@ import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
 import { useReducedMotionPreference } from "@/ui/constellation/hooks";
 import { PixelEgg } from "@/ui/kit/pixel-egg";
 import { Button } from "@/ui/kit/button";
+import { emitSound } from "@/ui/feedback/feedback";
+import { SoundInvite } from "@/ui/feedback/sound-invite";
 
 import { revealOrder } from "./reveal-order";
 
@@ -106,6 +108,7 @@ function Sprite({ profile }: { profile: RevealProfile }) {
  */
 function useConsumeReveal(hatched: boolean, animated: boolean) {
   const [justRevealed, setJustRevealed] = useState(animated);
+  const [confirmed, setConfirmed] = useState(false);
   const sent = useRef(false);
 
   useEffect(() => {
@@ -117,12 +120,13 @@ function useConsumeReveal(hatched: boolean, animated: boolean) {
         const body: unknown = await res.json();
         if (body && typeof body === "object" && "justRevealed" in body) {
           setJustRevealed(body.justRevealed === true);
+          setConfirmed(body.justRevealed === true);
         }
       })
       .catch(() => undefined);
   }, [hatched]);
 
-  return justRevealed;
+  return { justRevealed, confirmed };
 }
 
 export function Reveal({
@@ -136,17 +140,29 @@ export function Reveal({
   const name = formatIdentity(identity);
   const hatched = identity.estadoIdentidad === "eclosionado";
   const reduced = useReducedMotionPreference();
-  const animated = useConsumeReveal(hatched, hatched && !reduced);
+  const { justRevealed: animated, confirmed } = useConsumeReveal(hatched, hatched && !reduced);
   const [skipped, setSkipped] = useState(false);
+  const [finished, setFinished] = useState(false);
   const headingRef = useRef<HTMLHeadingElement | null>(null);
+
+  const step = EXPERIENCE.reveal.cellStepMs;
+  const totalMs = ORDER.length * step;
+  const play = animated && !skipped;
 
   useEffect(() => {
     headingRef.current?.focus();
   }, []);
 
-  const step = EXPERIENCE.reveal.cellStepMs;
-  const totalMs = ORDER.length * step;
-  const play = animated && !skipped;
+  // Only the confirmed first reveal chimes: reopening the card stays quiet.
+  useEffect(() => {
+    if (confirmed) emitSound("eclosion");
+  }, [confirmed]);
+
+  useEffect(() => {
+    if (!play) return;
+    const timer = window.setTimeout(() => setFinished(true), totalMs);
+    return () => window.clearTimeout(timer);
+  }, [play, totalMs]);
 
   if (!hatched) {
     return (
@@ -216,6 +232,8 @@ export function Reveal({
           Ver mi constelación
         </Button>
       </div>
+
+      <SoundInvite ready={!play || finished} />
     </section>
   );
 }
