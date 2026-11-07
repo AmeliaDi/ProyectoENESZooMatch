@@ -64,6 +64,10 @@ const FASE4_MIGRATION = "20261111000000_fase4_chat_three_rounds.sql";
 const FASE4_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE4_MIGRATION), "utf8");
 const FASE5_MIGRATION = "20261112000000_fase5_match_notifications_idempotent.sql";
 const FASE5_SQL = readFileSync(resolve(MIGRATIONS_DIR, FASE5_MIGRATION), "utf8");
+const QUIZZES_MIGRATION = "20261120000000_quizzes.sql";
+const QUIZZES_SQL = readFileSync(resolve(MIGRATIONS_DIR, QUIZZES_MIGRATION), "utf8");
+const QUIZZES_TABLES = ["quiz_attempts", "quiz_answers", "quiz_sharing", "quiz_picante_consent"] as const;
+const QUIZZES_RPCS = ["quiz_coincidencias"] as const;
 
 describe("base migration", () => {
   it("is the base plus the idempotent incremental migrations", () => {
@@ -83,6 +87,7 @@ describe("base migration", () => {
       IDENTITY_MIGRATION,
       IDENTITY_DROP_MIGRATION,
       SOFT_DELETE_MIGRATION,
+      QUIZZES_MIGRATION,
     ]);
   });
 
@@ -104,8 +109,19 @@ describe("base migration", () => {
     for (const name of Object.values(RPC)) {
       expect(PUBLIC_FUNCTIONS.has(name), `missing RPC ${name}`).toBe(true);
     }
-    for (const name of Object.values(TABLE)) {
+    // Exclude quiz tables - they're in a separate migration
+    const nonQuizTables = Object.values(TABLE).filter((name) => !name.startsWith("quiz_"));
+    for (const name of nonQuizTables) {
       expect(SQL).toContain(`CREATE TABLE public.${name} (`);
+    }
+  });
+
+  it("defines quiz tables and RPCs in quizzes migration", () => {
+    for (const table of QUIZZES_TABLES) {
+      expect(QUIZZES_SQL).toContain(`CREATE TABLE IF NOT EXISTS ${table}`);
+    }
+    for (const rpc of QUIZZES_RPCS) {
+      expect(QUIZZES_SQL).toContain(`CREATE OR REPLACE FUNCTION ${rpc}`);
     }
   });
 

@@ -4,6 +4,10 @@
  * `/quizzes`: the hub for icebreaker quizzes. Shows all three categories
  * (Gustos, Gaming, Picante) with quiz cards indicating status. Picante
  * requires consent before access. Quizzes don't affect psychometric matching.
+ *
+ * Design direction: tactile JRPG card anatomy with pixel-cut borders,
+ * generous breathing room, and controlled hierarchy via scale/weight/opacity
+ * rather than underlines.
  */
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -13,7 +17,6 @@ import type { QuizDefinition } from "@/config/quizzes";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { Icon } from "@/ui/kit/icon";
-import { Chip, Frame } from "@/ui/kit/surfaces";
 import { ErrorState, LoadingState } from "@/ui/kit/states";
 import { ExitButton } from "@/ui/shared/exit-button";
 
@@ -76,37 +79,55 @@ function useQuizStatuses() {
   return [state, refresh] as const;
 }
 
+type CardStatus = "completed" | "in_progress" | "pending";
+
+function getStatusBadge(status: CardStatus) {
+  const config = {
+    completed: { label: "Completado", icon: "check" as const },
+    in_progress: { label: "En progreso", icon: "loading" as const },
+    pending: { label: "Pendiente", icon: "quiz" as const },
+  };
+  const { label, icon } = config[status];
+  return (
+    <span className={`zm-quiz-card__badge zm-quiz-card__badge--${status}`}>
+      <Icon name={icon} scale={1} />
+      <span>{label}</span>
+    </span>
+  );
+}
+
 function QuizCard({ quiz, status, category }: { quiz: QuizDefinition; status: QuizStatus | undefined; category: QuizCategory }) {
   const completed = status?.completed ?? false;
   const answerCount = status?.answerCount ?? 0;
   const totalItems = quiz.items.length;
   const inProgress = answerCount > 0 && !completed;
+  const cardStatus: CardStatus = completed ? "completed" : inProgress ? "in_progress" : "pending";
 
   return (
     <Link
       href={category === "picante" ? `/quizzes/${quiz.quiz_id}?consent=1` : `/quizzes/${quiz.quiz_id}`}
-      className="zm-box zm-box--frame zm-quiz-card"
-      data-completed={completed}
-      data-in-progress={inProgress}
+      className="zm-quiz-card"
+      data-status={cardStatus}
     >
-      <div className="zm-quiz-card__header">
-        <h3 className="zm-quiz-card__title">{quiz.titulo}</h3>
-        {completed ? (
-          <Chip icon="check" tone="romance">Completado</Chip>
-        ) : inProgress ? (
-          <Chip icon="loading">En progreso</Chip>
-        ) : (
-          <Chip icon="quiz">Pendiente</Chip>
-        )}
-      </div>
-      <p className="zm-quiz-card__desc">{quiz.descripcion}</p>
-      <div className="zm-quiz-card__footer">
-        <span className="zm-quiz-card__meta">
-          <Icon name="loading" scale={1} /> {quiz.duracion_estimada_minutos} min
-        </span>
-        <span className="zm-quiz-card__meta zm-num">
-          {answerCount} / {totalItems}
-        </span>
+      <div className="zm-quiz-card__inner">
+        <header className="zm-quiz-card__header">
+          <h3 className="zm-quiz-card__title">{quiz.titulo}</h3>
+          {getStatusBadge(cardStatus)}
+        </header>
+
+        <p className="zm-quiz-card__desc">{quiz.descripcion}</p>
+
+        <footer className="zm-quiz-card__footer">
+          <span className="zm-quiz-card__meta">
+            <span>{quiz.duracion_estimada_minutos} min</span>
+          </span>
+          <span className="zm-quiz-card__meta zm-quiz-card__progress">
+            <Icon name="quiz" scale={1} />
+            <span>
+              {answerCount}<span className="zm-quiz-card__progress-sep">/</span>{totalItems}
+            </span>
+          </span>
+        </footer>
       </div>
     </Link>
   );
@@ -117,14 +138,23 @@ function CategorySection({ category, statuses }: { category: QuizCategory; statu
   const quizzes = QUIZ_CATALOGUE[category];
 
   return (
-    <Frame title={`${meta.label} ${meta.icon}`} coord={`QZ · ${category.toUpperCase()}`}>
-      <p className="zm-detail__muted" style={{ marginTop: 0 }}>{meta.description}</p>
+    <section className="zm-quiz-section">
+      <header className="zm-quiz-section__header">
+        <span className="zm-quiz-section__coord" aria-hidden="true">
+          QZ · {category.toUpperCase()}
+        </span>
+        <h2 className="zm-quiz-section__title">
+          {meta.label} <span className="zm-quiz-section__icon">{meta.icon}</span>
+        </h2>
+        <p className="zm-quiz-section__desc">{meta.description}</p>
+      </header>
+
       <div className="zm-quiz-grid">
         {quizzes.map((quiz) => (
           <QuizCard key={quiz.quiz_id} quiz={quiz} status={statuses.get(quiz.quiz_id)} category={category} />
         ))}
       </div>
-    </Frame>
+    </section>
   );
 }
 
@@ -188,7 +218,7 @@ export function QuizzesView({ picanteEnabled = true }: { picanteEnabled?: boolea
           <CategorySection key={category} category={category} statuses={statuses} />
         ))}
 
-        <p className="zm-detail__muted" style={{ textAlign: "center", marginTop: "calc(var(--zm-px) * 12)" }}>
+        <p className="zm-quizzes__footnote">
           ¿Tienes dudas? Consulta la documentación del proyecto (docs/QUIZZES.md).
         </p>
       </main>
