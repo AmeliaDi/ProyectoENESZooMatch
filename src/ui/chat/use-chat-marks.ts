@@ -5,10 +5,14 @@
  * an open chat (their spoke turns gold) and which have an invitation waiting
  * (a small speech icon over the star, never a number). Read from the shared
  * interest store, so the constellation makes no extra request.
+ *
+ * `justOpened` is the match whose chat opened while this sky was on screen:
+ * the store now polls, so a mutual acceptance arrives without a reload and
+ * deserves one calm announcement. Chats already open on arrival say nothing.
  */
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
-import type { ChatTrack } from "@/contracts/chat";
+import type { ChatTrack, InterestStateDto } from "@/contracts/chat";
 
 import { loadInterest, readInterest, readInterestOnServer, subscribeInterest } from "./interest-api";
 
@@ -17,25 +21,60 @@ export interface ChatMarks {
   open: ReadonlySet<string>;
   /** Node ids with something waiting for the viewer (an invitation). */
   pending: ReadonlySet<string>;
+  /** The chat that opened in front of the viewer, or null. */
+  justOpened: { match: string; conversation: string } | null;
 }
 
-const EMPTY: ChatMarks = { open: new Set(), pending: new Set() };
+const EMPTY: ChatMarks = { open: new Set(), pending: new Set(), justOpened: null };
 
-export function chatMarksFor(states: Readonly<Record<string, { state: string }>>, track: ChatTrack): ChatMarks {
+export function chatMarksFor(
+  states: Readonly<Record<string, InterestStateDto>>,
+  track: ChatTrack,
+): { open: ReadonlySet<string>; pending: ReadonlySet<string>; conversations: ReadonlyMap<string, string> } {
   const open = new Set<string>();
   const pending = new Set<string>();
+  const conversations = new Map<string, string>();
   const prefix = `${track}:`;
   for (const [key, value] of Object.entries(states)) {
     if (!key.startsWith(prefix)) continue;
     const id = key.slice(prefix.length);
-    if (value.state === "open") open.add(id);
-    else if (value.state === "invited") pending.add(id);
+    if (value.state === "open") {
+      open.add(id);
+      conversations.set(id, value.conversation);
+    } else if (value.state === "invited") pending.add(id);
   }
-  return { open, pending };
+  return { open, pending, conversations };
+}
+
+/**
+ * The first newly open handle, or null. `previous === null` means "just
+ * arrived": whatever was already open is not news.
+ */
+export function openedSince(previous: ReadonlySet<string> | null, open: ReadonlySet<string>): string | null {
+  if (previous === null) return null;
+  for (const id of open) if (!previous.has(id)) return id;
+  return null;
 }
 
 export function useChatMarks(track: ChatTrack): ChatMarks {
   const snapshot = useSyncExternalStore(subscribeInterest, readInterest, readInterestOnServer);
   useEffect(() => void loadInterest(), []);
-  return useMemo(() => (snapshot.kind === "ready" ? chatMarksFor(snapshot.states, track) : EMPTY), [snapshot, track]);
+  const marks = useMemo(
+    () => (snapshot.kind === "ready" ? chatMarksFor(snapshot.states, track) : { open: EMPTY.open, pending: EMPTY.pending, conversations: new Map<string, string>() }),
+    [snapshot, track],
+  );
+  const [justOpened, setJustOpened] = useState<{ match: string; conversation: string } | null>(null);
+  const seen = useRef<{ track: ChatTrack; open: ReadonlySet<string> } | null>(null);
+  useEffect(() => {
+    // Switching tracks is not an opening: the new track starts from its own sky.
+    const previous = seen.current?.track === track ? seen.current.open : null;
+    seen.current = { track, open: marks.open };
+    const match = openedSince(previous, marks.open);
+    const conversation = match === null ? undefined : marks.conversations.get(match);
+    if (match !== null && conversation !== undefined) setJustOpened({ match, conversation });
+  }, [marks, track]);
+  return useMemo(
+    () => ({ open: marks.open, pending: marks.pending, justOpened }),
+    [marks, justOpened],
+  );
 }

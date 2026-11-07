@@ -39,7 +39,7 @@ function OpenNotice({ conversation }: { conversation: string }) {
     <div className="zm-interest__state">
       <p className="zm-interest__title"><Icon name="check" /> {INTEREST_COPY.open}</p>
       <Link href={conversationHref(conversation)} className="zm-box zm-btn zm-btn--primary zm-interest__link">
-        <Icon name="next" /> {INTEREST_COPY.openLink}
+        <Icon name="next" /> {INTEREST_COPY.openNow}
       </Link>
     </div>
   );

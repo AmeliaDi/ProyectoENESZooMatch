@@ -6,12 +6,16 @@
  * shares the Romance/Amistad tabs with the list view).
  */
 
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
 import { getTrackThreshold } from "@/domain/constellation";
 import type { MatchTrack } from "@/types/microtest";
+import { INTEREST_COPY } from "@/ui/chat/chat-copy";
 import { useChatMarks } from "@/ui/chat/use-chat-marks";
+import { conversationHref } from "@/ui/chat/use-open-conversation";
 import { emitFeedback } from "@/ui/feedback/feedback";
+import { Icon } from "@/ui/kit/icon";
 
 import { ConstellationCanvas } from "./ConstellationCanvas";
 import { useReducedMotionPreference } from "./hooks";
@@ -101,6 +105,14 @@ export function ConstellationView({
         />
       </div>
       <NodeDetailSheet node={selected} self={me} track={track} reducedMotion={motionReduced} onClose={handleClose} />
+      <p className="zm-sky-view__chat-news" role="status" aria-live="polite">
+        {chatMarks.justOpened ? (
+          <>
+            <Icon name="check" /> {INTEREST_COPY.opened}{" "}
+            <Link href={conversationHref(chatMarks.justOpened.conversation)}>{INTEREST_COPY.openNow}</Link>
+          </>
+        ) : null}
+      </p>
     </section>
   );
 }

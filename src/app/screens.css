@@ -286,6 +286,9 @@
 
 /* ─── Lienzo (chrome; la física es de la fase 4) ──────────── */
 .zm-sky-view { display: grid; gap: calc(var(--zm-px) * 6); }
+/* Reserve the line so the announcement never shifts the sky under the finger. */
+.zm-sky-view__chat-news { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--zm-px) * 3); min-height: var(--zm-touch); margin: 0; color: var(--zm-fg); }
+.zm-sky-view__chat-news a { color: var(--zm-gold); }
 .zm-canvas { position: relative; width: 100%; user-select: none; }
 .zm-canvas__surface {
   position: absolute;
