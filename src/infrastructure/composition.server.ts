@@ -264,29 +264,9 @@ export async function quizzesRompehielosContext(): Promise<Result<QuizContext & 
 
   const tieneIdentidad = profile?.animal_id !== null && profile?.color_id !== null;
 
-  // Check if user has PIN
-  const { data: pin } = await admin
-    .from("chat_pins")
-    .select("pin_hash")
-    .eq("persona_id", auth.value.userId)
-    .maybeSingle();
-
-  const tienePin = pin?.pin_hash !== null && pin?.pin_hash !== undefined;
-
-  // Check if romance track is active
-  const { data: preferences } = await admin
-    .from("profile_preferences")
-    .select("track_romance")
-    .eq("persona_id", auth.value.userId)
-    .maybeSingle();
-
-  const trackRomanceActivo = preferences?.track_romance ?? false;
-
   return ok({
     personaId: auth.value.userId,
     tieneIdentidad,
-    tienePin,
-    trackRomanceActivo,
     admin,
   });
 }

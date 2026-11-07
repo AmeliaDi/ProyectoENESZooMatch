@@ -2,10 +2,9 @@
 
 /**
  * Picante consent gate. Before accessing Picante quizzes, the user must:
- * 1. Confirm they are 18+
- * 2. Have an active romance track
- * 3. Have a PIN set up
- * 4. For level 2, give a second explicit confirmation
+ * 1. Have an assigned identity (completed the main test)
+ * 2. Confirm they are 18+
+ * 3. For level 2, give a second explicit confirmation
  *
  * This component handles the consent flow and calls the API to record it.
  */
@@ -45,8 +44,6 @@ export function PicanteConsentGate({ quizId, onConsentGiven }: PicanteConsentGat
   const [error, setError] = useState<string | null>(null);
   const [requirements, setRequirements] = useState({
     tieneIdentidad: false,
-    tienePin: false,
-    trackRomanceActivo: false,
   });
 
   // Check requirements on mount
@@ -58,7 +55,7 @@ export function PicanteConsentGate({ quizId, onConsentGiven }: PicanteConsentGat
           const body = await res.json();
           if (body.ok) {
             setRequirements(body.data);
-            if (!body.data.tieneIdentidad || !body.data.tienePin || !body.data.trackRomanceActivo) {
+            if (!body.data.tieneIdentidad) {
               setStage("requirements");
               return;
             }
@@ -138,29 +135,13 @@ export function PicanteConsentGate({ quizId, onConsentGiven }: PicanteConsentGat
             <Icon name={requirements.tieneIdentidad ? "check" : "close"} filled={requirements.tieneIdentidad} />
             {requirements.tieneIdentidad ? "Tienes identidad asignada" : "Primero completa el test principal y recibe tu animalito"}
           </li>
-          <li data-met={requirements.tienePin}>
-            <Icon name={requirements.tienePin ? "check" : "close"} filled={requirements.tienePin} />
-            {requirements.tienePin ? "Tienes un PIN configurado" : "Configura un PIN en Ajustes → Chats"}
-          </li>
-          <li data-met={requirements.trackRomanceActivo}>
-            <Icon name={requirements.trackRomanceActivo ? "check" : "close"} filled={requirements.trackRomanceActivo} />
-            {requirements.trackRomanceActivo ? "Tu track de romance está activo" : "Activa el track de romance en tu perfil"}
-          </li>
         </ul>
         <div className="zm-consent__actions">
           {!requirements.tieneIdentidad ? (
             <Button variant="primary" onClick={() => router.push("/cuestionario")}>
               Hacer el test
             </Button>
-          ) : !requirements.tienePin ? (
-            <Button variant="primary" onClick={() => router.push("/ajustes#chats")}>
-              Configurar PIN
-            </Button>
-          ) : (
-            <Button variant="primary" onClick={() => router.push("/perfil")}>
-              Activar romance
-            </Button>
-          )}
+          ) : null}
           <Button variant="ghost" onClick={() => router.push("/quizzes")}>
             Volver a quizzes
           </Button>

@@ -54,22 +54,19 @@ describe("calcularCoincidencias", () => {
 });
 
 describe("puedeAccederPicante", () => {
-  it("requiere todos los requisitos", () => {
-    expect(puedeAccederPicante(null, true)).toBe(false);
+  it("requiere consentimiento y mayoría de edad", () => {
+    expect(puedeAccederPicante(null)).toBe(false);
     expect(
-      puedeAccederPicante({ mayor_de_edad: false, consentimiento_en: new Date(), track_romance_activo: true }, true),
-    ).toBe(false);
-    expect(
-      puedeAccederPicante({ mayor_de_edad: true, consentimiento_en: new Date(), track_romance_activo: false }, true),
-    ).toBe(false);
-    expect(
-      puedeAccederPicante({ mayor_de_edad: true, consentimiento_en: new Date(), track_romance_activo: true }, false),
+      puedeAccederPicante({ mayor_de_edad: false, consentimiento_en: new Date(), track_romance_activo: true }),
     ).toBe(false);
   });
 
-  it("permite acceso cuando todos los requisitos se cumplen", () => {
+  it("permite acceso cuando hay consentimiento y es mayor de edad", () => {
     expect(
-      puedeAccederPicante({ mayor_de_edad: true, consentimiento_en: new Date(), track_romance_activo: true }, true),
+      puedeAccederPicante({ mayor_de_edad: true, consentimiento_en: new Date(), track_romance_activo: true }),
+    ).toBe(true);
+    expect(
+      puedeAccederPicante({ mayor_de_edad: true, consentimiento_en: new Date(), track_romance_activo: false }),
     ).toBe(true);
   });
 });

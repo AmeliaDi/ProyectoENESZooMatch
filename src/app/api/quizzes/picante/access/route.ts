@@ -19,8 +19,6 @@ const handleGet = withApiSecurity(async () => {
       ok: true,
       data: {
         tieneIdentidad: ctx.tieneIdentidad,
-        tienePin: ctx.tienePin,
-        trackRomanceActivo: ctx.trackRomanceActivo,
       },
     },
     { headers: { "cache-control": "no-store" } },

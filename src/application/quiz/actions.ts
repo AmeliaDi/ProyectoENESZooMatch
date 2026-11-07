@@ -187,10 +187,8 @@ export async function darConsentimientoPicante(
 ): Promise<Result<void, QuizError>> {
   if (!ctx.tieneIdentidad) return err("quiz.no_identidad");
   if (!mayorDeEdad) return err("quiz.picante.requisitos");
-  if (!ctx.trackRomanceActivo) return err("quiz.picante.requisitos");
-  if (!ctx.tienePin) return err("quiz.picante.requisitos");
 
-  await repo.savePicanteConsent(ctx.personaId, mayorDeEdad, ctx.trackRomanceActivo);
+  await repo.savePicanteConsent(ctx.personaId, mayorDeEdad, true);
   return ok(undefined);
 }
 
@@ -201,7 +199,7 @@ export async function verificarAccesoPicante(
   if (!ctx.tieneIdentidad) return err("quiz.no_identidad");
 
   const consent = await repo.getPicanteConsent(ctx.personaId);
-  const puedeAcceder = puedeAccederPicante(consent, ctx.tienePin);
+  const puedeAcceder = puedeAccederPicante(consent);
 
   return ok(puedeAcceder);
 }
@@ -218,7 +216,7 @@ export async function completarQuizPicanteNivel2(
 
   // Verificar acceso a picante
   const consent = await repo.getPicanteConsent(ctx.personaId);
-  if (!puedeAccederPicante(consent, ctx.tienePin)) {
+  if (!puedeAccederPicante(consent)) {
     return err("quiz.picante.requisitos");
   }
 

@@ -65,16 +65,13 @@ export function calcularCoincidencias(
 
 /**
  * Verifica si una persona puede acceder a un quiz de Picante.
- * Requiere: mayoría de edad declarada, consentimiento, track romance activo.
+ * Requiere: mayoría de edad declarada y consentimiento.
  */
 export function puedeAccederPicante(
   consent: PicanteConsent | null,
-  tienePin: boolean,
 ): boolean {
   if (!consent) return false;
   if (!consent.mayor_de_edad) return false;
-  if (!consent.track_romance_activo) return false;
-  if (!tienePin) return false;
   return true;
 }
 

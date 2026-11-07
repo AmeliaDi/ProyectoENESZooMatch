@@ -38,6 +38,4 @@ export interface QuizRepository {
 export interface QuizContext {
   personaId: string;
   tieneIdentidad: boolean;
-  tienePin: boolean;
-  trackRomanceActivo: boolean;
 }
