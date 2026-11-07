@@ -1108,3 +1108,70 @@ vez, al eclosionar, se guarda y nunca se recalcula.** Todo lo demás lee el regi
   es la del DTO, que exige el secreto del servidor. Crear una segunda fuente de seeds sería
   reproducir la clase de bug que este ADR elimina. Haría falta un campo nuevo en la API.
 
+
+## ADR-039 · El chat en producción no necesita migración: la causa era el contrato, no la base
+
+**Contexto.** Cuatro síntomas en producción con personas reales: nadie conseguía chatear, la
+señal mutua no abría chat en ninguna de las dos pantallas, al abrir salía «No pudimos leer la
+respuesta» y no había icono de acceso directo. La hipótesis natural —esquema desincronizado,
+RLS mal, carrera en la aceptación mutua— se midió antes de tocar nada
+(`docs/DIAGNOSTICO_CHAT.md`, artefactos en `.qa/`).
+
+**Medición sobre la base real** (`uchrlfvhaiisoyndwprf`, solo conteos y nombres de objeto):
+las 13 tablas del chat existen con `rls = true`, **0 políticas**, `SELECT` revocado a `anon` y
+`authenticated` y concedido solo a `service_role`; índices y triggers completos, incluidos
+`conversations_pair_unique (user_a, user_b, track)` y
+`conversation_messages_client_key_idx (conversation_id, author, client_key)`. Las cinco
+funciones del chat son `SECURITY DEFINER` y `express_chat_interest` tiene **solo** la firma de
+6 argumentos. Integridad: **0 pares duplicados, 0 pares desordenados, 0 conversaciones
+huérfanas, 0 conversaciones con peer huevo o dado de baja, 0 identidades incompletas** sobre
+63 conversaciones, 170 rondas, 298 respuestas y 266 mensajes.
+
+**Decisión.** **No se aplica ninguna migración correctiva del chat y no se limpia ningún
+dato.** Inventar una migración para un esquema que ya está bien habría añadido riesgo sin
+arreglar nada, y la tarea pide explícitamente no ocultar síntomas. Lo que se corrige es el
+contrato entre el servidor y el navegador:
+
+- `ChatPeer` (`application/chat/conversation-ports.ts`) transportaba campos sueltos y
+  `toPeerDto` los reconstruía con `aliasSufijo: null`. `parseIdentity` exige el sufijo para
+  considerar eclosionada una identidad, así que `parsePeer` devolvía `null`: `listOf` descartaba
+  en silencio toda la bandeja y toda invitación, y `parseConversation` devolvía `null`, que el
+  cliente traducía a «No pudimos leer la respuesta». **El puerto ahora lleva el `IdentityDto`
+  que el adaptador ya proyectaba y `toPeerDto` no reconstruye nada**, que es la regla de oro de
+  ADR-038 aplicada al chat: una sola fuente del nombre.
+- El hueco de pruebas que lo permitió: el contrato del cliente se probaba contra fixtures a
+  mano y el caso de uso contra un mundo en memoria, pero **ningún test mandaba un DTO real del
+  servidor por el parser real del navegador**. `src/app/chat-wire.test.ts` cierra ese cable.
+
+**Se mantiene, con su just medida:**
+
+- **RLS sin políticas de cliente.** El navegador nunca lee la base: toda lectura pasa por
+  `/api`, que filtra por participante con `service_role`. Es una garantía **más fuerte** que
+  una política `USING (auth.uid() IN (user_a, user_b))`, porque no depende de que el cliente
+  mande bien su JWT ni de distinguir profile id de auth id. Añadir políticas para «cumplir»
+  la Fase 1 habría abierto superficie sin necesidad. La prueba equivalente que sí aplica —un
+  tercero no lee nada— está en el humo E2E: una tercera sesión sintética recibe `404`.
+- **Sin Supabase Realtime.** Suscribir al cliente exigiría abrir RLS justo lo que el punto
+  anterior cierra. Se mantiene sondeo con backoff (`docs/CHAT.md` §12.7) y se le añade el
+  despertar por `focus` que faltaba.
+- **Orden del candado.** `/api/interest` ya está fuera del candado y `express_chat_interest`
+  nunca consulta `chat_pins`: crear la conversación no depende del PIN. No hay que reordenar.
+- **Atomicidad de la carrera.** El `pg_advisory_xact_lock` se toma después de insertar la señal
+  y se libera al confirmar, así que la segunda transacción solo entra cuando la primera ya
+  confirmó y ve su señal. `leave_conversation` borra la conversación y registra el cierre en
+  `chat_closures`, de modo que el retorno temprano `open` de la RPC no puede resucitar una
+  conversación que alguien ya dejó.
+
+**`base.sql` no es deriva.** Una primera lectura sugirió que `00000000000000_base.sql` divergía
+de producción. Medido el estado final de la cadena: `profiles.alias` ausente, las cinco columnas
+de identidad presentes, `get_user_matches` devolviendo `track, other_user, similarity, badges`
+idéntico a `20261117000000_filter_soft_deleted_matches.sql:34`, CHECK de `notifications.type`
+con `'identity'` y `notifications_identity_unique_idx` presente. `base.sql` es el primer paso
+histórico de una cadena ordenada que las migraciones posteriores transforman;
+`schema.test.ts:29-35` ya une esas definiciones para vigilar el contrato. No se toca.
+
+**Consecuencia.** Cero migraciones, cero filas modificadas, cero respaldos necesarios para esta
+fase. El respaldo y la restauración siguen documentados para cualquier fase que sí escriba
+datos. Lo que sí se arregla en las fases 2–4 son los dos defectos secundarios medidos: el 404
+HTML de `/api/chat/<inexistente>` y la falta de captura global, `code` y `requestId` en
+`withApiSecurity`.

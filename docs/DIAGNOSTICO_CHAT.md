@@ -279,16 +279,32 @@ hace con un adaptador en el borde para no romper el resto de la API.
 
 ---
 
-## 5. Hallazgo colateral (fuera del chat, se decide en Fase 1)
+## 5. `base.sql` frente a producción · **verificado, no es defecto**
 
-`supabase/migrations/00000000000000_base.sql` **no refleja** las migraciones
-de identidad: `get_user_matches` sigue devolviendo
-`other_alias/other_animal/other_color` y leyendo `p.alias`, columna que
-`20261116000000_identity_drop_legacy.sql:534` elimina; faltan
-`estado_identidad`, `alias_completo`, el tipo de notificación `'identity'` y
-`notifications_identity_unique_idx`. Un `db reset` limpio divergiría de
-producción. **No es la causa de ningún síntoma del chat** y no se toca datos
-de producción por ello; se registra como pendiente con su decisión.
+Una primera lectura sugería que `00000000000000_base.sql` divergía de
+producción (`get_user_matches` devolviendo `other_alias/other_animal/other_color`
+y leyendo `p.alias`). Se midió el **estado final de la cadena** en producción
+(`.qa/identity-chain-diag.mjs` → `.qa/identity-chain-diag.json`) y la
+divergencia no existe:
+
+| comprobación en producción | resultado |
+|---|---|
+| `profiles.alias` (columna heredada) | **ausente** — la borró `20261116000000_identity_drop_legacy.sql:534` |
+| `estado_identidad`, `alias_completo`, `alias_sufijo`, `animal_id`, `color_id` | las 5 presentes |
+| `get_user_matches` lee `p.alias` | **no** |
+| `get_user_matches` devuelve nombres | **no**: `track, other_user, similarity, badges` (758 bytes de definición), idéntico a `20261117000000_filter_soft_deleted_matches.sql:34` |
+| CHECK de `notifications.type` | incluye `'identity'` |
+| `notifications_identity_unique_idx` | presente |
+| funciones del chat | las 5 `SECURITY DEFINER`; `express_chat_interest` con **solo** la firma de 6 argumentos |
+
+`base.sql` es el **primer paso histórico** de una cadena ordenada, no una foto
+del estado actual: `20261114000000_identity_single_source.sql:480` hace
+`DROP FUNCTION` + `CREATE` de `get_user_matches` y `20261117000000` la vuelve a
+reemplazar. `alias_animal`, `alias_color`, `mbti_code` y `enneagram_code` se
+conservan a propósito (alimentan el avatar y las capas de afinidad); lo único
+que se borró fue `alias`. `src/infrastructure/supabase/schema.test.ts:29-35`
+ya une las definiciones de base + identidad + borrado suave para vigilar el
+contrato. **No se toca `base.sql` ni se migra nada por esto.**
 
 ---
 
