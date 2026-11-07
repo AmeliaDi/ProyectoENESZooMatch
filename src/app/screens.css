@@ -339,6 +339,9 @@
 /* Open chat = a union: solid gold spoke, with a one-time stepped flash on appear (ADR-035). */
 .zm-canvas__line--chat { stroke: var(--zm-gold); animation: zm-union-flash 0.9s steps(3) 1; }
 .zm-canvas__chat-mark { fill: var(--zm-gold); stroke: var(--zm-sky); stroke-width: var(--zm-px); paint-order: stroke; }
+/* Novelty dot on the chat icon: a small golden pixel, never a number. */
+.zm-btn--icon:has(.zm-chat-dot) { position: relative; }
+.zm-chat-dot { position: absolute; top: calc(var(--zm-px) * 2); right: calc(var(--zm-px) * 2); width: calc(var(--zm-px) * 3); height: calc(var(--zm-px) * 3); background: var(--zm-gold); border-radius: 50%; box-shadow: 0 0 calc(var(--zm-px) * 2) var(--zm-gold); pointer-events: none; }
 @keyframes zm-union-flash { 0% { stroke-opacity: 0.2; } 50% { stroke-opacity: 1; } 100% { stroke-opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .zm-canvas__line--chat { animation: none; } }
 /* "Reducir brillos" is the high-contrast theme (Ajustes → Tema): no flash there either. */

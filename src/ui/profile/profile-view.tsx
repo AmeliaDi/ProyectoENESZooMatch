@@ -17,6 +17,7 @@ import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { Icon } from "@/ui/kit/icon";
 import { PixelNumber } from "@/ui/kit/pixel-number";
+import { ChatIcon } from "@/ui/chat/chat-icon";
 import { ExitButton } from "@/ui/shared/exit-button";
 import { ErrorState, LoadingState } from "@/ui/kit/states";
 import { Chip, Frame } from "@/ui/kit/surfaces";
@@ -82,6 +83,7 @@ function Actions() {
       <Link href="/resultado" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Volver a mi cielo">
         <Icon name="result" />
       </Link>
+      <ChatIcon />
       <Link href="/ajustes" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Ajustes y privacidad">
         <Icon name="settings" />
       </Link>

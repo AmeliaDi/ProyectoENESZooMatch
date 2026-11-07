@@ -8,6 +8,7 @@ import { EXPERIENCE } from "@/config";
 import { formatIdentity } from "@/domain/identity/format-identity";
 import type { ResultDto } from "@/contracts/result";
 import type { MatchTrack } from "@/types/microtest";
+import { ChatIcon } from "@/ui/chat/chat-icon";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { Icon } from "@/ui/kit/icon";
@@ -129,6 +130,7 @@ export function PublicResultView() {
       <Link href="/perfil" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Tu carta" title="Tu carta">
         <Icon name="personalidad" />
       </Link>
+      <ChatIcon />
       <Link href="/ajustes" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Ajustes y privacidad">
         <Icon name="settings" />
       </Link>

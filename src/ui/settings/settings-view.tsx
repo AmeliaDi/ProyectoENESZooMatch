@@ -16,6 +16,7 @@ import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { Dialog } from "@/ui/kit/dialog";
 import { Icon } from "@/ui/kit/icon";
+import { ChatIcon } from "@/ui/chat/chat-icon";
 import { ExitButton } from "@/ui/shared/exit-button";
 import { Frame } from "@/ui/kit/surfaces";
 import { FeedbackToggles } from "@/ui/feedback/feedback-toggles";
@@ -132,6 +133,7 @@ export function SettingsView() {
           <Link href="/resultado" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Volver a mi cielo">
             <Icon name="back" />
           </Link>
+          <ChatIcon />
           <ExitButton />
         </>
       }
