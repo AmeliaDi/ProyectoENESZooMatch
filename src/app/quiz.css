@@ -6,8 +6,8 @@
 /* ─── Quizzes Hub ──────────────────────────────────────────── */
 .zm-quizzes {
   display: grid;
-  gap: calc(var(--zm-px) * 12);
-  padding: calc(var(--zm-px) * 12) calc(var(--zm-px) * 8);
+  gap: calc(var(--zm-px) * 8);
+  padding: calc(var(--zm-px) * 8) calc(var(--zm-px) * 6);
   max-width: 48rem;
   margin: 0 auto;
 }
@@ -17,7 +17,7 @@
 }
 
 .zm-quizzes__title {
-  margin: 0 0 calc(var(--zm-px) * 4);
+  margin: 0 0 calc(var(--zm-px) * 3);
   font-family: var(--font-pixel);
   font-size: 1.5rem;
 }
@@ -32,15 +32,15 @@
 
 .zm-quiz-grid {
   display: grid;
-  gap: calc(var(--zm-px) * 8);
+  gap: calc(var(--zm-px) * 6);
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
 }
 
 /* ─── Quiz Card ────────────────────────────────────────────── */
 .zm-quiz-card {
   display: grid;
-  gap: calc(var(--zm-px) * 4);
-  padding: calc(var(--zm-px) * 8);
+  gap: calc(var(--zm-px) * 3);
+  padding: calc(var(--zm-px) * 6);
   text-decoration: none;
   color: inherit;
   transition: transform var(--zm-dur-tap) var(--zm-steps);

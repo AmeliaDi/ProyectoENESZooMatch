@@ -170,7 +170,7 @@ export function QuizzesView({ picanteEnabled = true }: { picanteEnabled?: boolea
 
   const { statuses } = state;
   const categories: QuizCategory[] = picanteEnabled
-    ? ["gustos", "gaming", "picante"]
+    ? ["picante", "gustos", "gaming"]
     : ["gustos", "gaming"];
 
   return (
