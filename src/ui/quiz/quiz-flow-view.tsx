@@ -6,11 +6,9 @@
  * For Picante quizzes, shows a consent gate before starting.
  */
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { findQuiz, QUIZ_CATALOGUE, CATEGORY_META } from "@/config/quiz-catalogue";
-import type { QuizDefinition, QuizItem } from "@/config/quizzes";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
 import { ChoiceGroup } from "@/ui/kit/choice";
@@ -64,7 +62,6 @@ function Actions() {
 }
 
 export function QuizFlowView({ quizId, requireConsent }: { quizId: string; requireConsent?: boolean }) {
-  const router = useRouter();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const promptId = useId();
 
@@ -85,19 +82,26 @@ export function QuizFlowView({ quizId, requireConsent }: { quizId: string; requi
     return quiz.items.filter((i) => (draft.answers[i.item_id]?.length ?? 0) > 0).length;
   }, [quiz, draft]);
 
-  // Load draft on mount
+  // Restore after mount so the server render and first client render agree.
   useEffect(() => {
-    if (!quiz) {
-      setStage("error");
-      setError("Quiz no encontrado");
-      return;
-    }
-    if (quiz.categoria === "picante" && requireConsent) {
-      setStage("consent");
-      return;
-    }
-    setDraft(loadDraft(quizId));
-    setStage("quiz");
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      if (!quiz) {
+        setStage("error");
+        setError("Quiz no encontrado");
+        return;
+      }
+      if (quiz.categoria === "picante" && requireConsent) {
+        setStage("consent");
+        return;
+      }
+      setDraft(loadDraft(quizId));
+      setStage("quiz");
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [quiz, quizId, requireConsent]);
 
   // Save draft on change

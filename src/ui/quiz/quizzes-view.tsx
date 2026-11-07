@@ -35,8 +35,7 @@ type State =
 function useQuizStatuses() {
   const [state, setState] = useState<State>({ kind: "loading" });
 
-  const refresh = useCallback(async () => {
-    setState({ kind: "loading" });
+  const load = useCallback(async () => {
     try {
       const allQuizIds = [
         ...QUIZ_CATALOGUE.gustos.map((q) => q.quiz_id),
@@ -73,8 +72,20 @@ function useQuizStatuses() {
   }, []);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void load();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [load]);
+
+  /** Manual retry: shows the loading state again before re-reading. */
+  const refresh = useCallback(() => {
+    setState({ kind: "loading" });
+    return load();
+  }, [load]);
 
   return [state, refresh] as const;
 }

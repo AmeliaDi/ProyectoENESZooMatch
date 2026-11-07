@@ -9,7 +9,7 @@
  * This component handles the consent flow and calls the API to record it.
  */
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { findQuiz } from "@/config/quiz-catalogue";
 import { Button } from "@/ui/kit/button";
@@ -47,12 +47,15 @@ export function PicanteConsentGate({ quizId, onConsentGiven }: PicanteConsentGat
   });
 
   // Check requirements on mount
-  useState(() => {
+  useEffect(() => {
+    let active = true;
     (async () => {
       try {
         const res = await fetch("/api/quizzes/picante/access", { cache: "no-store" });
+        if (!active) return;
         if (res.ok) {
           const body = await res.json();
+          if (!active) return;
           if (body.ok) {
             setRequirements(body.data);
             if (!body.data.tieneIdentidad) {
@@ -65,33 +68,17 @@ export function PicanteConsentGate({ quizId, onConsentGiven }: PicanteConsentGat
         }
         setStage("requirements");
       } catch {
+        if (!active) return;
         setStage("error");
         setError("No pudimos verificar tus requisitos");
       }
     })();
-  });
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  const handleAgeSubmit = useCallback(async () => {
-    if (ageSelection[0] !== "si_soy_mayor") {
-      router.push("/quizzes");
-      return;
-    }
-    if (isLevel2) {
-      setStage("second-confirm");
-    } else {
-      await grantConsent();
-    }
-  }, [ageSelection, isLevel2, router]);
-
-  const handleSecondConfirm = useCallback(async () => {
-    if (secondConfirm[0] !== "confirmo") {
-      router.push("/quizzes");
-      return;
-    }
-    await grantConsent();
-  }, [secondConfirm, router]);
-
-  const grantConsent = async () => {
+  const grantConsent = useCallback(async () => {
     setStage("granting");
     setError(null);
     try {
@@ -111,7 +98,27 @@ export function PicanteConsentGate({ quizId, onConsentGiven }: PicanteConsentGat
       setError(err instanceof Error ? err.message : "Error al guardar consentimiento");
       setStage("error");
     }
-  };
+  }, [onConsentGiven]);
+
+  const handleAgeSubmit = useCallback(async () => {
+    if (ageSelection[0] !== "si_soy_mayor") {
+      router.push("/quizzes");
+      return;
+    }
+    if (isLevel2) {
+      setStage("second-confirm");
+    } else {
+      await grantConsent();
+    }
+  }, [ageSelection, isLevel2, router, grantConsent]);
+
+  const handleSecondConfirm = useCallback(async () => {
+    if (secondConfirm[0] !== "confirmo") {
+      router.push("/quizzes");
+      return;
+    }
+    await grantConsent();
+  }, [secondConfirm, router, grantConsent]);
 
   if (stage === "checking") {
     return (

@@ -28,12 +28,8 @@ interface Coincidencia {
 export function QuizCoincidencias({ peerId, quizIds }: QuizCoincidenciasProps) {
   const [coincidencias, setCoincidencias] = useState<Coincidencia[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const loadCoincidencias = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
     const quizzesToCheck = quizIds ?? [
       "gustos_musica",
       "gustos_cine",
@@ -83,7 +79,13 @@ export function QuizCoincidencias({ peerId, quizIds }: QuizCoincidenciasProps) {
   }, [peerId, quizIds]);
 
   useEffect(() => {
-    void loadCoincidencias();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void loadCoincidencias();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [loadCoincidencias]);
 
   if (loading) {
@@ -93,10 +95,6 @@ export function QuizCoincidencias({ peerId, quizIds }: QuizCoincidenciasProps) {
         <span>Cargando coincidencias…</span>
       </div>
     );
-  }
-
-  if (error) {
-    return null;
   }
 
   if (coincidencias.length === 0) {
