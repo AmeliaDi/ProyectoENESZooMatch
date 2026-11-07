@@ -68,7 +68,7 @@
 
 @media (max-width: 768px) {
   .zm-quiz-card {
-    padding: calc(var(--zm-px) * 8);
+    padding: calc(var(--zm-px) * 8) calc(var(--zm-px) * 6);
     gap: calc(var(--zm-px) * 5);
   }
 }

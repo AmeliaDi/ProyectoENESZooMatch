@@ -133,6 +133,12 @@
 .zm-frame {
   padding: calc(var(--zm-px) * 14) calc(var(--zm-px) * 10) calc(var(--zm-px) * 10);
 }
+
+@media (max-width: 768px) {
+  .zm-frame {
+    padding: calc(var(--zm-px) * 10) calc(var(--zm-px) * 6) calc(var(--zm-px) * 8);
+  }
+}
 .zm-frame__coord {
   position: absolute;
   top: calc(var(--zm-px) * 5);
