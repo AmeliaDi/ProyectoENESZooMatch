@@ -189,7 +189,7 @@ export function QuizzesView({ picanteEnabled = true }: { picanteEnabled?: boolea
         ))}
 
         <p className="zm-detail__muted" style={{ textAlign: "center", marginTop: "calc(var(--zm-px) * 12)" }}>
-          ¿Tienes dudas? Lee la <Link href="/docs/QUIZZES.md">documentación completa</Link>.
+          ¿Tienes dudas? Consulta la documentación del proyecto (docs/QUIZZES.md).
         </p>
       </main>
     </AtlasShell>
