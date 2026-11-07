@@ -258,9 +258,9 @@ export async function quizzesRompehielosContext(): Promise<Result<QuizContext & 
   // Check if user has identity (hatched)
   const { data: profile } = await admin
     .from("profiles")
-    .select("id, animal_id, color_id")
-    .eq("id", auth.value.userId)
-    .single();
+    .select("user_id, animal_id, color_id")
+    .eq("user_id", auth.value.userId)
+    .maybeSingle();
 
   const tieneIdentidad = profile?.animal_id !== null && profile?.color_id !== null;
 
@@ -269,7 +269,7 @@ export async function quizzesRompehielosContext(): Promise<Result<QuizContext & 
     .from("chat_pins")
     .select("pin_hash")
     .eq("persona_id", auth.value.userId)
-    .single();
+    .maybeSingle();
 
   const tienePin = pin?.pin_hash !== null && pin?.pin_hash !== undefined;
 
@@ -278,7 +278,7 @@ export async function quizzesRompehielosContext(): Promise<Result<QuizContext & 
     .from("profile_preferences")
     .select("track_romance")
     .eq("persona_id", auth.value.userId)
-    .single();
+    .maybeSingle();
 
   const trackRomanceActivo = preferences?.track_romance ?? false;
 

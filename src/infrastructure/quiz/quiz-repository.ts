@@ -12,7 +12,7 @@ import { ok, type Result } from "@/domain/shared";
 export function supabaseQuizRepository(admin: SupabaseClient): QuizRepository {
   return {
     async saveAnswer(personaId: string, quizId: string, itemId: string, valor: string): Promise<void> {
-      const res = await attempt(() => admin.rpc("private.quiz_save_answer", {
+      const res = await attempt(() => admin.rpc("quiz_save_answer", {
         p_persona_id: personaId,
         p_quiz_id: quizId,
         p_item_id: itemId,
@@ -42,7 +42,7 @@ export function supabaseQuizRepository(admin: SupabaseClient): QuizRepository {
     },
 
     async deleteAnswers(personaId: string, quizId: string | null): Promise<void> {
-      const res = await attempt(() => admin.rpc("private.quiz_delete_answers", {
+      const res = await attempt(() => admin.rpc("quiz_delete_answers", {
         p_persona_id: personaId,
         p_quiz_id: quizId,
       }));
@@ -50,7 +50,7 @@ export function supabaseQuizRepository(admin: SupabaseClient): QuizRepository {
     },
 
     async markCompleted(personaId: string, quizId: string, revision: string): Promise<void> {
-      const res = await attempt(() => admin.rpc("private.quiz_mark_completed", {
+      const res = await attempt(() => admin.rpc("quiz_mark_completed", {
         p_persona_id: personaId,
         p_quiz_id: quizId,
         p_revision: revision,
@@ -73,7 +73,7 @@ export function supabaseQuizRepository(admin: SupabaseClient): QuizRepository {
     },
 
     async setSharing(personaId: string, quizId: string, nivel: SharingLevel): Promise<void> {
-      const res = await attempt(() => admin.rpc("private.quiz_set_sharing", {
+      const res = await attempt(() => admin.rpc("quiz_set_sharing", {
         p_persona_id: personaId,
         p_quiz_id: quizId,
         p_nivel: nivel,
@@ -126,7 +126,7 @@ export function supabaseQuizRepository(admin: SupabaseClient): QuizRepository {
       mayorDeEdad: boolean,
       trackRomanceActivo: boolean,
     ): Promise<void> {
-      const res = await attempt(() => admin.rpc("private.quiz_picante_save_consent", {
+      const res = await attempt(() => admin.rpc("quiz_picante_save_consent", {
         p_persona_id: personaId,
         p_mayor_de_edad: mayorDeEdad,
         p_track_romance_activo: trackRomanceActivo,
@@ -137,7 +137,7 @@ export function supabaseQuizRepository(admin: SupabaseClient): QuizRepository {
     async getPicanteConsent(
       personaId: string,
     ): Promise<{ mayor_de_edad: boolean; consentimiento_en: Date; track_romance_activo: boolean } | null> {
-      const res = await attempt(() => admin.rpc("private.quiz_picante_get_consent", {
+      const res = await attempt(() => admin.rpc("quiz_picante_get_consent", {
         p_persona_id: personaId,
       }));
 
