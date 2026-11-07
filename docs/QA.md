@@ -226,6 +226,40 @@ huevos vivos, más 15 bajas lógicas (3 eclosionadas y 12 huevos)—, 732 `match
 `get_user_matches` queda `SECURITY DEFINER` con
 `EXECUTE` solo para `service_role` (lectura de `pg_proc.proacl`: `{postgres=X/postgres,service_role=X/postgres}`).
 
+## 4.8 Quizzes rompehielos (2026-11-06, ADR-041)
+
+**Qué se añadió.** Tres categorías de quizzes opcionales (Gustos, Gaming, Picante 18+) que
+no alteran el matching psicométrico. Las coincidencias entre personas solo se calculan cuando
+ambas optaron por compartir.
+
+**Tests añadidos.**
+
+| Test | Qué verifica |
+|---|---|
+| `src/domain/quiz/quizzes.test.ts` | Cálculo de coincidencias, exclusión de "no"/"prefiero_no_decir", acceso a Picante, preguntas sugeridas |
+| `src/domain/quiz/isolation.test.ts` | **Invariante crítica:** ninguna dimensión de quiz referencia una dimensión psicométrica |
+| `src/config/quiz-catalogue.test.ts` | Catálogo completo, campos requeridos, niveles de Picante |
+| `src/config/quiz-picante-linter.test.ts` | Términos prohibidos, opción "Prefiero no decir" en todos los ítems, nivel 2 requiere segunda confirmación, no duplica preguntas del chat |
+
+**Total:** 1071 tests en 94 archivos (10 nuevos para quizzes).
+
+**Picante (18+).**
+
+- Requiere: identidad asignada, PIN configurado, track romance activo, consentimiento explícito.
+- Nivel 2 requiere segunda confirmación.
+- Feature flag `QUIZ_PICANTE_ENABLED` (default: deshabilitado).
+- Linter automático valida contenido (30+ términos prohibidos, opción de salida en todos los ítems).
+- Revisión manual completa en `docs/QUIZ_PICANTE_REVISION.md`.
+
+**Migración.** `supabase/migrations/20261120000000_quizzes.sql` crea las tablas de quizzes con
+RLS estricto (sin políticas para clientes, solo `service_role`). Idempotente con `IF NOT EXISTS`.
+
+**Pendiente manual.**
+
+- Probar el flujo completo de Picante con el feature flag habilitado.
+- Verificar que las coincidencias aparecen en el chat cuando ambas personas optaron por compartir.
+- Revisar el aviso de privacidad antes de habilitar Picante en producción.
+
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
 
 - **Chat en dos teléfonos reales:** el flujo se probó por API (88/88), con tests de casos de

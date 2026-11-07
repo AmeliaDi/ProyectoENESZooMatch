@@ -11,12 +11,13 @@ Las secciones §1–§4 son la **foto histórica** de la auditoría inicial del
 
 | Comprobación | Hoy |
 |---|---|
-| Tests | 985 en 85 archivos, en verde (`npm run check`) |
+| Tests | 1071 en 94 archivos, en verde (`npm run check`) |
 | Lint, typecheck, secretos y build | En verde |
 | Auditoría QA de la identidad fija (hallazgos A–I) | Cerrada (2026-11-06): `docs/QA.md` §4.7; la migración `20261117000000_filter_soft_deleted_matches.sql` ya está aplicada en producción |
 | Identidad única y fija (huevo → eclosión) | Cerrada (2026-11-06): código en `main` (ADR-038, §10), las dos migraciones y el backfill **ya aplicados** en producción |
 | QA de API contra producción | 88/88 (`docs/QA.md` §4.4) |
 | Chat completo (señales, rondas guiadas selladas, seguridad, emojis) | Implementado y en producción (ADR-035, `docs/CHAT.md` §10–14) |
+| Quizzes rompehielos (Gustos, Gaming, Picante 18+) | Implementado (ADR-041, `docs/QUIZZES.md`); Picante detrás de feature flag `QUIZ_PICANTE_ENABLED` |
 | HEXACO, MBTI continuo, Eneagrama con softmax y entropía | Implementados (Fases 3–5) |
 | `QA.md`, `VALIDACION.md`, `MEDICION.md`, `TRAZABILIDAD.md`, `PREREGISTRO.md` | Existen |
 | Números mágicos de §1 | Cerrados (ADR-034): el operador Φ se eliminó, `selectColor` ya no existe y las bandas 0.45/0.65 de la etiqueta de apego viven en `data/enneagram.json` → `attachment_label` |

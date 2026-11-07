@@ -1234,3 +1234,44 @@ corta (`ref. ab12cd34`) para poder buscar el `requestId` en el log sin pedirle d
 guardián, el humo E2E y el cliente a la vez, que es exactamente donde debe romper. La Fase 3
 puede confiar en `isTransientFailure(code)` para decidir si sigue sondeando en vez de
 adivinar por el texto del error.
+
+## ADR-041 · Quizzes rompehielos: capa de diversión separada del matching psicométrico
+
+**Contexto.** Se pidió una sección de "Quizzes rompehielos" con tres categorías (Gustos,
+Gaming, Picante 18+) para que las personas descubran cosas en común con sus matches de forma
+ligera. El requisito fundamental es que estos quizzes **no alteren el matching psicométrico**
+y sean privados por defecto.
+
+**Decisión.** Los quizzes son una capa completamente separada del modelo de matching:
+
+1. **Datos separados.** Las respuestas de quizzes viven en tablas propias
+   (`quiz_attempts`, `quiz_answers`, `quiz_sharing`, `quiz_picante_consent`) con RLS
+   estricto. No se mezclan con `quiz_responses` (el test principal).
+2. **Dimensiones explícitas.** Cada ítem de quiz declara `dimensiones_relacionadas` que solo
+   pueden ser `personalidad`, `estilo`, `estilo_de_vida` o `gustos`. Un test de integración
+   (`src/domain/quiz/isolation.test.ts`) verifica que ninguna dimensión psicométrica
+   (hexaco, big_five, mbti, enneagram, apego, valores, atraccion, vinculo,
+   proyecto_relacional) aparezca en los quizzes.
+3. **Coincidencias privadas.** Las coincidencias entre dos personas solo se calculan via RPC
+   (`quiz_coincidencias`) cuando ambas optaron por compartir. Las respuestas crudas nunca
+   salen del servidor.
+4. **Picante con guardarraíles.** El quiz 18+ requiere: identidad asignada (hatched), PIN
+   configurado, track romance activo, consentimiento explícito, y segunda confirmación para
+   el nivel 2. Un linter automático (`src/config/quiz-picante-linter.test.ts`) valida que
+   no haya contenido explícito, que todos los ítems tengan opción de "Prefiero no decir",
+   y que no se dupliquen preguntas del banco de chat.
+5. **Feature flag.** `QUIZ_PICANTE_ENABLED` controla la visibilidad de Picante. Cuando está
+   en `false` (default), las rutas, la UI y los enlaces están completamente ocultos.
+
+**Por qué no integrar con el matching.** El test principal mide constructos psicológicos
+validados (HEXACO, Big Five, MBTI, eneagrama, valores, apego). Los quizzes rompehielos son
+preguntas ligeras sobre gustos y preferencias. Mezclarlos contaminaría las afinidades
+psicométricas con ruido superficial. La separación es deliberada y verificada por tests.
+
+**Consecuencias.**
+
+- Los quizzes no afectan las afinidades ni las constelaciones.
+- Las coincidencias de quizzes son un complemento opcional para romper el hielo en el chat.
+- Picante puede habilitarse/deshabilitarse sin afectar el resto de la app.
+- El linter de contenido y los tests de aislamiento previenen regresiones.
+

@@ -23,3 +23,12 @@ export function getPublicEnv(source: EnvSource = process.env): PublicEnv | null 
 export function isSupabaseConfigured(source: EnvSource = process.env): boolean {
   return getPublicEnv(source) !== null;
 }
+
+/**
+ * Feature flag for Picante (18+) quizzes. When false (default), the Picante
+ * category is hidden from the UI and its API routes return 403.
+ */
+export function isQuizPicanteEnabled(source: EnvSource = process.env): boolean {
+  const value = source.QUIZ_PICANTE_ENABLED?.trim();
+  return value === "true" || value === "1";
+}

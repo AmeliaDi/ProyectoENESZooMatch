@@ -1,0 +1,286 @@
+{
+  "version": "picante-1",
+  "etiqueta": "supuesto_diseno",
+  "fuente": "Quizzes rompehielos propios (docs/QUIZZES.md §6). No es un instrumento psicométrico ni alimenta el modelo de matching. Contenido 18+ con guardarraíles estrictos.",
+  "quizzes": [
+    {
+      "quiz_id": "picante_nivel1",
+      "revision": "1",
+      "categoria": "picante",
+      "nivel": 1,
+      "titulo": "Coqueto y romántico",
+      "descripcion": "Ritmo, afecto y coqueteo con buena vibra. Tono cálido y respetuoso.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "coqueteo_poco_a_poco",
+          "texto": "Me gusta que el coqueteo se construya poco a poco, con mensajes, miradas y planes.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "coqueteo_humor",
+          "texto": "Me gusta coquetear con humor y juegos de palabras.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "mensaje_atrevido",
+          "texto": "Un mensaje atrevido pero con estilo de alguien que me gusta me emociona.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "platicar_antes",
+          "texto": "Prefiero platicar qué nos gusta y qué no antes de acercarnos físicamente.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "preguntar_antes",
+          "texto": "Me gusta que me pregunten '¿te late?' antes de dar un paso nuevo.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "ambiente_importa",
+          "texto": "El ambiente suma: una playlist pensada, luces suaves, un lugar con vibra.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["gustos", "estilo"]
+        },
+        {
+          "item_id": "cita_tension",
+          "texto": "Una cita con tensión romántica (abrazos largos, tomarse de la mano, cercanía) me suena ideal.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "hablar_intimidad",
+          "texto": "Me sentiría a gusto hablando de intimidad con alguien con quien ya hay confianza.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "picante_nivel2",
+      "revision": "1",
+      "categoria": "picante",
+      "nivel": 2,
+      "titulo": "Curiosidad adulta",
+      "descripcion": "Fantasía, juego y límites claros, explorando de a poco. Requiere segunda confirmación.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "juegos_rol",
+          "texto": "Me da curiosidad probar juegos de rol entre adultos con confianza (fingir ser otro personaje por un rato).",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "juegos_seduccion",
+          "texto": "Me atraen los juegos de seducción con reglas: retos, apuestas inocentes, misiones.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "explorar_poco",
+          "texto": "Me gustaría explorar algo nuevo de a poco, con un acuerdo previo y libertad de frenar.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "respetar_limites",
+          "texto": "Me parece muy atractivo que alguien pregunte y respete mis límites.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "palabra_pausa",
+          "texto": "Me gustaría tener una palabra o señal de pausa que cualquiera pueda usar sin explicar nada.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "fantasias_general",
+          "texto": "Me interesa hablar de fantasías en términos generales, sin detalles, para ver si coincidimos.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "lista_si_maybe_no",
+          "texto": "Una lista compartida de 'sí / tal vez / no' para platicar con calma me parece buena idea.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "cuidados_despues",
+          "texto": "Después de algo intenso valoro los cuidados: abrazos, agua, platicar y sentirnos bien.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "picante_vanilla_kink",
+      "revision": "1",
+      "categoria": "picante",
+      "nivel": 1,
+      "titulo": "¿Qué tan vanilla eres?",
+      "descripcion": "Descubre tu estilo, de lo clásico a lo aventurero. Sin juicios y a tu ritmo.",
+      "duracion_estimada_minutos": 2,
+      "resultado_personal": true,
+      "items": [
+        {
+          "item_id": "probar_cosas_nuevas",
+          "texto": "Me emociona probar cosas nuevas en pareja aunque no sepa cómo saldrán.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"],
+          "direccion": "A"
+        },
+        {
+          "item_id": "familiar_predecible",
+          "texto": "Me siento mejor con lo familiar y lo predecible.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"],
+          "direccion": "V"
+        },
+        {
+          "item_id": "explorar_fantasias",
+          "texto": "Me atrae explorar fantasías con alguien de confianza.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"],
+          "direccion": "A"
+        },
+        {
+          "item_id": "sencillo_sin_extras",
+          "texto": "Prefiero que lo romántico y lo íntimo sean sencillos, sin extras.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"],
+          "direccion": "V"
+        },
+        {
+          "item_id": "platicar_curiosidad",
+          "texto": "Me gustaría platicar qué cosas nos dan curiosidad, sin obligación.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"],
+          "direccion": "A"
+        },
+        {
+          "item_id": "juego_sensorial",
+          "texto": "Una venda en los ojos, una sorpresa o un juego sensorial suena divertido.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"],
+          "direccion": "A"
+        },
+        {
+          "item_id": "roles_incomodan",
+          "texto": "Los juegos de rol o de poder me incomodan, aunque sean de mentiras.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"],
+          "direccion": "V"
+        },
+        {
+          "item_id": "semaforo_limites",
+          "texto": "Me gusta ponerle nombre a los límites, como un semáforo verde, amarillo o rojo.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"],
+          "direccion": "A"
+        }
+      ]
+    },
+    {
+      "quiz_id": "picante_dinamicas",
+      "revision": "1",
+      "categoria": "picante",
+      "nivel": 2,
+      "titulo": "Dinámicas y estilos",
+      "descripcion": "Iniciativa, ritmo y juegos de control con acuerdos claros. Requiere segunda confirmación.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "llevar_iniciativa",
+          "texto": "Me gusta llevar la iniciativa y proponer el plan en un juego de seducción.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "seguir_iniciativa",
+          "texto": "Me gusta que la otra persona lleve la iniciativa y yo seguir su ritmo con confianza.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "alternar_iniciativa",
+          "texto": "Me atrae alternar: a veces llevo yo y a veces lleva la otra persona.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "juegos_control",
+          "texto": "Me interesan los juegos de control suave (dar o recibir instrucciones divertidas) con acuerdos claros.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "pactar_limites",
+          "texto": "Antes de cualquier juego de poder, me importa pactar qué sí, qué no y la palabra de pausa.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"],
+          "seguridad": true
+        },
+        {
+          "item_id": "restricciones_suaves",
+          "texto": "Me atraen las restricciones suaves (una venda o mantener las manos quietas), siempre con acuerdos y palabra de seguridad.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "roles_apodos",
+          "texto": "Me gusta usar roles o apodos de juego (por ejemplo, 'capitana' o 'jefe') solo dentro del juego y sin humillar.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "respeto_fuera_juego",
+          "texto": "El respeto fuera del juego pesa igual que adentro: la dinámica nunca cambia cómo nos tratamos a diario.",
+          "opciones": ["Sí", "Tal vez", "No", "Prefiero no decir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"],
+          "seguridad": true
+        }
+      ]
+    }
+  ]
+}

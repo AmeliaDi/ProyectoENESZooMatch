@@ -16,6 +16,7 @@ import type { RecomputeDeps } from "@/application/recompute-matches";
 import { recomputeMatches } from "@/application/recompute-matches";
 import type { RefineDeps } from "@/application/refine-profile";
 import type { SubmitQuizDeps } from "@/application/submit-quiz";
+import type { QuizContext } from "@/application/quiz/ports";
 import { RETENTION_CONFIG } from "@/config";
 import { err, ok, type Clock, type Result } from "@/domain/shared";
 
@@ -241,6 +242,52 @@ export async function chatContext(): Promise<Result<ChatContext, Failure>> {
     },
     guardAddress: (address) =>
       guard.hit("chat_pin_address", guardSubject("chat_pin_address", address, env.MATRICULA_HMAC_SECRET)),
+  });
+}
+
+/**
+ * Context for quizzes rompehielos operations. Requires identity (hatched user).
+ * Returns the admin client and basic context info.
+ */
+export async function quizzesRompehielosContext(): Promise<Result<QuizContext & { admin: NonNullable<ReturnType<typeof createAdminClient>> }, Failure>> {
+  const auth = await authenticated();
+  if (!auth.ok) return auth;
+  const admin = createAdminClient();
+  if (!admin) return err("service.unavailable");
+
+  // Check if user has identity (hatched)
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("id, animal_id, color_id")
+    .eq("id", auth.value.userId)
+    .single();
+
+  const tieneIdentidad = profile?.animal_id !== null && profile?.color_id !== null;
+
+  // Check if user has PIN
+  const { data: pin } = await admin
+    .from("chat_pins")
+    .select("pin_hash")
+    .eq("persona_id", auth.value.userId)
+    .single();
+
+  const tienePin = pin?.pin_hash !== null && pin?.pin_hash !== undefined;
+
+  // Check if romance track is active
+  const { data: preferences } = await admin
+    .from("profile_preferences")
+    .select("track_romance")
+    .eq("persona_id", auth.value.userId)
+    .single();
+
+  const trackRomanceActivo = preferences?.track_romance ?? false;
+
+  return ok({
+    personaId: auth.value.userId,
+    tieneIdentidad,
+    tienePin,
+    trackRomanceActivo,
+    admin,
   });
 }
 

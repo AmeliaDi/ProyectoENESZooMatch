@@ -118,6 +118,34 @@ Este es un resumen para orientarse. El detalle y los motivos están en los ADR e
   - quien opera el servidor puede leer los mensajes, porque el PIN no cifra;
   - la edad es declarada, no verificada.
 
+## 4.2 Quizzes rompehielos (ADR-041)
+
+- **Qué son:** quizzes opcionales sobre gustos, gaming y temas 18+ (Picante). No alteran el
+  matching psicométrico; son una capa de diversión para descubrir cosas en común.
+- **Privacidad por defecto:**
+  - Tus respuestas de quizzes son **privadas**. Nadie las ve, ni siquiera tus matches.
+  - Las **coincidencias** (respuestas iguales entre dos personas) solo se calculan cuando
+    **ambas** optaron por compartir con sus matches.
+  - Las respuestas crudas nunca salen del servidor, ni siquiera como coincidencias.
+- **Picante (18+):**
+  - Requiere: identidad asignada (haber completado el test principal), PIN configurado,
+    track romance activo, y consentimiento explícito.
+  - El nivel 2 requiere una segunda confirmación.
+  - Controlado por feature flag `QUIZ_PICANTE_ENABLED` (default: deshabilitado).
+  - Un linter automático valida que no haya contenido explícito y que todos los ítems tengan
+    opción "Prefiero no decir".
+- **Separación del matching:**
+  - Las dimensiones de quizzes solo pueden ser: `personalidad`, `estilo`, `estilo_de_vida`,
+    `gustos`.
+  - Un test de integración verifica que ninguna dimensión psicométrica (hexaco, big_five,
+    mbti, enneagram, apego, valores, atraccion, vinculo, proyecto_relacional) aparezca en
+    los quizzes.
+- **Almacenamiento:**
+  - `quiz_attempts`, `quiz_answers`, `quiz_sharing`, `quiz_picante_consent` no tienen
+    políticas para clientes; solo el servidor (`service_role`) las lee.
+  - Las coincidencias se calculan via RPC (`quiz_coincidencias`) con `SECURITY DEFINER` y
+    `search_path = ''`.
+
 ## 5. Borrado
 
 - **«Borrar mis datos»** (`DELETE /api/privacy`) elimina el usuario de Auth. Perfil, respuestas,

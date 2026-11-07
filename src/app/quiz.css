@@ -1,0 +1,260 @@
+/*
+ * Quizzes rompehielos (Lámina 07). Hub page, individual quiz flow, and
+ * Picante consent gate. Uses the same Atlas tokens as the rest of the app.
+ */
+
+/* ─── Quizzes Hub ──────────────────────────────────────────── */
+.zm-quizzes {
+  display: grid;
+  gap: calc(var(--zm-px) * 12);
+  padding: calc(var(--zm-px) * 12) calc(var(--zm-px) * 8);
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.zm-quizzes__hero {
+  text-align: center;
+}
+
+.zm-quizzes__title {
+  margin: 0 0 calc(var(--zm-px) * 4);
+  font-family: var(--font-pixel);
+  font-size: 1.5rem;
+}
+
+.zm-quizzes__intro {
+  margin: 0;
+  color: var(--zm-fg-muted);
+  font-size: 0.9375rem;
+  max-width: 32rem;
+  margin-inline: auto;
+}
+
+.zm-quiz-grid {
+  display: grid;
+  gap: calc(var(--zm-px) * 8);
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+/* ─── Quiz Card ────────────────────────────────────────────── */
+.zm-quiz-card {
+  display: grid;
+  gap: calc(var(--zm-px) * 4);
+  padding: calc(var(--zm-px) * 8);
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--zm-dur-tap) var(--zm-steps);
+}
+
+.zm-quiz-card:hover {
+  transform: translate(calc(var(--zm-px) * -1), calc(var(--zm-px) * -1));
+}
+
+.zm-quiz-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: calc(var(--zm-px) * 4);
+}
+
+.zm-quiz-card__title {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+}
+
+.zm-quiz-card__desc {
+  margin: 0;
+  color: var(--zm-fg-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.zm-quiz-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: calc(var(--zm-px) * 4);
+  border-top: var(--zm-px) solid var(--zm-grid);
+}
+
+.zm-quiz-card__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--zm-px) * 2);
+  color: var(--zm-fg-muted);
+  font-size: 0.8125rem;
+}
+
+.zm-quiz-card[data-completed="true"] {
+  --box-rim: var(--zm-fg);
+}
+
+.zm-quiz-card[data-in-progress="true"] {
+  --box-rim: var(--zm-fg-muted);
+}
+
+/* ─── Quiz Flow ────────────────────────────────────────────── */
+.zm-quiz-done {
+  display: grid;
+  gap: calc(var(--zm-px) * 8);
+  padding: calc(var(--zm-px) * 16);
+  text-align: center;
+  max-width: 24rem;
+}
+
+.zm-quiz-done h2 {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 1.25rem;
+}
+
+.zm-quiz-done p {
+  margin: 0;
+  color: var(--zm-fg-muted);
+  font-size: 0.9375rem;
+}
+
+.zm-quiz-done__actions {
+  display: flex;
+  gap: calc(var(--zm-px) * 4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ─── Picante Consent Gate ─────────────────────────────────── */
+.zm-consent {
+  display: grid;
+  gap: calc(var(--zm-px) * 8);
+  padding: calc(var(--zm-px) * 12);
+  max-width: 28rem;
+  text-align: center;
+}
+
+.zm-consent h2 {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 1.25rem;
+}
+
+.zm-consent p {
+  margin: 0;
+  color: var(--zm-fg-muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.zm-consent__warning {
+  padding: calc(var(--zm-px) * 6);
+  background: var(--zm-frame);
+  border: var(--zm-px) solid var(--zm-rim);
+  font-size: 0.9375rem;
+}
+
+.zm-consent__warning strong {
+  color: var(--zm-fg);
+}
+
+.zm-consent__reqs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: calc(var(--zm-px) * 4);
+  text-align: left;
+}
+
+.zm-consent__reqs li {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--zm-px) * 4);
+  padding: calc(var(--zm-px) * 4);
+  border: var(--zm-px) solid var(--zm-grid);
+  font-size: 0.875rem;
+}
+
+.zm-consent__reqs li[data-met="true"] {
+  border-color: var(--zm-fg);
+  background: var(--zm-raised);
+}
+
+.zm-consent__reqs li[data-met="false"] {
+  color: var(--zm-fg-muted);
+}
+
+.zm-consent__actions {
+  display: flex;
+  gap: calc(var(--zm-px) * 4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ─── Quiz Coincidencias (in chat) ─────────────────────────── */
+.zm-quiz-coin {
+  display: grid;
+  gap: calc(var(--zm-px) * 6);
+  padding: calc(var(--zm-px) * 6);
+  margin: calc(var(--zm-px) * 6) 0;
+}
+
+.zm-quiz-coin__title {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--zm-px) * 3);
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 0.9375rem;
+}
+
+.zm-quiz-coin__group {
+  display: grid;
+  gap: calc(var(--zm-px) * 4);
+  padding: calc(var(--zm-px) * 4);
+  border: var(--zm-px) solid var(--zm-grid);
+}
+
+.zm-quiz-coin__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: calc(var(--zm-px) * 2);
+}
+
+.zm-quiz-coin__item {
+  display: flex;
+  gap: calc(var(--zm-px) * 2);
+  font-size: 0.875rem;
+}
+
+.zm-quiz-coin__label {
+  color: var(--zm-fg-muted);
+  text-transform: capitalize;
+}
+
+.zm-quiz-coin__value {
+  color: var(--zm-fg);
+}
+
+.zm-quiz-coin__questions {
+  font-size: 0.875rem;
+}
+
+.zm-quiz-coin__questions summary {
+  cursor: pointer;
+  color: var(--zm-fg-muted);
+  font-family: var(--font-pixel);
+  font-size: 0.8125rem;
+}
+
+.zm-quiz-coin__questions ul {
+  margin: calc(var(--zm-px) * 3) 0 0;
+  padding-left: calc(var(--zm-px) * 8);
+}
+
+.zm-quiz-coin__questions li {
+  margin-bottom: calc(var(--zm-px) * 2);
+  color: var(--zm-fg-muted);
+  font-style: italic;
+}

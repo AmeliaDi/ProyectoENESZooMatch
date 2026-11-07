@@ -1,0 +1,271 @@
+{
+  "version": "gaming-1",
+  "etiqueta": "supuesto_diseno",
+  "fuente": "Quizzes rompehielos propios (docs/QUIZZES.md §6). No es un instrumento psicométrico ni alimenta el modelo de matching.",
+  "quizzes": [
+    {
+      "quiz_id": "gaming_plataformas",
+      "revision": "1",
+      "categoria": "gaming",
+      "titulo": "Tu setup gamer",
+      "descripcion": "Descubre cómo, cuándo y dónde juegas: plataformas, horarios y estilo de sesión.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "plataforma",
+          "texto": "¿En qué plataformas juegas más?",
+          "opciones": ["PC", "PlayStation", "Xbox", "Nintendo Switch", "Móvil/celular", "Tablet", "VR", "Varias por igual"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo_de_vida", "gustos"]
+        },
+        {
+          "item_id": "horario",
+          "texto": "¿Cuándo sueles jugar?",
+          "opciones": ["Mañanas", "Tardes", "Noches", "Madrugadas", "Fines de semana", "Cuando tenga tiempo libre", "Casi no juego"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "duracion",
+          "texto": "¿Cuánto tiempo sueles jugar por sesión?",
+          "opciones": ["Menos de 30 min", "1-2 horas", "2-4 horas", "Más de 4 horas", "Depende del juego"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "frecuencia",
+          "texto": "¿Qué tan seguido juegas?",
+          "opciones": ["Diario", "Varias veces por semana", "Una vez por semana", "Ocasionalmente", "Rara vez"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "lugar",
+          "texto": "¿Dónde prefieres jugar?",
+          "opciones": ["En mi cuarto", "Sala/compartido", "Cafetería/lugar público", "En el transporte (móvil)", "Donde pueda"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "compania_gaming",
+          "texto": "¿Cómo prefieres jugar?",
+          "opciones": ["Solo/a", "Con amigas/os en línea", "Con personas desconocidas", "En persona con amigas/os", "Depende del juego"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "gasto",
+          "texto": "¿Qué tanto inviertes en gaming?",
+          "opciones": ["Solo juegos gratis/free-to-play", "Compro pocos juegos al año", "Compro seguido", "Gasto en microtransacciones/skins", "Invierto en equipo/hardware"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "plataforma_principal",
+          "texto": "Si tuvieras que elegir solo una plataforma, ¿cuál sería?",
+          "opciones": ["PC", "PlayStation", "Xbox", "Nintendo Switch", "Móvil", "No podría elegir"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["gustos"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "gaming_generos",
+      "revision": "1",
+      "categoria": "gaming",
+      "titulo": "Tus géneros favoritos",
+      "descripcion": "Qué tipos de juegos te atrapan: acción, estrategia, RPG, simulación y más.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "genero",
+          "texto": "¿Qué géneros de juegos te gustan más?",
+          "opciones": ["Acción/aventura", "RPG/JRPG", "Shooter/FPS", "Estrategia", "Simulación", "Deportes", "Puzzle", "Terror/survival", "MMO", "Roguelike/roguelite", "Indie", "Battle royale", "Ritmo/música", "Lucha", "Plataformas"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos", "personalidad"]
+        },
+        {
+          "item_id": "titulo_favorito",
+          "texto": "¿Tienes un juego favorito de todos los tiempos?",
+          "opciones": ["Sí, tengo varios", "Uno o dos", "Cambia mucho", "No tengo uno específico", "Casi no juego"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "novedades",
+          "texto": "¿Qué tan seguido pruebas juegos nuevos?",
+          "opciones": ["Siempre estoy probando algo nuevo", "De vez en cuando", "Me quedo con los que me gustan", "Casi no busco juegos nuevos"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "rejugabilidad",
+          "texto": "¿Qué prefieres?",
+          "opciones": ["Terminar un juego y pasar al siguiente", "Rejugar mis favoritos muchas veces", "Juegos con mucho contenido (100+ horas)", "Juegos cortos y variados"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "historia_vs_gameplay",
+          "texto": "¿Qué valoras más en un juego?",
+          "opciones": ["Historia/narrativa", "Gameplay/mecánicas", "Ambos por igual", "Gráficos/arte", "Multijugador/social", "Rejugabilidad"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "dificultad",
+          "texto": "¿Qué nivel de dificultad prefieres?",
+          "opciones": ["Fácil, para disfrutar la historia", "Normal/intermedio", "Difícil, me gustan los retos", "Muy difícil/souls-like", "Depende del juego"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "indie_vs_aa",
+          "texto": "¿Qué tipo de estudios prefieres?",
+          "opciones": ["Indies pequeños", "Estudios medianos (AA)", "Grandes AAA", "Me da igual si el juego es bueno", "Prefiero una mezcla"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo"]
+        },
+        {
+          "item_id": "genero_menos",
+          "texto": "¿Hay algún género que no te guste nada?",
+          "opciones": ["Horror/terror", "Sports/deportes", "Estrategia compleja", "RPG muy largos", "Shooter competitivos", "Ninguno, me abro a todo"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "gaming_estilo",
+      "revision": "1",
+      "categoria": "gaming",
+      "titulo": "Tu estilo de juego",
+      "descripcion": "Cómo juegas: cooperativo vs competitivo, rol que sueles tomar, ritmo y tolerancia al rage.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "coop_vs_comp",
+          "texto": "¿Qué prefieres en multijugador?",
+          "opciones": ["Cooperativo (trabajar en equipo)", "Competitivo (ganar a otros)", "Ambos según el juego", "Casi no juego multijugador"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "rol",
+          "texto": "En equipo, ¿qué rol sueles tomar?",
+          "opciones": ["Líder/estratega", "Soporte/ayuda", "Ataque ofensivo", "Explorador/reconocimiento", "Comodín/me adapto", "No juego en equipo"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "ritmo",
+          "texto": "¿Qué ritmo de juego prefieres?",
+          "opciones": ["Rápido y frenético", "Moderado/estratégico", "Lento y relajado", "Depende del momento"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "perfeccionismo",
+          "texto": "¿Qué tan perfeccionista eres jugando?",
+          "opciones": ["Mucho, quiero hacerlo todo perfecto", "Algo, pero sin obsesionarme", "Poco, solo me divierto", "Nada, juego casual"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "comunicacion",
+          "texto": "En juegos en línea, ¿cómo te comunicas?",
+          "opciones": ["Voz (micrófono)", "Texto (chat)", "Emojis/pings", "Casi no me comunico", "Depende del juego"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "rage",
+          "texto": "¿Qué tan seguido te frustras jugando?",
+          "opciones": ["Casi nunca, soy muy zen", "A veces, pero se me pasa rápido", "Bastante seguido", "Me frustro mucho y necesito parar"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "logros",
+          "texto": "¿Te importan los logros/trofeos?",
+          "opciones": ["Sí, intento desbloquearlos todos", "Algunos, los más interesantes", "No mucho", "Nada, solo juego"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "exploracion",
+          "texto": "En juegos de mundo abierto, ¿qué haces?",
+          "opciones": ["Exploro todo al 100%", "Sigo la historia principal", "Hago side quests", "Me pierdo a propósito", "Depende del juego"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "gaming_mesa",
+      "revision": "1",
+      "categoria": "gaming",
+      "titulo": "Juegos de mesa y rol",
+      "descripcion": "¿Te gustan los juegos de mesa, cartas o rol en persona? Descubre tu lado analógico.",
+      "duracion_estimada_minutos": 1,
+      "items": [
+        {
+          "item_id": "mesa_frecuencia",
+          "texto": "¿Qué tan seguido juegas juegos de mesa o cartas?",
+          "opciones": ["Semanalmente", "Una o dos veces al mes", "Ocasionalmente", "Rara vez", "Nunca"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "mesa_tipo",
+          "texto": "¿Qué tipo de juegos de mesa prefieres?",
+          "opciones": ["Estrategia (Catan, Risk)", "Cooperativos (Pandemic)", "Party games (Cards Against Humanity)", "Cartas (Uno, Pokémon)", "Rol en mesa (D&D)", "Clásicos (ajedrez, dominó)", "No juego juegos de mesa"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos", "personalidad"]
+        },
+        {
+          "item_id": "rol_experiencia",
+          "texto": "¿Has jugado rol en mesa (D&D, Pathfinder, etc.)?",
+          "opciones": ["Sí, soy veterano/a", "Sí, pero pocas veces", "Lo he intentado", "No, pero me interesa", "No me llama"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["gustos"]
+        },
+        {
+          "item_id": "rol_rol",
+          "texto": "En juegos de rol, ¿qué personaje sueles hacer?",
+          "opciones": ["Guerrero/tanque", "Mago/hechicero", "Pícaro/asesino", "Clérigo/sanador", "Bardo/support", "Me da igual, lo que haga falta", "No juego rol"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "mesa_compania",
+          "texto": "¿Con quién prefieres jugar juegos de mesa?",
+          "opciones": ["Amigas/os cercanas/os", "Pareja", "Familia", "Grupos grandes/fiestas", "Desconocidos en convenciones", "Solo/a (no juego juegos de mesa)"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "mesa_duracion",
+          "texto": "¿Qué duración prefieres para un juego de mesa?",
+          "opciones": ["Corto (< 30 min)", "Medio (30-90 min)", "Largo (2+ horas)", "Campañas de varias sesiones", "Depende del juego"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "mesa_complejidad",
+          "texto": "¿Qué tan complejas te gustan las reglas?",
+          "opciones": ["Simples, para aprender rápido", "Medias, con algo de estrategia", "Complejas, me gusta profundizar", "Depende del grupo"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "mesa_explorar",
+          "texto": "¿Te gusta probar juegos de mesa nuevos?",
+          "opciones": ["Sí, siempre busco nuevos", "A veces, si me recomiendan", "Prefiero mis clásicos", "No mucho"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        }
+      ]
+    }
+  ]
+}

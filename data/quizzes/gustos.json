@@ -1,0 +1,271 @@
+{
+  "version": "gustos-1",
+  "etiqueta": "supuesto_diseno",
+  "fuente": "Quizzes rompehielos propios (docs/QUIZZES.md §5). No es un instrumento psicométrico ni alimenta el modelo de matching.",
+  "quizzes": [
+    {
+      "quiz_id": "gustos_musica",
+      "revision": "1",
+      "categoria": "gustos",
+      "titulo": "Tu vibra musical",
+      "descripcion": "Descubre cómo te mueves con la música: géneros, momentos y formas de escucharla.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "genero_favorito",
+          "texto": "¿Qué género musical te acompaña más?",
+          "opciones": ["Pop", "Rock", "Hip-hop/Rap", "Electrónica", "Indie/Alternativo", "Reggaetón/Urbano", "Jazz/Blues", "Clásica", "Regional mexicano", "K-pop", "Metal", "Salsa/Cumbia", "Ninguno en particular"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo", "gustos"]
+        },
+        {
+          "item_id": "momento_escucha",
+          "texto": "¿Cuándo más escuchas música?",
+          "opciones": ["En el transporte", "Estudiando/trabajando", "Haciendo ejercicio", "En fiestas", "Relajándome en casa", "De camino a algún lado", "Casi no escucho"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "formato",
+          "texto": "¿Cómo prefieres escuchar música?",
+          "opciones": ["Audífonos/canciones sueltas", "Playlists curadas", "Álbumes completos", "Conciertos en vivo", "Radio", "Videos musicales"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo"]
+        },
+        {
+          "item_id": "conciertos",
+          "texto": "¿Qué tan seguido vas a conciertos?",
+          "opciones": ["Nunca he ido", "Una vez cada tanto", "Varias veces al año", "Son mi plan favorito"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida", "gustos"]
+        },
+        {
+          "item_id": "comfort_song",
+          "texto": "¿Tienes una canción comfort que nunca falla?",
+          "opciones": ["Sí, tengo varias", "Una o dos", "No realmente", "Depende del ánimo"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "playlist_estudio",
+          "texto": "Para concentrarte, ¿qué prefieres?",
+          "opciones": ["Música instrumental/lo-fi", "Mis canciones favoritas", "Silencio total", "Ruido blanco/sonidos naturales", "Podcasts de fondo"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "descubrimiento",
+          "texto": "¿Cómo descubres música nueva?",
+          "opciones": ["Algoritmos de Spotify/YouTube", "Amigos me recomiendan", "Radio/películas/series", "Exploro por mi cuenta", "Casi no busco música nueva"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo"]
+        },
+        {
+          "item_id": "cantar",
+          "texto": "¿Cantas cuando escuchas música?",
+          "opciones": ["Sí, a todo pulmón", "Solo por lo bajo", "En mi cabeza", "Nunca, soy desafinado/a"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "gustos_cine",
+      "revision": "1",
+      "categoria": "gustos",
+      "titulo": "Tu pantalla favorita",
+      "descripcion": "Películas, series y cómo las disfrutas: maratones, capítulos sueltos o cine en sala.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "genero_cine",
+          "texto": "¿Qué géneros de películas o series te gustan más?",
+          "opciones": ["Comedia", "Drama", "Acción/aventura", "Terror/suspenso", "Ciencia ficción", "Romance", "Animación", "Documental", "Cinema independiente", "Musical", "Ninguno en particular"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos", "estilo"]
+        },
+        {
+          "item_id": "plataforma",
+          "texto": "¿Dónde ves más contenido?",
+          "opciones": ["Netflix", "Disney+", "HBO Max", "Prime Video", "YouTube", "Cine en sala", "Otras plataformas", "Descargas/archivos propios"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "maraton",
+          "texto": "¿Cómo prefieres ver series?",
+          "opciones": ["Maratón completo de una vez", "Un capítulo por día", "Solo los fines de semana", "Depende de la serie", "Casi no veo series"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida", "personalidad"]
+        },
+        {
+          "item_id": "comfort_movie",
+          "texto": "¿Tienes una película comfort que ves una y otra vez?",
+          "opciones": ["Sí, varias", "Una o dos", "No realmente", "Cambia según el ánimo"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "compania",
+          "texto": "¿Con quién prefieres ver películas?",
+          "opciones": ["Solo/a", "En pareja", "Con amigas/os", "En familia", "Da igual"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "snacks",
+          "texto": "¿Qué no puede faltar al ver algo?",
+          "opciones": ["Palomitas", "Dulces/chocolates", "Refresco", "Botana salada", "Nada, solo ver", "Una cena completa"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos"]
+        },
+        {
+          "item_id": "rewatch",
+          "texto": "¿Qué tan seguido ves algo otra vez?",
+          "opciones": ["Casi nunca, siempre algo nuevo", "A veces repito favoritas", "Bastante, tengo mis clásicos", "Siempre lo mismo"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "spoilers",
+          "texto": "¿Cómo manejas los spoilers?",
+          "opciones": ["¡Los odio! No me cuenten nada", "No me molestan mucho", "A veces los busco por curiosidad", "Da igual"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "gustos_comida",
+      "revision": "1",
+      "categoria": "gustos",
+      "titulo": "Tu paladar",
+      "descripcion": "Comida, antojos y cómo te gusta comer: cocinar, pedir, explorar o ir a lo seguro.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "cocina_favorita",
+          "texto": "¿Qué tipo de cocina te gusta más?",
+          "opciones": ["Mexicana", "Italiana", "Japonesa/sushi", "China", "India", "Árabe/mediterránea", "Coreana", "Americana", "Francesa", "Thai", "Fusión", "De todo un poco"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos"]
+        },
+        {
+          "item_id": "cocinar",
+          "texto": "¿Qué tan seguido cocinas?",
+          "opciones": ["Me encanta y lo hago seguido", "A veces, lo básico", "Solo cuando es necesario", "Casi nunca", "Odio cocinar"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida", "personalidad"]
+        },
+        {
+          "item_id": "antojo",
+          "texto": "¿Qué es tu antojo favorito?",
+          "opciones": ["Dulce/chocolate", "Salado/botana", "Pizza", "Tacos", "Helado", "Pan/pastel", "Fruta", "Café con algo", "No suelo tener antojos"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos"]
+        },
+        {
+          "item_id": "comer_fuera",
+          "texto": "¿Qué tan seguido comes fuera o pides delivery?",
+          "opciones": ["Casi diario", "Varias veces por semana", "Una o dos veces por semana", "Rara vez", "Casi nunca"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "picante_nivel",
+          "texto": "¿Qué tan picante toleras?",
+          "opciones": ["Nada picante, por favor", "Un poquito", "Moderado", "Bastante picante", "Muy picante, me encanta"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "cafe_o_te",
+          "texto": "¿Qué prefieres beber caliente?",
+          "opciones": ["Café negro", "Café con leche/capuccino", "Té", "Chocolate caliente", "Ninguna, prefiero frío", "Ambas según el día"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["gustos"]
+        },
+        {
+          "item_id": "explorar",
+          "texto": "¿Qué tan abierto/a eres a probar cosas nuevas?",
+          "opciones": ["Me encanta explorar", "Lo intento, pero tengo mis favoritos", "Prefiero ir a lo seguro", "Casi no pruebo cosas nuevas"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "compania_comida",
+          "texto": "¿Con quién prefieres comer?",
+          "opciones": ["Solo/a, es mi momento", "En pareja", "Con amigas/os", "En familia", "Da igual"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "gustos_viajes",
+      "revision": "1",
+      "categoria": "gustos",
+      "titulo": "Tu forma de viajar",
+      "descripcion": "Viajes, planes de fin de semana y qué te hace sentir en vacaciones: aventura, relax o cultura.",
+      "duracion_estimada_minutos": 2,
+      "items": [
+        {
+          "item_id": "destino",
+          "texto": "¿Qué tipo de destino prefieres?",
+          "opciones": ["Playa", "Montaña/naturaleza", "Ciudad grande", "Pueblo mágico/cultural", "Parque temático", "Crucero", "Da igual, lo que sea"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos", "estilo_de_vida"]
+        },
+        {
+          "item_id": "ritmo",
+          "texto": "De vacaciones, ¿qué ritmo llevas?",
+          "opciones": ["A todo dar, muchas actividades", "Un poco de todo", "Relax total", "Depende del día"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "planificar",
+          "texto": "¿Qué tan planificador/a eres para viajar?",
+          "opciones": ["Planifico todo con detalle", "Lo básico, pero flexible", "Casi nada, veo sobre la marcha", "Odio planificar"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo_de_vida"]
+        },
+        {
+          "item_id": "fin_semana",
+          "texto": "Para un fin de semana, ¿qué prefieres?",
+          "opciones": ["Escapada corta", "Quedarme en casa", "Salir con amigas/os", "Actividad al aire libre", "Visitar algún lugar nuevo en la ciudad"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "viajar_solo",
+          "texto": "¿Has viajado solo/a o te gustaría?",
+          "opciones": ["Sí, me encanta", "Lo he hecho pero prefiero compañía", "No, pero me gustaría intentar", "Prefiero siempre viajar con alguien"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "recuerdos",
+          "texto": "¿Qué haces para recordar tus viajes?",
+          "opciones": ["Muchas fotos", "Album/diario", "Souvenirs", "Solo en mi memoria", "Publico en redes", "Nada especial"],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo"]
+        },
+        {
+          "item_id": "presupuesto",
+          "texto": "¿Qué tan importante es el presupuesto al viajar?",
+          "opciones": ["Muy importante, todo planeado", "Importante, pero me doy gustos", "No tanto, prefiero disfrutar", "Da igual, lo que sea"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "companion_viaje",
+          "texto": "¿Con quién prefieres viajar?",
+          "opciones": ["Solo/a", "En pareja", "Con amigas/os", "En familia", "En grupo organizado", "Da igual"],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        }
+      ]
+    }
+  ]
+}
