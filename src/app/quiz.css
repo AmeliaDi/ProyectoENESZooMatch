@@ -12,6 +12,21 @@
   margin: 0 auto;
 }
 
+@media (max-width: 768px) {
+  .zm-quizzes {
+    gap: calc(var(--zm-px) * 10);
+    padding: calc(var(--zm-px) * 6) calc(var(--zm-px) * 4);
+  }
+
+  .zm-quiz-grid {
+    gap: calc(var(--zm-px) * 8);
+  }
+
+  .zm-quiz-card {
+    padding: calc(var(--zm-px) * 8);
+  }
+}
+
 .zm-quizzes__hero {
   text-align: center;
 }
