@@ -283,4 +283,27 @@ describe("submitQuiz", () => {
     ).length;
     expect(countAfterDuplicateNotify).toBe(countAfterB);
   });
+
+  it("returns missingCount in the egg profile when identity read-back is still egg", async () => {
+    const store = new MemoryStore();
+    const deps = wire(store);
+    // Force identity read-back to return egg after write (simulates a race).
+    const origIdentityState = deps.profiles.identityState.bind(deps.profiles);
+    let callCount = 0;
+    deps.profiles.identityState = async (userId) => {
+      callCount++;
+      if (callCount > 1) {
+        return { ok: true, value: { estadoIdentidad: "huevo", aliasCompleto: null, aliasAnimal: null, aliasColor: null, aliasSufijo: null, animalId: null, colorId: null, mbtiCode: null, enneagramCode: null, narrative: null, mark: null, revelacionVista: false, quizCompletedAt: null } } as never;
+      }
+      return origIdentityState(userId);
+    };
+
+    const result = await submitQuiz({ userId: USER_A, submission: submission(4) }, deps);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.profile.identity.estadoIdentidad).toBe("huevo");
+    expect(result.value.profile.missingCount).toBe(0);
+    expect(result.value.profile.narrative).toBe("");
+    expect(result.value.profile.mbtiCode).toBe("");
+  });
 });
