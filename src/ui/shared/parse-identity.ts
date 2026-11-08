@@ -7,6 +7,7 @@
  */
 import type { IdentityDto } from "@/contracts/identity";
 import type { SpriteMark } from "@/contracts/result";
+import { parseAliasParts } from "@/domain/identity/format-identity";
 
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 /** Display alias: letters (any script), digits, spaces, dots, hyphens, apostrophes. */
@@ -73,10 +74,16 @@ export function parseIdentity(raw: unknown): IdentityDto {
   if (!isRec(raw) || raw.estadoIdentidad !== "eclosionado") return asEgg(raw);
 
   const aliasCompleto = text(raw.aliasCompleto);
-  const aliasSufijo = text(raw.aliasSufijo);
   const animalId = id(raw.animalId);
   const colorId = id(raw.colorId);
-  if (!aliasCompleto || !aliasSufijo || !animalId || !colorId) return asEgg(raw);
+  if (!aliasCompleto || !animalId || !colorId) return asEgg(raw);
+
+  // Legacy rows (hatched before the alias split, typically soft-deleted ones
+  // migrations skip) may carry only `aliasCompleto`. `formatIdentity` derives
+  // the parts from it anyway, so the suffix is recovered the same way instead
+  // of hiding a perfectly paintable name behind the egg.
+  const aliasSufijo = text(raw.aliasSufijo) ?? parseAliasParts(aliasCompleto)?.aliasSufijo ?? null;
+  if (!aliasSufijo) return asEgg(raw);
 
   const hex = typeof raw.colorHex === "string" && HEX.test(raw.colorHex) ? raw.colorHex : null;
   const mbtiCode = typeof raw.mbtiCode === "string" && MBTI_CODE.test(raw.mbtiCode) ? raw.mbtiCode : null;

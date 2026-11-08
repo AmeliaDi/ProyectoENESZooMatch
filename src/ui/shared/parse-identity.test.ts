@@ -34,10 +34,16 @@ describe("parseIdentity", () => {
     expect(id.huevitoSeed).toBeNull();
   });
 
+  it("derives the suffix from the full alias when a legacy row lacks the parts", () => {
+    const id = parseIdentity({ ...HATCHED, aliasAnimal: null, aliasColor: null, aliasSufijo: null });
+    expect(id.estadoIdentidad).toBe("eclosionado");
+    expect(id.aliasSufijo).toBe("TXTV");
+  });
+
   it("degrades a hatched payload without a paintable name to the egg", () => {
     for (const broken of [
       { ...HATCHED, aliasCompleto: null },
-      { ...HATCHED, aliasSufijo: null },
+      { ...HATCHED, aliasCompleto: "sin separador", aliasSufijo: null },
       { ...HATCHED, animalId: "Libélula" },
       { ...HATCHED, colorId: null },
     ]) {

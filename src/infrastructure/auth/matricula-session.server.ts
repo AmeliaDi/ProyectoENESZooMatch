@@ -29,6 +29,7 @@ export interface MatriculaEntryInput {
 type EntryStep =
   | "guard"
   | "profile_lookup"
+  | "purge_deleted"
   | "create_user"
   | "insert_profile"
   | "generate_link"
@@ -37,9 +38,10 @@ type EntryStep =
 interface ProfileRow {
   user_id: string;
   quiz_completed_at: string | null;
+  eliminado_en: string | null;
 }
 
-const PROFILE_COLUMNS = "user_id, quiz_completed_at";
+const PROFILE_COLUMNS = "user_id, quiz_completed_at, eliminado_en";
 const RACE_RETRIES = 5;
 const RACE_DELAY_MS = 25;
 
@@ -114,7 +116,7 @@ async function createProfile(
       if (!upsertError) {
         const afterRecover = await findProfile(admin, matriculaHash);
         if (afterRecover.data) return afterRecover.data;
-        return { user_id: recoveredId, quiz_completed_at: null };
+        return { user_id: recoveredId, quiz_completed_at: null, eliminado_en: null };
       }
     }
     return fail("create_user", createError ?? existing.error);
@@ -122,11 +124,31 @@ async function createProfile(
 
   const row = { user_id: created.user.id, matricula_hash: matriculaHash };
   const { error: insertError } = await admin.from("profiles").insert(row);
-  if (!insertError) return { user_id: row.user_id, quiz_completed_at: null };
+  if (!insertError) return { user_id: row.user_id, quiz_completed_at: null, eliminado_en: null };
 
   await admin.auth.admin.deleteUser(created.user.id);
   const existing = await findProfileAfterRace(admin, matriculaHash);
   return existing.data ?? fail("insert_profile", insertError);
+}
+
+/**
+ * A soft-deleted profile never signs anyone in: deletion is irreversible, so
+ * the matrícula starts over with a fresh account. Deletion cascades the old
+ * profile and its rows; a concurrent purge on another device leaves no row
+ * behind, which also makes this safe to retry.
+ */
+async function resetDeletedProfile(
+  admin: SupabaseClient,
+  matriculaHash: string,
+  userId: string,
+): Promise<ProfileRow | MatriculaEntryResult> {
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) {
+    const after = await findProfile(admin, matriculaHash);
+    if (after.error) return fail("purge_deleted", { ...after.error, status: after.status });
+    if (after.data) return fail("purge_deleted", error);
+  }
+  return createProfile(admin, matriculaHash);
 }
 
 /** Resolves the account for a matrícula, creating it on first entry. */
@@ -137,7 +159,9 @@ async function resolveProfile(
   const lookup = await findProfile(admin, matriculaHash);
   // PostgREST reports the HTTP status on the response, not on the error.
   if (lookup.error) return fail("profile_lookup", { ...lookup.error, status: lookup.status });
-  return lookup.data ?? createProfile(admin, matriculaHash);
+  if (!lookup.data) return createProfile(admin, matriculaHash);
+  if (lookup.data.eliminado_en) return resetDeletedProfile(admin, matriculaHash, lookup.data.user_id);
+  return lookup.data;
 }
 
 /**

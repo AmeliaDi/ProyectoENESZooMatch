@@ -236,7 +236,7 @@ describe("parsePublicResult", () => {
     for (const broken of [
       { aliasCompleto: null },
       { aliasCompleto: 7 },
-      { aliasSufijo: null },
+      { aliasCompleto: "sin separador", aliasSufijo: null },
       { animalId: null },
       { colorId: null },
       { aliasCompleto: "x".repeat(80) },
@@ -280,7 +280,7 @@ describe("parsePublicResult", () => {
             // an egg, a half-written identity, a non-object, a bad similarity and
             // an entry with no usable chemistry never become cards
             makeMatch({ identity: EGG_WIRE }),
-            makeMatch({ identity: identityWire({ ...COUNTERPART, aliasSufijo: null }) }),
+            makeMatch({ identity: identityWire({ ...COUNTERPART, aliasCompleto: "sin separador", aliasSufijo: null }) }),
             "not-an-object",
             makeMatch({ similarity: "0.9" }),
             makeMatch({ chemistry: null }),

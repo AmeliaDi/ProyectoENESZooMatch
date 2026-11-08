@@ -11,7 +11,7 @@ const mockEnv = {
 
 interface FakeState {
   authUsersByEmail: Map<string, string>;
-  profilesByHash: Map<string, { user_id: string; quiz_completed_at: string | null }>;
+  profilesByHash: Map<string, { user_id: string; quiz_completed_at: string | null; eliminado_en?: string | null }>;
   insertCalls: number;
   createUserCalls: number;
   simulateOrphanAuthUser?: boolean;
@@ -66,6 +66,9 @@ vi.mock("@/infrastructure/supabase/admin.server", () => ({
             for (const [email, uid] of state.authUsersByEmail.entries()) {
               if (uid === id) state.authUsersByEmail.delete(email);
             }
+            for (const [hash, row] of state.profilesByHash.entries()) {
+              if (row.user_id === id) state.profilesByHash.delete(hash);
+            }
             return { error: null };
           },
           generateLink: async ({ email }: { email: string }) => {
@@ -100,6 +103,7 @@ vi.mock("@/infrastructure/supabase/admin.server", () => ({
             state.profilesByHash.set(row.matricula_hash, {
               user_id: row.user_id,
               quiz_completed_at: null,
+              eliminado_en: null,
             });
             return { error: null };
           },
@@ -109,6 +113,7 @@ vi.mock("@/infrastructure/supabase/admin.server", () => ({
               state.profilesByHash.set(row.matricula_hash, {
                 user_id: row.user_id,
                 quiz_completed_at: null,
+                eliminado_en: null,
               });
             }
             return { error: null };
@@ -145,6 +150,36 @@ describe("enterWithMatricula idempotency", () => {
     if (!first.ok || !second.ok) return;
     expect(first.draftOwner).toBe(second.draftOwner);
     expect(currentState.profilesByHash.size).toBe(1);
+  });
+
+  it("starts a fresh account instead of signing in a soft-deleted profile", async () => {
+    const { privateLoginEmail } = await import("./identity.server");
+    const hash = hashMatricula("319000003", mockEnv.MATRICULA_HMAC_SECRET);
+    currentState = {
+      authUsersByEmail: new Map([[privateLoginEmail(hash), "user-deleted-1"]]),
+      profilesByHash: new Map([
+        [
+          hash,
+          {
+            user_id: "user-deleted-1",
+            quiz_completed_at: "2026-11-03T00:19:55Z",
+            eliminado_en: "2026-11-06T04:11:51Z",
+          },
+        ],
+      ]),
+      insertCalls: 0,
+      createUserCalls: 0,
+    };
+    const { enterWithMatricula } = await import("./matricula-session.server");
+    const res = await enterWithMatricula({ matricula: "319000003", address: "127.0.0.1" });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    // Deletion is irreversible: the old identity never comes back, the quiz starts over.
+    expect(res.redirect).toBe("/cuestionario");
+    const row = currentState.profilesByHash.get(hash);
+    expect(row?.user_id).not.toBe("user-deleted-1");
+    expect(row?.eliminado_en).toBeNull();
+    expect(row?.quiz_completed_at).toBeNull();
   });
 
   it("recovers idempotently when auth.users already has the email from an interrupted registration", async () => {

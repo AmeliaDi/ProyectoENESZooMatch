@@ -65,7 +65,7 @@ describe("parsePeer", () => {
     expect(parsePeer({ identity: EGG_IDENTITY })).toBeNull();
     expect(parsePeer({ identity: { ...EGG_IDENTITY, huevitoSeed: 7 } })).toBeNull();
     expect(parsePeer({ identity: { ...identity, aliasCompleto: "  " } })).toBeNull();
-    expect(parsePeer({ identity: { ...identity, aliasSufijo: null } })).toBeNull();
+    expect(parsePeer({ identity: { ...identity, aliasCompleto: "sin separador", aliasSufijo: null } })).toBeNull();
     // A hand-built name is not an identity: the old wire shape parses to nothing.
     expect(parsePeer({ alias: identity.aliasCompleto, animal_id: "nutria", color_id: "ennea-2" })).toBeNull();
     expect(parsePeer(null)).toBeNull();
