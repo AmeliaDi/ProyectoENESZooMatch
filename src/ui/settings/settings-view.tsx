@@ -27,6 +27,7 @@ import { ThemeSelector } from "@/ui/shared/theme-selector";
 
 import { ChatSecuritySection } from "./chat-security-section";
 import { SharingSection } from "./sharing-section";
+import { AnimoSetting } from "./animo-settings";
 
 type Account =
   | { state: "loading" }
@@ -156,6 +157,7 @@ export function SettingsView() {
             </Button>
           </div>
           <SoundSettings />
+          <AnimoSetting />
         </Frame>
 
         <Frame title="Tu perfil" coord="AR 07h">

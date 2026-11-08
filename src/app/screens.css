@@ -387,6 +387,54 @@
 .zm-sound__time { --box-lift: 0px; min-height: var(--zm-touch); padding: 0 calc(var(--zm-px) * 4); color: var(--zm-fg); font-family: var(--font-read); font-size: 1rem; }
 .zm-sound__test { margin-top: calc(var(--zm-px) * 6); }
 
+/* Animo: frequency radio group and preview (Ajustes -> Mensajes de tu animalito). */
+.zm-animo-freq { display: grid; gap: calc(var(--zm-px) * 4); margin: 0; padding: 0; border: 0; }
+.zm-animo-freq__options { display: grid; gap: calc(var(--zm-px) * 3); }
+.zm-animo-freq__option { display: block; cursor: pointer; }
+.zm-animo-freq__btn {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--zm-px) * 3);
+  min-height: var(--zm-touch);
+  padding: calc(var(--zm-px) * 3) calc(var(--zm-px) * 4);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  --box-rim: var(--zm-grid);
+}
+.zm-animo-freq__btn[data-selected="true"] {
+  --box-rim: var(--zm-gold);
+  --box-fill: var(--zm-raised);
+}
+.zm-animo-freq__btn:focus-visible {
+  outline: calc(var(--zm-px) * 2) solid var(--zm-gold);
+  outline-offset: calc(var(--zm-px) * 1);
+}
+.zm-animo-freq__check {
+  flex-shrink: 0;
+  width: calc(var(--zm-px) * 5);
+  height: calc(var(--zm-px) * 5);
+  margin-top: calc(var(--zm-px) * 1);
+  border: calc(var(--zm-px) * 1) solid var(--zm-grid);
+  background: transparent;
+}
+.zm-animo-freq__check[data-on="true"] {
+  border-color: var(--zm-gold);
+  background: var(--zm-gold);
+}
+.zm-animo-freq__text { display: grid; gap: calc(var(--zm-px) * 1); }
+.zm-animo-freq__label { font-family: var(--font-pixel); font-size: 0.875rem; color: var(--zm-fg); }
+.zm-animo-freq__hint { font-size: 0.8125rem; line-height: 1.4; }
+.zm-animo-freq__preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--zm-px) * 4);
+  margin-top: calc(var(--zm-px) * 4);
+}
+.zm-animo-freq__preview .zm-animo-container { position: relative; }
+.zm-animo-freq__preview .zm-animo-bubble { position: relative; bottom: auto; left: auto; transform: none; }
+
 /* ─── 404 y errores ───────────────────────────────────────── */
 .zm-lost { display: grid; place-items: center; min-height: 60vh; padding: calc(var(--zm-px) * 12) calc(var(--zm-px) * 8); }
 .zm-lost__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--zm-px) * 4); }

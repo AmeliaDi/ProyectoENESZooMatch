@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { ThemeBootScript } from "@/ui/design/theme";
@@ -7,9 +7,16 @@ import { SoundBoot } from "@/ui/feedback/sound-boot";
 import { atkinson, pixelify } from "./fonts";
 import "./globals.css";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#101826",
+};
+
 export const metadata: Metadata = {
   title: "ZooMatch",
-  description: "Un microtest anónimo para descubrir afinidades entre estudiantes.",
+  description: "Un microtest anonimo para descubrir afinidades entre estudiantes.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

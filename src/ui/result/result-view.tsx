@@ -22,6 +22,9 @@ import { hasPendingRevelation } from "@/ui/shared/parse-identity";
 import { type ApiError, RECOMPUTE_PENDING_KEY } from "@/ui/shared/chrome";
 import { ExitButton } from "@/ui/shared/exit-button";
 import { Reveal } from "@/ui/quiz/reveal";
+import { AnimoBubble } from "@/ui/animo/animo-bubble";
+import { useAnimoMessage } from "@/ui/animo/use-animo-message";
+import { useSoundPrefs } from "@/ui/feedback/sound-settings";
 
 import { MatchCard } from "./match-card";
 import { parsePublicResult } from "./parse-result";
@@ -126,6 +129,16 @@ export function PublicResultView() {
     () => typeof window !== "undefined" && window.sessionStorage.getItem(RECOMPUTE_PENDING_KEY) === "1",
   );
 
+  const soundPrefs = useSoundPrefs();
+  const { message: animoMessage, dismiss: dismissAnimo } = useAnimoMessage({
+    identity: result?.identity ?? null,
+    soundPrefs,
+    estacionalesActivos: true,
+    socialContext: { kind: "none" },
+    animo: null,
+    primera: { kind: "none" },
+  });
+
   const actions = (
     <>
       <Link href="/perfil" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Tu carta" title="Tu carta">
@@ -206,7 +219,9 @@ export function PublicResultView() {
         <header className="zm-result__me">
           {self ? (
             <span className="zm-result__sprite" aria-hidden="true">
-              <PixelAnimal animalId={self.animalId} colorId={self.colorId} mark={self.mark} size={48} />
+              <AnimoBubble message={animoMessage} onDismiss={dismissAnimo}>
+                <PixelAnimal animalId={self.animalId} colorId={self.colorId} mark={self.mark} size={48} />
+              </AnimoBubble>
             </span>
           ) : null}
           <div>

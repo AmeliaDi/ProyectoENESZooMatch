@@ -47,6 +47,8 @@ import { FEW_PEOPLE_COPY, RESULT_FINE_COPY } from "./result/result-view";
 import { EVIDENCE_SUMMARY } from "@/config/evidence-summary";
 import { litStars } from "./result/why-bars";
 import { CHAT_EVENT_LABELS } from "./settings/chat-security-section";
+import { STATUS_COPY, STATUS_OPTION_COPY } from "@/domain/status/status-types";
+import { BADGE_SECTION_COPY } from "@/domain/badges/badge-catalog";
 
 const FORBIDDEN = /perfect[oa]|destino|garantizad[oa]|alma[s]? gemela|100 ?% compatible|para siempre|media naranja/i;
 const EMOJI = /\p{Extended_Pictographic}/u;
@@ -67,6 +69,7 @@ const SCREEN_FILES = [
   resolve("src/app/card.css"),
   resolve("src/app/refine.css"),
   resolve("src/app/chat.css"),
+  resolve("src/app/mobile.css"),
 ];
 
 describe("copy", () => {
@@ -105,6 +108,9 @@ describe("copy", () => {
     ...Object.values(REPORT_STATUS_LABELS),
     ...Object.values(ADMIN_REASON_LABELS),
     ...Object.values(USER_ACTION_COPY).flatMap((a) => [a.label, a.body]),
+    ...Object.values(STATUS_COPY),
+    ...Object.values(STATUS_OPTION_COPY).flatMap((o) => [o.label, o.hint]),
+    ...Object.values(BADGE_SECTION_COPY),
   ];
 
   it("has no forbidden words or emojis", () => {

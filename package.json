@@ -27,7 +27,15 @@
     "data:matching": "node --no-warnings scripts/matching/run.mjs --write",
     "data:avatars": "node --no-warnings scripts/avatars/run.mjs",
     "data:bank": "python scripts/psychometrics/bank.py",
-    "data:psychometrics": "python scripts/psychometrics/bank.py && python scripts/psychometrics/run.py"
+    "data:psychometrics": "python scripts/psychometrics/bank.py && python scripts/psychometrics/run.py",
+    "qa:chat:setup": "node --no-warnings scripts/qa/qa-chat-setup.mjs",
+    "qa:chat:teardown": "node --no-warnings scripts/qa/qa-chat-teardown.mjs",
+    "qa:chat": "vitest run scripts/qa/chat-e2e.test.ts",
+    "qa:chat:quick": "vitest run scripts/qa/chat-e2e.test.ts --reporter=basic",
+    "qa:chat:soak": "node --no-warnings scripts/qa/qa-chat-soak.mjs",
+    "qa:chat:load": "node --no-warnings scripts/qa/chat-load.mjs",
+    "qa:chat:sla": "vitest run scripts/qa/chat-sla.test.ts",
+    "qa:chat:canary": "node --no-warnings scripts/qa/chat-canary.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
