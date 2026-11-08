@@ -456,7 +456,7 @@
   outline: var(--zm-px) solid var(--zm-grid);
 }
 
-/* ─── Dev gallery: /dev/numeros ──────────────────────────────── */
+/* ─── Dev gallery: /dev/tipografia ───────────────────────────── */
 .zm-numeros { display: grid; gap: calc(var(--zm-px) * 8); }
 @media (min-width: 1100px) { .zm-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .zm-numeros__panel { display: grid; gap: calc(var(--zm-px) * 8); padding: calc(var(--zm-px) * 8); border: var(--zm-px) solid var(--zm-grid); }

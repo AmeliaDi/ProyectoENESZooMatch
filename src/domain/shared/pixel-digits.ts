@@ -1,6 +1,6 @@
 /**
  * 5×7 pixel atlas for highlighted figures (ADR-028). Pure data plus a pure
- * layout function, so the UI component, the `/dev/numeros` page and the tests
+ * layout function, so the UI component, the `/dev/tipografia` page and the tests
  * all read the same glyphs.
  *
  * Design rules:

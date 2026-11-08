@@ -16,6 +16,8 @@
 
 * {
   box-sizing: border-box;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "clig" 0, "calt" 0;
 }
 
 html {
@@ -30,7 +32,7 @@ body {
   background: var(--zm-sky);
   color: var(--zm-fg);
   font-family: var(--font-read);
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizeSpeed;
 }
 
 button,

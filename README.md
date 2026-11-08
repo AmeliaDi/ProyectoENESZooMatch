@@ -126,7 +126,7 @@ Zod. Nunca se commitean valores.
 | `CORS_ALLOWED_ORIGINS` | Opcional |
 | `FIRECRAWL_API_KEY`, `SUPABASE_ACCESS_TOKEN`, `VERCEL_TOKEN` | Solo scripts locales, nunca en Vercel |
 
-Rutas de desarrollo (404 en producción): `/dev/ui`, `/dev/numeros`, `/dev/sprites`,
+Rutas de desarrollo (404 en producción): `/dev/ui`, `/dev/tipografia`, `/dev/sprites`,
 `/dev/avatars`, `/dev/constellation`, `/dev/physics`.
 
 ## Privacidad y seguridad

@@ -137,6 +137,27 @@ describe("screen sources", () => {
   });
 });
 
+describe("typography guards", () => {
+  const globals = readFileSync(resolve("src/app/globals.css"), "utf8");
+
+  it("disables ligatures globally (fi, fl, ff, ffi, ffl must not fuse)", () => {
+    expect(globals).toMatch(/font-variant-ligatures:\s*none/);
+    expect(globals).toMatch(/font-feature-settings:\s*"liga"\s*0,\s*"clig"\s*0,\s*"calt"\s*0/);
+  });
+
+  it("does not use optimizeLegibility (enables ligatures in some browsers)", () => {
+    expect(globals).not.toMatch(/text-rendering:\s*optimizeLegibility/);
+  });
+
+  it("no screen CSS re-enables ligatures", () => {
+    const reenable = /font-variant-ligatures:\s*(normal|common-ligatures|discretionary-ligatures)|font-feature-settings:[^;]*"liga"\s*1/;
+    for (const file of SCREEN_FILES) {
+      const source = readFileSync(file, "utf8");
+      expect(source, file).not.toMatch(reenable);
+    }
+  });
+});
+
 describe("chat lock copy", () => {
   it("is honest that the PIN is a lock, not encryption", () => {
     expect(CHAT_COPY.intro).toContain("No cifra los mensajes");
