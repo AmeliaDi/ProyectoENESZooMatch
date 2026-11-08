@@ -140,6 +140,8 @@ export interface ProfileRepository {
   loadCompletedPool(): Promise<Result<PoolProfile[], StorageError>>;
   /** Best-effort size of the active pool; `null` when unknown. Never exposed raw. */
   countActive(): Promise<number | null>;
+  /** Active eggs (not deleted, not paused) for the reconciliation job. */
+  listEggUserIds(): Promise<Result<string[], StorageError>>;
   findOwn(userId: string): Promise<Result<OwnProfile | null, StorageError>>;
   /** Own stored answers (server-only: used to merge a refinement module). */
   loadAnswers(userId: string): Promise<Result<StoredAnswer[], StorageError>>;

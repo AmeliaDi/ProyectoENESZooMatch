@@ -9,12 +9,19 @@
     },
     "src/app/api/cron/retention/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/reconcile/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
     {
       "path": "/api/cron/retention",
       "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/reconcile",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

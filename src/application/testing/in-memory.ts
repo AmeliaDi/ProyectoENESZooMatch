@@ -202,6 +202,12 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
       return store.faults.pool ? failed : ok(store.pool());
     },
     countActive: async () => store.pool().length,
+    async listEggUserIds() {
+      const eggs = [...store.identities.entries()]
+        .filter(([, r]) => r.estadoIdentidad === "huevo")
+        .map(([id]) => id);
+      return ok(eggs);
+    },
     async findOwn(userId) {
       if (store.own) return ok(store.own);
       const record = store.results.get(userId);

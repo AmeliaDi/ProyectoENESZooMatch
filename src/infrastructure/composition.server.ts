@@ -10,6 +10,8 @@ import type { AppError } from "@/application/errors";
 import type { GetResultDeps } from "@/application/get-result";
 import type { HatchDeps } from "@/application/hatch";
 import type { PrivacyDeps } from "@/application/privacy";
+import type { ReconcileDeps } from "@/application/reconcile-eggs";
+import { reconcileEggs } from "@/application/reconcile-eggs";
 import type { RevelationDeps } from "@/application/revelation";
 import type { AdminRepository, NotificationRepository, PinHasher, Scheduler } from "@/application/ports";
 import type { RecomputeDeps } from "@/application/recompute-matches";
@@ -108,7 +110,7 @@ export async function resultContext(): Promise<
       matches: supabaseMatchRepository(admin),
       digest: sha256Hex,
     },
-    hatch: { profiles, secret: env.MATRICULA_HMAC_SECRET },
+    hatch: { profiles, secret: env.MATRICULA_HMAC_SECRET, scheduler: systemScheduler },
   });
 }
 
@@ -348,4 +350,22 @@ export async function runScheduledRetention(): Promise<Result<RetentionSummary, 
     purgedChatRows: typeof chatRes.data === "number" ? chatRes.data : 0,
     matchesRecomputed: recomputed.ok,
   });
+}
+
+export async function runScheduledReconciliation(): Promise<
+  Result<import("@/application/reconcile-eggs").ReconcileSummary, Failure | "storage.failed">
+> {
+  const admin = createAdminClient();
+  if (!admin) return err("service.unavailable");
+  const env = getServerEnv();
+  if (!env) return err("service.unavailable");
+  const profiles = supabaseProfileRepository(admin);
+  const deps: ReconcileDeps = {
+    profiles,
+    matches: supabaseMatchRepository(admin),
+    notifications: supabaseNotificationRepository(admin, admin),
+    scheduler: systemScheduler,
+    hatch: { profiles, secret: env.MATRICULA_HMAC_SECRET, scheduler: systemScheduler },
+  };
+  return reconcileEggs(deps);
 }

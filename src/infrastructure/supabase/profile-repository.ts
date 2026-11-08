@@ -337,6 +337,25 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
       return res && !res.error && typeof res.count === "number" ? res.count : null;
     },
 
+    async listEggUserIds() {
+      const ids: string[] = [];
+      for (let from = 0; ; from += PROFILE_PAGE_SIZE) {
+        const res = await attempt(() =>
+          admin
+            .from(TABLE.profiles)
+            .select("user_id")
+            .eq("estado_identidad", "huevo")
+            .is("paused_at", null)
+            .is("eliminado_en", null)
+            .order("user_id")
+            .range(from, from + PROFILE_PAGE_SIZE - 1),
+        );
+        if (!res || res.error || !res.data) return failed;
+        ids.push(...res.data.map((r: { user_id: string }) => r.user_id));
+        if (res.data.length < PROFILE_PAGE_SIZE) return ok(ids);
+      }
+    },
+
     async findOwn(userId) {
       const res = await attempt(() =>
         admin
