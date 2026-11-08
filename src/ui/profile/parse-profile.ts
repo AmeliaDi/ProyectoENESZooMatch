@@ -10,7 +10,7 @@ import type {
   ScaleReadingDto,
   SectionReadingDto,
 } from "@/contracts/profile";
-import { parseIdentity } from "@/ui/shared/parse-identity";
+import { isHatched, parseIdentity } from "@/ui/shared/parse-identity";
 
 const CONFIDENCE: readonly ReadingConfidenceDto[] = ["clara", "tentativa", "abierta"];
 const LEANING: readonly ReadingLeaningDto[] = ["bajo", "medio", "alto"];
@@ -86,6 +86,8 @@ function parseTypology(raw: Rec): Pick<ProfileDto, "mbti" | "enneagram"> | null 
 export function parseProfile(raw: unknown): ProfileDto | null {
   if (!isRec(raw) || !Array.isArray(raw.sections) || !Array.isArray(raw.virtues)) return null;
   const identity = parseIdentity(raw.identity);
+  // Fail closed: an egg never reaches the profile screen with typology data.
+  if (!isHatched(identity)) return null;
   const typology = parseTypology(raw);
   if (!typology) return null;
   const virtues = raw.virtues.flatMap((v) =>

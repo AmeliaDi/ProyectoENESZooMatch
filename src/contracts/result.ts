@@ -57,6 +57,8 @@ export interface QuizSubmittedDto {
     enneagram: { code: string; nombre: string; arquetipo: string; exploring: boolean };
     /** Core progress in %, so the reveal can say what is still missing. */
     progressPercent: number;
+    /** Exact number of core questions still unanswered (0 when hatched). */
+    missingCount?: number;
   };
 }
 

@@ -55,7 +55,7 @@ export interface FormattedIdentity {
 }
 
 export const EGG_DISPLAY_NAME = "tu huevito";
-export const EGG_SUBTITLE = "Aún en su cascarón · termina el test principal para eclosionar";
+export const EGG_SUBTITLE = "Aún en su cascarón · completa el test para eclosionar";
 export const EGG_ARIA_LABEL = "Tu huevito en espera de eclosionar";
 export const FALLBACK_COUNTERPART_NAME = "alguien especial";
 

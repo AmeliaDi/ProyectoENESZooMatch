@@ -42,6 +42,7 @@ export interface RevealProfile {
   identity: IdentityDto;
   narrative: string;
   progressPercent: number;
+  missingCount?: number;
 }
 
 /** First two sentences of the narrative: "cómo te vemos" stays short. */
@@ -174,8 +175,10 @@ export function Reveal({
             Todavía es un huevito
           </h1>
           <p className="zm-reveal__kind">
-            Guardamos tus respuestas y le hicimos un nombre fijo a tu perfil apenas termines el test principal.
-            Vas {profile.progressPercent} % — te falta un poquito más.
+            Guardamos tus respuestas. Apenas termines el test principal, tu animalito eclosiona con un nombre fijo.
+            {profile.missingCount !== undefined && profile.missingCount > 0
+              ? ` Te faltan ${profile.missingCount} ${profile.missingCount === 1 ? "pregunta" : "preguntas"}.`
+              : ` Vas ${profile.progressPercent} % — te falta un poquito más.`}
           </p>
           <p className="zm-reveal__note">
             Nadie más puede ver tu huevito ni cruzarse contigo todavía. No hay prisa: cuando quieras, vuelve al

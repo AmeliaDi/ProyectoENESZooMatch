@@ -166,7 +166,11 @@ function Affinities({ profile }: { profile: ProfileDto }) {
               <Icon name={t.key} filled /> {t.label} · <span className="zm-num">{t.data.count}</span>
             </h3>
             {t.data.top.length === 0 ? (
-              <p className="zm-detail__muted">Todavía nadie cruza el umbral aquí. Tu cielo sigue abierto.</p>
+              <p className="zm-detail__muted">
+                {t.key === "romance"
+                  ? "Tu cielo de romance está tranquilo. Puede que tus filtros apunten a amistad, o que aún falten personas compatibles."
+                  : "Todavía nadie cruza el umbral de amistad. Tu cielo sigue abierto."}
+              </p>
             ) : (
               <ul className="zm-card__matches">
                 {t.data.top.map((m) => {
