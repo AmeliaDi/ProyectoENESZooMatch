@@ -57,14 +57,16 @@ No hay migraciones que aplicar. El cron se registra automáticamente desde `verc
 
 ```bash
 # Disparar manualmente (primera vez):
-curl -X POST https://zoomatch.vercel.app/api/cron/reconcile \
-  -H "Authorization: Bearer $CRON_SECRET"
+curl https://zoomatch.vercel.app/api/cron/reconcile \
+  -H "Authorization: Bearer $MATRICULA_HMAC_SECRET"
 ```
 
-Respuesta esperada (estado actual: 55 huevos cohort a, 0 elegibles):
+Respuesta esperada (estado actual: ~44 huevos cohort a, 0 elegibles):
 ```json
-{"eggsScanned":55,"eligible":0,"hatched":0,"alreadyHatched":0,"failed":0,"notEligible":55,"matchesRecomputed":false,"notified":0}
+{"ok":true,"eggsScanned":44,"eligible":0,"hatched":0,"alreadyHatched":0,"failed":0,"notEligible":44,"matchesRecomputed":false,"notified":0}
 ```
+
+> **Nota:** Vercel Hobby limita cron jobs a 1 vez/día. El reconciler corre a las 10:00 AM UTC (`0 10 * * *`).
 
 ### 4. Verificar pool
 
@@ -85,7 +87,7 @@ WHERE estado_identidad = 'eclosionado'
 
 ## Canary permanente
 
-El cron `/api/cron/reconcile` cada 30 min actúa como canary:
+El cron `/api/cron/reconcile` diario (10:00 AM UTC) actúa como canary:
 - Si `failed > 0` de forma sostenida → alerta en logs (`reconcile.hatch_failed`).
 - Si `eggsScanned` crece sin `hatched` → revisar `isCoreComplete` o bank revision.
 - Monitorear: `logServerEvent("info", "reconcile.complete", {...})`.
