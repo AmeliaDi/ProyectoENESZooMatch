@@ -19,7 +19,7 @@ import { PixelAnimal } from "@/ui/constellation/PixelAnimal";
 import { adaptResult } from "@/ui/constellation/adapt-result";
 import { clipName } from "@/ui/shared/clip-label";
 import { hasPendingRevelation } from "@/ui/shared/parse-identity";
-import { type ApiError, RECOMPUTE_PENDING_KEY } from "@/ui/shared/chrome";
+import { RECOMPUTE_PENDING_KEY } from "@/ui/shared/chrome";
 import { ExitButton } from "@/ui/shared/exit-button";
 import { Reveal } from "@/ui/quiz/reveal";
 import { AnimoBubble } from "@/ui/animo/animo-bubble";
@@ -28,6 +28,7 @@ import { useSoundPrefs } from "@/ui/feedback/sound-settings";
 
 import { MatchCard } from "./match-card";
 import { parsePublicResult } from "./parse-result";
+import { classifyResultFailure, type ResultFailure } from "./result-failure";
 
 // The sky (physics + sprites) is the heaviest part of the page: load it only
 // when it is shown, after the result itself has painted.
@@ -49,7 +50,7 @@ type View = "cielo" | "lista";
 const FULL_CORE = 100;
 
 function useResult(attempt: number) {
-  const [state, setState] = useState<{ result: ResultDto | null; error: ApiError; loading: boolean }>({
+  const [state, setState] = useState<{ result: ResultDto | null; error: ResultFailure | null; loading: boolean }>({
     result: null,
     error: null,
     loading: true,
@@ -67,7 +68,8 @@ function useResult(attempt: number) {
         ]);
         if (!active) return;
         if (!response.ok) {
-          setState({ result: null, error: response.status === 401 ? "session" : "generic", loading: false });
+          const body = await response.json().catch(() => null);
+          setState({ result: null, error: classifyResultFailure(response.status, body), loading: false });
           return;
         }
         const parsed = parsePublicResult(await response.json());
@@ -168,16 +170,28 @@ export function PublicResultView() {
       <AtlasShell plate="Lámina 04 · tu cielo" actions={actions}>
         <main className="zm-center">
           <ErrorState
-            title={error === "session" ? "Tu sesión se cerró" : "Se nubló la conexión"}
+            title={
+              error === "session"
+                ? "Tu sesión se cerró"
+                : error === "quiz"
+                  ? "Aún no completas el cuestionario"
+                  : "Se nubló la conexión"
+            }
             body={
               error === "session"
                 ? "Vuelve a entrar con tu matrícula para ver tu cielo."
-                : "No pudimos cargar tu constelación. Intenta de nuevo en un momento."
+                : error === "quiz"
+                  ? "Termina el test y tu animalito podrá encontrar su constelación."
+                  : "No pudimos cargar tu constelación. Intenta de nuevo en un momento."
             }
             action={
               error === "session" ? (
                 <Link href="/" className="zm-box zm-btn zm-btn--primary">
                   Volver a entrar
+                </Link>
+              ) : error === "quiz" ? (
+                <Link href="/cuestionario" className="zm-box zm-btn zm-btn--primary">
+                  Ir al cuestionario
                 </Link>
               ) : (
                 <Button variant="secondary" icon="recenter" onClick={() => setAttempt((n) => n + 1)}>
