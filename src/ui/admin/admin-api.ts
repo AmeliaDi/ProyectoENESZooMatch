@@ -10,10 +10,13 @@ import {
   adminReportPageSchema,
   adminSessionSchema,
   adminUserPageSchema,
+  counterStateSchema,
   type AdminSessionDto,
   type AdminUser,
   type AdminUserAction,
+  type AdminUserFilter,
   type AdminUserPage,
+  type CounterMove,
   type ReportStatus,
 } from "@/contracts/admin";
 import { parseAdminMetrics, type AdminMetrics } from "@/contracts/admin-metrics";
@@ -69,11 +72,32 @@ const post = (body: unknown): RequestInit => ({
   body: JSON.stringify(body),
 });
 
+/**
+ * A facet list becomes a query string the console can also paste as a link.
+ * Only chosen facets travel and `soloAdmin` keeps the word the route expects;
+ * an untouched select is "todos", which is the absence of a parameter.
+ */
+function filterParams(filter: AdminUserFilter): Record<string, string> {
+  const wire: Record<string, string> = {};
+  if (filter.estado) wire.estado = filter.estado;
+  if (filter.pausado) wire.pausado = filter.pausado;
+  if (filter.sinAfinidad) wire.sinAfinidad = filter.sinAfinidad;
+  if (filter.soloAdmin) wire.soloAdmin = "si";
+  if (filter.mbti) wire.mbti = filter.mbti;
+  if (filter.orden) wire.orden = filter.orden;
+  if (filter.desde) wire.desde = filter.desde;
+  if (filter.hasta) wire.hasta = filter.hasta;
+  return wire;
+}
+
 export const adminApi = {
   session: () => call("/api/admin/session", readSession),
-  metrics: () => call<AdminMetrics>("/api/admin/metrics", parseAdminMetrics),
-  users: (q: string, page: number) =>
-    call(`/api/admin/users?${new URLSearchParams({ q, page: String(page) })}`, readUserPage),
+  metrics: (days?: number) =>
+    call<AdminMetrics>(days === undefined ? "/api/admin/metrics" : `/api/admin/metrics?${new URLSearchParams({ days: String(days) })}`, parseAdminMetrics),
+  /** One manual tally move; the answer is the value the base kept, and the one it replaced. */
+  counterMove: (move: CounterMove) => call("/api/admin/counters", using(counterStateSchema), post(move)),
+  users: (q: string, page: number, filter: AdminUserFilter = {}) =>
+    call(`/api/admin/users?${new URLSearchParams({ q, page: String(page), ...filterParams(filter) })}`, readUserPage),
   userAction: (id: string, action: AdminUserAction) =>
     call(`/api/admin/users/${encodeURIComponent(id)}`, (raw) => (raw && typeof raw === "object" ? raw : null), post({ action }), LONG_TIMEOUT_MS),
   reports: (status: ReportStatus, page: number) =>

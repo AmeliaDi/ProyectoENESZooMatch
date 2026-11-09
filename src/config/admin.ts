@@ -24,11 +24,23 @@ export const adminConfigSchema = z
     session: z.strictObject({ idleMinutes: positiveInt, maxMinutes: positiveInt }),
     addressGuard: z.strictObject({ limit: positiveInt, windowSeconds: positiveInt, lockSeconds: positiveInt }),
     users: z.strictObject({ pageSize: positiveInt.max(MAX_PAGE), searchMaxChars: positiveInt }),
+    /**
+     * Time windows the observatory offers. A request outside this list falls
+     * back to `defaultWindowDays` instead of reaching the database, so the
+     * `?days=` of a hand-typed URL never becomes an unbounded scan.
+     */
+    metrics: z.strictObject({
+      windowsDays: z.array(positiveInt.min(1).max(120)).min(1).max(4),
+      defaultWindowDays: positiveInt.max(120),
+    }),
     reports: z.strictObject({ pageSize: positiveInt.max(MAX_PAGE) }),
     audit: z.strictObject({ pageSize: positiveInt.max(MAX_PAGE) }),
   })
   .refine((c) => c.session.idleMinutes <= c.session.maxMinutes, {
     message: "session.idleMinutes must not exceed session.maxMinutes",
+  })
+  .refine((c) => c.metrics.windowsDays.includes(c.metrics.defaultWindowDays), {
+    message: "metrics.defaultWindowDays must be one of metrics.windowsDays",
   });
 
 export type AdminConfig = z.output<typeof adminConfigSchema>;

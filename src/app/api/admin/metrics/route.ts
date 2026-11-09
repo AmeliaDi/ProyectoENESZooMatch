@@ -1,11 +1,12 @@
 import { loadAdminMetrics } from "@/application/admin-metrics";
-import { adminRoute } from "@/infrastructure/admin/admin-route.server";
+import { adminRoute, daysParam } from "@/infrastructure/admin/admin-route.server";
 import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const handleGet = adminRoute((gate) => loadAdminMetrics(gate.context.metrics));
+/** `?days=7|30|90`; anything else reads the configured window. */
+const handleGet = adminRoute((gate, request) => loadAdminMetrics(gate.context.metrics, daysParam(request)));
 
 const methods = ["GET"] as const;
 

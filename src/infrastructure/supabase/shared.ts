@@ -47,6 +47,7 @@ export const RPC = {
   purgeChat: "purge_chat",
   applyRetention: "apply_retention_policy",
   adminListUsers: "admin_list_users",
+  adminBumpCounter: "admin_bump_counter",
   adminResetQuiz: "admin_reset_quiz",
   adminListReports: "admin_list_reports",
   adminReviewReport: "admin_review_report",

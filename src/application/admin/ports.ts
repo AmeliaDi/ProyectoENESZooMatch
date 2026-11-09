@@ -6,9 +6,12 @@
 import type {
   AdminAuditAction,
   AdminAuditPage,
+  AdminUserFilter,
   AdminReportPage,
   AdminUser,
   AdminUserPage,
+  CounterMove,
+  CounterState,
   ReportStatus,
 } from "@/contracts/admin";
 import type { IdentityDto } from "@/contracts/identity";
@@ -54,6 +57,8 @@ export interface UserQuery {
   search: string;
   limit: number;
   offset: number;
+  /** Facets already narrowed to the ones actually chosen (ADR-036 whitelist). */
+  filter: AdminUserFilter;
 }
 
 export interface AdminConsoleRepository {
@@ -69,6 +74,12 @@ export interface AdminConsoleRepository {
   setPaused(userId: string, paused: boolean): Promise<Result<void, StorageError>>;
   resetChatPin(userId: string): Promise<Result<boolean, StorageError>>;
   deleteAccount(userId: string): Promise<Result<void, StorageError>>;
+  /**
+   * One manual tally move. The stored function clamps at zero under a row
+   * lock and writes its own `counter_update` audit row, so the caller must
+   * not record a second one.
+   */
+  bumpCounter(adminId: string, move: CounterMove): Promise<Result<CounterState, StorageError>>;
   listReports(status: ReportStatus | null, limit: number, offset: number): Promise<Result<AdminReportPage, StorageError>>;
   reviewReport(adminId: string, reportId: string, status: Exclude<ReportStatus, "abierto">): Promise<Result<boolean, StorageError>>;
   recordAudit(entry: AuditEntryInput): Promise<Result<void, StorageError>>;

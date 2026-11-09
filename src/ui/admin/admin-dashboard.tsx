@@ -4,38 +4,41 @@
  * Admin observatory: the same Atlas system, sober. Aggregates only (no ids,
  * hashes, vectors or answers), and small cells are suppressed so a tiny pool
  * cannot be re-identified from the counts (k-anonymity floor from config).
+ *
+ * The window selector is the only knob that changes what the base computes:
+ * the value travels to `/api/admin/metrics`, which accepts only the windows
+ * listed in `ADMIN_CONFIG.metrics` and falls back to the default otherwise, so
+ * a hand-typed `?days=` can never widen the scan.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { EXPERIENCE, MATCHING_CONFIG } from "@/config";
-import type { AdminMetrics } from "@/contracts/admin-metrics";
+import { ADMIN_CONFIG, EXPERIENCE, MATCHING_CONFIG } from "@/config";
+import { emptyAdminMetrics, hasObservatory, type AdminMetrics, type HatchDelay } from "@/contracts/admin-metrics";
 import { Button } from "@/ui/kit/button";
 import { PixelNumber } from "@/ui/kit/pixel-number";
 import { EmptyState } from "@/ui/kit/states";
 import { Frame } from "@/ui/kit/surfaces";
 
 import { adminApi } from "./admin-api";
+import { CountTable } from "./count-table";
+import { CounterPanel } from "./counter-panel";
+import { K_FLOOR, publishable, safe, tooFewToBreakDown } from "./k-anon";
 import { MBTI_CODES, adminMetricsToCsv, trackCoverageRate } from "./metrics-export";
+import { PixelAudit } from "./pixel-audit";
 import { PixelBars } from "./pixel-bars";
+import { PixelComposition } from "./pixel-composition";
+import { PixelFunnel } from "./pixel-funnel";
+import { PixelHistogram } from "./pixel-histogram";
+import { PixelSeries } from "./pixel-series";
 
-const K_FLOOR = EXPERIENCE.admin.kAnonymity;
+const WINDOWS = ADMIN_CONFIG.metrics.windowsDays;
 
 function emptyMetrics(): AdminMetrics {
-  return {
-    generatedAt: new Date(0).toISOString(),
-    romanceThreshold: MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive,
-    amistadThreshold: MATCHING_CONFIG.tracks.amistad.minimum_similarity_exclusive,
-    totalProfiles: 0,
-    romanceMatches: 0,
-    amistadMatches: 0,
-    usersWithRomanceMatch: 0,
-    usersWithAmistadMatch: 0,
-    huevos: 0,
-    mbtiDistribution: {},
-    topAnimals: [],
-    topColors: [],
-  };
+  return emptyAdminMetrics(
+    MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive,
+    MATCHING_CONFIG.tracks.amistad.minimum_similarity_exclusive,
+  );
 }
 
 function utcStamp(value: string): string {
@@ -44,37 +47,22 @@ function utcStamp(value: string): string {
   return `${date.toISOString().slice(0, 16).replace("T", " ")} UTC`;
 }
 
-/** Counts under the k floor are shown as "< k" and plotted as zero. */
-function safe(count: number): { value: number; text: string } {
-  return count > 0 && count < K_FLOOR ? { value: 0, text: `< ${K_FLOOR}` } : { value: count, text: String(count) };
+/** Hours with one decimal: the RPC answers in hours, so no unit is invented here. */
+function hours(value: number | null): string {
+  return value === null ? "—" : `${value.toFixed(1)} h`;
 }
 
-function CountTable({ caption, rows }: { caption: string; rows: ReadonlyArray<{ label: string; count: number }> }) {
-  return (
-    <table className="zm-contrast-table zm-admin__table">
-      <caption className="zm-sr-only">{caption}</caption>
-      <thead>
-        <tr>
-          <th scope="col">{caption}</th>
-          <th scope="col">Perfiles</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.length === 0 ? (
-          <tr>
-            <td colSpan={2}>Sin datos agregados</td>
-          </tr>
-        ) : (
-          rows.map((row) => (
-            <tr key={row.label}>
-              <th scope="row">{row.label}</th>
-              <td>{safe(row.count).text}</td>
-            </tr>
-          ))
-        )}
-      </tbody>
-    </table>
-  );
+/**
+ * Time from alta to eclosión. Under the floor the quantile is not published at
+ * all: over three people a median is those three people's data, not a
+ * population's, so the sample size is guarded here and not only in the cells.
+ */
+export function delayText(delay: HatchDelay): string {
+  if (delay.muestra === 0) return "Sin eclosiones medidas todavía.";
+  if (!publishable(delay.muestra)) {
+    return `Muestra de ${delay.muestra}: bajo ${K_FLOOR} eclosionos no se publica la mediana.`;
+  }
+  return `Mediana ${hours(delay.medianaHoras)} · p75 ${hours(delay.p75Horas)} · muestra ${delay.muestra}.`;
 }
 
 /** Aggregates tab of the console; `onUnauthorized` sends back to the login. */
@@ -82,15 +70,18 @@ export function AdminDashboard({ onUnauthorized }: { onUnauthorized: () => void 
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [status, setStatus] = useState<"idle" | "refreshing" | "error">("refreshing");
   const [recomputing, setRecomputing] = useState(false);
+  const [days, setDays] = useState<number>(ADMIN_CONFIG.metrics.defaultWindowDays);
   const inFlight = useRef(false);
   const data = metrics ?? emptyMetrics();
+  const observatory = hasObservatory(data);
+  const tooFew = tooFewToBreakDown(data.totalProfiles);
 
   const refresh = useCallback(
-    async (silent = false) => {
+    async (windowDays: number, silent = false) => {
       if (inFlight.current) return;
       inFlight.current = true;
       if (!silent) setStatus("refreshing");
-      const result = await adminApi.metrics();
+      const result = await adminApi.metrics(windowDays);
       inFlight.current = false;
       if (!result.ok && result.reason === "unauthorized") return onUnauthorized();
       if (!result.ok) return setStatus("error");
@@ -100,16 +91,18 @@ export function AdminDashboard({ onUnauthorized }: { onUnauthorized: () => void 
     [onUnauthorized],
   );
 
+  // A new window re-runs this effect, which is how it gets read exactly like
+  // the first one was: one shot, then the visibility-aware poll.
   useEffect(() => {
-    const first = window.setTimeout(() => void refresh(false), 0);
+    const first = window.setTimeout(() => void refresh(days, false), 0);
     const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") void refresh(true);
+      if (document.visibilityState === "visible") void refresh(days, true);
     }, EXPERIENCE.admin.pollMs);
     return () => {
       window.clearTimeout(first);
       window.clearInterval(timer);
     };
-  }, [refresh]);
+  }, [days, refresh]);
 
   function downloadCsv() {
     if (!metrics) return;
@@ -128,19 +121,19 @@ export function AdminDashboard({ onUnauthorized }: { onUnauthorized: () => void 
     setRecomputing(false);
     if (!result.ok && result.reason === "unauthorized") return onUnauthorized();
     if (!result.ok) return setStatus("error");
-    await refresh(false);
+    await refresh(days, false);
   }
 
   const mbti = MBTI_CODES.map((code) => ({ label: code, count: data.mbtiDistribution[code] ?? 0 }));
   const animals = data.topAnimals.map((a) => ({ label: a.name, count: a.count }));
   const colors = data.topColors.map((c) => ({ label: c.name, count: c.count }));
-  const tooFew = data.totalProfiles > 0 && data.totalProfiles < K_FLOOR;
+  const hatch = publishable(data.eclosion.muestra);
 
   return (
       <div className="zm-admin__panel">
         <header className="zm-admin__head">
           <div className="zm-admin__actions">
-            <Button variant="secondary" icon="recenter" busy={status === "refreshing"} onClick={() => void refresh(false)}>
+            <Button variant="secondary" icon="recenter" busy={status === "refreshing"} onClick={() => void refresh(days, false)}>
               Refrescar
             </Button>
             <Button variant="secondary" icon="group" busy={recomputing} disabled={recomputing} onClick={() => void recompute()}>
@@ -150,8 +143,22 @@ export function AdminDashboard({ onUnauthorized }: { onUnauthorized: () => void 
               Exportar CSV
             </Button>
           </div>
+          <div className="zm-admin__windows" role="group" aria-label="Ventana de días del observatorio">
+            {WINDOWS.map((option) => (
+              <Button
+                key={option}
+                variant={option === days ? "primary" : "ghost"}
+                busy={option === days && status === "refreshing"}
+                onClick={() => setDays(option)}
+              >
+                {option} días
+              </Button>
+            ))}
+          </div>
           <p role="status" aria-live="polite" className="zm-detail__muted">
-            {status === "error" ? "Lectura interrumpida; se conserva el último agregado." : `Última lectura · ${utcStamp(data.generatedAt)}`}
+            {status === "error"
+              ? "Lectura interrumpida; se conserva el último agregado."
+              : `Última lectura · ${utcStamp(data.generatedAt)} · ventana pedida: ${days} días`}
           </p>
         </header>
 
@@ -192,6 +199,83 @@ export function AdminDashboard({ onUnauthorized }: { onUnauthorized: () => void 
             </p>
           </Frame>
         </div>
+
+        {observatory ? (
+          <>
+            {/* The two rows the base seeds, so an absent list means "not served", not "nobody". */}
+            <CounterPanel
+              counters={data.contadores}
+              eclosionados={data.embudo.eclosionados}
+              onChanged={() => void refresh(days, true)}
+              onUnauthorized={onUnauthorized}
+            />
+
+            <Frame title="Evolución diaria" coord={`${data.ventanaDias}d`}>
+              <PixelSeries points={data.series} desde={data.desde} hasta={data.hasta} />
+            </Frame>
+
+            <div className="zm-admin__grid">
+              <Frame title="Embudo de participación" coord="%">
+                <PixelFunnel funnel={data.embudo} />
+              </Frame>
+              <Frame title="Tiempo hasta eclosionar" coord="h">
+                <p className="zm-detail__muted">Horas entre el alta y la identidad fijada, sobre las cuentas vivas.</p>
+                <p className="zm-detail__muted">{delayText(data.eclosion)}</p>
+                <CountTable
+                  caption="Eclosión"
+                  rows={[
+                    { label: "Mediana (h)", count: hatch ? Math.round(data.eclosion.medianaHoras ?? 0) : 0 },
+                    { label: "p75 (h)", count: hatch ? Math.round(data.eclosion.p75Horas ?? 0) : 0 },
+                    { label: "Muestra", count: data.eclosion.muestra },
+                  ]}
+                />
+              </Frame>
+            </div>
+
+            <div className="zm-admin__grid">
+              <Frame title="Calidad del romance" coord="z">
+                <p className="zm-detail__muted">
+                  <span className="zm-num">{data.matching.romance.conAfinidad}</span> personas con al menos una
+                  afinidad de romance; <span className="zm-num">{data.matching.romance.aislados}</span> presentes sin
+                  ninguna.
+                </p>
+                <PixelHistogram
+                  track={data.matching.romance}
+                  threshold={data.romanceThreshold}
+                  reference={data.referencias.romance}
+                  tone="romance"
+                />
+              </Frame>
+              <Frame title="Calidad de la amistad" coord="z">
+                <p className="zm-detail__muted">
+                  <span className="zm-num">{data.matching.amistad.conAfinidad}</span> personas con al menos una
+                  afinidad de amistad; <span className="zm-num">{data.matching.amistad.aislados}</span> presentes sin
+                  ninguna.
+                </p>
+                <PixelHistogram
+                  track={data.matching.amistad}
+                  threshold={data.amistadThreshold}
+                  reference={data.referencias.amistad}
+                  tone="amistad"
+                />
+              </Frame>
+            </div>
+
+            <div className="zm-admin__grid">
+              <Frame title="Composición del cielo" coord="n">
+                <PixelComposition composition={data.composicion} />
+              </Frame>
+              <Frame title="Actividad de administración" coord="a">
+                <PixelAudit summary={data.auditoria} />
+              </Frame>
+            </div>
+          </>
+        ) : (
+          <p className="zm-box zm-quiz__note" role="note">
+            Esta lectura no trae el observatorio ampliado: la base respondió solo los dos umbrales, así que no hay
+            serie, embudo ni calidad por pista.
+          </p>
+        )}
 
         {tooFew ? null : (
           <div className="zm-admin__grid">

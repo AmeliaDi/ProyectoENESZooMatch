@@ -153,11 +153,17 @@ export function supabaseAdminRepository(session: SupabaseClient): AdminRepositor
       return Boolean(res && !res.error && res.data?.role === "admin");
     },
 
-    async loadDashboard(thresholds) {
+    // Five arguments, no defaults on the new overload: PostgREST picks this
+    // function by arity, so the two-argument panel read keeps answering while
+    // the observatory is still being deployed.
+    async loadDashboard(args) {
       const res = await attempt(() =>
         session.rpc(RPC.dashboard, {
-          p_romance_threshold: thresholds.romance,
-          p_amistad_threshold: thresholds.amistad,
+          p_romance_threshold: args.romance,
+          p_amistad_threshold: args.amistad,
+          p_romance_reference: args.romanceReference,
+          p_amistad_reference: args.amistadReference,
+          p_window_days: args.windowDays,
         }),
       );
       return res && !res.error ? ok(res.data as unknown) : failed;

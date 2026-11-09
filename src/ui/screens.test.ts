@@ -267,7 +267,8 @@ describe("admin console helpers (ADR-036)", () => {
       revelacionVista: false,
       huevitoSeed: null,
     },
-    createdAt: "2026-11-01T00:00:00.000Z", quizCompletedAt: null, paused: false, adult: false, modules: 0,
+    createdAt: "2026-11-01T00:00:00.000Z", quizCompletedAt: null, eclosionadoEn: null, eliminadoEn: null,
+    paused: false, adult: false, modules: 0,
     isAdmin: false, hasChatPin: false, romanceMatches: 0, amistadMatches: 0, conversations: 0, reportsReceived: 0,
   };
 

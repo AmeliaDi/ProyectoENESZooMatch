@@ -11,6 +11,7 @@
   },
   "addressGuard": { "limit": 20, "windowSeconds": 900, "lockSeconds": 900 },
   "users": { "pageSize": 25, "searchMaxChars": 40 },
+  "metrics": { "windowsDays": [7, 30, 90], "defaultWindowDays": 30 },
   "reports": { "pageSize": 25 },
   "audit": { "pageSize": 50 }
 }

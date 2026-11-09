@@ -1,13 +1,22 @@
 import { listUsers } from "@/application/admin";
-import { adminRoute, pageParam } from "@/infrastructure/admin/admin-route.server";
+import { adminRoute, pageParam, userFilterParam } from "@/infrastructure/admin/admin-route.server";
 import { createPreflightHandler, withApiSecurity } from "@/infrastructure/security/api.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** `?q=<alias>&page=<n>` → one page of accounts (no matrícula, hash or answers). */
+/**
+ * `?q=<alias>&page=<n>` plus the facets (`estado`, `pausado`, `sinAfinidad`,
+ * `soloAdmin=si`, `mbti`, `orden`, `desde`, `hasta`) → one page of accounts.
+ * No matrícula, hash, answers or vectors on any of them.
+ */
 const handleGet = adminRoute((gate, request) =>
-  listUsers(new URL(request.url).searchParams.get("q") ?? "", pageParam(request), gate.context.deps),
+  listUsers(
+    new URL(request.url).searchParams.get("q") ?? "",
+    pageParam(request),
+    userFilterParam(request),
+    gate.context.deps,
+  ),
 );
 
 const methods = ["GET"] as const;

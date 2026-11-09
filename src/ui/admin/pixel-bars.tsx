@@ -9,6 +9,9 @@ export interface BarDatum {
   value: number;
 }
 
+/** The three tones the console uses; every other colour would break the palette guard. */
+export type BarTone = "neutral" | "romance" | "amistad";
+
 const CELLS = 24;
 
 export function cellsFor(value: number, max: number, cells = CELLS): number {
@@ -16,7 +19,7 @@ export function cellsFor(value: number, max: number, cells = CELLS): number {
   return Math.max(1, Math.round((value / max) * cells));
 }
 
-export function PixelBars({ data, tone = "neutral" }: { data: readonly BarDatum[]; tone?: "neutral" | "romance" | "amistad" }) {
+export function PixelBars({ data, tone = "neutral" }: { data: readonly BarDatum[]; tone?: BarTone }) {
   const max = Math.max(0, ...data.map((d) => d.value));
   return (
     <ul className="zm-bars" data-tone={tone} aria-hidden="true">

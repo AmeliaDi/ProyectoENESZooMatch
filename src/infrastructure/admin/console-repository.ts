@@ -2,6 +2,8 @@
  * Supabase adapter of `AdminConsoleRepository` (service role). Reached only
  * after `requireAdmin` (or by the login use case). `pin_hash`/`salt` never
  * leave this file; listings come from RPCs that omit hashes, answers and θ.
+ * `admin_bump_counter` is the exception to "the console never writes": it is
+ * the only tally a person can move by hand, and the base clamps and audits it.
  */
 import { timingSafeEqual } from "node:crypto";
 
@@ -10,7 +12,7 @@ import { z } from "zod";
 
 import type { AdminAttempts, AdminConsoleRepository, AuditEntryInput } from "@/application/admin";
 import { toIdentityDto } from "@/application/identity-dto";
-import { adminAuditEntrySchema, adminReportPageSchema, adminUserPageSchema } from "@/contracts/admin";
+import { adminAuditEntrySchema, adminReportPageSchema, adminUserPageSchema, counterStateSchema, type AdminUserFilter } from "@/contracts/admin";
 import { ok } from "@/domain/shared";
 import { hashMatricula } from "@/infrastructure/auth/identity.server";
 import { RPC, TABLE, attempt, failed } from "@/infrastructure/supabase/shared";
@@ -70,6 +72,25 @@ function auditRow(entry: AuditEntryInput) {
     target_alias: entry.targetAlias ?? null,
     detail: entry.detail ?? {},
   };
+}
+
+/**
+ * The facets of the people list as the stored function expects them: only the
+ * ones actually chosen travel, and `soloAdmin` becomes the word the SQL
+ * whitelist compares against. Nothing here is interpreted — the base owns the
+ * meaning of every value and ignores any it does not recognise.
+ */
+function filterWire(filter: AdminUserFilter): Record<string, string> {
+  const wire: Record<string, string> = {};
+  if (filter.estado) wire.estado = filter.estado;
+  if (filter.pausado) wire.pausado = filter.pausado;
+  if (filter.sinAfinidad) wire.sinAfinidad = filter.sinAfinidad;
+  if (filter.soloAdmin) wire.soloAdmin = "si";
+  if (filter.mbti) wire.mbti = filter.mbti;
+  if (filter.orden) wire.orden = filter.orden;
+  if (filter.desde) wire.desde = filter.desde;
+  if (filter.hasta) wire.hasta = filter.hasta;
+  return wire;
 }
 
 function account(admin: SupabaseClient, secret: string): Pick<AdminConsoleRepository, "findAccount" | "isAdmin"> {
@@ -141,19 +162,27 @@ function credentials(admin: SupabaseClient): Pick<AdminConsoleRepository, "findC
 }
 
 function users(admin: SupabaseClient): Pick<AdminConsoleRepository, "listUsers" | "findUser" | "resetQuiz" | "setPaused" | "resetChatPin" | "deleteAccount"> {
-  const page = async (search: string, user: string | null, limit: number, offset: number) => {
-    const res = await attempt(() => admin.rpc(RPC.adminListUsers, { p_search: search, p_user: user, p_limit: limit, p_offset: offset }));
+  const page = async (search: string, user: string | null, limit: number, offset: number, filter: AdminUserFilter) => {
+    const res = await attempt(() =>
+      admin.rpc(RPC.adminListUsers, {
+        p_search: search,
+        p_user: user,
+        p_limit: limit,
+        p_offset: offset,
+        p_filter: filterWire(filter),
+      }),
+    );
     if (!res || res.error) return null;
     const parsed = adminUserPageSchema.safeParse(res.data);
     return parsed.success ? parsed.data : null;
   };
   return {
-    async listUsers({ search, limit, offset }) {
-      const found = await page(search, null, limit, offset);
+    async listUsers({ search, limit, offset, filter }) {
+      const found = await page(search, null, limit, offset, filter);
       return found ? ok(found) : failed;
     },
     async findUser(userId) {
-      const found = await page("", userId, 1, 0);
+      const found = await page("", userId, 1, 0, {});
       return found ? ok(found.users[0] ?? null) : failed;
     },
     async resetQuiz(userId) {
@@ -210,6 +239,31 @@ function moderation(admin: SupabaseClient): Pick<AdminConsoleRepository, "listRe
   };
 }
 
+/**
+ * The manual tallies. `p_delta` and `p_set` are sent as `null` when unused:
+ * the stored function insists on exactly one of the two, and an absent key
+ * would reach it as the same null anyway.
+ */
+function counters(admin: SupabaseClient): Pick<AdminConsoleRepository, "bumpCounter"> {
+  return {
+    async bumpCounter(adminId, move) {
+      const res = await attempt(() =>
+        admin.rpc(RPC.adminBumpCounter, {
+          p_key: move.key,
+          p_admin: adminId,
+          p_delta: move.delta ?? null,
+          p_set: move.set ?? null,
+        }),
+      );
+      // A refusal (`bad counter key`, `delta out of range`) is an error from
+      // the base, so it arrives as `failed`; only a real row is a result.
+      if (!res || res.error) return failed;
+      const row = counterStateSchema.safeParse(res.data);
+      return row.success ? ok(row.data) : failed;
+    },
+  };
+}
+
 export function supabaseAdminConsoleRepository(admin: SupabaseClient, secret: string): AdminConsoleRepository {
-  return { ...account(admin, secret), ...credentials(admin), ...users(admin), ...moderation(admin) };
+  return { ...account(admin, secret), ...credentials(admin), ...users(admin), ...moderation(admin), ...counters(admin) };
 }

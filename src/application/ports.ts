@@ -197,9 +197,18 @@ export interface NotificationRepository {
 
 export interface AdminRepository {
   isAdmin(userId: string): Promise<boolean>;
-  loadDashboard(thresholds: {
+  /**
+   * The observatory payload. The thresholds are where a match starts and the
+   * references are the similarity of the best candidate anybody has; together
+   * they turn a raw similarity into the 0…1 axis the histograms are built on.
+   * `windowDays` bounds the daily series and the audit summary.
+   */
+  loadDashboard(args: {
     romance: number;
     amistad: number;
+    romanceReference: number;
+    amistadReference: number;
+    windowDays: number;
   }): Promise<Result<unknown, StorageError>>;
 }
 

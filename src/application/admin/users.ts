@@ -4,7 +4,7 @@
  * Actions that change the pool republish the shared match set right away.
  */
 import { ADMIN_CONFIG } from "@/config";
-import type { AdminAuditAction, AdminAuditPage, AdminReportPage, AdminUserAction, AdminUserPage, ReportStatus } from "@/contracts/admin";
+import { adminUserFilterSchema, type AdminAuditAction, type AdminAuditPage, type AdminReportPage, type AdminUserAction, type AdminUserFilter, type AdminUserPage, type ReportStatus } from "@/contracts/admin";
 import { err, ok, type Result } from "@/domain/shared";
 
 import type { AppError } from "../errors";
@@ -29,10 +29,39 @@ const CHANGES_POOL: ReadonlySet<AdminUserAction> = new Set(["reset_quiz", "pause
 
 const clampPage = (page: number) => Math.max(0, Math.floor(page));
 
-export function listUsers(search: string, page: number, deps: Pick<AdminDeps, "console">): Promise<Result<AdminUserPage, AppError>> {
+/**
+ * Only the facets somebody actually chose. An untouched `<select>` arrives as
+ * an empty string and means "todos", so it must not travel as a filter; the
+ * parse at the end keeps the result inside the whitelist, so a facet out of
+ * range here is a programming error and not a query.
+ */
+export function chosenFilter(filter: AdminUserFilter): AdminUserFilter {
+  const picked: Record<string, string | boolean> = {};
+  if (filter.estado) picked.estado = filter.estado;
+  if (filter.pausado) picked.pausado = filter.pausado;
+  if (filter.sinAfinidad) picked.sinAfinidad = filter.sinAfinidad;
+  if (filter.soloAdmin) picked.soloAdmin = true;
+  if (filter.mbti) picked.mbti = filter.mbti.toUpperCase();
+  if (filter.orden) picked.orden = filter.orden;
+  if (filter.desde) picked.desde = filter.desde;
+  if (filter.hasta) picked.hasta = filter.hasta;
+  return adminUserFilterSchema.parse(picked);
+}
+
+export function listUsers(
+  search: string,
+  page: number,
+  filter: AdminUserFilter,
+  deps: Pick<AdminDeps, "console">,
+): Promise<Result<AdminUserPage, AppError>> {
   const limit = ADMIN_CONFIG.users.pageSize;
   const text = search.trim().slice(0, ADMIN_CONFIG.users.searchMaxChars);
-  return deps.console.listUsers({ search: text, limit, offset: clampPage(page) * limit });
+  return deps.console.listUsers({
+    search: text,
+    limit,
+    offset: clampPage(page) * limit,
+    filter: chosenFilter(filter),
+  });
 }
 
 async function apply(action: AdminUserAction, userId: string, deps: AdminDeps): Promise<Result<void, AppError>> {

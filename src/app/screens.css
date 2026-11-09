@@ -465,6 +465,103 @@
 .zm-admin__sub { margin: 0; font-size: 0.875rem; }
 .zm-admin__snapshot { display: grid; gap: calc(var(--zm-px) * 3); margin: 0; padding-left: calc(var(--zm-px) * 8); }
 .zm-admin__body { margin: 0; font-family: var(--font-read); overflow-wrap: anywhere; white-space: pre-wrap; }
+
+/* ─── Observatorio ampliado ───────────────────────────────────────────
+ * Every chart here is a pixel grid: an integer viewBox in logical pixels,
+ * `--zm-grid` for the empty cell and a theme token for the filled one, and
+ * sizes that are multiples of `--zm-px`. Nothing is rounded and nothing is
+ * blurred: a bar is a row of squares, and the table under it is the same
+ * count in words.
+ */
+
+/* The window knob: which days the base was asked to compute. */
+.zm-admin__windows { display: flex; flex-wrap: wrap; gap: calc(var(--zm-px) * 2); }
+
+/* Daily pulse: five strips share one day axis, each scaled to its own best day. */
+.zm-series { display: grid; gap: calc(var(--zm-px) * 4); }
+.zm-series__list { display: grid; gap: calc(var(--zm-px) * 3); margin: 0; padding: 0; list-style: none; }
+.zm-series__row { display: grid; grid-template-columns: 6.5rem 1fr 3rem; align-items: center; gap: calc(var(--zm-px) * 4); font-size: 0.8125rem; }
+.zm-series__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zm-series__strip { width: 100%; height: calc(var(--zm-px) * 8); }
+.zm-series__strip rect { fill: var(--zm-grid); }
+.zm-series__strip[data-tone="altas"] rect { fill: var(--zm-fg); }
+.zm-series__strip[data-tone="encuestas"] rect { fill: var(--zm-amistad); }
+.zm-series__strip[data-tone="eclosiones"] rect { fill: var(--zm-gold); }
+.zm-series__strip[data-tone="pausas"] rect { fill: var(--zm-star); }
+.zm-series__strip[data-tone="bajas"] rect { fill: var(--zm-danger); }
+.zm-series__total { font-family: var(--font-read); font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* Participation funnel: one 20-cell track per step. */
+.zm-funnel { display: grid; gap: calc(var(--zm-px) * 4); }
+.zm-funnel__list { display: grid; gap: calc(var(--zm-px) * 3); margin: 0; padding: 0; list-style: none; }
+.zm-funnel__row { display: grid; grid-template-columns: minmax(6rem, 12rem) 1fr auto auto auto; align-items: center; gap: calc(var(--zm-px) * 3); font-size: 0.8125rem; }
+.zm-funnel__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zm-funnel__track { width: 100%; height: calc(var(--zm-px) * 4); }
+.zm-funnel__track rect { fill: var(--zm-grid); }
+.zm-funnel__track rect[data-on="true"] { fill: var(--zm-fg); }
+.zm-funnel__count, .zm-funnel__share, .zm-funnel__step { font-family: var(--font-read); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.zm-funnel__count { font-weight: 700; }
+.zm-funnel__share, .zm-funnel__step { color: var(--zm-fg-muted); }
+.zm-funnel__branches { margin: 0; font-size: 0.875rem; }
+
+/* Histogram over the normalized axis: 14 columns of 5 stacked cells. */
+.zm-hist { display: grid; gap: calc(var(--zm-px) * 3); }
+.zm-hist__plot { width: 100%; height: calc(var(--zm-px) * 10); }
+.zm-hist__plot rect { fill: var(--zm-grid); }
+.zm-hist__plot[data-tone="romance"] rect[data-on="true"] { fill: var(--zm-romance); }
+.zm-hist__plot[data-tone="amistad"] rect[data-on="true"] { fill: var(--zm-amistad); }
+/* One tick per column, in the same order the plot draws them. */
+.zm-hist__ticks { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 0; padding: 0; list-style: none; }
+.zm-hist__tick { overflow: hidden; white-space: nowrap; font-size: 0.5625rem; text-align: center; color: var(--zm-fg-muted); }
+.zm-hist__tick[data-tick="umbral"], .zm-hist__tick[data-tick="referencia"] { color: var(--zm-fg); font-weight: 700; }
+
+/* Composition of the sky: three sections that share the bar row. */
+.zm-composition { display: grid; gap: calc(var(--zm-px) * 6); }
+.zm-composition__section { display: grid; gap: calc(var(--zm-px) * 3); }
+
+/* The hand-kept gold tallies. */
+.zm-counter { display: grid; gap: calc(var(--zm-px) * 8); }
+@media (min-width: 900px) { .zm-counter { grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); } }
+/* `min-width: 0` so a five-figure tally cannot widen its own column. */
+.zm-counter__cell { min-width: 0; }
+.zm-counter__figure { display: flex; margin: 0; line-height: 1; }
+
+/* Administrative activity, counted by action and not by person. */
+.zm-audit { display: grid; gap: calc(var(--zm-px) * 4); }
+
+/* Facets of the people list: same stepped box as a field, so a select and a
+   date read as one row of controls. */
+.zm-admin__facets { display: grid; gap: calc(var(--zm-px) * 3); }
+.zm-admin__facetgrid { display: grid; gap: calc(var(--zm-px) * 4); align-items: end; }
+@media (min-width: 720px) { .zm-admin__facetgrid { grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); } }
+.zm-admin__facet { display: grid; gap: calc(var(--zm-px) * 2); }
+.zm-admin__select {
+  width: 100%;
+  min-height: var(--zm-touch);
+  padding: 0 calc(var(--zm-px) * 4);
+  border: 0;
+  background: transparent;
+  color: var(--zm-fg);
+  font-family: var(--font-read);
+  font-size: 0.875rem;
+}
+.zm-admin__facetfoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: calc(var(--zm-px) * 4); }
+
+/* A header is a button: the mark is the direction it will produce, not a colour. */
+.zm-admin__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--zm-px) * 2);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.zm-admin__sortmark { font-family: var(--font-pixel); font-size: 0.625rem; color: var(--zm-fg-muted); }
+th[aria-sort]:not([aria-sort="none"]) .zm-admin__sortmark { color: var(--zm-fg); }
 .zm-bars { display: grid; gap: calc(var(--zm-px) * 3); margin: 0; padding: 0; list-style: none; }
 .zm-bars__row { display: grid; grid-template-columns: 7rem 1fr 3rem; align-items: center; gap: calc(var(--zm-px) * 4); font-size: 0.8125rem; }
 .zm-bars__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

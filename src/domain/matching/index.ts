@@ -20,4 +20,4 @@ export {
   type MatchBadge,
   type PoolEntry,
 } from "./compute-matches";
-export { getAmistadThreshold, getMatchingConfig, getRomanceThreshold } from "./config";
+export { getAmistadReference, getAmistadThreshold, getMatchingConfig, getRomanceReference, getRomanceThreshold } from "./config";

@@ -7,6 +7,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { ADMIN_AUDIT_ACTIONS } from "@/contracts/admin";
 import { FRIENDSHIP_VECTOR_LENGTH, QUIZ_MODULE_IDS, ROMANCE_VECTOR_LENGTH } from "@/types/microtest";
 import { SHARE_LAYER_IDS } from "@/types/sharing";
 
@@ -68,6 +69,8 @@ const QUIZZES_MIGRATION = "20261120000000_quizzes.sql";
 const QUIZZES_SQL = readFileSync(resolve(MIGRATIONS_DIR, QUIZZES_MIGRATION), "utf8");
 const QUIZZES_TABLES = ["quiz_attempts", "quiz_answers", "quiz_sharing", "quiz_picante_consent"] as const;
 const QUIZZES_RPCS = ["quiz_coincidencias"] as const;
+const OBSERVATORY_MIGRATION = "20261121000000_admin_observatorio.sql";
+const OBS_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, OBSERVATORY_MIGRATION), "utf8"));
 
 describe("base migration", () => {
   it("is the base plus the idempotent incremental migrations", () => {
@@ -88,6 +91,7 @@ describe("base migration", () => {
       IDENTITY_DROP_MIGRATION,
       SOFT_DELETE_MIGRATION,
       QUIZZES_MIGRATION,
+      OBSERVATORY_MIGRATION,
     ]);
   });
 
@@ -106,8 +110,11 @@ describe("base migration", () => {
   });
 
   it("defines every RPC and table the adapters call", () => {
+    // The observatory adds its own functions, so a name counts as defined in
+    // either file; which one is checked by the tests that read each migration.
+    const defined = new Set([...PUBLIC_FUNCTIONS.keys(), ...publicFunctionsOf(OBS_SQL).map(([name]) => name)]);
     for (const name of Object.values(RPC)) {
-      expect(PUBLIC_FUNCTIONS.has(name), `missing RPC ${name}`).toBe(true);
+      expect(defined.has(name), `missing RPC ${name}`).toBe(true);
     }
     // Exclude quiz tables - they're in a separate migration
     const nonQuizTables = Object.values(TABLE).filter((name) => !name.startsWith("quiz_"));
@@ -795,5 +802,202 @@ describe("identity single source migration", () => {
     );
     expect(IDENTITY_SQL).toContain("CREATE UNIQUE INDEX IF NOT EXISTS notifications_identity_unique_idx");
     expect(IDENTITY_SQL).toContain("ON public.notifications (user_id) WHERE type = 'identity'");
+  });
+});
+
+describe("admin observatory migration (ADR-036)", () => {
+  /** SQL with comments and layout removed, so formatting cannot break a compare. */
+  const code = (sql: string) =>
+    sql
+      .replace(/--[^\n]*/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/\s*([(),])\s*/g, "$1")
+      .replace(/\s*([-+*/=<>])\s*/g, "$1");
+  const bodyOf = (sql: string, name: string) =>
+    lf(sql).match(new RegExp(`CREATE OR REPLACE FUNCTION (?:public|private)\\.${name}\\([\\s\\S]*?\\n\\$\\$;`))?.[0] ?? "";
+  const counters = lf(OBS_SQL).match(/CREATE TABLE IF NOT EXISTS public\.admin_counters \(([\s\S]*?)\n\);/)?.[1] ?? "";
+  const live = bodyOf(OBS_SQL, "live_pairs");
+  const isoDate = bodyOf(OBS_SQL, "admin_iso_date");
+  const bump = bodyOf(OBS_SQL, "admin_bump_counter");
+  const dashboard = bodyOf(OBS_SQL, "get_admin_dashboard");
+  const list = bodyOf(OBS_SQL, "admin_list_users");
+  /** The legacy `RETURN jsonb_build_object(...)`, up to the last pre-existing field. */
+  const legacyReturn = (sql: string) => code(sql).match(/RETURN jsonb_build_object\([\s\S]*?\),'?\{\}'/)?.[0] ?? "";
+
+  it("declares itself idempotent, runs in one transaction and keeps the deployed console reading", () => {
+    expect(OBS_SQL.slice(0, 2000)).toMatch(/idempotent/i);
+    expect(OBS_SQL).toMatch(/^BEGIN;/m);
+    expect(OBS_SQL).toMatch(/^COMMIT;/m);
+    expect(OBS_SQL).toContain("CREATE TABLE IF NOT EXISTS public.admin_counters");
+    expect(OBS_SQL).toContain("ON CONFLICT (key) DO NOTHING");
+    expect(OBS_SQL).toContain("DROP CONSTRAINT IF EXISTS admin_audit_action_check");
+    // Nothing is dropped, including the two old signatures: the console that is
+    // deployed today still calls the 2-argument dashboard and the 4-argument
+    // list, and both new versions demand every parameter (no DEFAULT), so
+    // PostgREST resolves the overload by arity and never has to guess.
+    expect(OBS_SQL).not.toMatch(/\b(DROP TABLE|TRUNCATE|DELETE FROM|DROP FUNCTION)\b/);
+    expect(OBS_SQL).toContain("p_window_days INTEGER\n)");
+    expect(OBS_SQL).toContain("p_filter JSONB\n)");
+  });
+
+  it("measures what it claims to have measured before the change", () => {
+    // The numbers in the header are the reason the axis is normalized: they are
+    // quoted so the next reader can check the design against the real pool.
+    expect(OBS_SQL).toContain("similitud entre 0.4699 y 0.6663");
+    expect(OBS_SQL).toContain("k = 5");
+    // Language modes are a four-cell split next to gender over 221 people: k = 5
+    // cannot protect them, so they stay out of the console entirely.
+    expect(OBS_SQL).toContain("Los modos de lenguaje (`inclusive_mode`) se excluyen a");
+    for (const sql of [dashboard, list, bump, live]) expect(sql).not.toContain("inclusive_mode");
+  });
+
+  it("keeps the manual counters server-only and impossible to negative", () => {
+    expect(counters).toContain("value INTEGER NOT NULL DEFAULT 0 CHECK (value >= 0)");
+    expect(counters).toContain(`key TEXT PRIMARY KEY CHECK (key ~ '^[a-z][a-z0-9_]{1,31}$')`);
+    expect(counters).toContain("updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL");
+    expect(OBS_SQL).toContain("ALTER TABLE public.admin_counters ENABLE ROW LEVEL SECURITY;");
+    expect(OBS_SQL).not.toMatch(/CREATE POLICY \w+ ON public\.admin_counters\b/);
+    expect(OBS_SQL).toContain("REVOKE ALL ON public.admin_counters FROM PUBLIC, anon, authenticated;");
+  });
+
+  it("audits every counter write, clamps at zero and refuses a silent half-call", () => {
+    expect(bump).toContain("PERFORM private.assert_service_role();");
+    expect(bump).toContain("SECURITY DEFINER");
+    expect(bump).toContain("SET search_path = ''");
+    for (const action of ADMIN_AUDIT_ACTIONS) expect(OBS_SQL, action).toContain(`'${action}'`);
+    expect(bump).toContain("INSERT INTO public.admin_audit");
+    expect(bump).toContain("'counter_update',");
+    // Atomic under two sessions, and the floor is the database's, not the UI's.
+    expect(bump).toContain("WHERE key = p_key FOR UPDATE");
+    expect(bump).toContain("v_after := GREATEST(0, v_before + p_delta)");
+    expect(bump).toContain("abs(p_delta) > 100");
+    expect(bump).toContain("p_set > 100000");
+    expect(bump).toContain("(p_delta IS NULL AND p_set IS NULL) OR (p_delta IS NOT NULL AND p_set IS NOT NULL)");
+    expect(bump.match(/ERRCODE = '22023'/g)?.length).toBe(4);
+    expect(bump).toContain("RETURN jsonb_build_object('key', p_key, 'value', v_after, 'antes', v_before);");
+    for (const secret of ["matricula", "pin_hash", "latent_profile", "romance_vector"]) expect(bump, secret).not.toContain(secret);
+  });
+
+  it("defines a live pair once, so counts, percentiles and bins speak of the same rows", () => {
+    expect(live).toContain("RETURNS TABLE (a UUID, b UUID, sim DOUBLE PRECISION)");
+    expect(live).toContain("AND NOT EXISTS (");
+    expect(live).toContain("x.eliminado_en IS NOT NULL");
+    expect(OBS_SQL).toContain("REVOKE ALL ON FUNCTION private.live_pairs(TEXT) FROM PUBLIC, anon, authenticated;");
+    // The only direct reads of `matches` left in the dashboard are the six that
+    // already existed; every new metric goes through the live-pair view.
+    expect(dashboard.match(/FROM public\.matches/g)?.length).toBe(6);
+    expect(dashboard.match(/private\.live_pairs\(/g)?.length).toBe(22);
+    expect(list.match(/private\.live_pairs\(/g)?.length).toBe(2);
+  });
+
+  it("normalizes similarity against the track's own calibration on one shared axis", () => {
+    expect(dashboard).toContain("v_width CONSTANT DOUBLE PRECISION := 0.25;");
+    for (const track of ["romance", "amistad"]) {
+      expect(
+        code(dashboard),
+        track,
+      ).toContain(
+        `floor((l.sim-p_${track}_threshold)/NULLIF(p_${track}_reference-p_${track}_threshold,0)/v_width)::int`,
+      );
+      expect(dashboard, track).toContain(`FROM private.live_pairs('${track}') AS l`);
+    }
+    // 12 boxes of 0.25 up to z = 3; a taller bar is counted, never drawn as its own box.
+    expect(dashboard.match(/WHERE b\.i >= 0 AND b\.i < 12/g)?.length).toBe(2);
+    expect(dashboard.match(/::int >= 12/g)?.length).toBe(2);
+    // Below the cut the row is not a bin either, so the histogram cannot lie.
+    expect(dashboard.match(/WHERE l\.sim < p_romance_threshold|WHERE l\.sim < p_amistad_threshold/g)?.length).toBe(2);
+  });
+
+  it("keeps every already published dashboard field byte-identical", () => {
+    // Layout aside, the legacy half of the RETURN is the same text the identity
+    // migration shipped: `totalProfiles` still ignores soft deletes, the top
+    // lists still group by stored id, and the counts still include dead pairs.
+    expect(legacyReturn(dashboard)).toBe(legacyReturn(bodyOf(IDENTITY_SQL, "get_admin_dashboard")));
+    // Guard against a vacuous pass: the slice has to be the legacy block, not "".
+    expect(legacyReturn(dashboard).length).toBeGreaterThan(1200);
+    expect(dashboard).toContain("'presentes', (SELECT count(*) FROM public.profiles AS p");
+    expect(dashboard).toContain("p.quiz_completed_at IS NOT NULL AND p.paused_at IS NULL AND p.eliminado_en IS NULL");
+  });
+
+  it("adds the observatory sections the panels read", () => {
+    for (const key of ["'referencias'", "'ventanaDias'", "'desde'", "'hasta'", "'series'", "'embudo'", "'eclosion'", "'matching'", "'composicion'", "'contadores'", "'auditoria'"]) {
+      expect(dashboard, key).toContain(key);
+    }
+    for (const day of ["'day'", "'altas'", "'encuestas'", "'eclosiones'", "'pausas'", "'bajas'"]) expect(dashboard, day).toContain(day);
+    for (const step of ["'registradas'", "'conEncuesta'", "'eclosionados'", "'presentes'", "'conRomance'", "'conAmistad'"]) {
+      expect(dashboard, step).toContain(step);
+    }
+    for (const stat of ["'filas'", "'conAfinidad'", "'aislados'", "'media'", "'p50'", "'p90'", "'max'", "'bajoUmbral'", "'bins'", "'sobreEje'"]) {
+      expect(dashboard, stat).toContain(stat);
+    }
+    for (const part of ["'eneagrama'", "'marcas'", "'modulos'", "'medianaHoras'", "'p75Horas'", "'muestra'", "'porAccion'", "'porDia'"]) {
+      expect(dashboard, part).toContain(part);
+    }
+    for (const cell of ["'key'", "'value'", "'actualizadoEn'", "'actualizadoPor'"]) expect(dashboard, cell).toContain(cell);
+    // Day buckets are UTC no matter what the server is set to, and the clamp
+    // that sizes the window is written once.
+    expect(dashboard).toContain("SET timezone = 'UTC'");
+    expect(dashboard).toContain("LEAST(GREATEST(COALESCE(p_window_days, 30), 1), 120)");
+    expect(dashboard).toContain("((v_days - 1) * interval '1 day')");
+    expect(dashboard.match(/COALESCE\(p_window_days/g)?.length).toBe(1);
+    // `EXTRACT` is numeric since PG14 and `percentile_cont` asks for double precision.
+    expect(dashboard.match(/::double precision/g)?.length).toBe(2);
+  });
+
+  it("guards the new RPCs and never returns hashes, answers or theta", () => {
+    expect(dashboard).toContain(
+      "IF COALESCE(auth.jwt() ->> 'role', '') <> 'service_role' AND NOT private.is_admin(auth.uid()) THEN",
+    );
+    expect(list).toContain("PERFORM private.assert_service_role();");
+    for (const sql of [OBS_SQL, dashboard, list, bump]) {
+      expect(sql).toContain("SECURITY DEFINER");
+      expect(sql).toContain("SET search_path = ''");
+      for (const secret of ["matricula_hash", "latent_profile", "romance_vector", "dimension_scores", "orientacion_sexual", "quiz_responses"]) {
+        expect(sql, secret).not.toContain(secret);
+      }
+    }
+    for (const name of ["admin_bump_counter", "admin_list_users", "get_admin_dashboard"]) {
+      expect(OBS_SQL, name).toContain(`public.${name}(`);
+      expect(OBS_SQL, name).toContain(`  public.${name}(`);
+    }
+    expect(OBS_SQL).toContain("GRANT EXECUTE ON FUNCTION private.live_pairs(TEXT) TO service_role;");
+  });
+
+  it("filters and sorts people through a whitelist, never through dynamic SQL", () => {
+    for (const allowed of ["'huevo', 'eclosionado'", "'si', 'no'", "'romance', 'amistad'", "'recientes', 'antiguas', 'masAfinidades', 'menosAfinidades', 'nombre'"]) {
+      expect(list, allowed).toContain(allowed);
+    }
+    // A date is read through the helper, never cast here: `'2026-02-30'::date`
+    // raises and would take the whole panel read down with it.
+    expect(list).toContain("v_desde DATE := private.admin_iso_date(p_filter ->> 'desde');");
+    expect(list).toContain("v_hasta DATE := private.admin_iso_date(p_filter ->> 'hasta');");
+    expect(list).not.toMatch(/\)\s*::date\b/);
+    expect(isoDate).toContain(`IF p_value !~ '^\\d{4}-\\d{2}-\\d{2}$' THEN`);
+    expect(isoDate).toContain("RETURN p_value::date;");
+    expect(isoDate).toContain("EXCEPTION WHEN SQLSTATE '22008' THEN");
+    // The rescue is narrow on purpose: 22008 is "that date does not exist". A
+    // different failure has to stay a failure, not quietly widen the window.
+    expect(isoDate).not.toMatch(/WHEN OTHERS|WHEN SQLSTATE '22\d{3}']/);
+    expect(isoDate.match(/RETURN NULL;/g)?.length).toBe(2);
+    expect(OBS_SQL).toContain("REVOKE ALL ON FUNCTION private.admin_iso_date(TEXT) FROM PUBLIC, anon, authenticated;");
+    expect(OBS_SQL).toContain("GRANT EXECUTE ON FUNCTION private.admin_iso_date(TEXT) TO service_role;");
+    expect(list).toContain("~ '^[IE][NS][TF][JP]$'");
+    // The pattern is escaped and every filter value is bound, so no client text
+    // reaches the parser as syntax.
+    expect(list).not.toMatch(/\bEXECUTE\b|format\(|\|\| *v_/);
+    expect(list).toContain("ORDER BY rn");
+    expect(list).toContain("LIMIT v_lim OFFSET v_off");
+    expect(list).toContain("jsonb_agg(page.row_data ORDER BY page.rn)");
+    expect(list.match(/alias_completo, ''\) ILIKE v_pattern/g)?.length).toBe(2);
+    expect(list).toContain("'eclosionadoEn', p.eclosionado_en");
+    expect(list).toContain("'eliminadoEn', p.eliminado_en");
+    for (const field of ["'identity', jsonb_build_object(", "'aliasCompleto', p.alias_completo", "'mark', p.avatar_mark", "'enneagramCode', p.enneagram_code"]) {
+      expect(list, field).toContain(field);
+    }
+    // Inside the returned row the nested `identity` object is the only route to
+    // a name: a flat `alias`/`animal`/`color`/`mbti` key would be a second one.
+    const row = list.slice(list.indexOf("'id', p.user_id"), list.indexOf("AS row_data"));
+    for (const flat of ["'alias'", "'animal'", "'color'", "'mbti'"]) expect(row, flat).not.toContain(flat);
+    expect(list).toContain("SET timezone = 'UTC'");
   });
 });

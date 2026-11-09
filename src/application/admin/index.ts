@@ -1,4 +1,5 @@
 export { adminLogin } from "./login";
+export { bumpCounter } from "./counters";
 export { auditAlias } from "./ports";
 export type {
   AdminAccount,
@@ -11,4 +12,13 @@ export type {
   AuditEntryInput,
   UserQuery,
 } from "./ports";
-export { listAudit, listReports, listUsers, recomputeAudited, reviewReport, runUserAction, type ActionOutcome } from "./users";
+export {
+  chosenFilter,
+  listAudit,
+  listReports,
+  listUsers,
+  recomputeAudited,
+  reviewReport,
+  runUserAction,
+  type ActionOutcome,
+} from "./users";
