@@ -1,12 +1,17 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { CORE_ITEMS as QUIZ_ITEMS, EXPERIENCE, isSkippableItem } from "@/config";
 import { MATCHING_CONFIG } from "@/config/matching";
+import { romanceOptOut } from "@/domain/matching";
 
 import {
   buildSubmission,
   coreQuizSegments,
   countAnswered,
+  draftFilters,
   isAnswered,
   optionLabel,
   presentationOrder,
@@ -225,5 +230,31 @@ describe("coreQuizSegments", () => {
     // A partial answer inside quiz 2 resumes on the next open question.
     const partial = answered([...built[0]!.items, ...built[1]!.items.slice(0, 2)]);
     expect(resumePosition(built, partial)).toEqual({ quiz: 1, index: 2 });
+  });
+});
+
+describe("PREREGISTRO §4: el aviso de «solo amistad»", () => {
+  const QUIZ_UI = readFileSync(resolve(__dirname, "public-quiz.tsx"), "utf8");
+
+  it("warns at the moment of choosing, not when the result arrives", () => {
+    // H2 no se cumple solo con números: la consecuencia tiene que leerse
+    // mientras la opción todavía se puede cambiar.
+    expect(QUIZ_UI).toMatch(/const friendshipOnly = .*romanceOptOut\(draftFilters/);
+    expect(QUIZ_UI).toMatch(/friendshipOnly \? \(\s*\n\s*<p className="zm-box zm-quiz__note" role="status">/);
+    expect(QUIZ_UI).toContain("solo participas en amistad");
+  });
+
+  it("fires on exactly the declarations that opt out of romance", () => {
+    const optOut = EXPERIENCE.quiz.exclusiveOption;
+    const bloquea = new Set(["orientacion_sexual", "tipo_relacion_busca"]);
+    const casos = ORDER.filter((i) => i.campo_perfil && i.opciones?.includes(optOut));
+    expect(casos.map((i) => i.id)).toEqual(["FIL1", "FIL2", "FIL3"]);
+    for (const item of casos) {
+      const draft: QuizDraft = { likert: {}, filters: { [item.id]: [optOut] }, skipped: [] };
+      expect(romanceOptOut(draftFilters(ORDER, draft)), item.id).toBe(bloquea.has(item.campo_perfil ?? ""));
+    }
+    // «Solo amistad» declarado sin el opt-out también saca del romance.
+    const soloAmistad: QuizDraft = { likert: {}, filters: { FIL3: ["solo_amistad"] }, skipped: [] };
+    expect(romanceOptOut(draftFilters(ORDER, soloAmistad))).toBe(true);
   });
 });

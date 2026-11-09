@@ -88,9 +88,9 @@ describe("ruido de los factores de un solo item", () => {
    * `meta_crianza`, `meta_carrera` y `val_presente`; ADR-045 duplicó los cuatro
    * valores y los seis intereses que faltaban. Lo que queda de a un ítem en el
    * obligatorio son los 13 del MBTI y el eneagrama — 0,65 % del puntaje, medidos
-   * aquí en 0,22× la banda, 1/120 retests sobre una banda y ningún cruce del
-   * umbral. En el banco completo el ruido por retest es 0,05× la banda y queda
-   * 1 cruce en 120, porque los 19 factores únicos se diluyen entre 194 ítems.
+   * aquí en 0,20× la banda, 1/120 retests sobre una banda y ningún cruce del
+   * umbral. En el banco completo el ruido por retest es 0,03× la banda y no
+   * cruza el umbral en ninguno de los 120 sorteos.
    * `floor` es el piso del arnés: si el promedio cae de ahí, la prueba dejó de
    * medir algo, no es que el instrumento haya mejorado.
    */
@@ -128,23 +128,26 @@ describe("ruido de los factores de un solo item", () => {
 
 /**
  * Deuda fechada del criterio I5: factores que pesan más de 1 % del total y se
- * miden con un solo ítem en todo el banco. `rel_*` se paga en B7-REL (primero
- * decide la evidencia si la capa relacional sigue pesando 0,20). La deuda de
- * `int_*`/`soc_*`/`val_*` quedó pagada en B3 con los segundos ítems de ADR-045,
- * así que la lista de amistad es vacía: agregar un peso nuevo sobre un ítem
- * único rompe esta prueba, y eso es lo que se quiere romper.
+ * miden con un solo ítem en todo el banco. Las dos pistas están en cero: la
+ * deuda de `int_*`/`soc_*`/`val_*` se pagó en B3 con los segundos ítems de
+ * ADR-045, y la de `rel_*` se pagó por el lado del peso (ADR-050: la capa
+ * relacional pesa 0, así que sus factores de un ítem ya no mueven el puntaje).
+ * Cualquier peso nuevo sobre un ítem único rompe esta prueba, y eso es lo que
+ * se quiere impedir.
  */
 const SINGLE_ITEM_DEBT: Readonly<Record<string, readonly string[]>> = {
-  romance: ["rel_autonomia", "rel_comunicacion", "rel_espacio", "rel_exclusividad", "rel_expresividad", "rel_frecuencia", "rel_metas"],
+  romance: [],
   amistad: [],
 };
 
 /**
  * Fracción del puntaje que viaja en factores de un solo ítem cuando el perfil
  * está completo. Se registra el techo actual (ADR-045), medido sobre el banco
- * entero: antes de pagar la deuda eran ~0,31 en romance y ~0,35 en amistad.
+ * entero: antes de pagar la deuda eran ~0,31 en romance y ~0,35 en amistad; con
+ * la capa relacional en peso 0 (ADR-050) romance baja a 0,030 y son solo los
+ * extras de conflicto y afecto.
  */
-const SINGLE_ITEM_MASS_CEILING: Readonly<Record<string, number>> = { romance: 0.219, amistad: 0.001 };
+const SINGLE_ITEM_MASS_CEILING: Readonly<Record<string, number>> = { romance: 0.031, amistad: 0.001 };
 
 describe("criterio I5: ningun factor pesado se mide con un solo item", () => {
   const byFactor = itemsByFactor();

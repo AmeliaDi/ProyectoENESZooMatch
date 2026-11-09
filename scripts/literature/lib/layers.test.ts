@@ -149,11 +149,13 @@ describe("weight licensing (criterio 3 de aceptación de B1)", () => {
     }
   });
 
-  it("has exactly one debt: relacional weighs 0,20 with no licensed card", () => {
+  it("weighs nothing without a licensed card: the registry has no debt", () => {
     const gaps = licensingGaps(data, data.candidates.map(evaluate), config);
-    // B7-REL (tarea #13) abrió la ficha: si la capa pierde el peso, o si se licencia con
-    // evidencia verificada, esta lista se vacía sola.
-    expect(gaps.map((g) => `${g.categoria} ${g.pesoMaximo} > ${g.licenciado}`)).toEqual(["relacional 0.2 > 0"]);
+    // El deudor histórico era `relacional`: 0,20 de peso con ficha
+    // opcional_narrativa (ADR-050 le devolvió el peso a 0). Si alguna categoría
+    // recibe peso sin una ficha `admitida` que lo licencie, la lista se llena
+    // sola y esta prueba rompe — es exactamente lo que se quiere impedir.
+    expect(gaps.map((g) => `${g.categoria} ${g.pesoMaximo} > ${g.licenciado}`)).toEqual([]);
   });
 });
 

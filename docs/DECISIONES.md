@@ -1617,7 +1617,8 @@ rompe el reveal y el avatar.
 - **Lo que no resuelve.** Los perfiles que ya respondieron el núcleo de 58 siguen con respuestas
   a un banco que ya no les pregunta igual en el mismo orden: nada en la base fuerza re-responder,
   y eso es **B9** (sello `params_version`, re-toma mínima y el aviso «se actualizó la
-  matemática»). Sigue abierta la licencia de `relacional` 0,20 (**B7-REL**). El desajuste de
+  matemática»). Sigue abierta la licencia de `relacional` 0,20 (**B7-REL**, cerrado en
+  **ADR-050**). El desajuste de
   nodos de cuadratura (**B4**) se cerró después, en **ADR-046**, que además cambia cómo se
   calcula la ventana que usa `relacional`.
 
@@ -1682,8 +1683,9 @@ rompe el reveal y el avatar.
 - Un campo menos que defender en `docs/TRAZABILIDAD.md`: la auditoría de licencias y etiquetas
   (`supuesto_diseno` / `estimado_sintetico`) ya no tiene que explicar una precisión que el
   código no cumplía.
-- **Lo que no resuelve:** el peso 0,20 de `relacional` sin licencia (**B7-REL**) y el sello de
-  versión para re-responder lo mínimo (**B9**). Esta ADR sí toca a los perfiles existentes: sus
+- **Lo que no resuelve:** el peso 0,20 de `relacional` sin licencia (**B7-REL**, cerrado en
+  **ADR-050** llevándolo a 0) y el sello de versión para re-responder lo mínimo (**B9**). Esta ADR sí
+  toca a los perfiles existentes: sus
   similitudes de ventana se recalculan al volar el pool, así que entra en el mismo aviso de
   «se actualizó la matemática».
 
@@ -1883,3 +1885,92 @@ ella. Dos huecos concretos:
   criterio 2 de admisión. Y el gate solo mira citas con DOI: una afirmación sin identificador no lo
   activa. `records.csv` data de antes del gate y no se regenera hasta la próxima corrida real; el test
   verifica que ninguna de sus 131 filas cae en los siete handles muertos.
+
+## ADR-050 · Sin ficha admitida no hay peso: la capa relacional pasa a 0 en romance
+
+**Contexto.** **B7-REL** (tarea #13) era el último adeudo del licenciamiento de capas. El config daba
+**0,20** del núcleo de romance a la categoría `relacional` —7 factores `rel_*`, cada uno medido con un
+**solo ítem**, los 7 en el módulo opcional `relacional` (20 reactivos)— y su ficha,
+`vinculo_relacional`, no tenía evidencia admisible: una fila `pendiente_humana`, `fuerza: sin_datos`,
+sin escala en español buscada porque «primero hay que establecer si la capa puntúa». `npm run
+data:layers` imprimía `ADEUDOS DE LICENCIAMIENTO (1): relacional: peso 0.2 > licenciado 0` y
+`layers.test.ts` tenía clavado ese único adeudo. La literatura (docs/CAPAS_EVIDENCIA.md §3.10,
+búsqueda dirigida del 2026-11-08 sobre 17 handles) no cerró el hueco:
+
+- **Anderson et al. 2025** (35 estudios, N = 24 489): meta-análisis **nulo** de la incongruencia entre
+  partners en estructura deseada, g = −0,05 [−0,20, 0,10], p = ,496.
+- Lo demás es **actor-level transversal** (Vilkin & Davila 2023, 722; Moors et al. 2021, 339; Hosking
+  2014, 772), y el propio Vilkin & Davila halla el beneficio «regardless of the type»: nulo para
+  puntuar monogamia vs. no monogamia como similitud.
+- Las **metas de hijos** sí tienen estudios diádicos prospectivos (Shreffler et al. 2019; Testa &
+  Bolano 2021, 6 981 parejas HILDA), pero el desenlace es una **conducta reproductiva** y la forma es
+  **direccional** (veto doble; «Women prevail» para el primer hijo), y el motor solo sabe de distancia
+  simétrica `|self − other|`.
+- **EV-03** (Joel et al. 2020, 43 estudios): lo relacional explica hasta 45 % de la calidad **al
+  inicio de la relación**, con variables de la propia relación que no existen antes de conocerse. Un
+  rasgo pre-conocimiento no puede sustituirlas.
+
+**Decisión.**
+
+- `tracks.romance.core.relacional: 0.2 → 0`. Los demás pesos del núcleo **se renormalizan en
+  proporción** (÷ 0,8): personalidad 0,4 → 0,5 · valores 0,25 → 0,3125 · dealbreakers 0,05 → 0,0625 ·
+  estilo 0,1 → 0,125. La regla es «quitar el peso muerto y mantener la suma en 1», que Zod verifica
+  contra `WEIGHT_SUM_TOLERANCE`; nadie repartió pesos a mano.
+- El motivo se escribe dentro de la propia pista (`tracks.romance.fuente`), para que el config se lea
+  con su justificación y no con la de la versión anterior.
+- Se corre el arnés completo (`npm run data:matching`, semilla 1515870810, N = 600) y el umbral se
+  recalibra contra la nula **del nuevo modelo**: `minimum_similarity_exclusive` 0,5769 → **0,5548** y
+  `reference_high` 0,6316 → **0,6163**. La banda útil queda 0,0547 → 0,0615.
+- La ficha sigue en `opcional_narrativa` con el texto actualizado: la capa es **narrativa** (los 7
+  ítems se responden y aparecen en el perfil) pero no puntúa, y la exclusividad sigue cubierta por el
+  filtro **declarado** `tipo_relacion_busca` (ADR-043), que es donde un veto así es legítimo.
+- Las pruebas dejan de registrar la deuda y pasan a prohibirla: `layers.test.ts` espera **cero
+  adeudos**; `single-item-sensitivity.test.ts` espera **cero** factores de un ítem con peso en romance
+  (eran 7 `rel_*`) y baja su tope de masa de 0,219 a 0,031.
+
+**Consecuencias.**
+
+| Métrica (romance) | Antes | Después |
+|---|---|---|
+| Umbral (cuantil 0,97 de la nula) | 0,5769 | **0,5548** |
+| Techo de referencia (cuantil 0,999) | 0,6316 | **0,6163** |
+| Cobertura de personas | 63,3 % | **64,5 %** |
+| Matches publicados (top-3) | 651 | **657** |
+| AUC recuperación de «similitud» | 0,786 [0,769, 0,806] | **0,803 [0,787, 0,822]** |
+| ρ con ruido (±1 Likert, 10 % ítems) | 0,963 | 0,963 |
+| Jaccard de matches ante ruido | 0,534 | **0,514** |
+| Masa del puntaje en factores de un ítem | 0,219 | **0,030** |
+| Adeudos de licenciamiento | 1 | **0** |
+| Equidad: `hombre_hombres` cobertura | 58,7 % | **62,7 %** |
+| Equidad: `nobinarie_todes` cobertura | 57,3 % | 57,3 % |
+
+- **El 0,20 no ordenaba nada, y la ablación ya lo decía.** Antes de esta ADR, la fila «sin relacional»
+  marcaba ρ = 1,000 con el modelo completo: quitar la capa dejaba el **mismo orden** de pares, y el
+  Jaccard 0,915 de sus matches publicados venía solo de recalibrar el umbral contra la nula de cada
+  modelo, no de reordenar nada. Morris medía μ* = 0,000 para `relacional`: el único efecto nulo entre
+  las cinco categorías del núcleo. Ahora `ablate()` hace exactamente lo que se hizo aquí (retira la
+  categoría y renormaliza el resto), así que la fila pasa a Jaccard 1,000 — ablación y config
+  coinciden por construcción.
+- **La cobertura y la recuperación mejoran, no solo «no empeoran».** La capa de 0,20 levantaba parejo
+  la distribución real y la nula (percentil 95: 0,570 → 0,547 real y 0,565 → 0,542 nula), así que el
+  umbral cae casi lo mismo que el cuantil y la cobertura sube poco (63,3 % → 64,5 %). Lo que sube de
+  verdad es la discriminación: 0,20 de peso sobre 7 factores de **un solo ítem** era ruido de medición
+  sin señal, y al quitarlo la AUC contra la forma generadora pasa de 0,786 a 0,803. El costo es la
+  fragilidad del top-K, que ya era conocida: el Jaccard ante ruido baja 0,534 → 0,514.
+- **Un veredicto de H2 cambia de lado.** `hombre_hombres` pasa de 58,7 % [47,4 %, 69,1 %] —**no
+  cumplía**, porque el límite inferior de Wilson caía bajo la barra de 0,50— a 62,7 % [51,4 %, 72,7 %]
+  y ahora **cumple** (docs/VALIDACION_RESULTADOS.md, mismas semilla y población). En H7 la fila
+  `metas de relación (rel_*)` pasa a decir «no entra en este track».
+- **Lo que esta ADR no arregla:** `nobinarie_todes` se queda en 57,3 % [46,1 %, 67,9 %] y sigue siendo
+  la única subpoblación de romance que no cumple la barra de H2 (cobertura ≥ 0,60 con IC ≥ 0,50), y no
+  es una cuestión de pesos. En la población sintética (`scripts/matching/population.ts`,
+  `SUBPOPULATIONS`) solo `nobinarie_todes` y `solo_nucleo` declaran aceptación de personas no binaries,
+  así que la elegibilidad **mutua** del filtro duro les recorta las parejas candidatas: es un artefacto
+  del generador, y corregirlo es trabajo del arnés (B8), no del config. Tampoco toca amistad, donde
+  `relacional` nunca entró en el núcleo, ni la deuda de sello de versión (**B9**).
+- **La puerta de regreso está cerrada por test, no por promesa:** devolverle peso a `relacional` sin
+  una ficha `admitida` vuelve a llenar `licensingGaps()` y rompe `layers.test.ts`; hacerlo sobre ítems
+  únicos vuelve a llenar `SINGLE_ITEM_DEBT.romance` y rompe el arnés de retest.
+- Artefactos regenerados con el cambio: `docs/MATCHING_RESULTADOS.md` (hash de entradas
+  `cfe29665c8f94948` → `168050b7a90289c6`) y el hash registrado de `data/matching-config.json` en
+  `docs/TRAZABILIDAD.md` (`a7a5561ab19754ba` → `2115393e24a07408`), con la fila **T-27** nueva.

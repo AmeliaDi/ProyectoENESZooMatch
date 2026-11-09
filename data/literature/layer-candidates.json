@@ -110,16 +110,16 @@
       "nombre": "Estilo de vínculo: exclusividad, metas, espacio y autonomía",
       "relaciones": ["pareja"],
       "evidencia": [
-        { "ref": "Sin fila de evidencia: ficha creada el 2026-11-08 al derivar el plan del banco", "doi": null, "verificacion": "pendiente_humana", "efecto": "desconocido", "fuerza": "sin_datos", "hallazgo": "La categoría `relacional` pesa 0,20 en el core de romance y no tenía ficha: ningún estudio verificado la licencia. La búsqueda con desenlace diádico está abierta como B7-REL; aquí no se copia ninguna cita sin resolverla en el registro de handles (I1)." }
+        { "ref": "Sin fila de evidencia: ficha creada el 2026-11-08 al derivar el plan del banco", "doi": null, "verificacion": "pendiente_humana", "efecto": "desconocido", "fuerza": "sin_datos", "hallazgo": "Ningún estudio verificado licencia la categoría. La búsqueda dirigida del 2026-11-08 (docs/CAPAS_EVIDENCIA.md §3.10) devolvió diseños actor-level y un meta-análisis nulo: nada diádico admisible, y ninguna de esas referencias lleva DOI propio, así que no entran al registro de handles (I1). B7-REL (ADR-050) se cerró por el lado del config, no inventando una cita: el 0,20 de `relacional` en romance pasa a 0." }
       ],
       "efectoParaPuntaje": "ventana",
       "redundancia": { "estado": "desconocido", "nota": "rel_exclusividad se solapa con el filtro declarado `tipo_relacion_busca` (FIL3): ADR-043 ya argumentó que el veto que importa se declara, no se estima desde un latente ruidoso." },
       "escalaEspanol": { "nombre": "—", "ref": "No se buscó escala: primero hay que establecer si la capa puntúa.", "doi": null, "estado": "no_busqueda" },
       "licencia": { "estado": "no_aplica", "url": null, "cita": "Los 5 ítems (ACT5, REL5, REL6, REL7, REL8) son de redacción original.", "consultado": "2026-11-08", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": true, "factores": ["rel_autonomia", "rel_comunicacion", "rel_espacio", "rel_exclusividad", "rel_expresividad", "rel_frecuencia", "rel_metas"], "funcion": "ventana de tolerancia (deadzone) sobre 7 factores; hoy sin licencia documental" },
+      "plan": { "itemsOriginales": true, "factores": ["rel_autonomia", "rel_comunicacion", "rel_espacio", "rel_exclusividad", "rel_expresividad", "rel_frecuencia", "rel_metas"], "funcion": "ventana de tolerancia (deadzone) sobre 7 factores; sin licencia documental, así que con peso 0 no entra al puntaje (ADR-050)" },
       "sensible": { "categorias": [] },
       "decisionDeclarada": "opcional_narrativa",
-      "motivo": "ADEUDO EXPLÍCITO. El verificador le da `opcional_narrativa` (peso 0) porque no tiene ni un estudio verificado con desenlace relacional, pero data/matching-config.json le sigue dando 0,20 a `relacional` en romance. B2 no toca ese peso: se resuelve con evidencia real en B7-REL (tarea #13), y hasta entonces el 0,20 es un supuesto de diseño sin respaldo, no una capa admitida. Los 7 factores además se miden con 1 ítem cada uno (I5)."
+      "motivo": "PESO 0, DECISIÓN TOMADA (ADR-050, B7-REL). El verificador le da `opcional_narrativa` porque no tiene ni un estudio verificado con desenlace relacional; hasta el 2026-11-08 el config le daba 0,20 de todos modos y eso era el único adeudo de licenciamiento. La ablación midió que ese 0,20 no ordenaba nada (ρ = 1,000 con el modelo completo, AUC de similitud sin cambio, Morris μ* = 0,000), así que se retira el peso y los demás pesos del núcleo se renormalizan en proporción. El verificador no puede licenciar un peso con un `pendiente_humana`, y la puerta ahora es un test, no una nota. Los 7 factores siguen midiéndose con 1 ítem cada uno (I5): con peso 0 la deuda deja de pesar, y volver a dárselo obliga a pagar ítems y ficha."
     },
     {
       "id": "sociosexualidad",

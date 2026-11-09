@@ -127,14 +127,14 @@
   "tracks": {
     "romance": {
       "etiqueta": "supuesto_diseno",
-      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07).",
-      "minimum_similarity_exclusive": { "valor": 0.5769, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.97 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "minimum_similarity_exclusive": { "valor": 0.5548, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.97 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
       "null_alpha": { "valor": 0.03, "etiqueta": "supuesto_diseno", "fuente": "Tasa de falso match por par bajo la nula; bajada de 0.05 a 0.03 para un romance más exigente (ADR-022)" },
-      "reference_high": { "valor": 0.6316, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
+      "reference_high": { "valor": 0.6163, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
       "max_matches": { "valor": 3, "etiqueta": "supuesto_diseno", "fuente": "Top-K por persona" },
       "hard_filters": ["orientacion_sexual", "identidad_genero", "tipo_relacion_busca"],
       "beta": { "valor": 6, "etiqueta": "supuesto_diseno", "fuente": "Estrictez del soft-min (comparativa en docs/MATCHING.md)" },
-      "core": { "personalidad": 0.4, "valores": 0.25, "dealbreakers": 0.05, "relacional": 0.2, "estilo": 0.1 },
+      "core": { "personalidad": 0.5, "valores": 0.3125, "dealbreakers": 0.0625, "relacional": 0, "estilo": 0.125 },
       "tail": { "conflicto": 0.02, "apego": 0.02, "afecto": 0.01, "mbti": 0.005, "eneagrama": 0.005, "big_five": 0 },
       "floors": {}
     },

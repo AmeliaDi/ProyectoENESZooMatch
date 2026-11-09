@@ -66,10 +66,13 @@ Las hipótesis **primarias** (H1, H2, H3, H4, H4b, H4c) cumplen todas salvo **H4
 8. **MBTI, eneagrama, apego, conflicto y afecto son extras.** Quitar cualquiera cambia el AUC en
    menos de 0.001, con el IC dentro de ±0.005. Esto confirma el papel decidido en ADR-015.
 9. **Equidad.** Ninguna subpoblación queda sin matches salvo `prefiere_no_decir` en romance, y esa
-   exclusión es una consecuencia declarada de ADR-016: no se infiere nada. Desde esta fase el test
-   lo **avisa** en el momento de elegir: «Con esta elección solo participas en amistad…». La
-   cobertura más baja en romance (`hombre_hombres`, 76 %, IC 65–84 %) refleja un pool elegible
-   más chico (57 parejas posibles contra 218), no un sesgo del puntaje.
+   exclusión es una consecuencia declarada de ADR-016: no se infiere nada. La condición del §4 del
+   preregistro —que la UI lo **avise en el momento de elegir**, no al ver el resultado— está escrita
+   en `src/ui/quiz/public-quiz.tsx` («Con esta elección solo participas en amistad…») y su guard está
+   en `src/ui/quiz/quiz-flow.test.ts`: si el aviso se borra o se corre al submit, H2 se lee como no
+   cumplida y esa prueba lo impide. Los números actuales, subpoblación por subpoblación y con su IC de
+   Wilson, están en `docs/VALIDACION_RESULTADOS.md` (H2); tras ADR-050 el único romance que no cumple
+   la barra es `nobinarie_todes`.
 
 ## 3. Recuperación de parámetros (de `docs/MEDICION.md` §5)
 

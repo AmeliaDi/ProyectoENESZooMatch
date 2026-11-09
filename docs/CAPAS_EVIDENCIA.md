@@ -140,7 +140,7 @@ platicar".
   - `act_compromiso_social` con ACT4 y ACT6 en el núcleo.
   - Los tres factores que pesan ≥ 0,033 y habían quedado de un solo ítem se pagaron en el núcleo,
     con dos ítems cada uno: `val_presente` (VAL8 + VAL15), `meta_carrera` (VAL7 + VAL14) y
-    `meta_crianza` (VAL6 + VAL13). `meta_crianza` se puntúa en `dealbreakers` (0,047), pero sus
+    `meta_crianza` (VAL6 + VAL13). `meta_crianza` se puntúa en `dealbreakers` (0,059), pero sus
     ítems los dueña esta ficha.
   - El quinto opcional es `val_espiritualidad` (VAL5): fuera del puntaje desde ADR-043, sigue
     estimándose y se sigue leyendo en «Tu carta».
@@ -260,9 +260,12 @@ el criterio pide dos (`minVerifiedStudies: 2`).
 ### 3.10 Estilo de vínculo (exclusividad, metas, espacio, autonomía): **opcional_narrativa**
 
 Ficha abierta el 2026-11-08 al derivar los planes del banco (ADR-044): la categoría `relacional`
-pesa **0,20** en el núcleo de romance —7 factores, todos de un solo ítem, medidos solo en el módulo
-opcional `relacional` (20 ítems)— y no tenía ficha que la licenciara. `npm run data:layers` hoy
-imprime `ADEUDOS DE LICENCIAMIENTO (1): relacional: peso 0.2 > licenciado 0` y el test lo clava.
+pesaba **0,20** en el núcleo de romance —7 factores, todos de un solo ítem, medidos solo en el módulo
+opcional `relacional` (20 ítems)— sin ninguna ficha que la licenciara. `npm run data:layers` imprimía
+`ADEUDOS DE LICENCIAMIENTO (1): relacional: peso 0.2 > licenciado 0`. **B7-REL se cerró el 2026-11-09
+con ADR-050: ese 0,20 pasa a 0** y los demás pesos del núcleo se renormalizan en proporción (÷ 0,8),
+no se reparten a mano. La corrida de hoy dice `licenciamiento: toda categoría con peso tiene una ficha
+admitida`, y `layers.test.ts` deja de ser una nota para ser la puerta.
 
 - **Evidencia: ninguna verificada.** La ficha se creó con una fila `pendiente_humana`, no con una
   cita inventada (I1).
@@ -281,12 +284,16 @@ imprime `ADEUDOS DE LICENCIAMIENTO (1): relacional: peso 0.2 > licenciado 0` y e
   los dos ideales.
 - **Espacio/autonomía/frecuencia/comunicación/expresividad:** sin evidencia verificada de similitud
   medida antes de conocerse.
-- **Plan (derivado): 0 núcleo + 7 opcionales** — los 7 `rel_*`, cada uno con un ítem (deuda I5
-  fechada en `single-item-sensitivity.test.ts`).
-- **Qué decide B7-REL:** o se baja el 0,20 (con re-calibración de umbrales), o la categoría pasa a
-  narrativa con peso 0, o se construye sobre una pregunta **declarada** (`hard_filters`), que es el
-  lugar donde la exclusividad ya funciona como veto legítimo. Ninguna de las tres es una decisión
-  estadística: son decisiones de producto y se toman con la usuaria.
+- **Plan (derivado): 0 núcleo + 7 opcionales** — los 7 `rel_*`, cada uno con un ítem. Con el peso en 0,
+  la deuda I5 que registraba `single-item-sensitivity.test.ts` deja de pesar: la masa de factores de un
+  solo ítem en romance baja de 0,219 a 0,030 y la lista de deuda queda vacía en las dos pistas.
+- **Qué decidió B7-REL (ADR-050):** de las tres salidas sobre la mesa —bajar el 0,20, pasar la capa a
+  narrativa con peso 0, o moverla a una pregunta **declarada** dentro de `hard_filters`— se tomó la
+  segunda, porque la ablación midió que ese 0,20 no ordenaba nada (ρ = 1,000 con el modelo completo,
+  AUC de similitud sin cambio, Morris μ* = 0,000) y los umbrales se recalibraron con el arnés. La
+  tercera ya estaba cubierta: `tipo_relacion_busca` es filtro duro desde ADR-043, y ahí es donde la
+  exclusividad funciona como veto legítimo. No es una decisión estadística a posteriori: es aplicar la
+  regla de licenciamiento (criterio 3) a un peso que nunca tuvo ficha.
 
 ## 4. Reparto entregado (banco v2.2.0: 68 ítems obligatorios, 7,93 min)
 
@@ -297,9 +304,9 @@ reactivos, cortados por familia de puntuación y con lo sensible al final (ADR-0
 | Bloque | Capa | Ítems | Origen | Papel en el puntaje |
 |---|---|---|---|---|
 | Filtros duros | 0 | 3 | Selección múltiple con "prefiero no decir" | Elegibilidad mutua (no es un puntaje) |
-| **HEXACO** (H, E, X, A, C, O × 4) | 1 | **24** | IPIP-HEXACO, dominio público, traducción propia; ≥ 1 inverso por factor | **Núcleo** — 0,376 del total romance |
-| Valores, metas y compromisos | 3 | 16 | Originales (PVQ y LFPDPPP como referencia de contenido) | 0,235 (`valores`) + 0,047 (`meta_crianza`, en `dealbreakers`) — dos ítems por factor desde ADR-045 |
-| Intereses y afinidad cultural | 3 | 12 | Originales (inspiración RIASEC) | 0,094 en romance, 0,347 en amistad — dos ítems por factor desde ADR-045 |
+| **HEXACO** (H, E, X, A, C, O × 4) | 1 | **24** | IPIP-HEXACO, dominio público, traducción propia; ≥ 1 inverso por factor | **Núcleo** — 0,470 del total romance (0,376 antes de ADR-050) |
+| Valores, metas y compromisos | 3 | 16 | Originales (PVQ y LFPDPPP como referencia de contenido) | 0,294 (`valores`) + 0,059 (`meta_crianza`, en `dealbreakers`) — dos ítems por factor desde ADR-045 |
+| Intereses y afinidad cultural | 3 | 12 | Originales (inspiración RIASEC) | 0,118 en romance, 0,347 en amistad — dos ítems por factor desde ADR-045 |
 | MBTI (4 ejes) + Eneagrama (9 tipos) | 4 | 13 | Originales | 0,0065 en total: identidad visual, no puntaje |
 | **Total núcleo** | | **68** | | 65 Likert × 7 s ≈ 7,93 min, en tres quizzes de ≤ 35 reactivos |
 
