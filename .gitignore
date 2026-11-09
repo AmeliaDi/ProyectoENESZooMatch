@@ -33,3 +33,6 @@ __pycache__/
 /.backups/
 /.qoder/
 /.kiro/
+
+# salidas del selfcheck del pipeline 2.5D (se regeneran en cada corrida)
+/scripts/voxel25d/out-selfcheck/
