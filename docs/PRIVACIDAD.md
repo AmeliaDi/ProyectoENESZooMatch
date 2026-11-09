@@ -37,6 +37,29 @@ Este es un resumen para orientarse. El detalle y los motivos están en los ADR e
 - Los matches no incluyen ids ni respuestas. «Pocas personas» se comunica con un booleano, nunca
   con el conteo (ADR-012).
 
+## 2.1 Datos sensibles: la lista legal y qué hacemos con ella (ADR-048)
+
+El art. 9 de la LFPDPPP enumera los datos que se consideran sensibles: **origen étnico o
+racial, opiniones políticas, creencias religiosas o filosóficas, estado de salud,
+información genética, preferencia sexual y datos biométricos**. ZooMatch los trata así:
+
+- **Nunca puntúan** los que se miden con ítems propios: `soc_politica` (opiniones políticas),
+  `val_espiritualidad` (creencias) y `act_igualdad` (actitudes de rol de género, un proxy que
+  podría leerse como orientación) están en `NON_SCORED_FACTORS` (`src/config/matching.ts`) y no
+  aparecen entre los factores de `data/matching-config.json`. Se estiman y se leen en «Tu
+  carta»; no entran al puntaje ni al share (`sharing.neverShare`).
+- **Preferencia e identidad sexual** solo se preguntan como **filtros duros** con consentimiento
+  explícito (`orientacion_sexual`, `identidad_genero`, más `tipo_relacion_busca`). Un filtro
+  excluye candidatos, nunca rankea: `checkHardFilters` las consume y el config las rechaza si
+  alguien intenta darles peso.
+- **Conducta sexual, biométricos, salud, información genética y origen étnico no se preguntan.**
+  La SOI (orientación sociosexual) se descartó por eso, no por falta de evidencia.
+- **No se infieren:** ninguna capa deduce una categoría sensible a partir de otros rasgos.
+- Lo comprueba el **criterio 5** de admisión de capas (`data/literature/layer-criteria.json`,
+  `scripts/literature/lib/layers.ts`): cada ficha declara cómo protege cada categoría que toca,
+  `no_puntuable` se verifica contra el config real y un `id` fuera de la lista legal es un error.
+  `npm run data:layers` y `layers.test.ts` fallan si algo de esto se rompe.
+
 ## 3. Base de datos
 
 - **RLS en todas las tablas.**

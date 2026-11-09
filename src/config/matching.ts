@@ -18,7 +18,7 @@ import { loadConfig } from "./load";
  * loader validates the annotation and keeps only `valor`.
  */
 
-const HARD_FILTER_FIELDS = [
+export const HARD_FILTER_FIELDS = [
   "orientacion_sexual",
   "identidad_genero",
   "tipo_relacion_busca",
@@ -34,7 +34,7 @@ const WEIGHT_SUM_TOLERANCE = 1e-9;
  * registry demotes to narrative (docs/CAPAS_EVIDENCIA.md). They stay estimated
  * and readable in «Tu carta»; they just carry no weight. ADR-043, T-22.
  */
-const NON_SCORED_FACTORS: readonly string[] = ["val_espiritualidad", "soc_politica", "act_igualdad"];
+export const NON_SCORED_FACTORS: readonly string[] = ["val_espiritualidad", "soc_politica", "act_igualdad"];
 
 const label = z.enum(PARAM_LABELS);
 const provenance = { etiqueta: label, fuente: z.string().min(1) };

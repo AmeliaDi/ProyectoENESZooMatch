@@ -6,7 +6,9 @@
 ## 0. Cómo se decidió
 
 - **Criterios:** `data/literature/layer-criteria.json`. Son 5 y todos
-  obligatorios; todos los umbrales llevan la etiqueta `supuesto_diseno`.
+  obligatorios. Cuatro llevan la etiqueta `supuesto_diseno`; el criterio 5 ya no
+  lo es: es la lista de **datos sensibles** que enumera el art. 9 de la
+  LFPDPPP (ADR-048).
 - **Fichas:** `data/literature/layer-candidates.json`, una por candidato,
   con estudios, escala, licencia, plan de ítems y motivo.
 - **Cálculo:** `npm run data:layers` evalúa las fichas contra los
@@ -21,6 +23,25 @@
   - lo que solo tiene metadatos (`crossref_metadatos`).
   Las cifras citadas son literales del abstract (ids EV-100 a EV-116 en
   `docs/EVIDENCIA.md` §2.8).
+- **Qué cuenta como seguro (criterio 5, ADR-048):** la ficha declara, categoría
+  por categoría, cómo protege cada dato sensible de la lista legal que toca.
+  Hay ocho categorías enumeradas en `layer-criteria.json` (origen étnico o
+  racial, opiniones políticas, creencias religiosas o filosóficas, estado de
+  salud, información genética, preferencia e identidad sexual, conducta sexual,
+  datos biométricos) y cada una lleva los factores del banco que la rozan.
+  Cuatro formas de fallar, todas con test:
+  - preguntar una categoría marcada `preguntaProhibida` (conducta sexual,
+    biométricos): ninguna salvaguarda la vuelve admisible;
+  - planea un factor sensible y no declara su categoría;
+  - declara `no_puntuable` **pero el factor sí pesa** en
+    `data/matching-config.json`: el verifier lo comprueba, no lo cree;
+  - una categoría que sí puntúa sin `filtro_duro` + `opt_in`, o citando un
+    filtro que no está en `filtrosDuros` (los mismos `HARD_FILTER_FIELDS` del
+    código, y `filtrosDuros` ⊂ lista legal).
+  Las tres fichas que rozan un factor sensible (`valores`,
+  `intereses_estilo_vida`, `actitudes_sociales_genero`) pasan porque
+  `val_espiritualidad`, `soc_politica` y `act_igualdad` **no aparecen** en los
+  factores del config. Si alguien les devuelve el peso, la tabla se cae sola.
 - **Regla clave: nivel ≠ compatibilidad.** Muchos constructos (apego,
   empatía, autotrascendencia) predicen la satisfacción por el **nivel
   propio** (efecto actor), no por la **similitud** entre dos personas.
@@ -65,20 +86,20 @@ Nota: Selfhout 2010 ya estaba verificado en `EVIDENCIA.md` (EV-17).
 
 ## 2. Tabla de decisión (salida de `npm run data:layers`)
 
-| Capa candidata | 1. Evidencia (estudios verificados) | 2. No redundante | 3. Licencia u originales | 4. Ítems núcleo + opcionales | 5. Sin dato sensible | Decisión |
+| Capa candidata | 1. Evidencia (estudios verificados) | 2. No redundante | 3. Licencia u originales | 4. Ítems núcleo + opcionales | 5. Datos sensibles (LFPDPPP art. 9) | Decisión |
 |---|---|---|---|---|---|---|
-| Valores personales y metas de vida (Schwartz) | sí (3) | sí | sí | 16 + 5 | sí | **admitida** |
-| Actitudes sociales y perspectiva de género | **no** (1) | sí | sí | 0 + 5 | sí | **opcional_narrativa** |
-| Intereses, ocio y estilo de vida universitario | sí (2) | sí | sí | 12 + 23 | sí | **admitida** |
-| Apego adulto (ansiedad y evitación) | **no** (0) | sí | sí | 0 + 4 | sí | **extra_peso_minimo** |
-| Estilos de conflicto y comunicación | **no** (0) | sí | sí | 0 + 4 | sí | **extra_peso_minimo** |
-| Estilo de vínculo: exclusividad, metas, espacio y autonomía | **no** (0) | sí | sí | 0 + 7 | sí | **opcional_narrativa** |
-| Orientación sociosexual (SOI-R) | **no** (0) | sí | sí | 0 + 0 | **no** | **descartada** |
-| Empatía (IRI) | **no** (0) | **no** | sí | 0 + 0 | sí | **descartada** |
-| Inteligencia emocional percibida (TMMS-24) | **no** (0) | **no** | sí | 0 + 0 | sí | **descartada** |
-| Necesidad de cognición | **no** (0) | **no** | sí | 0 + 0 | sí | **descartada** |
-| Estilos de humor (HSQ) | **no** (0) | sí | sí | 0 + 1 | sí | **opcional_narrativa** |
-| Lenguajes del amor | **no** (0) | sí | sí | 0 + 5 | sí | **extra_peso_minimo** |
+| Valores personales y metas de vida (Schwartz) | sí (3) | sí | sí | 16 + 5 | sí · creencia_religiosa_o_filosofica: no_puntuable | **admitida** |
+| Actitudes sociales y perspectiva de género | **no** (1) | sí | sí | 0 + 5 | sí · preferencia_o_identidad_sexual: no_puntuable | **opcional_narrativa** |
+| Intereses, ocio y estilo de vida universitario | sí (2) | sí | sí | 12 + 23 | sí · opinion_politica: no_puntuable | **admitida** |
+| Apego adulto (ansiedad y evitación) | **no** (0) | sí | sí | 0 + 4 | sí (no toca) | **extra_peso_minimo** |
+| Estilos de conflicto y comunicación | **no** (0) | sí | sí | 0 + 4 | sí (no toca) | **extra_peso_minimo** |
+| Estilo de vínculo: exclusividad, metas, espacio y autonomía | **no** (0) | sí | sí | 0 + 7 | sí (no toca) | **opcional_narrativa** |
+| Orientación sociosexual (SOI-R) | **no** (0) | sí | sí | 0 + 0 | **no** — sociosexualidad: mide «conducta_sexual», que la app no pregunta | **descartada** |
+| Empatía (IRI) | **no** (0) | **no** | sí | 0 + 0 | sí (no toca) | **descartada** |
+| Inteligencia emocional percibida (TMMS-24) | **no** (0) | **no** | sí | 0 + 0 | sí (no toca) | **descartada** |
+| Necesidad de cognición | **no** (0) | **no** | sí | 0 + 0 | sí (no toca) | **descartada** |
+| Estilos de humor (HSQ) | **no** (0) | sí | sí | 0 + 1 | sí (no toca) | **opcional_narrativa** |
+| Lenguajes del amor | **no** (0) | sí | sí | 0 + 5 | sí (no toca) | **extra_peso_minimo** |
 
 **`opcional_narrativa`:** la capa vive en un módulo opcional, con
 **peso 0** en el puntaje. Solo alimenta frases del tipo "lo que podrían

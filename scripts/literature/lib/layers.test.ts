@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import rawConfig from "../../../data/matching-config.json";
+import { HARD_FILTER_FIELDS, NON_SCORED_FACTORS } from "@/config/matching";
 import {
   budgetSummary,
   decisionTable,
@@ -11,23 +11,49 @@ import {
   licensingGaps,
   loadLayerFiles,
   planDe,
+  scoredFactors,
+  sensitiveBlocks,
   syncDecisionTable,
   type LayerCandidate,
+  type ScoredConfig,
+  type SensitiveEntry,
 } from "./layers.ts";
 
-const { criteria, data, counts } = loadLayerFiles(
+const { criteria, data, counts, config } = loadLayerFiles(
   "data/literature/layer-criteria.json",
   "data/literature/layer-candidates.json",
   "data/microtest.json",
+  "data/matching-config.json",
 );
 
-const evaluate = (c: LayerCandidate) => evaluateCandidate(c, criteria, counts);
+const evaluate = (c: LayerCandidate) => evaluateCandidate(c, criteria, counts, config);
 
 function base(): LayerCandidate {
   const first = data.candidates[0];
   if (!first) throw new Error("sin candidatos");
   return structuredClone(first);
 }
+
+const card = (id: string): LayerCandidate => {
+  const c = data.candidates.find((x) => x.id === id);
+  if (!c) throw new Error(`sin ficha ${id}`);
+  return structuredClone(c);
+};
+
+/** A config copy where `factor` weighs inside `categoria` (the way a factor enters a score). */
+function weightFactor(cfg: ScoredConfig, categoria: string, factor: string): ScoredConfig {
+  const category = cfg.categories[categoria];
+  if (!category) throw new Error(`sin categoría ${categoria} en el config`);
+  return {
+    ...cfg,
+    categories: { ...cfg.categories, [categoria]: { ...category, factors: { ...category.factors, [factor]: 1 } } },
+  };
+}
+
+const declare = (c: LayerCandidate, entries: readonly SensitiveEntry[]): LayerCandidate => {
+  c.sensible = { categorias: entries.map((e) => structuredClone(e)) };
+  return c;
+};
 
 describe("layer admission", () => {
   it("declared decisions match the computed ones", () => {
@@ -52,12 +78,6 @@ describe("layer admission", () => {
     const c = base();
     c.evidencia = c.evidencia.map((s) => ({ ...s, efecto: "nivel" as const }));
     c.plan = { ...c.plan, factores: [] };
-    expect(evaluate(c).decision).toBe("descartada");
-  });
-
-  it("sexual-behaviour items are always excluded", () => {
-    const c = base();
-    c.sensible = { inferencia: false, conductaSexual: true };
     expect(evaluate(c).decision).toBe("descartada");
   });
 
@@ -115,8 +135,6 @@ describe("layer admission", () => {
 });
 
 describe("weight licensing (criterio 3 de aceptación de B1)", () => {
-  const config = rawConfig as unknown as Parameters<typeof licensingGaps>[2];
-
   it("every factor that carries weight is claimed by a card", () => {
     const claimed = new Set(data.fixedCore.flatMap((f) => f.factores));
     for (const c of data.candidates) for (const f of c.plan.factores) claimed.add(f);
@@ -136,6 +154,97 @@ describe("weight licensing (criterio 3 de aceptación de B1)", () => {
     // B7-REL (tarea #13) abrió la ficha: si la capa pierde el peso, o si se licencia con
     // evidencia verificada, esta lista se vacía sola.
     expect(gaps.map((g) => `${g.categoria} ${g.pesoMaximo} > ${g.licenciado}`)).toEqual(["relacional 0.2 > 0"]);
+  });
+});
+
+describe("criterio 5: la lista legal de datos sensibles (LFPDPPP art. 9)", () => {
+  it("enumerates what the law enumerates", () => {
+    expect(criteria.sensitivity.categorias.map((c) => c.id)).toEqual([
+      "origen_etnico_racial",
+      "opinion_politica",
+      "creencia_religiosa_o_filosofica",
+      "estado_de_salud",
+      "informacion_genetica",
+      "preferencia_o_identidad_sexual",
+      "conducta_sexual",
+      "datos_biomtricos",
+    ]);
+  });
+
+  it("covers every factor the scoring config refuses to weight, and weighs none of them", () => {
+    const sensibles = criteria.sensitivity.categorias.flatMap((c) => c.factores);
+    const scored = scoredFactors(config);
+    for (const factor of NON_SCORED_FACTORS) {
+      expect(sensibles, `${factor} falta en la lista legal`).toContain(factor);
+      expect(scored.has(factor), `${factor} puntúa pese a NON_SCORED_FACTORS`).toBe(false);
+    }
+  });
+
+  it("names the same hard filters the code enforces", () => {
+    expect([...criteria.sensitivity.filtrosDuros].sort()).toEqual([...HARD_FILTER_FIELDS].sort());
+  });
+
+  it("no card scores a sensitive factor", () => {
+    const scored = scoredFactors(config);
+    for (const c of data.candidates) {
+      for (const cat of criteria.sensitivity.categorias) {
+        const pesa = c.plan.factores.filter((f) => cat.factores.includes(f) && scored.has(f));
+        expect(pesa, `${c.id} puntúa ${cat.id}`).toEqual([]);
+      }
+    }
+  });
+
+  it("sexual-behaviour items stay excluded whatever safeguard they cite", () => {
+    const intentada = declare(card("sociosexualidad"), [
+      { id: "conducta_sexual", salvaguardas: ["no_puntuable", "filtro_duro", "opt_in"], filtros: ["tipo_relacion_busca"], nota: "test" },
+    ]);
+    expect(sensitiveBlocks(intentada, criteria, config).join(" ")).toMatch(/la app no pregunta/);
+    expect(evaluate(intentada).decision).toBe("descartada");
+    expect(evaluate(card("sociosexualidad")).criteria.safe, "la ficha declarada también queda bloqueada").toBe(false);
+  });
+
+  it("verifies «no puntuable» against the config instead of trusting the card", () => {
+    const c = card("intereses_estilo_vida");
+    expect(evaluate(c).criteria.safe).toBe(true);
+    const weighted = weightFactor(config, "estilo", "soc_politica");
+    const blocks = sensitiveBlocks(c, criteria, weighted).join(" ");
+    expect(blocks).toMatch(/declara «opinion_politica» no puntuable, pero soc_politica sí pesa/);
+    expect(blocks).toMatch(/sin filtro_duro \+ opt_in/);
+    expect(evaluateCandidate(c, criteria, counts, weighted).decision).toBe("descartada");
+  });
+
+  it("a category that does score needs the hard filter and the opt-in", () => {
+    const weighted = weightFactor(config, "valores", "val_espiritualidad");
+    const sinFiltro = declare(card("valores"), [
+      { id: "creencia_religiosa_o_filosofica", salvaguardas: ["opt_in"], nota: "test" },
+    ]);
+    expect(sensitiveBlocks(sinFiltro, criteria, weighted).join(" ")).toMatch(/sin filtro_duro/);
+    const completa = declare(card("valores"), [
+      { id: "creencia_religiosa_o_filosofica", salvaguardas: ["filtro_duro", "opt_in"], filtros: ["tipo_relacion_busca"], nota: "test" },
+    ]);
+    expect(sensitiveBlocks(completa, criteria, weighted)).toEqual([]);
+  });
+
+  it("planning a sensitive factor without declaring its category is a block", () => {
+    const c = declare(card("valores"), []);
+    expect(sensitiveBlocks(c, criteria, config).join(" "))
+      .toMatch(/planea val_espiritualidad sin declarar «creencia_religiosa_o_filosofica»/);
+  });
+
+  it("rejects invented categories and invented filters", () => {
+    const inventada = declare(card("valores"), [{ id: "religion", salvaguardas: ["no_puntuable"], nota: "test" }]);
+    expect(() => sensitiveBlocks(inventada, criteria, config)).toThrow(/categoría sensible desconocida/);
+    const malFiltro = declare(card("valores"), [
+      { id: "creencia_religiosa_o_filosofica", salvaguardas: ["no_puntuable", "filtro_duro"], filtros: ["nivel_de_estres"], nota: "test" },
+    ]);
+    expect(sensitiveBlocks(malFiltro, criteria, config).join(" ")).toMatch(/no son duros/);
+  });
+
+  it("the table shows the safeguard, so the column is auditable", () => {
+    const table = decisionTable(data, data.candidates.map(evaluate), counts);
+    expect(table).toContain("opinion_politica: no_puntuable");
+    expect(table).toContain("creencia_religiosa_o_filosofica: no_puntuable");
+    expect(table).toMatch(/conducta_sexual.*\*\*descartada\*\*/);
   });
 });
 

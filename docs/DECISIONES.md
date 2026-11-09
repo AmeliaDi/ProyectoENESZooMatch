@@ -1758,3 +1758,70 @@ solapaban.
   quién aparece sigue siendo el mismo; eso es **B8**. Y los avisos ya leídos conservan la frase
   vieja a propósito — si se decide que eso también debe corregirse, es un cambio de datos con
   sello de tiempo, no una migración idempotente.
+
+## ADR-048 · El criterio 5 pasa de dos casillas a la lista legal de datos sensibles
+
+**Contexto.** **B6** pedía que el cumplimiento dejara de ser una promesa editable. El criterio 5
+de admisión de capas era esto, en `data/literature/layer-criteria.json`:
+
+```json
+"sensitivity": { "forbidSensitiveInference": true, "forbidSexualBehaviorItems": true }
+```
+
+y cada ficha respondía dos booleanos (`inferencia`, `conductaSexual`). Los once candidatos
+marcaron `false`; `sociosexualidad` marcó `true` en conducta sexual y por eso se descartó. Dos
+problemas:
+
+1. **El criterio no miraba nada verificable**, creía la casilla. El art. 9 de la LFPDPPP enumera
+   las categorías sensibles (origen étnico o racial, opiniones políticas, creencias religiosas o
+   filosóficas, estado de salud, información genética, preferencia sexual, datos biométricos) y
+   ninguna de esas palabras existía en el registry: «preferencia sexual» no era un id, era un
+   checkbox sin contenido.
+2. **Lo que sí protege a los tres factores sensibles vive en otro lado.** `NON_SCORED_FACTORS` en
+   `src/config/matching.ts` los rechaza por nombre y, en `data/matching-config.json`, un factor no
+   pesa si no aparece entre `categories[*].factors` (`factorWeights` solo acepta positivos: la
+   exclusión es por omisión, nunca con peso 0). El verifier de capas no leía el config, así que la
+   tabla pudo seguir diciendo «sin dato sensible» el día que alguien devolviera el peso de VAL15.
+   Nada conectaba las dos mitades.
+
+**Decisión.**
+
+- **`sensitivity` es ahora la lista legal enumerada:** ocho categorías con `factores` (los del
+  banco que las rozan), `requeridasParaPuntuar: ["filtro_duro", "opt_in"]` y `filtrosDuros`. La
+  prueba `names the same hard filters the code enforces` exige que `filtrosDuros` sea exactamente
+  `HARD_FILTER_FIELDS`; otra prueba exige que la lista cubra todo `NON_SCORED_FACTORS` y que
+  ninguno de esos factores puntúe hoy.
+- **Cada ficha declara categoría por categoría** (`sensible.categorias`): `id`, `salvaguardas`,
+  `filtros` cuando aplica y una `nota` con el motivo. Las que no tocan nada sensible declaran
+  `[]`, y eso también se comprueba (no hay factor suyo en la lista).
+- **`sensitiveBlocks(c, criteria, config)` es la puerta.** Cuatro formas de fallar, cada una con
+  su test:
+  - medir una categoría marcada `preguntaProhibida` (conducta sexual, biométricos): bloque total,
+    ninguna combinación de salvaguardas la lava;
+  - planear un factor sensible y no declarar su categoría;
+  - declarar `no_puntuable` cuando el factor **sí** está en `scoredFactors(config)` — el mensaje
+    lo dice dos veces, porque además faltan `filtro_duro` + `opt_in`;
+  - citar `filtro_duro` sin nombrar el campo, nombrar un filtro que no está en `filtrosDuros`, o
+    inventar una `id` de categoría (eso lanza, igual que un factor inexistente en `planDe`).
+- **`evaluateCandidate` recibe el config** y `loadLayerFiles` lo carga, para que la misma corrida
+  que licencia pesos también verifique pesos. La celda 5 de la tabla imprime **cómo** está
+  guardada cada categoría (`opinion_politica: no_puntuable`) en lugar de una palomita.
+
+**Consecuencias.**
+
+- **Ninguna de las doce decisiones cambia**, y ya no dependen de la casilla: `valores`,
+  `intereses_estilo_vida` y `actitudes_sociales_genero` pasan porque `val_espiritualidad`,
+  `soc_politica` y `act_igualdad` no aparecen en los factores del config.
+- El gate tiene dientes medibles: la prueba que pesa `soc_politica` en una copia del config
+  convierte a la capa de intereses de `admitida` a `descartada` sin tocar ningún otro archivo.
+- `HARD_FILTER_FIELDS` y `NON_SCORED_FACTORS` se exportan desde `src/config/matching.ts`, para que
+  la lista legal cite los mismos nombres que valida Zod.
+- `docs/PRIVACIDAD.md` §2.1 pasa a ser el texto canónico de la lista y `docs/CAPAS_EVIDENCIA.md` §0
+  explica el criterio; antes el documento de privacidad no nombraba los datos sensibles en ningún
+  lado.
+- **Lo que no resuelve:** el gate habla de **factores**, no de ítems. Un ítem nuevo que preguntara
+  estado de salud u origen étnico no tiene factor al que mapear, así que tendría que entrar por la
+  otra mitad (el banco y su linter). Y `opt_in` sigue siendo declaración de la ficha: verificarlo
+  contra `banderas: ["SENS"]` habría movido a `actitudes_sociales_genero`, cuyo ACT1 no lleva la
+  bandera, sin ganar nada legal — la categoría ya está fuera del puntaje. B6.2/B6.3 (el gate de
+  handles/DOI en el crawler) es la otra mitad de B6 y no depende de esta decisión.

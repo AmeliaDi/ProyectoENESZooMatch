@@ -1,6 +1,6 @@
 {
   "_comentario": "Criterios de admisión de capas (Fase 2 del afinado). Todos son obligatorios para que una capa entre al puntaje. Lo evalúa scripts/literature/lib/layers.ts; las fichas están en layer-candidates.json y la tabla en docs/CAPAS_EVIDENCIA.md.",
-  "version": "2026-11-08",
+  "version": "2026-11-09",
   "evidence": {
     "_etiqueta": "supuesto_diseno",
     "minVerifiedStudies": 2,
@@ -31,8 +31,53 @@
     "_nota": "68 ítems obligatorios (65 Likert + 3 filtros) son ~7,9 min a 7 s/ítem: sigue dentro del tope de minutos. La promesa de no cansar la sostiene la división en quizzes de máximo 35 reactivos (experiencia.quiz.maxItemsPerQuiz, ADR-045), no un conteo de ítems."
   },
   "sensitivity": {
-    "_etiqueta": "supuesto_diseno",
-    "forbidSensitiveInference": true,
-    "forbidSexualBehaviorItems": true
+    "_etiqueta": "obligación legal (LFPDPPP art. 9, datos sensibles) + ADR-043",
+    "categorias": [
+      {
+        "id": "origen_etnico_racial",
+        "factores": [],
+        "nota": "Ningún ítem del banco lo mide ni lo infiere. Si una ficha futura lo tocara, tendría que declararlo aquí; no hay factor que lo represente."
+      },
+      {
+        "id": "opinion_politica",
+        "factores": ["soc_politica"],
+        "nota": "SOC14 mide opinión política del usuario. Es dato sensible enumerado, así que no pesa: está en NON_SCORED_FACTORS y fuera de los factores de data/matching-config.json. La ficha 'intereses_estilo_vida' lo declara no puntuable y el verifier lo comprueba contra el config."
+      },
+      {
+        "id": "creencia_religiosa_o_filosofica",
+        "factores": ["val_espiritualidad"],
+        "nota": "VAL15. Se estima y se lee en «Tu carta», pero nunca entra al puntaje (ADR-043) ni se comparte (sharing.neverShare)."
+      },
+      {
+        "id": "estado_de_salud",
+        "factores": [],
+        "nota": "No se pregunta. Los ítems de crianza o planes de vida no indagan diagnósticos; APE1/APE2 miden estilo de interacción, no un cuadro clínico."
+      },
+      {
+        "id": "informacion_genetica",
+        "factores": [],
+        "nota": "No se recolecta ni se deriva."
+      },
+      {
+        "id": "preferencia_o_identidad_sexual",
+        "factores": ["act_igualdad"],
+        "nota": "La preferencia y la identidad se capturan solo como filtros duros con consentimiento explícito (orientacion_sexual, identidad_genero) y jamás puntúan: checkHardFilters las usa para excluir candidatos, no para rankear. ACT1-3 son un proxy de actitudes de rol de género, no una medición de orientación; por eso su factor también está prohibido en el puntaje."
+      },
+      {
+        "id": "conducta_sexual",
+        "factores": [],
+        "preguntaProhibida": true,
+        "nota": "La app no pregunta conductas sexuales. Es la regla que descartó la capa sociosexual (SOI): declararla con cualquier salvaguarda sigue siendo un bloque."
+      },
+      {
+        "id": "datos_biomtricos",
+        "factores": [],
+        "preguntaProhibida": true,
+        "nota": "Sin huella, reconocimiento facial ni voz; el avatar se dibuja con respuestas de personalidad."
+      }
+    ],
+    "requeridasParaPuntuar": ["filtro_duro", "opt_in"],
+    "filtrosDuros": ["orientacion_sexual", "identidad_genero", "tipo_relacion_busca"],
+    "_nota": "Criterio 5. Antes eran dos booleanos (inferencia / conducta sexual) que ninguna ficha activaba, así que el criterio nunca bloqueó nada. Ahora es la lista legal enumerada: una ficha que planea un factor de alguna categoría tiene que declararla, y 'no_puntuable' se verifica contra los factores que sí pesan en data/matching-config.json. Las tres salvaguardas son el piso: 'filtro_duro' exige nombrar un campo de filtrosDuros (los mismos HARD_FILTER_FIELDS del código) y 'opt_in' el consentimiento explícito."
   }
 }
