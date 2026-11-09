@@ -1,5 +1,8 @@
 -- ─── B9 / ADR-052: el perfil lleva la versión de la matemática que lo midió ─
 --
+-- Idempotente: se puede volver a aplicar sobre un esquema con datos sin perder
+-- ninguna fila (`IF NOT EXISTS`, `DROP FUNCTION IF EXISTS`, `CREATE OR REPLACE`).
+--
 -- `public.quiz_responses` guarda cada respuesta cruda y `public.profiles` guarda
 -- `latent_profile`, así que re-estimar a alguien no cuesta una sola pregunta
 -- nueva. Lo que sí es un error silencioso es mezclar en un mismo `pairScore`

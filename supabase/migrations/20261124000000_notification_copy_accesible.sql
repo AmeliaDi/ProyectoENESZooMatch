@@ -1,5 +1,8 @@
 -- ─── Notificaciones: dos frases que se pueden leer en voz alta ───────────────
 --
+-- Idempotente: `CREATE OR REPLACE` sobre `notify_matches`, así que se puede
+-- volver a aplicar sobre un esquema con datos.
+--
 -- Por qué. ADR-053 dejó una regla de copia: toda frase que ve una persona tiene
 -- que poder decirse en voz alta y la tiene que poder leer un lector de pantalla.
 -- El marcador «-x» no cumple ninguna de las dos: no tiene sonido, y quien usa
