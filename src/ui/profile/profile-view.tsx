@@ -26,6 +26,7 @@ import { Chip, Frame } from "@/ui/kit/surfaces";
 import { RefineInvite } from "@/ui/refine/refine-invite";
 
 import { parseProfile } from "./parse-profile";
+import { MathUpdateNotice } from "./math-update-notice";
 import { ProfileSections } from "./profile-sections";
 import { EnneagramPlate, ReadingGuide } from "./reading-guide";
 
@@ -235,6 +236,7 @@ export function ProfileView() {
         <Hero profile={profile} />
         <Virtues profile={profile} />
         <Affinities profile={profile} />
+        <MathUpdateNotice measurement={profile.measurement} />
         <RefineInvite
           track={profile.affinities.romance.count > 0 ? "romance" : "amistad"}
           completed={profile.completedModules}

@@ -55,6 +55,7 @@ const PEER_IDENTITY: IdentityDto = {
 const PROFILE: ProfileDto = {
   identity: OWNER_IDENTITY,
   narrative: "Una narrativa",
+  measurement: { stamped: true, current: true, seal: "psychometric-params-1+2.2.0+000000000000" },
   mbti: { code: "INFP", balancedAxes: 1 },
   enneagram: { code: "7w6", name: "Entusiasta", archetype: "Explorador", exploring: false },
   virtues: [{ title: "Trato justo", text: "Te importa la transparencia." }],

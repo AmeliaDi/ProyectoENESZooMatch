@@ -14,7 +14,7 @@ si cambian pesos, umbrales o parámetros.
 
 | Archivo | Hash registrado |
 |---|---|
-| data/matching-config.json | `2115393e24a07408` |
+| data/matching-config.json | `45861517dec0e641` |
 | data/psychometric-params.json | `a31ed99658426302` |
 | data/self-reading.json | `3c021cda2e0b33fa` |
 
@@ -50,6 +50,7 @@ si cambian pesos, umbrales o parámetros.
 | T-26 | La esperanza de la ventana de tolerancia es cerrada (masa + dos colas gaussiana×gaussiana), no una regla de nodos; el knob `quadrature_nodes` se retira | ADR-046 | supuesto_diseno | \|E[g] − Simpson\| < 1e-6 en las ventanas configuradas; tol = 0 ⇒ (a/h)e^{−μ²/2h²} | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
 | T-27 | Sin ficha admitida no hay peso: la capa relacional pasa a 0 en romance y los demás pesos se renormalizan en proporción | EV-03, ADR-050 | prior_literatura | peso(c) ≤ Σ licencia(fichas admitidas de c); w_core ← w_core / Σ_remaining | `data/matching-config.json` | `scripts/literature/lib/layers.test.ts` |
 | T-28 | El costo de cada capa, el retorno de cada módulo, la varianza por ítem y el ruido del retest se miden en un solo arnés; el orden del menú de afinado se deriva del retorno por pregunta | ADR-051 | estimado_sintetico | peso(c) ≤ 0,02 ⟹ ítems(c) ≤ 6 · ratio de obligatorios ≤ 1,3 · ruido ≤ 0,35 banda (media) y ≤ 1,0 banda (p90) · ningún módulo antes de otro 3× más rentable | `scripts/matching/balance.ts` | `src/domain/psychometrics/single-item-sensitivity.test.ts` |
+| T-29 | La matemática lleva dos sellos independientes: la medición invalida una θ guardada y viaja en `profiles.params_version`; el puntaje no invalida ninguna respuesta y se firma en el navegador | ADR-052 | supuesto_diseno | measurementFirm ≠ ⟹ re-toma mínima (≤ 25 ítems, por factor); scoringFirm ≠ ⟹ aviso T1 con 0 preguntas; NULL = pre-sello ⟹ recalculo silencioso y nunca re-pregunta; ningún perfil sale del pool | `src/domain/matching/math-stamp.ts`, `src/domain/psychometrics/minimal-retake.ts` | `src/domain/matching/math-stamp.test.ts`, `src/domain/psychometrics/minimal-retake.test.ts`, `src/ui/profile/math-update-notice.test.ts` |
 
 ## Resultados que respaldan la matriz
 
@@ -57,4 +58,5 @@ si cambian pesos, umbrales o parámetros.
 - Medición (AFC, ω, GRM, DIF): `docs/MEDICION.md`.
 - Validación preregistrada: `docs/PREREGISTRO.md` → `docs/VALIDACION_RESULTADOS.md` → lectura en `docs/VALIDACION.md`.
 - Balance global del sistema (costo, retorno, varianza, ruido): `docs/BALANCE.md`.
+- Divergencia entre versiones de la matemática (migración B9): `docs/DIVERGENCIA_RESULTADOS.md`.
 - Meta-análisis: `docs/META_ANALISIS.md` (no agrega nada: k < 3 en todo grupo).

@@ -189,6 +189,12 @@ flowchart TD
   celda dorada es la estimación y la marca central es la mitad. El texto dice
   hacia qué polo se inclina y con qué confianza, así que nada depende solo del
   color.
+- **Aviso de matemática** (`src/ui/profile/math-update-notice.tsx`, B9/ADR-052), encima de
+  «¿Quieres afinar tu perfil?». Dos casos que no se mezclan: si cambió el *puntaje*, una
+  línea de recálculo que sale una sola vez por firma y nunca a quien llega por primera vez;
+  si cambió la *medición*, «Actualizamos la matemática» con «Afinar mi perfil» y «Ahora no»
+  (el cierre se recuerda por sello, no por fecha). Un perfil anterior al sello solo recibe la
+  variante de una línea: nadie re-contesta lo que sigue siendo válido y nadie sale del pool.
 - **Estados:** carga («Desplegando tu carta…»); sin sesión → entrada; sin test
   → cuestionario; error → reintentar.
 - **Anti-plantilla:** marcos de atlas con coordenadas AR, pistas de celdas en

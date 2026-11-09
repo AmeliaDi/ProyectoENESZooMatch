@@ -1,6 +1,6 @@
 {
-  "version": "2.1",
-  "nota": "Modelo por capas (docs/MATCHING.md). Cada constante: {valor, etiqueta, fuente}. Sin validez predictiva demostrada: los pesos son priors débiles o supuestos de diseño. 2.1 (B1): sin pisos (floors) en ninguna capa; fuera del puntaje act_igualdad, val_espiritualidad y soc_politica.",
+  "version": "2.2",
+  "nota": "Modelo por capas (docs/MATCHING.md). Cada constante: {valor, etiqueta, fuente}. Sin validez predictiva demostrada: los pesos son priors débiles o supuestos de diseño. 2.1 (B1): sin pisos (floors) en ninguna capa; fuera del puntaje act_igualdad, val_espiritualidad y soc_politica. 2.2 (B7-REL, ADR-050): relacional a peso 0 en romance, core renormalizado y umbral recalibrado; ese cambio se publicó todavía bajo 2.1, así que 2.2 existe para que la versión legible coincida con la firma de puntaje que sí cambió.",
   "scoring": {
     "mbti_ambiguity_se": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Eje ambiguo si |θ| < 1·SE posterior (ADR-017)" },
     "enneagram_ambiguity_entropy": { "valor": 0.85, "etiqueta": "supuesto_diseno", "fuente": "Entropía normalizada H/log 9 sobre la que no se fuerza un tipo (ADR-017)" }

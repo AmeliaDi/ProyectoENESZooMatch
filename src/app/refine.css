@@ -8,6 +8,9 @@
 .zm-refine__text { display: grid; flex: 1 1 auto; gap: calc(var(--zm-px) * 1); }
 .zm-refine__name { color: var(--zm-fg); font-weight: 600; }
 
+/* B9: la invitación de afinar por cambio de medición va en «Tu carta», con dos salidas. */
+.zm-math__actions { display: flex; flex-wrap: wrap; gap: calc(var(--zm-px) * 4); }
+
 .zm-detail__talk { display: grid; gap: calc(var(--zm-px) * 2); margin: 0; padding-left: calc(var(--zm-px) * 8); font-size: 0.9375rem; }
 .zm-detail__talk li::marker { content: "+ "; color: var(--zm-fg-muted); }
 

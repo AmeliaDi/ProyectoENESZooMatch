@@ -95,6 +95,9 @@ export function parseProfile(raw: unknown): ProfileDto | null {
   );
   const open = isRec(raw.openScales) ? raw.openScales : {};
   const affinities = isRec(raw.affinities) ? raw.affinities : {};
+  // Un payload sin el sello se trata como perfil anterior al sello: nunca
+  // provoca un aviso de "afina tu perfil" por una columna que no se leyó.
+  const measurement = isRec(raw.measurement) ? raw.measurement : {};
   return {
     identity,
     ...typology,
@@ -102,6 +105,11 @@ export function parseProfile(raw: unknown): ProfileDto | null {
     virtues,
     sections: raw.sections.map(parseSection).filter((s): s is SectionReadingDto => s !== null),
     openScales: { open: count(open.open), total: count(open.total) },
+    measurement: {
+      stamped: measurement.stamped === true,
+      current: measurement.current === true,
+      seal: str(measurement.seal) ?? "",
+    },
     completedModules: Array.isArray(raw.completedModules)
       ? raw.completedModules.filter((m): m is string => typeof m === "string")
       : [],

@@ -26,6 +26,8 @@ const SOFT_DELETE_MIGRATION = "20261117000000_filter_soft_deleted_matches.sql";
 const SOFT_DELETE_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, SOFT_DELETE_MIGRATION), "utf8"));
 const NOTIFY_COPY_MIGRATION = "20261122000000_notification_copy_estimated_affinity.sql";
 const NOTIFY_COPY_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, NOTIFY_COPY_MIGRATION), "utf8"));
+const PARAMS_STAMP_MIGRATION = "20261123000000_params_version_stamp_on_profiles.sql";
+const PARAMS_STAMP_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, PARAMS_STAMP_MIGRATION), "utf8"));
 
 /** Every `CREATE FUNCTION public.x(...)` body, keyed by name, across migrations. */
 function publicFunctionsOf(sql: string): [string, string][] {
@@ -36,6 +38,7 @@ const PUBLIC_FUNCTIONS = new Map([
   ...publicFunctionsOf(IDENTITY_SQL),
   ...publicFunctionsOf(SOFT_DELETE_SQL),
   ...publicFunctionsOf(NOTIFY_COPY_SQL),
+  ...publicFunctionsOf(PARAMS_STAMP_SQL),
 ]);
 
 const CHAT_MIGRATION = "20261102000000_chat_pin.sql";
@@ -96,6 +99,7 @@ describe("base migration", () => {
       QUIZZES_MIGRATION,
       OBSERVATORY_MIGRATION,
       NOTIFY_COPY_MIGRATION,
+      PARAMS_STAMP_MIGRATION,
     ]);
   });
 
@@ -148,6 +152,28 @@ describe("base migration", () => {
     const ids = [...list.matchAll(/'(\w+)'/g)].map((m) => m[1]);
     expect(ids).toEqual(QUIZ_MODULE_IDS.filter((id) => id !== "nucleo"));
     expect(PUBLIC_FUNCTIONS.get("submit_quiz_result")).toContain("p_completed_modules TEXT[]");
+  });
+
+  it("seals the measurement version on every score save (B9, ADR-052)", () => {
+    // Sin esta columna no hay forma de saber quién está obsoleto, y mezclar
+    // perfiles de dos mediciones en un mismo pairScore es incomparable y callado.
+    expect(PARAMS_STAMP_SQL).toContain("ADD COLUMN IF NOT EXISTS params_version TEXT");
+    expect(PARAMS_STAMP_SQL).toContain("ADD COLUMN IF NOT EXISTS scored_at TIMESTAMPTZ");
+    const submit = PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "";
+    expect(submit).toContain("p_params_version TEXT DEFAULT NULL");
+    expect(submit).toContain("params_version = p_params_version");
+    expect(submit).toContain("scored_at = now()");
+    // El overload de 17 argumentos se retira: si quedara, un client sin el sello
+    // seguiría escribiendo perfiles sin versión.
+    expect(PARAMS_STAMP_SQL).toContain(
+      "DROP FUNCTION IF EXISTS public.submit_quiz_result(\n  UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT[], TEXT, TEXT, TEXT, TEXT\n);",
+    );
+    expect(PARAMS_STAMP_SQL).toMatch(
+      /GRANT EXECUTE ON FUNCTION public\.submit_quiz_result\([\s\S]*?\)\s*TO service_role;/,
+    );
+    expect(PARAMS_STAMP_SQL).not.toMatch(/GRANT[\s\S]*?TO anon/);
+    // Nadie sale del pool por no afinar: el sello no filtra el pool.
+    expect(PARAMS_STAMP_SQL).not.toMatch(/DELETE FROM public\.profiles/);
   });
 
   it("never renames an alias once assigned (ADR-024, now the golden rule)", () => {
@@ -517,10 +543,11 @@ describe("fase 2 color stability migration", () => {
     expect(fase2Sql).not.toMatch(/\b(DROP TABLE|TRUNCATE)\b/);
     expect(fase2Sql).toContain("ADD COLUMN IF NOT EXISTS color_asignado_en TIMESTAMPTZ");
     expect(SQL).toContain("color_asignado_en TIMESTAMPTZ");
-    // The parameter stays in the signature so an older server build keeps resolving
-    // during the deploy window, but it no longer moves the frozen colour.
+    // El color ya no se mueve desde `submit_quiz_result`: lo congela el hatch.
+    // Desde la firma única (20261116) el parámetro tampoco sobrevive en la
+    // firma, así que lo que se pincha aquí es la ausencia de los dos CASE.
     const submitFn = PUBLIC_FUNCTIONS.get("submit_quiz_result") ?? "";
-    expect(submitFn).toContain("p_preserve_color BOOLEAN DEFAULT false");
+    expect(submitFn).not.toContain("p_preserve_color");
     expect(submitFn).not.toContain("WHEN COALESCE(p_preserve_color, false)");
     expect(submitFn).not.toContain("color_asignado_en = CASE");
     const hatchFn = PUBLIC_FUNCTIONS.get("hatch_profile_identity") ?? "";

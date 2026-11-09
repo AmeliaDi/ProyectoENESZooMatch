@@ -88,6 +88,12 @@ export interface OwnProfile {
   /** Only the input of the hatch narrative; never shown on its own. */
   normalizedScores: DimensionScores | null;
   completedModules: readonly QuizModuleId[];
+  /**
+   * Sellado de medición del perfil (B9): `stamped: false` = anterior al sello,
+   * así que solo aplica el recálculo silencioso; `current: false` con sello =
+   * θ medido con otro banco o GRM y hay afinación pendiente. Nadie sale del pool.
+   */
+  measurement?: { stamped: boolean; current: boolean; seal: string };
 }
 
 export interface CounterpartProfile {

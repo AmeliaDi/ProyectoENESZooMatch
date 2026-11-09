@@ -93,6 +93,9 @@ export async function getProfile(viewerId: string, deps: GetProfileDeps): Promis
     sections: sections.map((s) => ({ ...s, scales: s.scales.map((x) => ({ ...x, range: [x.range[0], x.range[1]] })) })),
     openScales: openScaleCount(sections),
     completedModules: [...profile.completedModules],
+    // A repository that does not read the stamp says nothing: the profile view
+    // must not nag anyone on the strength of an absent column.
+    measurement: profile.measurement ?? { stamped: true, current: true, seal: "" },
     affinities: { romance: affinities(matches.value, byId, "romance"), amistad: affinities(matches.value, byId, "amistad") },
   });
 }

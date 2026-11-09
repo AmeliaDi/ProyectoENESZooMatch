@@ -49,6 +49,11 @@ export interface ProfileDto {
   openScales: { open: number; total: number };
   /** Optional modules already completed (ids only; never the answers). */
   completedModules: string[];
+  /**
+   * Sellado de medición del perfil guardado (B9). `stamped: false` = anterior al
+   * sello; `current: false` con sello = hay una afinación pendiente, opcional.
+   */
+  measurement: { stamped: boolean; current: boolean; seal: string };
   affinities: {
     romance: { count: number; top: AffinitySummaryDto[] };
     amistad: { count: number; top: AffinitySummaryDto[] };

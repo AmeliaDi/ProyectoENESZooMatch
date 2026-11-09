@@ -2072,3 +2072,103 @@ sin una vista conjunta de qué paga cada pregunta.
   `scripts/matching/balance.mjs` (nuevos), `src/domain/psychometrics/retest-noise.ts` (nuevo),
   `src/domain/psychometrics/single-item-sensitivity.test.ts` (pasa al helper compartido),
   `data/experience.json` (orden de afinado) y `docs/TRAZABILIDAD.md` con la fila **T-28**.
+
+---
+
+## ADR-052 · Dos sellos, dos preguntas: la medición invalida una θ guardada; el puntaje no invalida ninguna respuesta
+
+**Contexto.** **B9** (tarea #15) es el bloque que responde a la petición literal de la usuaria:
+avisar «se actualizó la matemática» a quien ya contestó, sin obligarlo a contestar otra vez y sin
+dejar a nadie fuera. El impedimento era de inventario, no de mensaje: **no existía forma de saber qué
+matemática produjo un `latent_profile` guardado**. `public.profiles` no tenía columna de versión, así
+que un θ estimado bajo un GRM viejo era indistinguible en la base de uno estimado bajo el nuevo. Y el
+riesgo ya había ocurrido: **B7-REL** (ADR-050) movió pesos y umbral de romance y se publicó **bajo la
+misma versión legible `2.1`**, porque el campo `version` de `data/matching-config.json` no se había
+tocado desde B1. `docs/COMUNICADO_USUARIOS.md` afirmaba «No se cambiaron umbrales ni pesos de
+matching» y «Los que ya eclosionaron siguen igual que siempre»: ambas frases eran falsas desde ese
+deploy.
+
+Todo el diseño se ordena alrededor de una distinción que antes no estaba escrita en ningún lado:
+
+| | qué cambia | invalidatea una respuesta | qué se hace con eso |
+|---|---|---|---|
+| **medición** | banco de ítems, cargas `a`/`b` y polaridad del GRM, covarianza latente R, método de estimación | **sí**: la θ archivada ya no significa lo mismo | sello + re-toma mínima (opcional) |
+| **puntaje** | pesos, pisos, umbral, techo, ancho de kernel, tolerancias, β del soft-min, `combine`, badges, tracks, explicabilidad | **no**: el puntaje se recalcula sobre lo guardado | banner de una línea |
+
+**Decisión.**
+
+- **`measurementFirm`** (`src/domain/matching/math-stamp.ts`) es un SHA-256 truncado a 12 hex sobre
+  JSON canónico (llavas ordenadas, así reordenar un archivo no mueve la firma) de:
+  `entrada_sha256` de la corrida generadora, los `factores` y la `covarianza` del modelo, las cargas
+  `{factor, clave, a, b}` de cada ítem, y por ítem del banco todo lo que la persona notaría cambiar
+  (`texto`, `modulo`, `factor`, `tipo`, `opciones`, `polaridad`, romance/amistad/filtro duro). Viaja
+  en `public.profiles.params_version` como texto legible
+  `` `${PSYCHOMETRIC_PARAMS.version}+${QUIZ_VERSION}+<12 hex>` `` para que un `SELECT` en crudo se lea
+  sin manual.
+- **`scoringFirm`** es la misma función sobre `scoring`, `quality`, `categories`, `tail_groups`,
+  `group`, `badges`, `tracks` y `explainability`. **`calibration` queda fuera a propósito**: mover la
+  semilla o el tamaño de la corrida offline no publica ningún número que nadie vea, y un aviso por
+  cambio invisible sería ruido. `version` y `nota` tampoco entran, así que este ADR y el bump
+  `2.1 → 2.2` no re-avisan a nadie.
+- **No hay archivo generado ni script de sincronización.** La alternativa considerada fue volcar la
+  firma de puntaje a un `data/*.json` para que el cliente la leyera; se descartó porque
+  `MATCHING_CONFIG` **ya viaja al navegador**, así que `scoringFirm(MATCHING_CONFIG)` se calcula en
+  vivo y un artefacto intermedio sería una segunda fuente de verdad con riesgo de deriva. La mitad de
+  medición sí necesita servidor: `PSYCHOMETRIC_PARAMS` (118 985 B) no se baja al cliente, así que la
+  comparación ocurre en `src/infrastructure/math-stamp.server.ts` y por el alambre solo cruzan
+  `{ stamped, current, seal }` (`OwnProfile.measurement` → `ProfileDto.measurement`). El `seal` se
+  manda para que el cierre del aviso T2/T3 pueda recordarse por sello sin exponer parámetros.
+- **La hashing no introduce dependencias.** `canonical()` + `hex12()` usan el `sha256Bytes` puro que
+  ya estaba en `src/domain/shared/hash.ts` (sin Node, navegable), así que la misma función corre en
+  el adaptador y en el navegador.
+- **`minimalRetake(previous, current)`** (`src/domain/psychometrics/minimal-retake.ts`) devuelve el
+  plan, no una bandera: `level` T1/T2/T3, `reask`, `byFactor`, `rescoreOnly`, `retired`, `newFactors`,
+  `overCap` (presupuesto ≤ 25 preguntas), `answersUsable` y `reasons` legibles para el aviso y para
+  este doc. Regla no obvia, escrita con prueba: un ítem **reescrito** arrastra a **toda la familia de
+  su factor** (la posterior se estima en conjunto — I9; media frase vieja junto a media nueva sale
+  peor medida), mientras que un ítem **solo nuevo** no arrastra a nadie porque lo viejo sigue valiendo.
+  `método/escala` o `R` movidos → T3; diff de banco → T2; todo lo demás → **T1 con cero preguntas**.
+- **Migración** `supabase/migrations/20261123000000_params_version_stamp_on_profiles.sql`:
+  `params_version TEXT` + `scored_at TIMESTAMPTZ` (ambas con `COMMENT ON COLUMN` diciendo que NULL es
+  «anterior al sello, sigue en el pool»), índice parcial sobre `params_version` donde el quiz está
+  terminado, y `submit_quiz_result` redefinida con un argumento más (`p_params_version`, con
+  `DEFAULT NULL`) después de hacer `DROP` de las dos sobrecargas vivas (18 argumentos sin `p_params_version`
+  y 17 sin `p_preserve_color`), con su `REVOKE`/`GRANT` EXECUTE a `service_role`. El `UPDATE` escribe
+  `scored_at = now(), params_version = p_params_version`, así que **el sello se pone en cada guardado
+  y no existe un perfil sellado a mano**.
+- **El aviso** (`src/ui/profile/math-update-notice.tsx`) tiene las dos variantes y no se mezclan. T1:
+  una línea (`role="status"`), recordada **por firma** en `localStorage`, nunca a quien llega por
+  primera vez. T2/T3: `Frame` + botón fantasma, con «Afinar mi perfil» a `/afinar` y cierre
+  «Ahora no» keyed por `seal`. El estado pre-sello (`stamped: false`) **solo puede producir T1**: es
+  la garantía mecanizada de la regla 1, «no vuelvas a preguntar lo que sigue siendo válido».
+
+**Consecuencias.**
+
+- **Números del arnés antes de lanzar** (`scripts/matching/divergence.ts`, salida en
+  `docs/DIVERGENCIA_RESULTADOS.md`; N = 500 perfiles sintéticos, «anterior» =
+  `git show 2776ee0^:data/matching-config.json`): la firma de puntaje se va de `795bb099839e` a
+  `e5ade97c3e63` mientras la versión legible decía `2.1 → 2.1` — exactamente la ambigüedad que B9
+  cierra, y la razón del bump a **2.2**. `‖Δθ‖ = 0,0000` por factor **medido** (el arnés re-estima la
+  misma respuesta con los dos modelos de medición, no lo asume). Romance: de 20 672 pares evaluados
+  entran 0,06 % (13) y salen 0,11 % (22), Δ medio del puntaje 0,0291; amistad 0,00 % y 0,0000, porque
+  `relacional` ya pesaba 0 ahí. En los top-K ya arrojados, 26 de 1 035 (2,51 %) dejarían de aparecer
+  en romance y 0 de 2 039 en amistad. Es desaparición del *listado*, no expulsión del pool.
+- **Nadie recibe hoy un aviso de afinación.** Como solo existe un sello de medición, todo perfil
+  previo es `stamped: false` → recalculo silencioso. La rama `stamped: true && current: false` es la
+  que se activará en el próximo cambio de banco y está cubierta por pruebas, no por datos.
+- **Costos aceptados:** dos sobrecargas de `submit_quiz_result` eliminadas en la misma migración (si
+  algo llamaba a la de 18 sin el par nuevo, ahora recibe la firma de 19 con `DEFAULT NULL`);
+  `scored_at` queda en NULL para las filas ya existentes hasta su próximo guardado; el `seal` viaja en
+  el DTO (es un hash sobre datos que ya son públicos en el bundle, sin PII ni parámetros).
+- **Queda sin resolver, escrito:** el aviso T2/T3 no tiene quiz de re-toma montado — `minimalRetake`
+  devuelve el plan y `/afinar` existe, pero nadie ha conectado el plan a un flujo de preguntas por
+  bloque; el día que cambie el banco, ese trabajo es el que falta. Y `docs/PANTALLAS.md` /
+  `docs/CHAT.md` siguen hablando de «por qué conectan» (B5, pendiente de la usuaria).
+- Artefactos: `src/domain/matching/math-stamp.ts` (+ `.test.ts`, 8 casos),
+  `src/domain/psychometrics/minimal-retake.ts` (+ `.test.ts`, 10 casos),
+  `src/infrastructure/math-stamp.server.ts`, la migración `20261123000000`,
+  `src/ui/profile/math-update-notice.tsx` (+ `.test.ts`, 6 casos contra la guía de tono),
+  `measurement` en `ports.ts` / `contracts/profile.ts` / `get-profile.ts` / `parse-profile.ts`,
+  `scripts/matching/divergence.{ts,mjs}`, `docs/DIVERGENCIA_RESULTADOS.md`,
+  `docs/COMUNICADO_USUARIOS.md` reescrito, `data/matching-config.json` a **2.2** (hash registrado
+  `2115393e24a07408 → 45861517dec0e641`) y `docs/TRAZABILIDAD.md` con la fila **T-29**.

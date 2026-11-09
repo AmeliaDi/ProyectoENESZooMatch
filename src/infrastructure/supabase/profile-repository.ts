@@ -18,6 +18,7 @@ import type {
   PoolProfile,
   ProfileRepository,
 } from "@/application/ports";
+import { currentParamsVersion, measurementState } from "@/infrastructure/math-stamp.server";
 import { enneagramCodeOf, type HatchedIdentity, type IdentityState } from "@/domain/identity/hatch-identity";
 import { ok } from "@/domain/shared";
 import { ALL_DIMENSIONS, QUIZ_MODULE_IDS } from "@/types/microtest";
@@ -130,6 +131,7 @@ function toOwnProfile(row: Record<string, unknown>): OwnProfile {
     color: firstJoined(row.colors) as OwnProfile["color"],
     latent: latentSchema.parse(row.latent_profile ?? null),
     completedModules: modulesSchema.parse(row.completed_modules ?? []),
+    measurement: measurementState(row.params_version as string | null),
   };
 }
 
@@ -287,6 +289,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
           p_alias_color: hatch?.aliasColor ?? null,
           p_alias_sufijo: hatch?.aliasSufijo ?? null,
           p_enneagram_code: hatch ? enneagramCodeOf(hatch.enneagram) : null,
+          p_params_version: currentParamsVersion(),
         }),
       );
       if (!res) return failed;
@@ -361,7 +364,7 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
         admin
           .from(TABLE.profiles)
           .select(
-            `${IDENTITY_COLUMNS}, dimension_scores, completed_modules, latent_profile, animals(id, diminutivo_es, categoria_fauna), colors(id, nombre, hex)`,
+            `${IDENTITY_COLUMNS}, dimension_scores, completed_modules, latent_profile, params_version, animals(id, diminutivo_es, categoria_fauna), colors(id, nombre, hex)`,
           )
           .eq("user_id", userId)
           .maybeSingle(),
