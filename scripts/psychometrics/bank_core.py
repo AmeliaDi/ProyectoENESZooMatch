@@ -1,7 +1,12 @@
-"""Core block: 57 Likert + 3 hard filters (docs/ITEMS_PROPUESTA.md §1, approved).
+"""Core block: 55 Likert + 3 hard filters (docs/ITEMS_PROPUESTA.md §1 + ADR-044).
 
 Definition order here is NOT presentation order; bank.py derives the order
 (see `order_core`) and writes it explicitly into data/microtest.json.
+
+ADR-044 saca del núcleo lo que ya no puntúa (val_espiritualidad, act_igualdad:
+listas expresas de dato sensible, peso 0 desde ADR-043) y lo que mide un factor
+cuya otra mitad vive en un módulo opcional (rel_autonomia: ACT5 + REL15). Preguntar
+en el obligatorio algo que no entra al puntaje solo cuesta respuestas.
 """
 
 from __future__ import annotations
@@ -57,59 +62,50 @@ add("VAL1", N, 3, "val_autotrascendencia", None, "Me importa el bienestar de per
 add("VAL2", N, 3, "val_autopromocion", None, "Para mí es importante tener éxito y que se note.", 1, PO)
 add("VAL3", N, 3, "val_apertura_cambio", None, "Valoro elegir mi propio camino, aunque no sea el esperado.", 1, PO)
 add("VAL4", N, 3, "val_conservacion", None, "Me importa respetar las tradiciones de mi familia o comunidad.", 1, PO)
-add("VAL5", N, 3, "val_espiritualidad", None,
-    "La espiritualidad o la religión ocupa un lugar importante en mi vida.", 1, PO, "SENS")
-add("VAL6", N, 3, "meta_crianza", None, "Me gustaría criar hijxs algún día.", 1, PO, "SENS,1I")
-add("VAL7", N, 3, "meta_carrera", None, "En esta etapa, mi carrera profesional es mi prioridad.", 1, PO, "1I")
-add("VAL8", N, 3, "val_presente", None, "Disfrutar el momento me importa más que ahorrar para el futuro.", 1, PO)
+add("VAL6", N, 3, "meta_crianza", "deseo", "Me gustaría criar hijxs algún día.", 1, PO, "SENS")
+add("VAL13", N, 3, "meta_crianza", "temporalidad", "Me veo criando hijxs en los próximos años.", 1, PO, "SENS")
+add("VAL7", N, 3, "meta_carrera", "prioridad", "En esta etapa, mi carrera profesional es mi prioridad.", 1, PO)
+add("VAL14", N, 3, "meta_carrera", "movilidad",
+    "Cambiaría de ciudad o de país por una oportunidad que me importe profesionalmente.", 1, PO)
+add("VAL8", N, 3, "val_presente", "actitud", "Disfrutar el momento me importa más que ahorrar para el futuro.", 1, PO)
+add("VAL15", N, 3, "val_presente", "gasto", "Prefiero gastar en experiencias de ahora que guardar para después.", 1, PO)
 
-# ─── Layer 3: social attitudes and gender perspective ─────────────────────────
+# ─── Layer 3: social attitudes (act_igualdad puntúa con peso 0, ADR-043) ───────
 
-add("ACT1", N, 3, "act_igualdad", "corresponsabilidad",
-    "En una pareja, las tareas de casa y de cuidado se reparten por igual.", 1, PO, "DS",
-    {"valores_corresponsabilidad": 1})
-add("ACT2", N, 3, "act_igualdad", "igualdad_trato",
-    "Todas las personas merecen el mismo trato, sin importar su género u orientación.", 1, PO, "DS,SENS",
-    {"valores_igualdad_genero": 1})
-add("ACT3", N, 3, "act_igualdad", "roles_rigidos", "Hay actividades que son más de hombres que de mujeres.", -1, PO,
-    "SENS", {"valores_igualdad_genero": -1})
 add("ACT4", N, 3, "act_compromiso_social", "diversidad",
     "Me gusta convivir con gente de orígenes y formas de pensar distintas.", 1, PO, "DS",
     {"valores_respeto_diversidad": 1})
-add("ACT5", N, 3, "rel_autonomia", "autonomia_vinculo",
-    "En una relación, cada quien conserva su espacio y sus decisiones.", 1, PO, "",
-    {"intimidad_limites_respeto": 1})
 add("ACT6", N, 3, "act_compromiso_social", "participacion",
     "Me interesa participar en causas sociales o colectivas.", 1, PO)
 
 # ─── Layer 3: interests and lifestyle ─────────────────────────────────────────
 
-add("INT1", N, 3, "int_realista", None, "Disfruto el aire libre o hacer cosas con las manos.", 1, PO, "AMB,1I")
-add("INT2", N, 3, "int_investigador", None, "Paso tiempo investigando temas solo por curiosidad.", 1, PO, "1I")
+add("INT1", N, 3, "int_realista", None, "Disfruto el aire libre o hacer cosas con las manos.", 1, PO, "AMB")
+add("INT2", N, 3, "int_investigador", None, "Paso tiempo investigando temas solo por curiosidad.", 1, PO)
 add("INT3", N, 3, "int_artistico", None, "Dedico tiempo a crear: música, dibujo, escritura u otro arte.", 1, PO, "",
     {"cultural_hobbies_creativos": 1})
-add("INT4", N, 3, "int_emprendedor", None, "Me emociona organizar proyectos o eventos.", 1, PO, "1I",
+add("INT4", N, 3, "int_emprendedor", None, "Me emociona organizar proyectos o eventos.", 1, PO, "",
     {"cultural_vida_universitaria": 1})
 add("INT5", N, 3, "int_vida_nocturna", None, "Soy más de planes de noche que de planes de día.", 1, PO, "",
     {"cultural_vida_universitaria": 1})
-add("INT6", N, 3, "int_actividad_fisica", None, "El ejercicio o el deporte es parte de mi rutina.", 1, PO, "1I")
+add("INT6", N, 3, "int_actividad_fisica", None, "El ejercicio o el deporte es parte de mi rutina.", 1, PO)
 
 # ─── Layer 4: MBTI axes (pole + = I, N, F, P) and Enneagram ───────────────────
 
-mbti("MB1", N, "mbti_ei", "Después de un día intenso, recargo energía estando a solas.", 1, "1I")
-mbti("MB2", N, "mbti_sn", "Me atraen más las posibilidades futuras que los detalles del presente.", 1, "1I")
-mbti("MB3", N, "mbti_tf", "Al decidir, pesa más cómo se sentirán las personas que la pura lógica.", 1, "1I")
-mbti("MB4", N, "mbti_jp", "Prefiero dejar los planes abiertos y decidir sobre la marcha.", 1, "1I")
+mbti("MB1", N, "mbti_ei", "Después de un día intenso, recargo energía estando a solas.", 1)
+mbti("MB2", N, "mbti_sn", "Me atraen más las posibilidades futuras que los detalles del presente.", 1)
+mbti("MB3", N, "mbti_tf", "Al decidir, pesa más cómo se sentirán las personas que la pura lógica.", 1)
+mbti("MB4", N, "mbti_jp", "Prefiero dejar los planes abiertos y decidir sobre la marcha.", 1)
 
-ennea("EN1", N, 1, "motivacion", "Siento que debo hacer las cosas bien, aunque nadie me vea.", "DS,1I")
-ennea("EN2", N, 2, "motivacion", "Me hace sentir bien que la gente me necesite.", "1I")
-ennea("EN3", N, 3, "motivacion", "Me motiva mucho que reconozcan lo que logro.", "1I")
-ennea("EN4", N, 4, "motivacion", "Necesito sentir que mi forma de ser es única.", "1I")
-ennea("EN5", N, 5, "motivacion", "Antes de actuar, necesito entender a fondo cómo funcionan las cosas.", "1I")
-ennea("EN6", N, 6, "motivacion", "Me tranquiliza tener un plan B y saber con quién puedo contar.", "1I")
-ennea("EN7", N, 7, "motivacion", "Busco tener muchas opciones abiertas para no perderme nada.", "1I")
-ennea("EN8", N, 8, "motivacion", "Prefiero tener el control de mi vida que depender de alguien.", "1I")
-ennea("EN9", N, 9, "motivacion", "Prefiero ceder un poco antes que romper la calma de un grupo.", "1I")
+ennea("EN1", N, 1, "motivacion", "Siento que debo hacer las cosas bien, aunque nadie me vea.", "DS")
+ennea("EN2", N, 2, "motivacion", "Me hace sentir bien que la gente me necesite.")
+ennea("EN3", N, 3, "motivacion", "Me motiva mucho que reconozcan lo que logro.")
+ennea("EN4", N, 4, "motivacion", "Necesito sentir que mi forma de ser es única.")
+ennea("EN5", N, 5, "motivacion", "Antes de actuar, necesito entender a fondo cómo funcionan las cosas.")
+ennea("EN6", N, 6, "motivacion", "Me tranquiliza tener un plan B y saber con quién puedo contar.")
+ennea("EN7", N, 7, "motivacion", "Busco tener muchas opciones abiertas para no perderme nada.")
+ennea("EN8", N, 8, "motivacion", "Prefiero tener el control de mi vida que depender de alguien.")
+ennea("EN9", N, 9, "motivacion", "Prefiero ceder un poco antes que romper la calma de un grupo.")
 
 # Sensitive tail, explicit order (SENS Likert items may be skipped, ADR-016).
-CORE_TAIL = ["VAL5", "ACT1", "ACT4", "VAL6", "ACT2", "ACT5", "ACT3", "ACT6", "FIL1", "FIL2", "FIL3"]
+CORE_TAIL = ["ACT4", "VAL6", "ACT6", "VAL13", "FIL1", "FIL2", "FIL3"]

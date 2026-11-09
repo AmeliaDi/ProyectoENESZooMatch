@@ -79,14 +79,14 @@ describe("sondeo: cuanto mueven los priors del puente la estimacion HEXACO", () 
 
   it("E2 puente contestado: sensibilidad de hex_x a r(bf_e,hex_x)", () => {
     const ref = buildMeasurementModel(withCorrelation("bf_e", "hex_x", 0));
+    const idx = params.factores.indexOf("hex_x");
     const rows: string[] = [];
-    const est = (r: number) => {
+    const est = (r: number, ids: readonly string[] = [...coreHex, ...bridge]) => {
       const model = buildMeasurementModel(withCorrelation("bf_e", "hex_x", r));
-      const e = posterior(model, simulateResponses(ref, [...coreHex, ...bridge], thetaOf("bf_e", 1.5), mulberry32(11)), 1);
-      const idx = params.factores.indexOf("hex_x");
+      const e = posterior(model, simulateResponses(ref, ids, thetaOf("bf_e", 1.5), mulberry32(11)), 1);
       const bIdx = params.factores.indexOf("bf_e");
       const se = (i: number) => Math.sqrt(e.covariance[i]![i]!);
-      rows.push(`r=${r.toFixed(2)}  hex_x=${e.theta[idx]!.toFixed(3)}  SE=${se(idx).toFixed(3)}  bf_e=${e.theta[bIdx]!.toFixed(3)}  SE=${se(bIdx).toFixed(3)}`);
+      rows.push(`r=${r.toFixed(2)}  ${String(ids.length).padStart(2)} items  hex_x=${e.theta[idx]!.toFixed(3)}  SE=${se(idx).toFixed(3)}  bf_e=${e.theta[bIdx]!.toFixed(3)}  SE=${se(bIdx).toFixed(3)}`);
       return { hex: e.theta[idx]!, se: se(idx) };
     };
     const at0 = est(0);
@@ -95,11 +95,21 @@ describe("sondeo: cuanto mueven los priors del puente la estimacion HEXACO", () 
     est(0.65);
     const at80 = est(0.8);
     const at95 = est(0.95);
-    console.log("E2 (persona real con bf_e=+1.5 y hex_x=0, responde nucleo + puente):\n" + rows.join("\n"));
-    // Un prior cruzado distinto de cero mueve hex_x mas de lo que aporta
-    // contestar los 15 items del puente; y en el extremo degenerado (r=0.95)
-    // la estimacion vuelve al valor de r=0 pero con incertidumbre mayor.
-    expect(Math.abs(at80.hex - at0.hex)).toBeGreaterThan(0.2);
+    // Mismo sorteo, mismos ítems del núcleo: los 15 ítems del puente entran o
+    // salen, con r = 0. Es la otra palanca de la comparación.
+    const coreOnly = est(0, coreHex);
+    const byItems = Math.abs(at0.hex - coreOnly.hex);
+    const byPrior = Math.abs(at80.hex - at0.hex);
+    console.log("E2 (persona real con bf_e=+1.5 y hex_x=0):\n" + rows.join("\n"));
+    console.log(`E2 |Δ hex_x| por mover r 0→0,80: ${byPrior.toFixed(3)}   |   por contestar el puente (r=0): ${byItems.toFixed(3)}`);
+    // El claim verificado: la correlación cruzada del prior mueve más la
+    // estimación que los 15 ítems del puente. Con el banco v2.1.0 el valor cayó
+    // del piso arbitrario de 0,2 que tenía la aserción, así que la prueba deja
+    // de comparar contra un número suelto y compara las dos palancas, que es lo
+    // que la frase afirma.
+    expect(byPrior).toBeGreaterThan(byItems);
+    // Y en el extremo degenerado (r=0,95) la estimación vuelve al valor de
+    // r=0 pero con incertidumbre mayor.
     expect(at95.se).toBeGreaterThan(at80.se);
   });
 

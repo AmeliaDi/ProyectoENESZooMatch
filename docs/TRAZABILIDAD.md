@@ -14,8 +14,8 @@ si cambian pesos, umbrales o parámetros.
 
 | Archivo | Hash registrado |
 |---|---|
-| data/matching-config.json | `9308cb58fad3cf26` |
-| data/psychometric-params.json | `d25ff00d96fc3820` |
+| data/matching-config.json | `dfd84c237759a48d` |
+| data/psychometric-params.json | `8bcca98f6c20ff46` |
 | data/self-reading.json | `3c021cda2e0b33fa` |
 
 ## Matriz
@@ -44,6 +44,8 @@ si cambian pesos, umbrales o parámetros.
 | T-20 | Explicación por capas con las contribuciones exactas del puntaje; MBTI/eneagrama solo como narrativa con su peso real | ADR-021, T-07 | supuesto_diseno | pts_c = 100·contribution_c; Σ pts = 100·total | `src/domain/explainability/layered.ts` | `src/application/get-result.test.ts` |
 | T-21 | Módulos opcionales: se fusionan con lo guardado y se re-puntúa; amistad sugiere intereses primero | ADR-016, ADR-020, ADR-021 | supuesto_diseno | — | `src/application/refine-profile.ts` | `src/application/refine-profile.test.ts` |
 | T-22 | Sin pisos no compensatorios y factores de categorías sensibles enumeradas fuera del puntaje | EV-105, EV-58, ADR-043 | supuesto_diseno | floors = {} ; factors ∩ {val_espiritualidad, soc_politica, act_igualdad} = ∅ | `src/config/matching.ts` | `src/config/config.test.ts` |
+| T-23 | El plan de ítems y el licenciamiento del peso se derivan del banco: la ficha ya no puede declarar su propio conteo ni pesar sin capa admitida | ADR-044 | supuesto_diseno | items(capas) = Σ_{f ∈ plan.factores} items_banco(f); gap ⟺ peso_max(categoría) > Σ licencia | `scripts/literature/lib/layers.ts` | `scripts/literature/lib/layers.test.ts` |
+| T-24 | Un factor de un solo ítem no sostiene peso: deuda fechada y techo de masa por pista (I5) | ADR-044 | supuesto_diseno | w_eff(f) = τ_c·(w_f/Σ_c w) > 0,01 ⟹ n_f ≥ 2 | `src/domain/matching/pair-score.ts` | `src/domain/psychometrics/single-item-sensitivity.test.ts` |
 
 ## Resultados que respaldan la matriz
 

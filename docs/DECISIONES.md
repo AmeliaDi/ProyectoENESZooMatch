@@ -1442,4 +1442,101 @@ enumeradas, y el banco ya las marcaba (`banderas: ["SENS"]`) mientras el config 
   factores de un solo ítem) y la alternativa correcta para el veto de crianza es un `hard_filters`
   declarado, que requiere campo de quiz, columna y UI (no entra en este ADR).
 
+## ADR-044 · El conteo de ítems se deriva del banco y el peso de un ítem único se topa (I5)
+
+**Contexto.** ADR-043 dejó tres deudas contables que eran la misma cosa: el registro de capas, el
+`1I` de los ítems y el config hablaban de pesos con números que nadie calculaba.
+
+1. `plan.itemsNucleo` era un entero escrito a mano y **contaba por familia de prefijo** (ACT, VAL…),
+   no por factor. `npm run data:layers` reportaba 54 ítems núcleo contra 60 entregados y
+   `withinBudget` salía `false`: el blanco estaba bien, la contabilidad estaba mal.
+2. La bandera `1I` («ítem único») se mantenía a mano sobre 19 ítems mientras el banco tiene **36
+   factores Likert medidos con un solo ítem**: 20 ítems estaban mal marcados en un sentido u otro.
+3. Nadie podía responder «cuánto pesa un factor». El motor opera por **categoría**; el peso de un
+   factor dentro de su categoría nunca se había expresado como número, así que I5 («un ítem único es
+   ruido») no era verificable y ADR-043 tuvo que razonarlo a mano con dos fracciones.
+
+**Decisión.**
+
+- **El plan de cada ficha es una lista de factores, y sus conteos se derivan del banco.**
+  `layer-candidates.json` v2026-11-08 cambia `plan: {itemsNucleo, itemsOpcional, …}` por
+  `plan: {itemsOriginales, factores[], funcion}` y `layers.ts` expone `loadBankCounts()` + `planDe()`,
+  que suman desde `data/microtest.json`; un factor que no existe en el banco **rompe el script**
+  (`factor desconocido en el banco: X`). El `fixedCore` del config de criterios se desglosó igual
+  (filtros, 6 HEXACO, 4 ejes MBTI, 9 eneagrama) porque también era un entero a mano. Con eso la tabla
+  de admisión dice ahora 12+5 en valores, 0+5 en actitudes, 0+7 en vínculo, 6+12 en intereses —y
+  `layers.test.ts` aserca `coreItems === entregado` (58) y `withinBudget === true`, así que el
+  registry ya no puede irse a su aire otra vez.
+- **`1I` se deriva.** `mark_single_item()` en `scripts/psychometrics/bank.py` marca como `1I` todo
+  ítem cuyo factor tiene exactamente un ítem Likert en el banco entero, y se llama antes de
+  renderizar. Se borraron las 19 banderas manuales. La definición es la misma que mide
+  `single-item-sensitivity.test.ts`, así que bandera y medición no pueden separarse.
+- **El peso efectivo de un factor pasa a ser código: `factorEffectiveWeights()`**
+  (`src/domain/matching/pair-score.ts`) = `peso de pista de la categoría × (w_f / Σ_c w)`, con las
+  categorías núcleo escaladas por `(1 − Σ τ)`. Es el peso **nominal**: el soft-min inclina la
+  influencia real hacia la categoría que peor puntúa, así que un factor en desacuerdo pesa al menos
+  esto. Tabla romance, de mayor a menor: `hex_h` 0,0752 · `hex_o` 0,0694 · 4 HEXACO 0,0578 ·
+  `meta_crianza` 0,0470 · `rel_exclusividad` 0,0442 · 7 factores de `valores` 0,0336 · `rel_metas`
+  0,0332 · 5 `rel_*` 0,0221 · 2 `apego_*` 0,0100 · 18 `int_*`/`soc_*` 0,0055 · 4 `con_*` 0,0050 · 5
+  `afecto_*` 0,0020 · 4 ejes MBTI 0,0013 · 9 `ennea_*` 0,0006.
+- **I5 se vuelve aserción con deuda fechada y techo de masa.** Regla: ningún factor con peso
+  efectivo > 0,01 puede medirse con un solo ítem. Se cumplen hoy agregando el segundo ítem al núcleo:
+  `meta_crianza` (VAL6 + **VAL13**), `meta_carrera` (VAL7 + **VAL14**) y `val_presente` (VAL8 +
+  **VAL15**) —los tres con peso ≥ 0,0336 y el primero bajo la lupa desde ADR-043—. Quedan dos listas
+  de deuda **explícitas en el test**, que solo pueden achicarse: los 7 `rel_*` (romance; decide su
+  futuro B7-REL porque la categoría entera está sin licencia) y los 17 `int_*`/`soc_*` (amistad,
+  donde `estilo` pesa 0,35 → 0,0202 por factor; se pagan en B3 junto con la división de quizzes). El
+  segundo brazo del trinquete es la **masa**: fracción del puntaje total que viaja en factores de un
+  ítem, tope registrado 0,313 (romance) y 0,347 (amistad).
+- **Núcleo de 60 a 58 ítems (55 Likert + 3 filtros), 6,77 min.** Salen del obligatorio `VAL5`
+  (`val_espiritualidad`) y `ACT1/ACT2/ACT3` (`act_igualdad`) —los tres con peso 0 desde ADR-043: se
+  siguen estimando y leyendo, pero pedirlos en el core era cobrar 4 ítems por cero puntaje— y
+  `ACT5`, que no era un ítem de actitudes sino el único medidor de `rel_autonomia` y ya vive en el
+  módulo relacional. Entran los tres segundos ítems de arriba. No se baja `coreTargetItems`: 58 está
+  dentro de 60 ± 3 y el minuto extra se paga con ítems que sí puntúan.
+- **El licenciamiento del peso se audita solo.** `licensingGaps()` cruza `matching-config.json` con
+  las fichas: una categoría puede pesar `max(peso de pista)` sobre sus factores, y la licencia es
+  `+∞` si está en `fixedCore` o admitida, `productoExtra.pesoMax` si es extra, 0 si es
+  `opcional_narrativa` o `descartada`. Sale **exactamente un adeudo**: `relacional: peso 0.2 >
+  licenciado 0`. No se borró el peso para que el check pasara —eso habría sido una decisión de
+  producto disfrazada de aritmética—; se abrió la ficha `vinculo_relacional` con `decisionDeclarada:
+  opcional_narrativa`, una fila de evidencia **no fabricada** (`doi: null`, `verificacion:
+  pendiente_humana`, fecha y motivo del hueco) y el adeudo declarado en `motivo`. El script imprime
+  los adeudos y el test clava la lista.
+
+**Consecuencias.**
+
+- La auditoría del adeudo `relacional` llegó después de escribir este ADR y **no lo salva**: 0
+  estudios admisibles para incongruencia de estructura entre dos partners (lo mejor disponible es
+  actor-level transversal y un meta-análisis nulo, g ≈ 0,05 en calidad relacional y sexual, 35
+  estudios / N = 24 489); los dos estudios díadicos prospectivos fuertes sobre deseos de hijos
+  (Shreffler et al. 2019; Testa & Bolano 2021, 6 981 parejas HILDA) predicen **una conducta
+  reproductiva**, no una calidad relacional, y su forma es direccional (veto doble / preeminencia
+  femenina), que el motor simétrico no representa; y el único `ventana` limpio (Buyukcan-Tetik et al.
+  2017, recién casados, 3 olas) mide *ideal propio vs. percepción del partner*, no congruencia entre
+  los dos. Es insumo de B7-REL, donde se decide entre bajar el 0,20 o redefinir la categoría como
+  narrativa. Con Sim et al. 2021 (273 parejas de origen mexicano) hay una licencia *adyacente* —
+  congruencia → calidad marital, diádico, pero en el dominio de aculturación—, que no alcanza para
+  dos estudios del dominio que puntúamos.
+- Mas, medido por partes: **0,299 del peso romance y 0,224 del de amistad ni siquiera se pregunta en
+  el núcleo obligatorio** (sus ítems viven en módulos opcionales; con θ = 0 para ambos la similitud
+  colapsa al promedio poblacional y la categoría regala ~1 punto a todo el mundo). Lo que el core
+  sí pregunta y mide con un ítem vale 0,177 (romance) y 0,274 (amistad). El pool de calibración ya
+  convive con esto —`population.ts` sortea `fullBank` por subpoblación, así que el umbral sale de una
+  mezcla realista de perfiles parciales y completos—, pero la asimetría entre perfiles es un hecho
+  de diseño que B3 atiende al repartir los quizzes.
+- Umbrales re-estimados con `npm run data:matching` (600 perfiles / 179 700 pares / 160,5 s):
+  **romance** umbral 0,5746, techo de referencia 0,6247, cobertura 66,8 % (antes 0,5374 / 0,5877 /
+  66,5 %); **amistad** umbral 0,4639, techo 0,5628, cobertura 100 % (antes 0,4643). Cambia el
+  `entrada_sha256` del modelo de medición porque el banco cambió, así que **todos los perfiles
+  guardados quedan obsoletos otra vez**: esto es lo que B9 convierte en `params_version` + re-testeo
+  mínimo.
+- Hashes registrados: `data/matching-config.json` → `dfd84c237759a48d`, `data/psychometric-params.json`
+  → `8bcca98f6c20ff46`. `docs/TRAZABILIDAD.md` añade T-23 (plan derivado del banco y licenciamiento)
+  y T-24 (peso efectivo e I5).
+- Queda abierto con dueño: **B3** paga los 17 `int_*`/`soc_*` y decide si `estilo` sigue en 0,35 para
+  amistad mientras no estén medidos; **B7-REL** (tarea #13) resuelve el adeudo de `relacional` con la
+  evidencia de arriba; y el veto de crianza como `hard_filters` declarado sigue sin campo, columna ni
+  UI.
+
 

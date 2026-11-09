@@ -90,9 +90,11 @@ describe("impacto aguas abajo de los priors del puente", () => {
         `pares que cambian de lado del umbral: ${flips}`,
     );
     expect(REPS).toBeGreaterThan(0);
-    // El peor caso de |Δ s_personalidad| supera el ancho entre el umbral de
-    // romance (0,5374) y reference_high (0,5877): el prior cambia el mensaje.
-    expect(maxDs).toBeGreaterThan(0.1);
+    // El peor caso de |Δ s_personalidad| supera la banda útil del track
+    // (umbral → reference_high, ambas cosas re-estimadas por `npm run
+    // data:matching`): el prior cambia el mensaje, no solo el decimal.
+    const band = MATCHING_CONFIG.tracks.romance.reference_high - THRESHOLD;
+    expect(maxDs).toBeGreaterThan(band);
   }, 90_000);
 
   it("estabilidad del top-K publicado cuando los priors del puente cambian", () => {

@@ -1,18 +1,18 @@
 {
   "metadatos": {
-    "version": "2.0.0",
+    "version": "2.1.0",
     "idioma": "es-MX",
-    "total_items": 173,
-    "items_nucleo": 60,
+    "total_items": 176,
+    "items_nucleo": 58,
     "items_por_modulo": {
-      "nucleo": 60,
+      "nucleo": 58,
       "hexaco_facetas": 24,
       "puente_big_five": 15,
-      "valores": 4,
-      "actitudes": 2,
+      "valores": 5,
+      "actitudes": 5,
       "intereses": 7,
       "estilo_vida": 6,
-      "relacional": 19,
+      "relacional": 20,
       "mbti": 12,
       "eneagrama": 18,
       "subtipo": 6
@@ -279,9 +279,7 @@
       "capa": 4,
       "factor": "mbti_ei",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "E1",
@@ -322,8 +320,7 @@
       "faceta": "motivacion",
       "origen": "original",
       "banderas": [
-        "DS",
-        "1I"
+        "DS"
       ]
     },
     {
@@ -451,9 +448,7 @@
       "capa": 4,
       "factor": "mbti_sn",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "O1",
@@ -493,9 +488,7 @@
       "factor": "ennea_2",
       "faceta": "motivacion",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "H2",
@@ -577,7 +570,9 @@
       "capa": 3,
       "factor": "int_artistico",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "X2",
@@ -618,9 +613,7 @@
       "capa": 4,
       "factor": "mbti_tf",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "A2",
@@ -660,9 +653,7 @@
       "factor": "ennea_3",
       "faceta": "motivacion",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "C2",
@@ -785,9 +776,7 @@
       "capa": 4,
       "factor": "mbti_jp",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "E3",
@@ -827,9 +816,7 @@
       "factor": "ennea_4",
       "faceta": "motivacion",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "X3",
@@ -909,7 +896,9 @@
       "capa": 3,
       "factor": "int_vida_nocturna",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "C3",
@@ -949,9 +938,7 @@
       "factor": "ennea_5",
       "faceta": "motivacion",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "O3",
@@ -977,7 +964,7 @@
     {
       "id": "VAL7",
       "categoria": "valores_relacionales",
-      "subcategoria": "meta_carrera",
+      "subcategoria": "prioridad",
       "texto": "En esta etapa, mi carrera profesional es mi prioridad.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
@@ -989,10 +976,9 @@
       "modulo": "nucleo",
       "capa": 3,
       "factor": "meta_carrera",
+      "faceta": "prioridad",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "H4",
@@ -1077,9 +1063,7 @@
       "factor": "ennea_6",
       "faceta": "motivacion",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "X4",
@@ -1105,7 +1089,7 @@
     {
       "id": "VAL8",
       "categoria": "valores_relacionales",
-      "subcategoria": "val_presente",
+      "subcategoria": "actitud",
       "texto": "Disfrutar el momento me importa más que ahorrar para el futuro.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
@@ -1117,6 +1101,7 @@
       "modulo": "nucleo",
       "capa": 3,
       "factor": "val_presente",
+      "faceta": "actitud",
       "origen": "original",
       "banderas": []
     },
@@ -1158,9 +1143,7 @@
       "factor": "ennea_7",
       "faceta": "motivacion",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "C4",
@@ -1184,10 +1167,10 @@
       "banderas": []
     },
     {
-      "id": "EN8",
-      "categoria": "personalidad_mbti",
-      "subcategoria": "motivacion",
-      "texto": "Prefiero tener el control de mi vida que depender de alguien.",
+      "id": "VAL14",
+      "categoria": "valores_relacionales",
+      "subcategoria": "movilidad",
+      "texto": "Cambiaría de ciudad o de país por una oportunidad que me importe profesionalmente.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
       "pesos": {},
@@ -1196,13 +1179,11 @@
       "filtro_duro": false,
       "fuente_id": "zoomatch-original",
       "modulo": "nucleo",
-      "capa": 4,
-      "factor": "ennea_8",
-      "faceta": "motivacion",
+      "capa": 3,
+      "factor": "meta_carrera",
+      "faceta": "movilidad",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "O4",
@@ -1228,6 +1209,44 @@
       ]
     },
     {
+      "id": "EN8",
+      "categoria": "personalidad_mbti",
+      "subcategoria": "motivacion",
+      "texto": "Prefiero tener el control de mi vida que depender de alguien.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 4,
+      "factor": "ennea_8",
+      "faceta": "motivacion",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "VAL15",
+      "categoria": "valores_relacionales",
+      "subcategoria": "gasto",
+      "texto": "Prefiero gastar en experiencias de ahora que guardar para después.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "val_presente",
+      "faceta": "gasto",
+      "origen": "original",
+      "banderas": []
+    },
+    {
       "id": "EN9",
       "categoria": "personalidad_mbti",
       "subcategoria": "motivacion",
@@ -1244,52 +1263,7 @@
       "factor": "ennea_9",
       "faceta": "motivacion",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
-    },
-    {
-      "id": "VAL5",
-      "categoria": "valores_relacionales",
-      "subcategoria": "val_espiritualidad",
-      "texto": "La espiritualidad o la religión ocupa un lugar importante en mi vida.",
-      "tipo_respuesta": "likert_5",
-      "polaridad": "positiva",
-      "pesos": {},
-      "track_romance": true,
-      "track_amistad": true,
-      "filtro_duro": false,
-      "fuente_id": "zoomatch-original",
-      "modulo": "nucleo",
-      "capa": 3,
-      "factor": "val_espiritualidad",
-      "origen": "original",
-      "banderas": [
-        "SENS"
-      ]
-    },
-    {
-      "id": "ACT1",
-      "categoria": "valores_relacionales",
-      "subcategoria": "corresponsabilidad",
-      "texto": "En una pareja, las tareas de casa y de cuidado se reparten por igual.",
-      "tipo_respuesta": "likert_5",
-      "polaridad": "positiva",
-      "pesos": {
-        "valores_corresponsabilidad": 1
-      },
-      "track_romance": true,
-      "track_amistad": true,
-      "filtro_duro": false,
-      "fuente_id": "zoomatch-original",
-      "modulo": "nucleo",
-      "capa": 3,
-      "factor": "act_igualdad",
-      "faceta": "corresponsabilidad",
-      "origen": "original",
-      "banderas": [
-        "DS"
-      ]
+      "banderas": []
     },
     {
       "id": "ACT4",
@@ -1317,7 +1291,7 @@
     {
       "id": "VAL6",
       "categoria": "valores_relacionales",
-      "subcategoria": "meta_crianza",
+      "subcategoria": "deseo",
       "texto": "Me gustaría criar hijxs algún día.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
@@ -1329,75 +1303,7 @@
       "modulo": "nucleo",
       "capa": 3,
       "factor": "meta_crianza",
-      "origen": "original",
-      "banderas": [
-        "SENS",
-        "1I"
-      ]
-    },
-    {
-      "id": "ACT2",
-      "categoria": "valores_relacionales",
-      "subcategoria": "igualdad_trato",
-      "texto": "Todas las personas merecen el mismo trato, sin importar su género u orientación.",
-      "tipo_respuesta": "likert_5",
-      "polaridad": "positiva",
-      "pesos": {
-        "valores_igualdad_genero": 1
-      },
-      "track_romance": true,
-      "track_amistad": true,
-      "filtro_duro": false,
-      "fuente_id": "zoomatch-original",
-      "modulo": "nucleo",
-      "capa": 3,
-      "factor": "act_igualdad",
-      "faceta": "igualdad_trato",
-      "origen": "original",
-      "banderas": [
-        "DS",
-        "SENS"
-      ]
-    },
-    {
-      "id": "ACT5",
-      "categoria": "valores_relacionales",
-      "subcategoria": "autonomia_vinculo",
-      "texto": "En una relación, cada quien conserva su espacio y sus decisiones.",
-      "tipo_respuesta": "likert_5",
-      "polaridad": "positiva",
-      "pesos": {
-        "intimidad_limites_respeto": 1
-      },
-      "track_romance": true,
-      "track_amistad": true,
-      "filtro_duro": false,
-      "fuente_id": "zoomatch-original",
-      "modulo": "nucleo",
-      "capa": 3,
-      "factor": "rel_autonomia",
-      "faceta": "autonomia_vinculo",
-      "origen": "original",
-      "banderas": []
-    },
-    {
-      "id": "ACT3",
-      "categoria": "valores_relacionales",
-      "subcategoria": "roles_rigidos",
-      "texto": "Hay actividades que son más de hombres que de mujeres.",
-      "tipo_respuesta": "likert_5",
-      "polaridad": "negativa",
-      "pesos": {
-        "valores_igualdad_genero": -1
-      },
-      "track_romance": true,
-      "track_amistad": true,
-      "filtro_duro": false,
-      "fuente_id": "zoomatch-original",
-      "modulo": "nucleo",
-      "capa": 3,
-      "factor": "act_igualdad",
-      "faceta": "roles_rigidos",
+      "faceta": "deseo",
       "origen": "original",
       "banderas": [
         "SENS"
@@ -1421,6 +1327,27 @@
       "faceta": "participacion",
       "origen": "original",
       "banderas": []
+    },
+    {
+      "id": "VAL13",
+      "categoria": "valores_relacionales",
+      "subcategoria": "temporalidad",
+      "texto": "Me veo criando hijxs en los próximos años.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "meta_crianza",
+      "faceta": "temporalidad",
+      "origen": "original",
+      "banderas": [
+        "SENS"
+      ]
     },
     {
       "id": "FIL1",
@@ -2253,6 +2180,27 @@
       "banderas": []
     },
     {
+      "id": "VAL5",
+      "categoria": "valores_relacionales",
+      "subcategoria": "val_espiritualidad",
+      "texto": "La espiritualidad o la religión ocupa un lugar importante en mi vida.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "valores",
+      "capa": 3,
+      "factor": "val_espiritualidad",
+      "origen": "original",
+      "banderas": [
+        "SENS",
+        "1I"
+      ]
+    },
+    {
       "id": "VAL9",
       "categoria": "valores_relacionales",
       "subcategoria": "benevolencia",
@@ -2331,6 +2279,76 @@
       "banderas": []
     },
     {
+      "id": "ACT1",
+      "categoria": "valores_relacionales",
+      "subcategoria": "corresponsabilidad",
+      "texto": "En una pareja, las tareas de casa y de cuidado se reparten por igual.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {
+        "valores_corresponsabilidad": 1
+      },
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "actitudes",
+      "capa": 3,
+      "factor": "act_igualdad",
+      "faceta": "corresponsabilidad",
+      "origen": "original",
+      "banderas": [
+        "DS"
+      ]
+    },
+    {
+      "id": "ACT2",
+      "categoria": "valores_relacionales",
+      "subcategoria": "igualdad_trato",
+      "texto": "Todas las personas merecen el mismo trato, sin importar su género u orientación.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {
+        "valores_igualdad_genero": 1
+      },
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "actitudes",
+      "capa": 3,
+      "factor": "act_igualdad",
+      "faceta": "igualdad_trato",
+      "origen": "original",
+      "banderas": [
+        "DS",
+        "SENS"
+      ]
+    },
+    {
+      "id": "ACT3",
+      "categoria": "valores_relacionales",
+      "subcategoria": "roles_rigidos",
+      "texto": "Hay actividades que son más de hombres que de mujeres.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "negativa",
+      "pesos": {
+        "valores_igualdad_genero": -1
+      },
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "actitudes",
+      "capa": 3,
+      "factor": "act_igualdad",
+      "faceta": "roles_rigidos",
+      "origen": "original",
+      "banderas": [
+        "SENS"
+      ]
+    },
+    {
       "id": "ACT7",
       "categoria": "valores_relacionales",
       "subcategoria": "expresion_genero",
@@ -2393,7 +2411,9 @@
       "capa": 3,
       "factor": "int_convencional",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "INT8",
@@ -2411,7 +2431,9 @@
       "capa": 3,
       "factor": "int_juegos",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "INT9",
@@ -2431,7 +2453,9 @@
       "capa": 3,
       "factor": "int_cultura",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "INT10",
@@ -2449,7 +2473,9 @@
       "capa": 3,
       "factor": "int_animales",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "INT11",
@@ -2467,7 +2493,9 @@
       "capa": 3,
       "factor": "int_comida",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "INT12",
@@ -2487,7 +2515,9 @@
       "capa": 3,
       "factor": "int_fiesta",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "HUM1",
@@ -2507,7 +2537,9 @@
       "capa": 3,
       "factor": "int_humor",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "SOC1",
@@ -2525,7 +2557,9 @@
       "capa": 3,
       "factor": "soc_rutina",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "SOC2",
@@ -2543,7 +2577,9 @@
       "capa": 3,
       "factor": "soc_redes",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "SOC3",
@@ -2561,7 +2597,9 @@
       "capa": 3,
       "factor": "soc_dinero",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "SOC4",
@@ -2580,7 +2618,8 @@
       "factor": "soc_familia",
       "origen": "original",
       "banderas": [
-        "SENS"
+        "SENS",
+        "1I"
       ]
     },
     {
@@ -2601,7 +2640,9 @@
       "capa": 3,
       "factor": "soc_campus",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "SOC6",
@@ -2621,7 +2662,8 @@
       "faceta": "valores_politicos",
       "origen": "original",
       "banderas": [
-        "SENS"
+        "SENS",
+        "1I"
       ]
     },
     {
@@ -2642,7 +2684,9 @@
       "capa": 3,
       "factor": "con_inmediatez",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "CON2",
@@ -2660,7 +2704,9 @@
       "capa": 3,
       "factor": "con_pausa",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "CON3",
@@ -2681,7 +2727,8 @@
       "factor": "con_acuerdo",
       "origen": "original",
       "banderas": [
-        "DS"
+        "DS",
+        "1I"
       ]
     },
     {
@@ -2703,7 +2750,8 @@
       "factor": "con_reparacion",
       "origen": "original",
       "banderas": [
-        "DS"
+        "DS",
+        "1I"
       ]
     },
     {
@@ -2804,7 +2852,9 @@
       "capa": 3,
       "factor": "afecto_palabras",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "LAM2",
@@ -2824,7 +2874,9 @@
       "capa": 3,
       "factor": "afecto_tiempo",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "LAM3",
@@ -2844,7 +2896,9 @@
       "capa": 3,
       "factor": "afecto_contacto",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "REL1",
@@ -2864,7 +2918,9 @@
       "capa": 3,
       "factor": "afecto_detalles",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "REL2",
@@ -2884,7 +2940,32 @@
       "capa": 3,
       "factor": "afecto_servicio",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
+    },
+    {
+      "id": "ACT5",
+      "categoria": "valores_relacionales",
+      "subcategoria": "autonomia_vinculo",
+      "texto": "En una relación, cada quien conserva su espacio y sus decisiones.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {
+        "intimidad_limites_respeto": 1
+      },
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "relacional",
+      "capa": 3,
+      "factor": "rel_autonomia",
+      "faceta": "autonomia_vinculo",
+      "origen": "original",
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "REL3",
@@ -2904,7 +2985,9 @@
       "capa": 3,
       "factor": "rel_comunicacion",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "REL4",
@@ -2924,7 +3007,9 @@
       "capa": 3,
       "factor": "rel_expresividad",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "REL5",
@@ -2945,7 +3030,8 @@
       "factor": "rel_exclusividad",
       "origen": "original",
       "banderas": [
-        "SENS"
+        "SENS",
+        "1I"
       ]
     },
     {
@@ -2964,7 +3050,9 @@
       "capa": 3,
       "factor": "rel_espacio",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "REL7",
@@ -2982,7 +3070,9 @@
       "capa": 3,
       "factor": "rel_frecuencia",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "REL8",
@@ -3000,7 +3090,9 @@
       "capa": 3,
       "factor": "rel_metas",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "1I"
+      ]
     },
     {
       "id": "MB5",

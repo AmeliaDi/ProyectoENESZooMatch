@@ -2,8 +2,8 @@
 
 > Generado por `scripts/psychometrics/run.py`; **no editar a mano**. Datos **sintéticos**:
 > validan el código y el diseño del banco, **no** el instrumento real (eso requiere un piloto).
-> N = 6000, 170 ítems Likert, semilla 20261101, entrada `data/microtest.json`
-> sha256 `7c87ad1d4cdd1199…`, 146 s. Python 3.15 + numpy/scipy/statsmodels
+> N = 6000, 173 ítems Likert, semilla 20261101, entrada `data/microtest.json`
+> sha256 `b3c0d3d902f814a5…`, 173 s. Python 3.15 + numpy/scipy/statsmodels
 > (versiones en `scripts/psychometrics/requirements.txt`).
 
 ## 1. Generador
@@ -11,7 +11,7 @@
 Modelo de respuesta graduada logístico; θ ~ N(0, R) con R de `latent_model.py` (cada par etiquetado;
 proyección a la matriz de correlación válida más cercana: cambio máx. 0.088).
 Aquiescencia DE 0.25, deseabilidad social DE 0.3 (solo ítems DS),
-231 respuestas descuidadas (4%), 5 agrupaciones de subpoblación.
+236 respuestas descuidadas (4%), 5 agrupaciones de subpoblación.
 DIF inyectado **a propósito** como control positivo: A3 en genero=hombre (uniforme, 0.6); X2 en lengua=bilingue (no_uniforme, 0.5).
 
 Priors de covarianza latente usados:
@@ -63,44 +63,44 @@ Hu & Bentler (1999) se leen como guía: CFI/TLI ≥ .95, RMSEA ≤ .06, SRMR ≤
 
 | Modelo | χ² | gl | CFI | TLI | RMSEA | SRMR |
 |---|---|---|---|---|---|---|
-| HEXACO núcleo (24 ítems, 6 factores) | 1940 | 237 | 0.941 | 0.931 | 0.035 | 0.027 |
-| HEXACO núcleo + facetas (48) | 7401 | 1065 | 0.929 | 0.925 | 0.031 | 0.029 |
-| HEXACO núcleo + puente Big Five (39, 11 factores) | 4602 | 647 | 0.924 | 0.913 | 0.032 | 0.027 |
+| HEXACO núcleo (24 ítems, 6 factores) | 1744 | 237 | 0.948 | 0.940 | 0.033 | 0.025 |
+| HEXACO núcleo + facetas (48) | 7277 | 1065 | 0.932 | 0.927 | 0.031 | 0.028 |
+| HEXACO núcleo + puente Big Five (39, 11 factores) | 4003 | 647 | 0.933 | 0.923 | 0.029 | 0.026 |
 
 Lectura: RMSEA y SRMR son buenos; CFI/TLI quedan en .92–.94 porque el generador incluye aquiescencia,
 deseabilidad y respuestas descuidadas que el modelo de estructura simple no modela (factor de método).
 
-ω jerárquico (Schmid-Leiman aprox., núcleo): **0.344**. Es bajo, como se espera de
+ω jerárquico (Schmid-Leiman aprox., núcleo): **0.361**. Es bajo, como se espera de
 factores casi ortogonales: no hay un factor general que justifique un puntaje total de personalidad.
 
 Correlaciones entre factores HEXACO (núcleo), verdad del generador vs. estimado:
 
 | a | b | verdad | estimado |
 |---|---|---|---|
-| hex_h | hex_e | -0.000 | 0.053 |
-| hex_h | hex_x | -0.000 | -0.012 |
-| hex_h | hex_a | 0.250 | 0.267 |
-| hex_h | hex_c | 0.000 | -0.006 |
-| hex_h | hex_o | -0.002 | 0.024 |
+| hex_h | hex_e | -0.000 | 0.045 |
+| hex_h | hex_x | -0.000 | -0.007 |
+| hex_h | hex_a | 0.250 | 0.254 |
+| hex_h | hex_c | 0.000 | -0.012 |
+| hex_h | hex_o | -0.002 | 0.013 |
 | hex_e | hex_x | 0.000 | 0.019 |
-| hex_e | hex_a | 0.000 | 0.038 |
-| hex_e | hex_c | -0.000 | 0.033 |
-| hex_e | hex_o | 0.000 | 0.017 |
-| hex_x | hex_a | 0.000 | 0.006 |
-| hex_x | hex_c | -0.000 | 0.014 |
-| hex_x | hex_o | 0.000 | 0.007 |
-| hex_a | hex_c | -0.000 | -0.016 |
-| hex_a | hex_o | 0.000 | 0.027 |
-| hex_c | hex_o | -0.000 | -0.005 |
+| hex_e | hex_a | 0.000 | 0.035 |
+| hex_e | hex_c | -0.000 | 0.023 |
+| hex_e | hex_o | 0.000 | 0.020 |
+| hex_x | hex_a | 0.000 | 0.001 |
+| hex_x | hex_c | -0.000 | 0.012 |
+| hex_x | hex_o | 0.000 | -0.014 |
+| hex_a | hex_c | -0.000 | -0.044 |
+| hex_a | hex_o | 0.000 | 0.037 |
+| hex_c | hex_o | -0.000 | 0.010 |
 
 ## 3. Dimensionalidad del núcleo HEXACO
 
 |  | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 |---|---|---|---|---|---|---|---|---|
-| autovalor observado | 2.530 | 2.334 | 2.270 | 2.190 | 2.138 | 1.686 | 1.098 | 0.709 |
+| autovalor observado | 2.514 | 2.342 | 2.276 | 2.202 | 2.150 | 1.702 | 1.046 | 0.736 |
 | percentil 95 aleatorio | 1.126 | 1.110 | 1.095 | 1.085 | 1.074 | 1.063 | 1.050 | 1.043 |
 
-Análisis paralelo (Horn): **7** factores; MAP (Velicer): **6**. El 7.º
+Análisis paralelo (Horn): **6** factores; MAP (Velicer): **6**. El 7.º
 autovalor del análisis paralelo es la aquiescencia inyectada (factor de método), no un rasgo: por eso
 el banco balancea ítems directos e inversos (10 de 24 en el núcleo). MAP recupera los 6 factores.
 
@@ -112,41 +112,44 @@ estimable y se tratan con λ = .70 (`supuesto_diseno`) y mayor incertidumbre.
 
 | Escala | k | ω | α ordinal | λ mín | λ máx | r inter |
 |---|---|---|---|---|---|---|
-| act_compromiso_social | 2 | — | — | — | — | 0.347 |
-| act_igualdad | 5 | 0.787 | 0.785 | 0.549 | 0.734 | — |
-| apego_ansiedad | 2 | — | — | — | — | 0.363 |
-| apego_evitacion | 2 | — | — | — | — | 0.322 |
-| bf_a | 3 | 0.611 | 0.608 | 0.508 | 0.643 | — |
-| bf_c | 3 | 0.575 | 0.574 | 0.510 | 0.591 | — |
-| bf_e | 3 | 0.748 | 0.746 | 0.642 | 0.753 | — |
-| bf_n | 3 | 0.654 | 0.653 | 0.590 | 0.661 | — |
-| bf_o | 3 | 0.619 | 0.615 | 0.535 | 0.685 | — |
-| ennea_1 | 3 | 0.686 | 0.682 | 0.562 | 0.741 | — |
-| ennea_2 | 3 | 0.673 | 0.672 | 0.571 | 0.677 | — |
-| ennea_3 | 3 | 0.686 | 0.683 | 0.579 | 0.709 | — |
-| ennea_4 | 3 | 0.592 | 0.591 | 0.546 | 0.591 | — |
-| ennea_5 | 3 | 0.625 | 0.619 | 0.518 | 0.715 | — |
-| ennea_6 | 3 | 0.608 | 0.603 | 0.529 | 0.683 | — |
-| ennea_7 | 3 | 0.713 | 0.709 | 0.596 | 0.765 | — |
-| ennea_8 | 3 | 0.757 | 0.757 | 0.682 | 0.747 | — |
-| ennea_9 | 3 | 0.667 | 0.660 | 0.505 | 0.729 | — |
-| hex_a | 8 | 0.803 | 0.802 | 0.490 | 0.692 | — |
-| hex_c | 8 | 0.861 | 0.860 | 0.588 | 0.746 | — |
-| hex_e | 8 | 0.848 | 0.847 | 0.543 | 0.740 | — |
-| hex_h | 8 | 0.852 | 0.851 | 0.541 | 0.720 | — |
-| hex_o | 8 | 0.828 | 0.825 | 0.475 | 0.708 | — |
-| hex_x | 8 | 0.848 | 0.847 | 0.554 | 0.749 | — |
-| mbti_ei | 4 | 0.702 | 0.702 | 0.572 | 0.655 | — |
-| mbti_jp | 4 | 0.713 | 0.711 | 0.503 | 0.697 | — |
-| mbti_sn | 4 | 0.737 | 0.735 | 0.529 | 0.709 | — |
-| mbti_tf | 4 | 0.678 | 0.677 | 0.538 | 0.639 | — |
-| sub_so | 2 | — | — | — | — | 0.351 |
-| sub_sp | 2 | — | — | — | — | 0.317 |
-| sub_sx | 2 | — | — | — | — | 0.390 |
-| val_apertura_cambio | 2 | — | — | — | — | 0.414 |
-| val_autopromocion | 2 | — | — | — | — | 0.386 |
-| val_autotrascendencia | 2 | — | — | — | — | 0.428 |
-| val_conservacion | 2 | — | — | — | — | 0.422 |
+| act_compromiso_social | 2 | — | — | — | — | 0.425 |
+| act_igualdad | 5 | 0.755 | 0.754 | 0.536 | 0.685 | — |
+| apego_ansiedad | 2 | — | — | — | — | 0.355 |
+| apego_evitacion | 2 | — | — | — | — | 0.301 |
+| bf_a | 3 | 0.705 | 0.702 | 0.595 | 0.729 | — |
+| bf_c | 3 | 0.562 | 0.550 | 0.449 | 0.703 | — |
+| bf_e | 3 | 0.615 | 0.606 | 0.492 | 0.723 | — |
+| bf_n | 3 | 0.626 | 0.621 | 0.510 | 0.685 | — |
+| bf_o | 3 | 0.618 | 0.609 | 0.511 | 0.735 | — |
+| ennea_1 | 3 | 0.680 | 0.677 | 0.550 | 0.697 | — |
+| ennea_2 | 3 | 0.654 | 0.653 | 0.591 | 0.671 | — |
+| ennea_3 | 3 | 0.619 | 0.614 | 0.500 | 0.686 | — |
+| ennea_4 | 3 | 0.542 | 0.542 | 0.524 | 0.548 | — |
+| ennea_5 | 3 | 0.631 | 0.627 | 0.518 | 0.689 | — |
+| ennea_6 | 3 | 0.746 | 0.746 | 0.671 | 0.735 | — |
+| ennea_7 | 3 | 0.771 | 0.770 | 0.708 | 0.752 | — |
+| ennea_8 | 3 | 0.596 | 0.595 | 0.526 | 0.619 | — |
+| ennea_9 | 3 | 0.680 | 0.676 | 0.564 | 0.733 | — |
+| hex_a | 8 | 0.818 | 0.817 | 0.513 | 0.731 | — |
+| hex_c | 8 | 0.849 | 0.848 | 0.545 | 0.712 | — |
+| hex_e | 8 | 0.860 | 0.859 | 0.566 | 0.739 | — |
+| hex_h | 8 | 0.849 | 0.848 | 0.514 | 0.727 | — |
+| hex_o | 8 | 0.852 | 0.850 | 0.481 | 0.722 | — |
+| hex_x | 8 | 0.833 | 0.832 | 0.552 | 0.714 | — |
+| mbti_ei | 4 | 0.710 | 0.708 | 0.544 | 0.683 | — |
+| mbti_jp | 4 | 0.725 | 0.723 | 0.540 | 0.714 | — |
+| mbti_sn | 4 | 0.700 | 0.697 | 0.505 | 0.689 | — |
+| mbti_tf | 4 | 0.694 | 0.690 | 0.494 | 0.723 | — |
+| meta_carrera | 2 | — | — | — | — | 0.527 |
+| meta_crianza | 2 | — | — | — | — | 0.362 |
+| sub_so | 2 | — | — | — | — | 0.441 |
+| sub_sp | 2 | — | — | — | — | 0.285 |
+| sub_sx | 2 | — | — | — | — | 0.420 |
+| val_apertura_cambio | 2 | — | — | — | — | 0.518 |
+| val_autopromocion | 2 | — | — | — | — | 0.300 |
+| val_autotrascendencia | 2 | — | — | — | — | 0.460 |
+| val_conservacion | 2 | — | — | — | — | 0.428 |
+| val_presente | 2 | — | — | — | — | 0.450 |
 
 ## 5. Teoría de respuesta al ítem (GRM)
 
@@ -155,28 +158,28 @@ por factor (+1 del prior N(0,1)) y error estándar condicional:
 
 | Conjunto | Factor | k | EE(θ=−2) | EE(θ=0) | EE(θ=+2) |
 |---|---|---|---|---|---|
-| nucleo | hex_h | 4 | 0.582 | 0.541 | 0.584 |
-| nucleo | hex_e | 4 | 0.555 | 0.521 | 0.568 |
-| nucleo | hex_x | 4 | 0.549 | 0.515 | 0.556 |
-| nucleo | hex_a | 4 | 0.638 | 0.590 | 0.644 |
-| nucleo | hex_c | 4 | 0.580 | 0.526 | 0.563 |
-| nucleo | hex_o | 4 | 0.580 | 0.550 | 0.584 |
-| nucleo+facetas | hex_h | 8 | 0.441 | 0.399 | 0.436 |
-| nucleo+facetas | hex_e | 8 | 0.440 | 0.402 | 0.445 |
-| nucleo+facetas | hex_x | 8 | 0.427 | 0.397 | 0.444 |
-| nucleo+facetas | hex_a | 8 | 0.491 | 0.457 | 0.504 |
-| nucleo+facetas | hex_c | 8 | 0.437 | 0.387 | 0.426 |
-| nucleo+facetas | hex_o | 8 | 0.453 | 0.428 | 0.463 |
+| nucleo | hex_h | 4 | 0.584 | 0.536 | 0.587 |
+| nucleo | hex_e | 4 | 0.549 | 0.510 | 0.563 |
+| nucleo | hex_x | 4 | 0.556 | 0.515 | 0.570 |
+| nucleo | hex_a | 4 | 0.638 | 0.597 | 0.638 |
+| nucleo | hex_c | 4 | 0.574 | 0.522 | 0.572 |
+| nucleo | hex_o | 4 | 0.578 | 0.531 | 0.583 |
+| nucleo+facetas | hex_h | 8 | 0.440 | 0.400 | 0.455 |
+| nucleo+facetas | hex_e | 8 | 0.419 | 0.385 | 0.442 |
+| nucleo+facetas | hex_x | 8 | 0.460 | 0.421 | 0.469 |
+| nucleo+facetas | hex_a | 8 | 0.474 | 0.438 | 0.479 |
+| nucleo+facetas | hex_c | 8 | 0.442 | 0.401 | 0.441 |
+| nucleo+facetas | hex_o | 8 | 0.427 | 0.399 | 0.444 |
 
 Completar el módulo de facetas baja el EE de ≈ .55 a ≈ .42: es lo que la UI comunicará como
 "más respuestas, menos incertidumbre".
 
-Recuperación de parámetros (131 ítems estimables; a reescalado ×1.702 a logística):
+Recuperación de parámetros (137 ítems estimables; a reescalado ×1.702 a logística):
 
 | Parámetro | r(verdad, estimado) | sesgo | RMSE |
 |---|---|---|---|
-| a (discriminación) | 0.854 | -0.147 | 0.233 |
-| b (umbrales) | 0.983 | 0.014 | 0.241 |
+| a (discriminación) | 0.866 | -0.143 | 0.226 |
+| b (umbrales) | 0.983 | 0.028 | 0.248 |
 
 El sesgo negativo de a es esperado: la aquiescencia, la deseabilidad y el ruido descuidado atenúan las
 cargas. Los umbrales se recuperan casi sin sesgo.
@@ -190,36 +193,36 @@ Criterio 2 (`data/literature/layer-criteria.json`): correlación latente máx. 0
 
 | HEXACO | Big Five | verdad | estimado | ¿supera? |
 |---|---|---|---|---|
-| hex_h | bf_e | -0.000 | -0.023 | no |
-| hex_h | bf_a | 0.300 | 0.367 | no |
-| hex_h | bf_c | 0.000 | 0.033 | no |
-| hex_h | bf_n | 0.000 | 0.001 | no |
-| hex_h | bf_o | 0.001 | 0.046 | no |
-| hex_e | bf_e | 0.000 | 0.022 | no |
-| hex_e | bf_a | 0.000 | 0.006 | no |
-| hex_e | bf_c | -0.000 | 0.026 | no |
-| hex_e | bf_n | 0.550 | 0.561 | no |
-| hex_e | bf_o | -0.000 | 0.036 | no |
-| hex_x | bf_e | 0.800 | 0.823 | sí |
-| hex_x | bf_a | -0.000 | 0.016 | no |
-| hex_x | bf_c | 0.000 | -0.008 | no |
-| hex_x | bf_n | -0.000 | -0.016 | no |
-| hex_x | bf_o | -0.000 | -0.004 | no |
-| hex_a | bf_e | 0.000 | 0.022 | no |
-| hex_a | bf_a | 0.550 | 0.555 | no |
-| hex_a | bf_c | -0.000 | -0.011 | no |
-| hex_a | bf_n | -0.000 | -0.006 | no |
-| hex_a | bf_o | -0.000 | 0.054 | no |
-| hex_c | bf_e | -0.000 | 0.010 | no |
-| hex_c | bf_a | 0.000 | 0.006 | no |
-| hex_c | bf_c | 0.800 | 0.843 | sí |
-| hex_c | bf_n | 0.000 | 0.021 | no |
-| hex_c | bf_o | 0.000 | -0.018 | no |
-| hex_o | bf_e | -0.000 | -0.023 | no |
-| hex_o | bf_a | 0.000 | 0.030 | no |
-| hex_o | bf_c | -0.000 | -0.009 | no |
-| hex_o | bf_n | -0.000 | 0.048 | no |
-| hex_o | bf_o | 0.712 | 0.729 | sí |
+| hex_h | bf_e | -0.000 | -0.017 | no |
+| hex_h | bf_a | 0.300 | 0.343 | no |
+| hex_h | bf_c | 0.000 | 0.018 | no |
+| hex_h | bf_n | 0.000 | 0.011 | no |
+| hex_h | bf_o | 0.001 | 0.024 | no |
+| hex_e | bf_e | 0.000 | 0.015 | no |
+| hex_e | bf_a | 0.000 | 0.065 | no |
+| hex_e | bf_c | -0.000 | 0.069 | no |
+| hex_e | bf_n | 0.550 | 0.556 | no |
+| hex_e | bf_o | -0.000 | 0.038 | no |
+| hex_x | bf_e | 0.800 | 0.804 | sí |
+| hex_x | bf_a | -0.000 | 0.015 | no |
+| hex_x | bf_c | 0.000 | 0.032 | no |
+| hex_x | bf_n | -0.000 | 0.017 | no |
+| hex_x | bf_o | -0.000 | 0.014 | no |
+| hex_a | bf_e | 0.000 | 0.008 | no |
+| hex_a | bf_a | 0.550 | 0.577 | no |
+| hex_a | bf_c | -0.000 | 0.014 | no |
+| hex_a | bf_n | -0.000 | -0.037 | no |
+| hex_a | bf_o | -0.000 | 0.048 | no |
+| hex_c | bf_e | -0.000 | 0.002 | no |
+| hex_c | bf_a | 0.000 | -0.025 | no |
+| hex_c | bf_c | 0.800 | 0.829 | sí |
+| hex_c | bf_n | 0.000 | 0.007 | no |
+| hex_c | bf_o | 0.000 | -0.004 | no |
+| hex_o | bf_e | -0.000 | -0.026 | no |
+| hex_o | bf_a | 0.000 | 0.014 | no |
+| hex_o | bf_c | -0.000 | -0.002 | no |
+| hex_o | bf_n | -0.000 | 0.025 | no |
+| hex_o | bf_o | 0.712 | 0.709 | sí |
 
 Decisión (ver `docs/DECISION_MODELO_RASGOS.md`): E, C y O del Big Five son redundantes con HEXACO
 (r > .70), así que el puente **no entra en el núcleo ni en el puntaje**. Queda como módulo opcional
@@ -233,7 +236,7 @@ p_Holm < .05 y ΔR² de McFadden ≥ .01 (`supuesto_diseno`).
 
 | Ítem | Agrupación | ΔR² uniforme | ΔR² no uniforme | ¿inyectado? |
 |---|---|---|---|---|
-| A3 | genero | 0.010 | 0.000 | sí |
+| — | — | — | — | ninguno marcado |
 
 Se detecta el DIF uniforme inyectado (A3 por género), sin falsos positivos. El DIF **no uniforme**
 inyectado en X2 (lengua) **no** se marca: su efecto (ΔR² muy pequeño) queda bajo el umbral de
@@ -244,11 +247,11 @@ Invariancia aproximada por género (AFC por grupo; no es MGCFA completa):
 
 | Grupo | n | CFI | RMSEA | SRMR |
 |---|---|---|---|---|
-| mujer | 2744 | 0.941 | 0.037 | 0.030 |
-| hombre | 2571 | 0.930 | 0.040 | 0.031 |
-| no_binarie | 454 | 0.921 | 0.044 | 0.049 |
+| mujer | 2739 | 0.944 | 0.036 | 0.029 |
+| hombre | 2574 | 0.935 | 0.038 | 0.031 |
+| no_binarie | 451 | 0.919 | 0.046 | 0.048 |
 
-Configural: la estructura de 6 factores ajusta en los tres grupos. Métrica: Δλ máx. = 0.177 (O2). Escalar: Δτ máx. = 0.405 (A3, coincide con el DIF inyectado). El grupo
+Configural: la estructura de 6 factores ajusta en los tres grupos. Métrica: Δλ máx. = 0.143 (C4). Escalar: Δτ máx. = 0.460 (A3, coincide con el DIF inyectado). El grupo
 no binarie (n ≈ 450) tiene peor ajuste por tamaño muestral: en datos reales hará falta n suficiente
 por grupo antes de afirmar invariancia.
 

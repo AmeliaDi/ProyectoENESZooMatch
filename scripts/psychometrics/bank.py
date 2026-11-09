@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import sys
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -24,8 +25,9 @@ from bank_model import FLAGS, ITEMS, ORIGINS, Item  # noqa: E402
 from bank_render import write_seed, write_test_md  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 MAX_TEXT = 140
+CORE_LIKERT = 55  # + 3 hard filters = 58 (ADR-044; era 57 + 3 = 60)
 
 MODULES = [
     ("nucleo", "Núcleo", "Las preguntas base para tu perfil y tus matches."),
@@ -73,7 +75,7 @@ def order_core(items: list[Item]) -> list[Item]:
     hexaco = [by_id[f"{f}{k}"] for k in range(1, 5) for f in "HEXACO"]
     streams = [[by_id[f"INT{k}"] for k in range(1, 7)], [by_id[f"MB{k}"] for k in range(1, 5)],
                [by_id[f"EN{k}"] for k in range(1, 10)],
-               [by_id[k] for k in ["VAL1", "VAL2", "VAL3", "VAL4", "VAL7", "VAL8"]]]
+               [by_id[k] for k in ["VAL1", "VAL2", "VAL3", "VAL4", "VAL7", "VAL8", "VAL14", "VAL15"]]]
     others: list[Item] = []
     while any(streams):
         for s in streams:
@@ -86,6 +88,21 @@ def order_core(items: list[Item]) -> list[Item]:
         if hexaco:
             head.append(hexaco.pop(0))
     return head + [by_id[i] for i in bank_core.CORE_TAIL]
+
+
+def mark_single_item(items: list[Item]) -> None:
+    """Derives the `1I` flag: a Likert factor measured by exactly one item in the
+    whole bank (the same definition single-item-sensitivity.test.ts measures).
+    Written by hand before ADR-044, where it disagreed with the bank in 20 items."""
+    per_factor = Counter(i.factor for i in items if i.opciones is None)
+    for i in items:
+        if i.opciones is not None:
+            continue
+        single = per_factor[i.factor] == 1
+        if single and "1I" not in i.banderas:
+            i.banderas.append("1I")
+        if not single and "1I" in i.banderas:
+            i.banderas.remove("1I")
 
 
 def validate(core: list[Item]) -> None:
@@ -101,8 +118,8 @@ def validate(core: list[Item]) -> None:
         if len(i.texto) >= MAX_TEXT:
             errors.append(f"{i.id}: text too long ({len(i.texto)})")
     core_ids = {i.id for i in ITEMS if i.modulo == "nucleo"}
-    if len(core) != 60 or {i.id for i in core} != core_ids or sum(i.opciones is not None for i in core) != 3:
-        errors.append(f"core must be 57 Likert + 3 filters in order (got {len(core)})")
+    if len(core) != CORE_LIKERT + 3 or {i.id for i in core} != core_ids or sum(i.opciones is not None for i in core) != 3:
+        errors.append(f"core must be {CORE_LIKERT} Likert + 3 filters in order (got {len(core)})")
     for f in ["hex_h", "hex_e", "hex_x", "hex_a", "hex_c", "hex_o"]:
         if not any(i.factor == f and i.key == -1 for i in core):
             errors.append(f"{f}: no reversed core item")
@@ -134,6 +151,7 @@ def to_json(i: Item) -> dict[str, object]:
 
 
 def main() -> None:
+    mark_single_item(ITEMS)
     core = order_core([i for i in ITEMS if i.modulo == "nucleo"])
     validate(core)
     optional = [i for m in MODULE_IDS[1:] for i in ITEMS if i.modulo == m]

@@ -1,11 +1,11 @@
 {
-  "_comentario": "Fichas de capas candidatas (Fase 2 del afinado). 'verificacion' describe qué se comprobó: crossref_abstract (metadatos + abstract leído), crossref_metadatos (solo existencia), pendiente_humana (extracción del crawler sin revisar). Solo lo verificado cuenta para el criterio 1. Ver docs/CAPAS_EVIDENCIA.md.",
-  "version": "2026-11-01",
+  "_comentario": "Fichas de capas candidatas (Fase 2 del afinado). 'verificacion' describe qué se comprobó: crossref_abstract (metadatos + abstract leído), crossref_metadatos (solo existencia), pendiente_humana (extracción del crawler sin revisar). Solo lo verificado cuenta para el criterio 1. Desde 2026-11-08 las fichas declaran `plan.factores` y `fixedCore.factores`, y los conteos de ítems (núcleo/opcionales) se DERIVAN de data/microtest.json en scripts/literature/lib/layers.ts: los números a mano decían 54 ítems núcleo cuando el banco entregaba 58, porque contaban familias de prefijo (ACT4/ACT5/ACT6 no son act_igualdad). Ver docs/CAPAS_EVIDENCIA.md.",
+  "version": "2026-11-08",
   "fixedCore": [
-    { "id": "filtros", "capa": 0, "itemsNucleo": 3, "likert": false, "motivo": "Decisión de producto: elegibilidad mutua (orientación, identidad de género declarada, tipo de relación)." },
-    { "id": "hexaco", "capa": 1, "itemsNucleo": 24, "likert": true, "motivo": "Decisión de producto (núcleo). 4 ítems por factor, formato Mini-IPIP6; ítems IPIP de dominio público." },
-    { "id": "mbti", "capa": 4, "itemsNucleo": 4, "likert": true, "motivo": "Identidad visual (animal). 1 ítem original por eje; el resto se apoya en la covarianza con HEXACO (EV-30)." },
-    { "id": "eneagrama", "capa": 4, "itemsNucleo": 9, "likert": true, "motivo": "Identidad visual (color y aura). 1 ítem motivacional original por tipo; softmax con entropía." }
+    { "id": "filtros", "capa": 0, "factores": ["filtro"], "likert": false, "motivo": "Decisión de producto: elegibilidad mutua (orientación, identidad de género declarada, tipo de relación)." },
+    { "id": "hexaco", "capa": 1, "factores": ["hex_h", "hex_e", "hex_x", "hex_a", "hex_c", "hex_o"], "likert": true, "motivo": "Decisión de producto (núcleo). 4 ítems por factor, formato Mini-IPIP6; ítems IPIP de dominio público." },
+    { "id": "mbti", "capa": 4, "factores": ["mbti_ei", "mbti_sn", "mbti_tf", "mbti_jp"], "likert": true, "motivo": "Identidad visual (animal). 1 ítem original por eje en el núcleo y 3 más en el módulo; se apoya en la covarianza con HEXACO (EV-30)." },
+    { "id": "eneagrama", "capa": 4, "factores": ["ennea_1", "ennea_2", "ennea_3", "ennea_4", "ennea_5", "ennea_6", "ennea_7", "ennea_8", "ennea_9"], "likert": true, "motivo": "Identidad visual (color y aura). 1 ítem motivacional original por tipo en el núcleo y 2 más por tipo en el módulo; softmax con entropía." }
   ],
   "candidates": [
     {
@@ -22,7 +22,7 @@
       "redundancia": { "estado": "no_redundante_teorico", "nota": "Valores y rasgos son constructos distintos; la correlación latente con HEXACO (sobre todo H y O) se medirá en la Fase 3." },
       "escalaEspanol": { "nombre": "PVQ-21 / PVQ-40", "ref": "Beramendi & Zubieta 2017, Psychologia 60:68–84 (Argentina)", "doi": "10.2117/psysoc.2017.68", "estado": "crossref_metadatos" },
       "licencia": { "estado": "no_verificada", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9131418/", "cita": "La licencia CC BY-NC encontrada es la del artículo, no la del instrumento.", "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": true, "itemsNucleo": 8, "itemsOpcional": 4, "funcion": "similitud con penalización asimétrica en valores centrales" },
+      "plan": { "itemsOriginales": true, "factores": ["val_apertura_cambio", "val_autopromocion", "val_autotrascendencia", "val_conservacion", "val_espiritualidad", "val_presente", "meta_carrera", "meta_crianza", "act_compromiso_social"], "funcion": "similitud con penalización asimétrica en valores centrales" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "decisionDeclarada": "admitida",
       "motivo": "Mejor evidencia de similitud disponible; ítems originales sobre los 4 valores de orden superior y metas de vida."
@@ -44,7 +44,7 @@
       "redundancia": { "estado": "no_redundante_teorico", "nota": "Correlación esperada con H y O; se mide en la Fase 3." },
       "escalaEspanol": { "nombre": "ISA (Inventario de Sexismo Ambivalente), versión española", "ref": "Expósito, Moya & Glick 1998, Rev. Psicol. Soc. 13:159–169", "doi": "10.1174/021347498760350641", "estado": "crossref_abstract" },
       "licencia": { "estado": "no_verificada", "url": "https://www.researchgate.net/publication/233501729_Sexismo_ambivalente_medicion_y_correlatos", "cita": "Content may be subject to copyright.", "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": true, "itemsNucleo": 6, "itemsOpcional": 2, "funcion": "narrativa y autolecutra (peso 0 en puntaje) mientras el motor solo sepa hacer similitud simétrica; la evidencia direccional pide un término asimétrico que aún no existe" },
+      "plan": { "itemsOriginales": true, "factores": ["act_igualdad"], "funcion": "narrativa y autolecutra (peso 0 en puntaje) mientras el motor solo sepa hacer similitud simétrica; la evidencia direccional pide un término asimétrico que aún no existe" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "decisionDeclarada": "opcional_narrativa",
       "motivo": "Re-auditada el 2026-11-08 con el verificador corrigido (la forma del efecto debe coincidir con la función de puntaje, y seleccion/nivel no son formas admisibles). De las 7 filas, ninguna es similitud verificada que prediga un resultado relacional: 2 son selección (Luo & Klohnen, Hudde), 1 es nulo explícito (Miculka & Imhoff), 1 es direccional y por tanto no respalda esta forma (Park et al. 2025) y 2 son solo metadatos. Leikas 2018 es la única que cuenta y minVerifiedStudies exige 2. Sale de `dealbreakers` y se le quita el piso de 0,35: los ítems se siguen contestando y alimentan θ, pero no mueven el puntaje hasta que exista la forma direccional."
@@ -62,7 +62,7 @@
       "redundancia": { "estado": "no_redundante_teorico", "nota": "Los intereses se relacionan con O y X; se mide en la Fase 3." },
       "escalaEspanol": { "nombre": "O*NET Interest Profiler (RIASEC), formato corto", "ref": "onetcenter.org/IP.html", "doi": null, "estado": "pagina_oficial" },
       "licencia": { "estado": "cc", "url": "https://www.onetcenter.org/IP.html", "cita": "The O*NET Interest Profiler may be redistributed or used to develop other assessments under a choice of licenses.", "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": true, "itemsNucleo": 6, "itemsOpcional": 6, "funcion": "similitud (homofilia), más peso en amistad" },
+      "plan": { "itemsOriginales": true, "factores": ["int_actividad_fisica", "int_animales", "int_artistico", "int_comida", "int_convencional", "int_cultura", "int_emprendedor", "int_fiesta", "int_investigador", "int_juegos", "int_realista", "int_vida_nocturna", "soc_campus", "soc_dinero", "soc_familia", "soc_politica", "soc_redes", "soc_rutina"], "funcion": "similitud (homofilia), más peso en amistad" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "decisionDeclarada": "admitida",
       "motivo": "Evidencia de homofilia en la formación de amistades; prior débil para pareja. Ítems originales inspirados en RIASEC y vida universitaria."
@@ -80,7 +80,7 @@
       "redundancia": { "estado": "no_redundante_teorico", "nota": "La ansiedad de apego se solapa con Emocionalidad." },
       "escalaEspanol": { "nombre": "ECR-12 en español (Chile)", "ref": "Guzmán-González et al. 2020, Psicol. Reflex. Crit. 33", "doi": "10.1186/s41155-020-00145-w", "estado": "crossref_abstract" },
       "licencia": { "estado": "restringida", "url": "https://labs.psychology.illinois.edu/~rcfraley/measures/measures.html", "cita": "Because the chapters are copyrighted by Guilford Press, they should not be reproduced without permission.", "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": true, "itemsNucleo": 0, "itemsOpcional": 4, "funcion": "extra de peso mínimo: similitud en seguridad y cercanía declaradas (4 ítems opcionales, nunca inferido)" },
+      "plan": { "itemsOriginales": true, "factores": ["apego_ansiedad", "apego_evitacion"], "funcion": "extra de peso mínimo: similitud en seguridad y cercanía declaradas (4 ítems opcionales, nunca inferido)" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "productoExtra": { "pesoMax": 0.02, "motivo": "La usuaria pidió conservarlo 'solo como un extra' (ADR-015). Se mide con ítems declarados, no se infiere de otros rasgos." },
       "decisionDeclarada": "extra_peso_minimo",
@@ -99,11 +99,27 @@
       "redundancia": { "estado": "no_redundante_teorico", "nota": "Se solapa con Amabilidad (paciencia, flexibilidad) de HEXACO." },
       "escalaEspanol": { "nombre": "—", "ref": "No se buscó escala: no hay evidencia de similitud que la justifique.", "doi": null, "estado": "no_aplica" },
       "licencia": { "estado": "no_verificada", "url": null, "cita": null, "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": true, "itemsNucleo": 0, "itemsOpcional": 4, "funcion": "extra de peso mínimo y narrativa: 'lo que podrían platicar'" },
+      "plan": { "itemsOriginales": true, "factores": ["con_acuerdo", "con_inmediatez", "con_pausa", "con_reparacion"], "funcion": "extra de peso mínimo y narrativa: 'lo que podrían platicar'" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "productoExtra": { "pesoMax": 0.02, "motivo": "La usuaria pidió bajar el término de conflicto a un extra en lugar de eliminarlo (ADR-015). Deja de ser penalización multiplicativa (f_penal)." },
       "decisionDeclarada": "extra_peso_minimo",
       "motivo": "Sin evidencia de similitud ni de complementariedad medida antes de conocerse. Se conserva como extra de peso mínimo y narrativa."
+    },
+    {
+      "id": "vinculo_relacional",
+      "nombre": "Estilo de vínculo: exclusividad, metas, espacio y autonomía",
+      "relaciones": ["pareja"],
+      "evidencia": [
+        { "ref": "Sin fila de evidencia: ficha creada el 2026-11-08 al derivar el plan del banco", "doi": null, "verificacion": "pendiente_humana", "efecto": "desconocido", "fuerza": "sin_datos", "hallazgo": "La categoría `relacional` pesa 0,20 en el core de romance y no tenía ficha: ningún estudio verificado la licencia. La búsqueda con desenlace diádico está abierta como B7-REL; aquí no se copia ninguna cita sin resolverla en el registro de handles (I1)." }
+      ],
+      "efectoParaPuntaje": "ventana",
+      "redundancia": { "estado": "desconocido", "nota": "rel_exclusividad se solapa con el filtro declarado `tipo_relacion_busca` (FIL3): ADR-043 ya argumentó que el veto que importa se declara, no se estima desde un latente ruidoso." },
+      "escalaEspanol": { "nombre": "—", "ref": "No se buscó escala: primero hay que establecer si la capa puntúa.", "doi": null, "estado": "no_busqueda" },
+      "licencia": { "estado": "no_aplica", "url": null, "cita": "Los 5 ítems (ACT5, REL5, REL6, REL7, REL8) son de redacción original.", "consultado": "2026-11-08", "aprobadaUsuaria": true },
+      "plan": { "itemsOriginales": true, "factores": ["rel_autonomia", "rel_comunicacion", "rel_espacio", "rel_exclusividad", "rel_expresividad", "rel_frecuencia", "rel_metas"], "funcion": "ventana de tolerancia (deadzone) sobre 7 factores; hoy sin licencia documental" },
+      "sensible": { "inferencia": false, "conductaSexual": false },
+      "decisionDeclarada": "opcional_narrativa",
+      "motivo": "ADEUDO EXPLÍCITO. El verificador le da `opcional_narrativa` (peso 0) porque no tiene ni un estudio verificado con desenlace relacional, pero data/matching-config.json le sigue dando 0,20 a `relacional` en romance. B2 no toca ese peso: se resuelve con evidencia real en B7-REL (tarea #13), y hasta entonces el 0,20 es un supuesto de diseño sin respaldo, no una capa admitida. Los 7 factores además se miden con 1 ítem cada uno (I5)."
     },
     {
       "id": "sociosexualidad",
@@ -117,7 +133,7 @@
       "redundancia": { "estado": "no_redundante_teorico", "nota": "Se solapa con el filtro duro 'tipo de relación'." },
       "escalaEspanol": { "nombre": "SOI-R (25 idiomas)", "ref": "larspenke.eu/en/translated-soi-r.html", "doi": null, "estado": "pagina_oficial" },
       "licencia": { "estado": "libre_investigacion", "url": "https://www.larspenke.eu/en/research/soi-r.html", "cita": "Please feel free to use them in your research!", "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "plan": { "itemsOriginales": false, "factores": [], "funcion": "ninguna" },
       "sensible": { "inferencia": false, "conductaSexual": true },
       "decisionDeclarada": "descartada",
       "motivo": "Pregunta por conducta sexual (dato sensible) y lo relevante ya lo cubre el filtro declarado 'tipo de relación'."
@@ -134,7 +150,7 @@
       "redundancia": { "estado": "redundante", "nota": "Preocupación empática ≈ Emocionalidad (sentimentalidad) y Amabilidad de HEXACO." },
       "escalaEspanol": { "nombre": "IRI", "ref": "Davis 1983, JPSP 44:113–126", "doi": "10.1037/0022-3514.44.1.113", "estado": "crossref_metadatos" },
       "licencia": { "estado": "no_verificada", "url": "https://www.eckerd.edu/psychology/iri/", "cita": "Permissions and Advice on Using the IRI", "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "plan": { "itemsOriginales": false, "factores": [], "funcion": "ninguna" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "decisionDeclarada": "descartada",
       "motivo": "Solo efectos de nivel; redundante con HEXACO; la licencia remite a un documento no consultado."
@@ -150,7 +166,7 @@
       "redundancia": { "estado": "redundante", "nota": "Se solapa con Emocionalidad y Extraversión." },
       "escalaEspanol": { "nombre": "TMMS-24", "ref": "Fernández-Berrocal et al. 2004 (no resuelto en OpenAlex)", "doi": null, "estado": "no_verificada" },
       "licencia": { "estado": "no_verificada", "url": null, "cita": "Solo se encontró un PDF no oficial; no se usa como fuente.", "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "plan": { "itemsOriginales": false, "factores": [], "funcion": "ninguna" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "decisionDeclarada": "descartada",
       "motivo": "Sin evidencia diádica verificada y redundante con HEXACO."
@@ -166,7 +182,7 @@
       "redundancia": { "estado": "redundante", "nota": "≈ Apertura (inquisitividad) de HEXACO." },
       "escalaEspanol": { "nombre": "Validación española en Psicothema (2001)", "ref": "psicothema.com/pdf/489.pdf", "doi": null, "estado": "pagina_oficial" },
       "licencia": { "estado": "restringida", "url": "https://www.psicothema.com/pdf/489.pdf", "cita": "Copyright © 2001 Psicothema", "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": false, "itemsNucleo": 0, "itemsOpcional": 0, "funcion": "ninguna" },
+      "plan": { "itemsOriginales": false, "factores": [], "funcion": "ninguna" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "decisionDeclarada": "descartada",
       "motivo": "La búsqueda no encontró evidencia relacional y el constructo ya está en Apertura."
@@ -182,7 +198,7 @@
       "redundancia": { "estado": "no_redundante_teorico", "nota": "Humor afiliativo ≈ Extraversión." },
       "escalaEspanol": { "nombre": "HSQ", "ref": "Martin et al. 2003, J. Res. Pers. 37:48–75", "doi": "10.1016/s0092-6566(02)00534-2", "estado": "crossref_metadatos" },
       "licencia": { "estado": "no_verificada", "url": "https://psypack.com/assessments/humor-styles-questionnaire-hsq/", "cita": null, "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": true, "itemsNucleo": 0, "itemsOpcional": 1, "funcion": "narrativa (peso 0) dentro de intereses" },
+      "plan": { "itemsOriginales": true, "factores": ["int_humor"], "funcion": "narrativa (peso 0) dentro de intereses" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "decisionDeclarada": "opcional_narrativa",
       "motivo": "Lo que predice es el humor percibido dentro de la relación, no medible antes; queda un ítem narrativo opcional."
@@ -198,7 +214,7 @@
       "redundancia": { "estado": "desconocido", "nota": "—" },
       "escalaEspanol": { "nombre": "—", "ref": "—", "doi": null, "estado": "no_aplica" },
       "licencia": { "estado": "no_verificada", "url": null, "cita": null, "consultado": "2026-11-01", "aprobadaUsuaria": true },
-      "plan": { "itemsOriginales": true, "itemsNucleo": 0, "itemsOpcional": 3, "funcion": "extra de peso mínimo: similitud en formas preferidas de mostrar cariño" },
+      "plan": { "itemsOriginales": true, "factores": ["afecto_contacto", "afecto_detalles", "afecto_palabras", "afecto_servicio", "afecto_tiempo"], "funcion": "extra de peso mínimo: similitud en formas preferidas de mostrar cariño" },
       "sensible": { "inferencia": false, "conductaSexual": false },
       "productoExtra": { "pesoMax": 0.01, "motivo": "La usuaria pidió conservarlo 'solo como un extra' (ADR-015). Baja de 25 % a ≤ 1 %." },
       "decisionDeclarada": "extra_peso_minimo",

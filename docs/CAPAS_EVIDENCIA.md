@@ -67,17 +67,18 @@ Nota: Selfhout 2010 ya estaba verificado en `EVIDENCIA.md` (EV-17).
 
 | Capa candidata | 1. Evidencia (estudios verificados) | 2. No redundante | 3. Licencia u originales | 4. Ítems núcleo + opcionales | 5. Sin dato sensible | Decisión |
 |---|---|---|---|---|---|---|
-| Valores personales y metas de vida (Schwartz) | sí (3) | sí | sí | 8 + 4 | sí | **admitida** |
-| Actitudes sociales y perspectiva de género | **no** (1) | sí | sí | 6 + 2 | sí | **opcional_narrativa** |
-| Intereses, ocio y estilo de vida universitario | sí (2) | sí | sí | 6 + 6 | sí | **admitida** |
+| Valores personales y metas de vida (Schwartz) | sí (3) | sí | sí | 12 + 5 | sí | **admitida** |
+| Actitudes sociales y perspectiva de género | **no** (1) | sí | sí | 0 + 5 | sí | **opcional_narrativa** |
+| Intereses, ocio y estilo de vida universitario | sí (2) | sí | sí | 6 + 12 | sí | **admitida** |
 | Apego adulto (ansiedad y evitación) | **no** (0) | sí | sí | 0 + 4 | sí | **extra_peso_minimo** |
 | Estilos de conflicto y comunicación | **no** (0) | sí | sí | 0 + 4 | sí | **extra_peso_minimo** |
+| Estilo de vínculo: exclusividad, metas, espacio y autonomía | **no** (0) | sí | sí | 0 + 7 | sí | **opcional_narrativa** |
 | Orientación sociosexual (SOI-R) | **no** (0) | sí | sí | 0 + 0 | **no** | **descartada** |
 | Empatía (IRI) | **no** (0) | **no** | sí | 0 + 0 | sí | **descartada** |
 | Inteligencia emocional percibida (TMMS-24) | **no** (0) | **no** | sí | 0 + 0 | sí | **descartada** |
 | Necesidad de cognición | **no** (0) | **no** | sí | 0 + 0 | sí | **descartada** |
 | Estilos de humor (HSQ) | **no** (0) | sí | sí | 0 + 1 | sí | **opcional_narrativa** |
-| Lenguajes del amor | **no** (0) | sí | sí | 0 + 3 | sí | **extra_peso_minimo** |
+| Lenguajes del amor | **no** (0) | sí | sí | 0 + 5 | sí | **extra_peso_minimo** |
 
 **`opcional_narrativa`:** la capa vive en un módulo opcional, con
 **peso 0** en el puntaje. Solo alimenta frases del tipo "lo que podrían
@@ -97,11 +98,17 @@ platicar".
   de los valores es actor. La similitud aporta poco por sí sola.
 - **Escala en español:** PVQ-21/40 validado en Argentina (Beramendi &
   Zubieta 2017; solo metadatos). Su licencia **no está verificada**.
-- **Plan:**
-  - 8 ítems originales en el núcleo: los 4 valores de orden superior
-    (apertura al cambio, conservación, autotrascendencia y autopromoción),
-    2 ítems por polo, más metas de vida.
-  - 4 opcionales.
+- **Plan (derivado del banco, ADR-044): 12 núcleo + 5 opcionales.**
+  - Los 4 valores de orden superior aportan **un ítem en el núcleo** (VAL1 autotrascendencia, VAL2
+    autopromoción, VAL3 apertura al cambio, VAL4 conservación) y su **segundo ítem en el módulo**
+    (VAL9–VAL12): un polo no se defiende con un solo ítem, pero el costo va donde es opcional.
+  - `act_compromiso_social` con ACT4 y ACT6 en el núcleo.
+  - Los tres factores que pesan ≥ 0,033 y habían quedado de un solo ítem se pagaron en el núcleo,
+    con dos ítems cada uno: `val_presente` (VAL8 + VAL15), `meta_carrera` (VAL7 + VAL14) y
+    `meta_crianza` (VAL6 + VAL13). `meta_crianza` se puntúa en `dealbreakers` (0,047), pero sus
+    ítems los dueña esta ficha.
+  - El quinto opcional es `val_espiritualidad` (VAL5): fuera del puntaje desde ADR-043, sigue
+    estimándose y se sigue leyendo en «Tu carta».
   - Función de similitud con penalización asimétrica en valores centrales.
 
 ### 3.2 Actitudes sociales y perspectiva de género: **opcional_narrativa** (peso 0)
@@ -132,12 +139,14 @@ el criterio pide dos (`minVerifiedStudies: 2`).
     coreanas de mediana edad, fuera de la población del proyecto.
 - **Escala en español:** ISA (Expósito, Moya & Glick 1998; EV-115). Licencia no verificada;
   la usuaria aprobó el uso personal y académico (ADR-015).
-- **Plan:** 5 ítems originales de actitudes — ACT1 (reparto de cuidados), ACT2 (igualdad de
-  trato), ACT3 (roles) en el núcleo; ACT7 (expresión de género) y ACT8 (decisión
-  unipersonal) en el módulo opcional. No hay ítems partidistas ni de identidad. Alimentan
-  `act_igualdad` y la lectura propia, **con peso 0 en el puntaje**. El `plan.itemsNucleo` de
-  la ficha dice 6 porque cuenta la familia `ACT`, y ACT4/ACT5/ACT6 pertenecen a otros
-  factores: derivar el plan del banco es B2.
+- **Plan (derivado del banco, ADR-044): 0 núcleo + 5 opcionales.** Los cinco ítems de actitudes
+  (ACT1 reparto de cuidados, ACT2 igualdad de trato, ACT3 roles, ACT7 expresión de género, ACT8
+  decisión unipersonal) viven en el módulo `actitudes`: ninguno puntúa, así que ninguno cobra en el
+  obligatorio. No hay ítems partidistas ni de identidad. Alimentan `act_igualdad` y la lectura
+  propia, **con peso 0 en el puntaje** (ADR-043). Antes la ficha declaraba 6 núcleo contando la
+  familia `ACT` por prefijo: ACT4/ACT6 miden `act_compromiso_social` (ficha de valores) y ACT5 mide
+  `rel_autonomia` (módulo relacional). Ese entero ya no existe; `plan.factores` y el conteo salen de
+  `npm run data:layers`.
 - **Por qué no es un extra de peso mínimo:** `extrasWeight` ya está clavado en el tope de
   ADR-015 (apego 0,02 + conflicto 0,02 + afecto 0,01 = 0,05), así que no hay 0,02 libre. La
   otra vía —codificar la *dirección* de la asimetría— obligaría a usar el sexo/género
@@ -210,41 +219,70 @@ el criterio pide dos (`minVerifiedStudies: 2`).
 ### 3.9 Lenguajes del amor: **extra_peso_minimo** (antes descartada; ADR-015)
 
 - EV-60: no tienen apoyo empírico.
-- Hoy pesan **25 %** en romance (11 ítems). Bajan a ≤ **1 %** con 3 ítems
-  opcionales, "solo como un extra".
+- Pesa **1,00 %** del total romance (cola: 5 factores × 0,002), con sus 5 ítems en el módulo
+  opcional —el tope de ADR-015 se cumple, y `layers.mts` lo verifica contra `extrasWeight`.
 
-## 4. Propuesta de reparto del núcleo (60 ítems, unos 7 minutos)
+### 3.10 Estilo de vínculo (exclusividad, metas, espacio, autonomía): **opcional_narrativa**
+
+Ficha abierta el 2026-11-08 al derivar los planes del banco (ADR-044): la categoría `relacional`
+pesa **0,20** en el núcleo de romance —7 factores, todos de un solo ítem, medidos solo en el módulo
+opcional `relacional` (20 ítems)— y no tenía ficha que la licenciara. `npm run data:layers` hoy
+imprime `ADEUDOS DE LICENCIAMIENTO (1): relacional: peso 0.2 > licenciado 0` y el test lo clava.
+
+- **Evidencia: ninguna verificada.** La ficha se creó con una fila `pendiente_humana`, no con una
+  cita inventada (I1).
+- **Búsqueda dirigida (2026-11-08, 17 filas resueltas en `https://doi.org/api/handles/`):** 0
+  estudios admisibles para *incongruencia entre partners* en estructura deseada. Lo mejor:
+  actor-level transversal (Vilkin & Davila 2023, 722 personas; Moors et al. 2021, 339; Hosking
+  2014, 772) y un **meta-análisis nulo** (Anderson et al. 2025, 35 estudios, N = 24 489: relaciones
+  g = −0,05 [−0,20, 0,10], p = ,496). El propio Vilkin & Davila encuentra el beneficio «regardless
+  of the type», que es un nulo para puntuar monogamia vs. no monogamia como similitud.
+- **Metas de hijos:** Shreffler et al. 2019 y Testa & Bolano 2021 (6 981 parejas HILDA, prospectivo)
+  son díadicos y fuertes, pero el desenlace es **una conducta reproductiva**, no una calidad
+  relacional, y la forma es **direccional** (veto doble; «Women prevail» para el primer hijo). El
+  motor solo sabe de distancia simétrica `|self − other|`.
+- **Ventana:** Buyukcan-Tetik et al. 2017 (recién casados neerlandeses, 3 olas) es el único efecto
+  con forma de ventana, pero mide *ideal propio vs. percepción del partner*, no congruencia entre
+  los dos ideales.
+- **Espacio/autonomía/frecuencia/comunicación/expresividad:** sin evidencia verificada de similitud
+  medida antes de conocerse.
+- **Plan (derivado): 0 núcleo + 7 opcionales** — los 7 `rel_*`, cada uno con un ítem (deuda I5
+  fechada en `single-item-sensitivity.test.ts`).
+- **Qué decide B7-REL:** o se baja el 0,20 (con re-calibración de umbrales), o la categoría pasa a
+  narrativa con peso 0, o se construye sobre una pregunta **declarada** (`hard_filters`), que es el
+  lugar donde la exclusividad ya funciona como veto legítimo. Ninguna de las tres es una decisión
+  estadística: son decisiones de producto y se toman con la usuaria.
+
+## 4. Reparto entregado (banco v2.1.0: 58 ítems obligatorios, 6,77 min)
+
+Contado sobre `data/microtest.json`, no propuesto: `npm run data:layers` falla si este número se
+separa del banco (ADR-044).
 
 | Bloque | Capa | Ítems | Origen | Papel en el puntaje |
 |---|---|---|---|---|
-| Filtros duros | 0 | 3 | Selección múltiple con "prefiero no decir" | Elegibilidad mutua |
-| **HEXACO** (H, E, X, A, C, O × 4) | 1 | **24** | IPIP-HEXACO, dominio público, traducción propia; ≥ 1 inverso por factor | **Núcleo** |
-| Valores y metas | 3 | 8 | Originales | Alto |
-| Actitudes sociales y de género | 3 | 6 | Originales | Medio-alto |
-| Intereses y estilo de vida | 3 | 6 | Originales (inspiración RIASEC) | Medio en romance, alto en amistad |
-| MBTI (4 ejes × 1) | 4 | 4 | Originales | ≈ 0 (identidad visual) |
-| Eneagrama (9 tipos × 1) | 4 | 9 | Originales (motivación y miedo central) | ≈ 0 (identidad visual) |
-| **Total núcleo** | | **60** | | 57 Likert × 7 s ≈ 7 min |
+| Filtros duros | 0 | 3 | Selección múltiple con "prefiero no decir" | Elegibilidad mutua (no es un puntaje) |
+| **HEXACO** (H, E, X, A, C, O × 4) | 1 | **24** | IPIP-HEXACO, dominio público, traducción propia; ≥ 1 inverso por factor | **Núcleo** — 0,376 del total romance |
+| Valores, metas y compromisos | 3 | 12 | Originales (PVQ y LFPDPPP como referencia de contenido) | 0,235 (`valores`) + 0,047 (`meta_crianza`, en `dealbreakers`) |
+| Intereses y afinidad cultural | 3 | 6 | Originales (inspiración RIASEC) | 0,094 en romance, 0,347 en amistad — un ítem por factor (deuda B3) |
+| MBTI (4 ejes) + Eneagrama (9 tipos) | 4 | 13 | Originales | 0,0065 en total: identidad visual, no puntaje |
+| **Total núcleo** | | **58** | | 55 Likert × 7 s ≈ 6,77 min |
 
-**Módulos opcionales ("¿quieres afinar tu perfil?"): 17 ítems**
+**Módulos opcionales ("¿quieres afinar tu perfil?"): 118 ítems**
 
-| Módulo | Ítems |
-|---|---|
-| Valores | +4 |
-| Actitudes | +2 |
-| Intereses | +6 |
-| Conflicto y comunicación (narrativo) | +4 |
-| Humor (narrativo) | +1 |
-| Extras de peso mínimo: apego declarado +4, lenguajes del amor +3 | +7 |
+| Módulo | Ítems | Qué aporta |
+|---|---|---|
+| `hexaco_facetas` | 24 | 25 facetas: estrecha la incertidumbre de los 6 rasgos |
+| `puente_big_five` | 15 | Capa 2 explícita (peso 0; se deriva de HEXACO) |
+| `valores` | 5 | Segundo ítem por polo + `val_espiritualidad` |
+| `actitudes` | 5 | Perspectiva de género: lectura propia, peso 0 |
+| `intereses` | 7 | Afinar el mapa de actividades |
+| `estilo_vida` | 6 | Rutina, redes, dinero, familia, campus |
+| `relacional` | 20 | Los 7 `rel_*`, los 4 `con_*`, `apego_ansiedad`/`apego_evitacion` (2 ítems cada uno) y los 5 lenguajes del amor |
+| `mbti` / `eneagrama` / `subtipo` | 12 / 18 / 6 | Avatar y narrativa |
 
-A esto se suman, por decidir en la Fase 3:
-- más ítems MBTI y Eneagrama (para reducir la entropía del avatar);
-- facetas HEXACO.
-
-**Big Five (capa 2).** No se administra en el núcleo. La propuesta es
-**derivarla de HEXACO** con un mapeo documentado: X ≈ E; C ≈ C; O ≈ O;
-A y N repartidos entre A, E y H. La razón:
-- 24 ítems de núcleo + 15 de Big Five rompería el presupuesto de 60;
+**Big Five (capa 2).** No se administra en el núcleo. Se **deriva de HEXACO** con el mapeo
+documentado del puente: X ≈ E; C ≈ C; O ≈ O; A y N repartidos entre A, E y H. La razón:
+- 24 ítems de núcleo + 15 de Big Five rompería el presupuesto;
 - HEXACO cubre el espacio Big Five (EV-100).
 
 La decisión final se toma con datos en `DECISION_MODELO_RASGOS.md` (Fase 3).

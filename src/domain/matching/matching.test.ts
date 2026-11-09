@@ -186,10 +186,10 @@ describe("computeAllMatches", () => {
 });
 
 describe("item bank", () => {
-  it("holds a 60-item core with 57 Likert and 3 hard-filter questions", () => {
+  it("holds a 58-item core with 55 Likert and 3 hard-filter questions", () => {
     const core = QUIZ_ITEMS.filter((item) => item.modulo === "nucleo");
-    expect(core).toHaveLength(60);
-    expect(core.filter((item) => item.tipo_respuesta === "likert_5")).toHaveLength(57);
+    expect(core).toHaveLength(58);
+    expect(core.filter((item) => item.tipo_respuesta === "likert_5")).toHaveLength(55);
     expect(FILTER_ITEMS.map((item) => item.campo_perfil)).toEqual([
       "orientacion_sexual",
       "identidad_genero",

@@ -71,20 +71,22 @@ describe("answers", () => {
 
   it("lets sensitive Likert items be skipped and leaves them out of the payload", () => {
     const skippable = ORDER.filter((i) => i.skippable).map((i) => i.id);
-    expect(skippable.sort()).toEqual(["ACT2", "ACT3", "VAL5", "VAL6"]);
+    expect(skippable.sort()).toEqual(["VAL13", "VAL6"]);
 
     let draft = fullDraft();
     for (const id of skippable) draft = toggleSkip(draft, id);
     expect(countAnswered(ORDER, draft)).toBe(ORDER.length);
     const payload = buildSubmission(ORDER, draft);
-    expect(payload?.likert.map((a) => a.itemId)).not.toContain("VAL5");
-    expect(payload?.likert).toHaveLength(QUIZ_ITEMS.filter((i) => i.tipo_respuesta === "likert_5").length - 4);
+    expect(payload?.likert.map((a) => a.itemId)).not.toContain("VAL6");
+    expect(payload?.likert).toHaveLength(
+      QUIZ_ITEMS.filter((i) => i.tipo_respuesta === "likert_5").length - skippable.length,
+    );
 
     // Skipping a mandatory item does not count as an answer.
     const h1 = toggleSkip({ ...fullDraft(), likert: {} }, "H1");
     expect(isAnswered(ORDER.find((i) => i.id === "H1")!, h1)).toBe(false);
     // Un-skipping restores the unanswered state.
-    expect(toggleSkip(toggleSkip(EMPTY, "VAL5"), "VAL5").skipped).toEqual([]);
+    expect(toggleSkip(toggleSkip(EMPTY, "VAL6"), "VAL6").skipped).toEqual([]);
   });
 
   it("humanizes option ids", () => {

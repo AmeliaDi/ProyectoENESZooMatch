@@ -13,8 +13,8 @@ const HEXACO = ["hex_h", "hex_e", "hex_x", "hex_a", "hex_c", "hex_o"];
 const likert = QUIZ_ITEMS.filter((item) => item.tipo_respuesta === "likert_5");
 
 describe("item bank (ADR-016)", () => {
-  it("has a 60-item core of 57 Likert + 3 hard filters", () => {
-    expect(CORE_ITEMS).toHaveLength(60);
+  it("has a 58-item core of 55 Likert + 3 hard filters", () => {
+    expect(CORE_ITEMS).toHaveLength(58);
     expect(CORE_ITEMS.filter((item) => item.filtro_duro).map((item) => item.id)).toEqual(["FIL1", "FIL2", "FIL3"]);
     expect(QUIZ_MODULES.map((module) => module.id)).not.toContain("nucleo");
   });
@@ -50,7 +50,7 @@ describe("item bank (ADR-016)", () => {
   it("puts sensitive items at the end of the core and only those are skippable", () => {
     const firstSensitive = CORE_ITEMS.findIndex((item) => item.banderas.includes("SENS"));
     expect(CORE_ITEMS.slice(firstSensitive).every((item) => ["VAL", "ACT", "FIL"].some((p) => item.id.startsWith(p)))).toBe(true);
-    expect(CORE_ITEMS.filter(isSkippableItem).map((item) => item.id).sort()).toEqual(["ACT2", "ACT3", "VAL5", "VAL6"]);
+    expect(CORE_ITEMS.filter(isSkippableItem).map((item) => item.id).sort()).toEqual(["VAL13", "VAL6"]);
   });
 
   it("uses original wording for MBTI and Enneagram (never adapted from proprietary tests)", () => {

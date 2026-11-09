@@ -13,6 +13,8 @@ CONFL = "valores_gestion_conflicto"
 
 # ─── Values (Schwartz-inspired, original wording) ─────────────────────────────
 
+add("VAL5", V, 3, "val_espiritualidad", None,
+    "La espiritualidad o la religión ocupa un lugar importante en mi vida.", 1, PO, "SENS")
 add("VAL9", V, 3, "val_autotrascendencia", "benevolencia",
     "Ser leal con mi gente cercana es de lo que más me importa.", 1, PO, "DS")
 add("VAL10", V, 3, "val_autopromocion", "poder", "Me gusta tener influencia en las decisiones de otras personas.", 1, PO)
@@ -20,8 +22,16 @@ add("VAL11", V, 3, "val_conservacion", "seguridad",
     "Prefiero la estabilidad económica a arriesgarme por algo incierto.", 1, PO)
 add("VAL12", V, 3, "val_apertura_cambio", "estimulacion", "Busco experiencias nuevas aunque impliquen riesgo.", 1, PO)
 
-# ─── Attitudes ────────────────────────────────────────────────────────────────
+# ─── Attitudes (act_igualdad: peso 0 en el puntaje desde ADR-043; lectura propia) ─
 
+add("ACT1", AC, 3, "act_igualdad", "corresponsabilidad",
+    "En una pareja, las tareas de casa y de cuidado se reparten por igual.", 1, PO, "DS",
+    {"valores_corresponsabilidad": 1})
+add("ACT2", AC, 3, "act_igualdad", "igualdad_trato",
+    "Todas las personas merecen el mismo trato, sin importar su género u orientación.", 1, PO, "DS,SENS",
+    {"valores_igualdad_genero": 1})
+add("ACT3", AC, 3, "act_igualdad", "roles_rigidos", "Hay actividades que son más de hombres que de mujeres.", -1, PO,
+    "SENS", {"valores_igualdad_genero": -1})
 add("ACT7", AC, 3, "act_igualdad", "expresion_genero", "Cada persona puede expresar su género como quiera.", 1, PO,
     "DS,SENS", {"valores_respeto_diversidad": 1})
 add("ACT8", AC, 3, "act_igualdad", "decisiones_pareja",
@@ -77,6 +87,9 @@ add("REL1", R, 3, "afecto_detalles", None, "Un detalle pequeño e inesperado me 
     {"intimidad_regalos_detalle": 1})
 add("REL2", R, 3, "afecto_servicio", None, "Demuestro cariño ayudando con cosas prácticas.", 1, PO, "",
     {"intimidad_actos_servicio": 1})
+add("ACT5", R, 3, "rel_autonomia", "autonomia_vinculo",
+    "En una relación, cada quien conserva su espacio y sus decisiones.", 1, PO, "",
+    {"intimidad_limites_respeto": 1})
 add("REL3", R, 3, "rel_comunicacion", None, "Me es fácil decir lo que necesito en una relación.", 1, PO, "",
     {"intimidad_comunicacion_deseos": 1})
 add("REL4", R, 3, "rel_expresividad", None, "Me gusta decir en voz alta lo que siento por alguien.", 1, PO, "",

@@ -4,7 +4,7 @@
 > banco aprobado en `docs/ITEMS_PROPUESTA.md` (ADR-016). Escala Likert 1–5. `−` = inverso (6 − x).
 > Banderas: DS deseabilidad social, AMB ambigüedad, SENS sensible (omitible), 1I escala de un ítem.
 
-Núcleo: **60 ítems** (57 Likert + 3 filtros), ≈ 7.0 min a 7 s/ítem. Módulos opcionales: **113 ítems**.
+Núcleo: **58 ítems** (55 Likert + 3 filtros), ≈ 6.8 min a 7 s/ítem. Módulos opcionales: **118 ítems**.
 
 ## Núcleo (orden de presentación)
 
@@ -12,64 +12,62 @@ Núcleo: **60 ítems** (57 Likert + 3 filtros), ≈ 7.0 min a 7 s/ítem. Módulo
 |---|---|---|---|---|---|---|---|
 | 1 | INT1 | 3 | int_realista | Disfruto el aire libre o hacer cosas con las manos. | + | original | AMB, 1I |
 | 2 | H1 | 1 | hex_h / sinceridad | No finjo ser más de lo que soy. | + | ipip_hexaco | DS |
-| 3 | MB1 | 4 | mbti_ei | Después de un día intenso, recargo energía estando a solas. | + | original | 1I |
+| 3 | MB1 | 4 | mbti_ei | Después de un día intenso, recargo energía estando a solas. | + | original |  |
 | 4 | E1 | 1 | hex_e / ansiedad | Me preocupo por cosas que al final no son importantes. | + | ipip_hexaco |  |
-| 5 | EN1 | 4 | ennea_1 / motivacion | Siento que debo hacer las cosas bien, aunque nadie me vea. | + | original | DS, 1I |
+| 5 | EN1 | 4 | ennea_1 / motivacion | Siento que debo hacer las cosas bien, aunque nadie me vea. | + | original | DS |
 | 6 | X1 | 1 | hex_x / autoestima_social | Estar con gente me hace sentir a gusto. | + | ipip_hexaco |  |
 | 7 | VAL1 | 3 | val_autotrascendencia | Me importa el bienestar de personas que ni conozco. | + | original | DS |
 | 8 | A1 | 1 | hex_a / perdon | Suelo perdonar y dejar las cosas atrás. | + | ipip_hexaco | DS |
 | 9 | INT2 | 3 | int_investigador | Paso tiempo investigando temas solo por curiosidad. | + | original | 1I |
 | 10 | C1 | 1 | hex_c / organizacion | Me gusta tener mis cosas en orden. | + | ipip_hexaco |  |
-| 11 | MB2 | 4 | mbti_sn | Me atraen más las posibilidades futuras que los detalles del presente. | + | original | 1I |
+| 11 | MB2 | 4 | mbti_sn | Me atraen más las posibilidades futuras que los detalles del presente. | + | original |  |
 | 12 | O1 | 1 | hex_o / apreciacion_estetica | Veo belleza en cosas que otras personas no notan. | + | ipip_hexaco |  |
-| 13 | EN2 | 4 | ennea_2 / motivacion | Me hace sentir bien que la gente me necesite. | + | original | 1I |
+| 13 | EN2 | 4 | ennea_2 / motivacion | Me hace sentir bien que la gente me necesite. | + | original |  |
 | 14 | H2 | 1 | hex_h / equidad | Haría trampa si eso me ayudara a salir adelante. | − | ipip_hexaco | DS |
 | 15 | VAL2 | 3 | val_autopromocion | Para mí es importante tener éxito y que se note. | + | original |  |
 | 16 | E2 | 1 | hex_e / temor | Disfruto hacer cosas que dan miedo. | − | ipip_hexaco |  |
-| 17 | INT3 | 3 | int_artistico | Dedico tiempo a crear: música, dibujo, escritura u otro arte. | + | original |  |
+| 17 | INT3 | 3 | int_artistico | Dedico tiempo a crear: música, dibujo, escritura u otro arte. | + | original | 1I |
 | 18 | X2 | 1 | hex_x / audacia_social | Prefiero quedarme en segundo plano. | − | ipip_hexaco |  |
-| 19 | MB3 | 4 | mbti_tf | Al decidir, pesa más cómo se sentirán las personas que la pura lógica. | + | original | 1I |
+| 19 | MB3 | 4 | mbti_tf | Al decidir, pesa más cómo se sentirán las personas que la pura lógica. | + | original |  |
 | 20 | A2 | 1 | hex_a / gentileza | Juzgo rápido a las demás personas. | − | ipip_hexaco |  |
-| 21 | EN3 | 4 | ennea_3 / motivacion | Me motiva mucho que reconozcan lo que logro. | + | original | 1I |
+| 21 | EN3 | 4 | ennea_3 / motivacion | Me motiva mucho que reconozcan lo que logro. | + | original |  |
 | 22 | C2 | 1 | hex_c / diligencia | Hago solo lo mínimo para salir del paso. | − | ipip_hexaco |  |
 | 23 | VAL3 | 3 | val_apertura_cambio | Valoro elegir mi propio camino, aunque no sea el esperado. | + | original |  |
 | 24 | O2 | 1 | hex_o / curiosidad | Disfruto leer textos que me retan. | + | ipip_hexaco |  |
 | 25 | INT4 | 3 | int_emprendedor | Me emociona organizar proyectos o eventos. | + | original | 1I |
 | 26 | H3 | 1 | hex_h / evitacion_codicia | Me importa mucho tener estatus. | − | ipip_hexaco |  |
-| 27 | MB4 | 4 | mbti_jp | Prefiero dejar los planes abiertos y decidir sobre la marcha. | + | original | 1I |
+| 27 | MB4 | 4 | mbti_jp | Prefiero dejar los planes abiertos y decidir sobre la marcha. | + | original |  |
 | 28 | E3 | 1 | hex_e / dependencia | Cuando paso por un mal momento, busco apoyo en alguien. | + | ipip_hexaco |  |
-| 29 | EN4 | 4 | ennea_4 / motivacion | Necesito sentir que mi forma de ser es única. | + | original | 1I |
+| 29 | EN4 | 4 | ennea_4 / motivacion | Necesito sentir que mi forma de ser es única. | + | original |  |
 | 30 | X3 | 1 | hex_x / sociabilidad | Hago amistades con facilidad. | + | ipip_hexaco |  |
 | 31 | VAL4 | 3 | val_conservacion | Me importa respetar las tradiciones de mi familia o comunidad. | + | original |  |
 | 32 | A3 | 1 | hex_a / flexibilidad | Recibo bien los consejos, aunque no los haya pedido. | + | ipip_hexaco |  |
-| 33 | INT5 | 3 | int_vida_nocturna | Soy más de planes de noche que de planes de día. | + | original |  |
+| 33 | INT5 | 3 | int_vida_nocturna | Soy más de planes de noche que de planes de día. | + | original | 1I |
 | 34 | C3 | 1 | hex_c / perfeccionismo | Pongo mucha atención a los detalles. | + | ipip_hexaco |  |
-| 35 | EN5 | 4 | ennea_5 / motivacion | Antes de actuar, necesito entender a fondo cómo funcionan las cosas. | + | original | 1I |
+| 35 | EN5 | 4 | ennea_5 / motivacion | Antes de actuar, necesito entender a fondo cómo funcionan las cosas. | + | original |  |
 | 36 | O3 | 1 | hex_o / creatividad | Me cuesta imaginar cosas nuevas. | − | ipip_hexaco |  |
-| 37 | VAL7 | 3 | meta_carrera | En esta etapa, mi carrera profesional es mi prioridad. | + | original | 1I |
+| 37 | VAL7 | 3 | meta_carrera / prioridad | En esta etapa, mi carrera profesional es mi prioridad. | + | original |  |
 | 38 | H4 | 1 | hex_h / modestia | No creo ser mejor que las demás personas. | + | ipip_hexaco | DS |
 | 39 | INT6 | 3 | int_actividad_fisica | El ejercicio o el deporte es parte de mi rutina. | + | original | 1I |
 | 40 | E4 | 1 | hex_e / sentimentalidad | Me conmueve mucho el sufrimiento de otras personas. | + | ipip_hexaco | DS |
-| 41 | EN6 | 4 | ennea_6 / motivacion | Me tranquiliza tener un plan B y saber con quién puedo contar. | + | original | 1I |
+| 41 | EN6 | 4 | ennea_6 / motivacion | Me tranquiliza tener un plan B y saber con quién puedo contar. | + | original |  |
 | 42 | X4 | 1 | hex_x / vivacidad | Casi siempre tengo mucha energía. | + | ipip_hexaco |  |
-| 43 | VAL8 | 3 | val_presente | Disfrutar el momento me importa más que ahorrar para el futuro. | + | original |  |
+| 43 | VAL8 | 3 | val_presente / actitud | Disfrutar el momento me importa más que ahorrar para el futuro. | + | original |  |
 | 44 | A4 | 1 | hex_a / paciencia | Me enojo con facilidad. | − | ipip_hexaco |  |
-| 45 | EN7 | 4 | ennea_7 / motivacion | Busco tener muchas opciones abiertas para no perderme nada. | + | original | 1I |
+| 45 | EN7 | 4 | ennea_7 / motivacion | Busco tener muchas opciones abiertas para no perderme nada. | + | original |  |
 | 46 | C4 | 1 | hex_c / prudencia | Tomo decisiones sin pensar en las consecuencias. | − | ipip_hexaco |  |
-| 47 | EN8 | 4 | ennea_8 / motivacion | Prefiero tener el control de mi vida que depender de alguien. | + | original | 1I |
+| 47 | VAL14 | 3 | meta_carrera / movilidad | Cambiaría de ciudad o de país por una oportunidad que me importe profesionalmente. | + | original |  |
 | 48 | O4 | 1 | hex_o / no_convencionalidad | Suelo ir contra la corriente. | + | ipip_hexaco | AMB |
-| 49 | EN9 | 4 | ennea_9 / motivacion | Prefiero ceder un poco antes que romper la calma de un grupo. | + | original | 1I |
-| 50 | VAL5 | 3 | val_espiritualidad | La espiritualidad o la religión ocupa un lugar importante en mi vida. | + | original | SENS |
-| 51 | ACT1 | 3 | act_igualdad / corresponsabilidad | En una pareja, las tareas de casa y de cuidado se reparten por igual. | + | original | DS |
+| 49 | EN8 | 4 | ennea_8 / motivacion | Prefiero tener el control de mi vida que depender de alguien. | + | original |  |
+| 50 | VAL15 | 3 | val_presente / gasto | Prefiero gastar en experiencias de ahora que guardar para después. | + | original |  |
+| 51 | EN9 | 4 | ennea_9 / motivacion | Prefiero ceder un poco antes que romper la calma de un grupo. | + | original |  |
 | 52 | ACT4 | 3 | act_compromiso_social / diversidad | Me gusta convivir con gente de orígenes y formas de pensar distintas. | + | original | DS |
-| 53 | VAL6 | 3 | meta_crianza | Me gustaría criar hijxs algún día. | + | original | SENS, 1I |
-| 54 | ACT2 | 3 | act_igualdad / igualdad_trato | Todas las personas merecen el mismo trato, sin importar su género u orientación. | + | original | DS, SENS |
-| 55 | ACT5 | 3 | rel_autonomia / autonomia_vinculo | En una relación, cada quien conserva su espacio y sus decisiones. | + | original |  |
-| 56 | ACT3 | 3 | act_igualdad / roles_rigidos | Hay actividades que son más de hombres que de mujeres. | − | original | SENS |
-| 57 | ACT6 | 3 | act_compromiso_social / participacion | Me interesa participar en causas sociales o colectivas. | + | original |  |
-| 58 | FIL1 | 0 | filtro / interes_romantico | ¿Con quién te interesa conectar en lo romántico? (mujeres · hombres · personas no binarias · prefiero no decir) | sel. | original | SENS |
-| 59 | FIL2 | 0 | filtro / identidad_genero | ¿Cómo te identificas? (mujer · hombre · no binarie · género fluido · agénero · otra · prefiero no decir) | sel. | original | SENS |
-| 60 | FIL3 | 0 | filtro / tipo_vinculo | ¿Qué tipo de vínculo te interesa ahora? (monogamia · no_monogamia_etica · sin_definir · solo_amistad · prefiero no decir) | sel. | original | SENS |
+| 53 | VAL6 | 3 | meta_crianza / deseo | Me gustaría criar hijxs algún día. | + | original | SENS |
+| 54 | ACT6 | 3 | act_compromiso_social / participacion | Me interesa participar en causas sociales o colectivas. | + | original |  |
+| 55 | VAL13 | 3 | meta_crianza / temporalidad | Me veo criando hijxs en los próximos años. | + | original | SENS |
+| 56 | FIL1 | 0 | filtro / interes_romantico | ¿Con quién te interesa conectar en lo romántico? (mujeres · hombres · personas no binarias · prefiero no decir) | sel. | original | SENS |
+| 57 | FIL2 | 0 | filtro / identidad_genero | ¿Cómo te identificas? (mujer · hombre · no binarie · género fluido · agénero · otra · prefiero no decir) | sel. | original | SENS |
+| 58 | FIL3 | 0 | filtro / tipo_vinculo | ¿Qué tipo de vínculo te interesa ahora? (monogamia · no_monogamia_etica · sin_definir · solo_amistad · prefiero no decir) | sel. | original | SENS |
 
 ## Módulo `hexaco_facetas`: Personalidad a detalle (24 ítems)
 
@@ -124,25 +122,29 @@ Preguntas cortas para comparar con otros estudios.
 | 14 | BO2 | 2 | bf_o | Las ideas abstractas no me interesan. | − | ipip |  |
 | 15 | BO3 | 2 | bf_o | Me gusta reflexionar sobre ideas complejas. | + | ipip |  |
 
-## Módulo `valores`: Lo que te importa (4 ítems)
+## Módulo `valores`: Lo que te importa (5 ítems)
 
 Más matices sobre tus valores.
 
 | # | id | Capa | Factor / faceta | Texto | Pol. | Origen | Banderas |
 |---|---|---|---|---|---|---|---|
-| 1 | VAL9 | 3 | val_autotrascendencia / benevolencia | Ser leal con mi gente cercana es de lo que más me importa. | + | original | DS |
-| 2 | VAL10 | 3 | val_autopromocion / poder | Me gusta tener influencia en las decisiones de otras personas. | + | original |  |
-| 3 | VAL11 | 3 | val_conservacion / seguridad | Prefiero la estabilidad económica a arriesgarme por algo incierto. | + | original |  |
-| 4 | VAL12 | 3 | val_apertura_cambio / estimulacion | Busco experiencias nuevas aunque impliquen riesgo. | + | original |  |
+| 1 | VAL5 | 3 | val_espiritualidad | La espiritualidad o la religión ocupa un lugar importante en mi vida. | + | original | SENS, 1I |
+| 2 | VAL9 | 3 | val_autotrascendencia / benevolencia | Ser leal con mi gente cercana es de lo que más me importa. | + | original | DS |
+| 3 | VAL10 | 3 | val_autopromocion / poder | Me gusta tener influencia en las decisiones de otras personas. | + | original |  |
+| 4 | VAL11 | 3 | val_conservacion / seguridad | Prefiero la estabilidad económica a arriesgarme por algo incierto. | + | original |  |
+| 5 | VAL12 | 3 | val_apertura_cambio / estimulacion | Busco experiencias nuevas aunque impliquen riesgo. | + | original |  |
 
-## Módulo `actitudes`: Igualdad y trato (2 ítems)
+## Módulo `actitudes`: Igualdad y trato (5 ítems)
 
 Cómo ves el trato entre personas y en pareja.
 
 | # | id | Capa | Factor / faceta | Texto | Pol. | Origen | Banderas |
 |---|---|---|---|---|---|---|---|
-| 1 | ACT7 | 3 | act_igualdad / expresion_genero | Cada persona puede expresar su género como quiera. | + | original | DS, SENS |
-| 2 | ACT8 | 3 | act_igualdad / decisiones_pareja | En una pareja, alguien debe llevar las decisiones importantes. | − | original | SENS |
+| 1 | ACT1 | 3 | act_igualdad / corresponsabilidad | En una pareja, las tareas de casa y de cuidado se reparten por igual. | + | original | DS |
+| 2 | ACT2 | 3 | act_igualdad / igualdad_trato | Todas las personas merecen el mismo trato, sin importar su género u orientación. | + | original | DS, SENS |
+| 3 | ACT3 | 3 | act_igualdad / roles_rigidos | Hay actividades que son más de hombres que de mujeres. | − | original | SENS |
+| 4 | ACT7 | 3 | act_igualdad / expresion_genero | Cada persona puede expresar su género como quiera. | + | original | DS, SENS |
+| 5 | ACT8 | 3 | act_igualdad / decisiones_pareja | En una pareja, alguien debe llevar las decisiones importantes. | − | original | SENS |
 
 ## Módulo `intereses`: Gustos y planes (7 ítems)
 
@@ -150,13 +152,13 @@ Pasatiempos, humor y formas de pasar el rato.
 
 | # | id | Capa | Factor / faceta | Texto | Pol. | Origen | Banderas |
 |---|---|---|---|---|---|---|---|
-| 1 | INT7 | 3 | int_convencional | Me gusta llevar mis cuentas, agendas o colecciones en orden. | + | original |  |
-| 2 | INT8 | 3 | int_juegos | Los videojuegos o juegos de mesa son parte de mi tiempo libre. | + | original |  |
-| 3 | INT9 | 3 | int_cultura | Me gusta ir a conciertos, festivales o eventos culturales. | + | original |  |
-| 4 | INT10 | 3 | int_animales | Me encanta convivir con animales. | + | original |  |
-| 5 | INT11 | 3 | int_comida | Disfruto cocinar o descubrir lugares para comer. | + | original |  |
-| 6 | INT12 | 3 | int_fiesta | Prefiero un plan tranquilo en casa que salir de fiesta. | − | original |  |
-| 7 | HUM1 | 3 | int_humor | Uso el humor para acercarme a la gente y hacerla reír. | + | original |  |
+| 1 | INT7 | 3 | int_convencional | Me gusta llevar mis cuentas, agendas o colecciones en orden. | + | original | 1I |
+| 2 | INT8 | 3 | int_juegos | Los videojuegos o juegos de mesa son parte de mi tiempo libre. | + | original | 1I |
+| 3 | INT9 | 3 | int_cultura | Me gusta ir a conciertos, festivales o eventos culturales. | + | original | 1I |
+| 4 | INT10 | 3 | int_animales | Me encanta convivir con animales. | + | original | 1I |
+| 5 | INT11 | 3 | int_comida | Disfruto cocinar o descubrir lugares para comer. | + | original | 1I |
+| 6 | INT12 | 3 | int_fiesta | Prefiero un plan tranquilo en casa que salir de fiesta. | − | original | 1I |
+| 7 | HUM1 | 3 | int_humor | Uso el humor para acercarme a la gente y hacerla reír. | + | original | 1I |
 
 ## Módulo `estilo_vida`: Tu día a día (6 ítems)
 
@@ -164,38 +166,39 @@ Rutinas, dinero, familia, redes y temas sociales.
 
 | # | id | Capa | Factor / faceta | Texto | Pol. | Origen | Banderas |
 |---|---|---|---|---|---|---|---|
-| 1 | SOC1 | 3 | soc_rutina | Me gusta que mis días sigan una rutina parecida. | + | original |  |
-| 2 | SOC2 | 3 | soc_redes | Comparto seguido en redes lo que hago. | + | original |  |
-| 3 | SOC3 | 3 | soc_dinero | Llevo control de en qué gasto mi dinero. | + | original |  |
-| 4 | SOC4 | 3 | soc_familia | Mi familia participa mucho en mis decisiones. | + | original | SENS |
-| 5 | SOC5 | 3 | soc_campus | Me gusta pasar tiempo en el campus aunque no tenga clase. | + | original |  |
-| 6 | SOC6 | 3 | soc_politica / valores_politicos | Me importa que mi círculo cercano comparta mi forma de ver lo social. | + | original | SENS |
+| 1 | SOC1 | 3 | soc_rutina | Me gusta que mis días sigan una rutina parecida. | + | original | 1I |
+| 2 | SOC2 | 3 | soc_redes | Comparto seguido en redes lo que hago. | + | original | 1I |
+| 3 | SOC3 | 3 | soc_dinero | Llevo control de en qué gasto mi dinero. | + | original | 1I |
+| 4 | SOC4 | 3 | soc_familia | Mi familia participa mucho en mis decisiones. | + | original | SENS, 1I |
+| 5 | SOC5 | 3 | soc_campus | Me gusta pasar tiempo en el campus aunque no tenga clase. | + | original | 1I |
+| 6 | SOC6 | 3 | soc_politica / valores_politicos | Me importa que mi círculo cercano comparta mi forma de ver lo social. | + | original | SENS, 1I |
 
-## Módulo `relacional`: Cómo te vinculas (19 ítems)
+## Módulo `relacional`: Cómo te vinculas (20 ítems)
 
 Espacio, cercanía, conflicto, apego y cariño.
 
 | # | id | Capa | Factor / faceta | Texto | Pol. | Origen | Banderas |
 |---|---|---|---|---|---|---|---|
-| 1 | CON1 | 3 | con_inmediatez | Cuando algo me molesta, prefiero hablarlo en el momento. | + | original |  |
-| 2 | CON2 | 3 | con_pausa | En una discusión, necesito un rato a solas antes de seguir. | + | original |  |
-| 3 | CON3 | 3 | con_acuerdo | Busco soluciones en las que ambas partes ganen algo. | + | original | DS |
-| 4 | CON4 | 3 | con_reparacion | Me cuesta pedir disculpas aunque sepa que me equivoqué. | − | original | DS |
+| 1 | CON1 | 3 | con_inmediatez | Cuando algo me molesta, prefiero hablarlo en el momento. | + | original | 1I |
+| 2 | CON2 | 3 | con_pausa | En una discusión, necesito un rato a solas antes de seguir. | + | original | 1I |
+| 3 | CON3 | 3 | con_acuerdo | Busco soluciones en las que ambas partes ganen algo. | + | original | DS, 1I |
+| 4 | CON4 | 3 | con_reparacion | Me cuesta pedir disculpas aunque sepa que me equivoqué. | − | original | DS, 1I |
 | 5 | APE1 | 3 | apego_ansiedad | Me preocupa que las personas cercanas dejen de quererme. | + | original | SENS |
 | 6 | APE2 | 3 | apego_ansiedad | Necesito que me confirmen seguido que todo está bien entre nosotrxs. | + | original | SENS |
 | 7 | APE3 | 3 | apego_evitacion | Me incomoda depender emocionalmente de alguien. | + | original | SENS |
 | 8 | APE4 | 3 | apego_evitacion | Me resulta fácil abrirme y contar lo que siento. | − | original |  |
-| 9 | LAM1 | 3 | afecto_palabras | Siento el cariño sobre todo en palabras y mensajes. | + | original |  |
-| 10 | LAM2 | 3 | afecto_tiempo | Para mí, el cariño se nota en el tiempo de calidad juntxs. | + | original |  |
-| 11 | LAM3 | 3 | afecto_contacto | Los abrazos son mi forma favorita de dar cariño. | + | original |  |
-| 12 | REL1 | 3 | afecto_detalles | Un detalle pequeño e inesperado me dice mucho. | + | original |  |
-| 13 | REL2 | 3 | afecto_servicio | Demuestro cariño ayudando con cosas prácticas. | + | original |  |
-| 14 | REL3 | 3 | rel_comunicacion | Me es fácil decir lo que necesito en una relación. | + | original |  |
-| 15 | REL4 | 3 | rel_expresividad | Me gusta decir en voz alta lo que siento por alguien. | + | original |  |
-| 16 | REL5 | 3 | rel_exclusividad | Para mí, una relación cercana se vive de forma exclusiva. | + | original | SENS |
-| 17 | REL6 | 3 | rel_espacio | Aunque quiera mucho a alguien, necesito tiempo para mí. | + | original |  |
-| 18 | REL7 | 3 | rel_frecuencia | Me gusta hablar a diario con las personas que quiero. | + | original |  |
-| 19 | REL8 | 3 | rel_metas | Busco vínculos que duren muchos años. | + | original |  |
+| 9 | LAM1 | 3 | afecto_palabras | Siento el cariño sobre todo en palabras y mensajes. | + | original | 1I |
+| 10 | LAM2 | 3 | afecto_tiempo | Para mí, el cariño se nota en el tiempo de calidad juntxs. | + | original | 1I |
+| 11 | LAM3 | 3 | afecto_contacto | Los abrazos son mi forma favorita de dar cariño. | + | original | 1I |
+| 12 | REL1 | 3 | afecto_detalles | Un detalle pequeño e inesperado me dice mucho. | + | original | 1I |
+| 13 | REL2 | 3 | afecto_servicio | Demuestro cariño ayudando con cosas prácticas. | + | original | 1I |
+| 14 | ACT5 | 3 | rel_autonomia / autonomia_vinculo | En una relación, cada quien conserva su espacio y sus decisiones. | + | original | 1I |
+| 15 | REL3 | 3 | rel_comunicacion | Me es fácil decir lo que necesito en una relación. | + | original | 1I |
+| 16 | REL4 | 3 | rel_expresividad | Me gusta decir en voz alta lo que siento por alguien. | + | original | 1I |
+| 17 | REL5 | 3 | rel_exclusividad | Para mí, una relación cercana se vive de forma exclusiva. | + | original | SENS, 1I |
+| 18 | REL6 | 3 | rel_espacio | Aunque quiera mucho a alguien, necesito tiempo para mí. | + | original | 1I |
+| 19 | REL7 | 3 | rel_frecuencia | Me gusta hablar a diario con las personas que quiero. | + | original | 1I |
+| 20 | REL8 | 3 | rel_metas | Busco vínculos que duren muchos años. | + | original | 1I |
 
 ## Módulo `mbti`: Tu forma de pensar (12 ítems)
 

@@ -73,6 +73,30 @@ export function trackCategoryIds(track: TrackConfig): MatchCategoryId[] {
   return [...positive(track.core), ...positive(track.tail)].map(([id]) => id);
 }
 
+/**
+ * Nominal share of the track total a single factor can move: category weight ×
+ * (factor weight / Σ of its category's factor weights), with core categories
+ * scaled by (1 − Σ tail). The soft-min tilts the real share toward whichever
+ * category scores worst, so a factor that disagrees is worth at least this.
+ */
+export function factorEffectiveWeights(
+  track: TrackConfig,
+  categories: MatchingConfig["categories"],
+): Map<string, number> {
+  const tailMass = positive(track.tail).reduce((s, [, w]) => s + w, 0);
+  const out = new Map<string, number>();
+  for (const [role, scale] of [["core", 1 - tailMass], ["tail", 1]] as const) {
+    for (const [id, weight] of positive(role === "core" ? track.core : track.tail)) {
+      const factors = categories[id].factors;
+      const sum = Object.values(factors).reduce((s, w) => s + w, 0);
+      for (const [factor, factorWeight] of Object.entries(factors)) {
+        out.set(factor, (out.get(factor) ?? 0) + weight * scale * (factorWeight / sum));
+      }
+    }
+  }
+  return out;
+}
+
 /** Aggregates precomputed category similarities under a track's weights. */
 export function aggregatePair(similarities: CategorySimilarities, track: TrackConfig): PairScore {
   const core = positive(track.core);
