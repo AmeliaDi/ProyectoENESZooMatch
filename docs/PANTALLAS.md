@@ -117,7 +117,7 @@ flowchart TD
   - **sin match:** tu nodo solo, con el mensaje canónico (`NO_MATCH_MESSAGE`);
   - **pocas personas:** si el pool activo está por debajo de
     `fewPeopleThreshold`, el servidor manda solo el booleano `few_people` (nunca
-    el conteo) y se muestra "Todavía somos pocxs en el cielo…".
+    el conteo) y se muestra "Todavía somos pocas personas en el cielo…".
 - **Qué evita lo genérico:** no hay tarjetas translúcidas ni anillos con
   gradiente cónico. La afinidad es un número pixel grande con "afinidad
   estimada"; las tarjetas son marcos de atlas con el borde del color de la pista.
@@ -131,7 +131,7 @@ flowchart TD
   - alias, animal y color;
   - **afinidad estimada** y chip de **confianza** ("alta" o "media") con su
     motivo;
-  - **por qué conectan:** barras de constelación de las 5 categorías con su
+  - **lo que más conecta:** barras de constelación de las 5 categorías con su
     porcentaje real (`WhyBars`);
   - **tensión sana** o "algo para platicar" (la categoría más baja, con su
     porcentaje);

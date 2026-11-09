@@ -217,7 +217,7 @@ sigue sin pantalla: catálogos, cuestionario y umbrales (se editan en `data/*.js
 - **Dos "pistas" de coincidencia:**
   - **💫 Almas Gemelas** (pista *romance*): compatibilidad romántica. Aplica **filtros duros**
     (orientación, identidad de género y tipo de relación buscada) además de la similitud.
-  - **✨ Futuros Mejores Amigxs** (pista *amistad*): compatibilidad de amistad. **No** aplica esos
+  - **✨ Futuras amistades** (pista *amistad*): compatibilidad de amistad. **No** aplica esos
     filtros duros.
 - **Cómo se presenta cada coincidencia:** una tarjeta con un **anillo de porcentaje de
   química**, el alias de la otra persona, su animalito y color, "insignias" (badges) de afinidad,
@@ -317,7 +317,7 @@ El cuestionario canónico vive en `/cuestionario`:
 - **¿Para qué sirve?** Mostrar al estudiante su identidad anónima y sus coincidencias.
 - **Qué ve el estudiante en su resultado:**
   - Su **alias**, **animalito + color**, una **narrativa afectiva**, la **etiqueta MBTI**, y las
-    coincidencias en **dos pestañas** (Almas Gemelas / Futuros Mejores Amigxs). Además puede
+    coincidencias en **dos pestañas** (Almas Gemelas / Futuras amistades). Además puede
     alternar entre dos formas de ver sus conexiones:
     - **Lista:** tarjetas con detalle y desglose de afinidad.
     - **Constelación:** un "cielo" interactivo de animalitos en pixeles que se pueden arrastrar,

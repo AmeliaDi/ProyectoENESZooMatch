@@ -172,7 +172,7 @@ modos.
 | Tipo | Emblema | Razón |
 |---|---|---|
 | 1 | brújula | Busca hacer lo correcto: una aguja que apunta a su norte |
-| 2 | corazoncito | Se orienta a cuidar y a ser cercanx |
+| 2 | corazoncito | Se orienta a cuidar y a estar cerca |
 | 3 | estrella | Quiere brillar por lo que logra |
 | 4 | luna creciente | Busca lo propio y lo profundo |
 | 5 | lente | Observa y entiende antes de actuar |

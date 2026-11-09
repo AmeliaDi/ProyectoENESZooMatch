@@ -27,7 +27,7 @@
   },
   "emblems": {
     "1": { "id": "brujula", "nombre": "brújula", "razon": "Busca hacer lo correcto: una aguja que apunta a su norte." },
-    "2": { "id": "corazon", "nombre": "corazoncito", "razon": "Se orienta a cuidar y a ser cercanx." },
+    "2": { "id": "corazon", "nombre": "corazoncito", "razon": "Se orienta a cuidar y a estar cerca." },
     "3": { "id": "estrella", "nombre": "estrella", "razon": "Quiere brillar por lo que logra." },
     "4": { "id": "luna", "nombre": "luna creciente", "razon": "Busca lo propio y lo profundo; la luna cambia y sigue siendo ella." },
     "5": { "id": "lupa", "nombre": "lente", "razon": "Observa y entiende antes de actuar." },

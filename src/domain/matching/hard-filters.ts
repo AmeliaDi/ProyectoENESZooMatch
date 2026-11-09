@@ -21,11 +21,46 @@ const RELATIONSHIP_COMPATIBILITY: Record<string, readonly string[]> = {
  */
 const PREFER_NOT_TO_SAY = "prefiero no decir";
 
+/**
+ * Every identity FIL2 offers except the opt-out. `attractedTo` only ever
+ * compares declarations, so this list is vocabulary, not inference: it says
+ * which words a person can answer with, nothing about who they "really" are.
+ */
+const IDENTIDADES: readonly string[] = [
+  "mujer",
+  "hombre",
+  "no binarie",
+  "mujer trans",
+  "hombre trans",
+  "persona trans",
+  "género fluido",
+  "agénero",
+  "otra",
+];
+
+/**
+ * Orientation → the identities it declares attraction to. ADR-053 widened it:
+ * `mujeres` reaches a person who declared `mujer trans` because a woman is a
+ * woman, and `cualquier género` is the single click a pan or bi person needs
+ * (before 2.3.0 they had to tick every box to mean it). `hard-filters.test.ts`
+ * reads the bank and fails if any identity is left unreachable or any option
+ * targets nothing, so the two vocabularies cannot drift apart again.
+ */
 const ORIENTATION_TARGETS: Record<string, readonly string[]> = {
-  hombres: ["hombre"],
-  mujeres: ["mujer"],
-  "personas no binarias": ["no binarie", "género fluido", "agénero", "otra"],
+  mujeres: ["mujer", "mujer trans"],
+  hombres: ["hombre", "hombre trans"],
+  "personas no binarias": ["no binarie", "género fluido", "agénero", "otra", "persona trans"],
+  "personas trans": ["mujer trans", "hombre trans", "persona trans"],
+  "cualquier género": IDENTIDADES,
 };
+
+/**
+ * Which FIL1 values the kernel understands. An option the bank offers but this
+ * map omits would silently mean "attracted to everyone" (`attractedTo` treats
+ * an empty target list as no filter), so the vocabulary test pins this list to
+ * the bank instead of trusting it.
+ */
+export const ORIENTATION_TARGET_KEYS: readonly string[] = Object.keys(ORIENTATION_TARGETS);
 
 /**
  * True when a person's own declarations take them out of romance (ADR-016):

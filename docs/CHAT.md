@@ -544,7 +544,7 @@ Códigos nuevos: `chat.adult_required` (403), `chat.cooldown` (409), `chat.too_m
 
 ```
 ┌ Nutria Serena · 87 % ───────────────────────┐
-│ …por qué conectan…                           │
+│ …lo que más conecta…                         │
 │ [♥ Abrir un chat de romance]                 │
 │ Solo se abre si ambas personas lo aceptan.   │
 └──────────────────────────────────────────────┘

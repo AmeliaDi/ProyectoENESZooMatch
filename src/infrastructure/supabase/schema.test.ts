@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import { ADMIN_AUDIT_ACTIONS } from "@/contracts/admin";
 import { FRIENDSHIP_VECTOR_LENGTH, QUIZ_MODULE_IDS, ROMANCE_VECTOR_LENGTH } from "@/types/microtest";
 import { SHARE_LAYER_IDS } from "@/types/sharing";
+import { INCLUSIVE_X } from "@/testing/copy-guard";
 
 import { RPC, TABLE } from "./repositories";
 
@@ -28,6 +29,8 @@ const NOTIFY_COPY_MIGRATION = "20261122000000_notification_copy_estimated_affini
 const NOTIFY_COPY_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, NOTIFY_COPY_MIGRATION), "utf8"));
 const PARAMS_STAMP_MIGRATION = "20261123000000_params_version_stamp_on_profiles.sql";
 const PARAMS_STAMP_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, PARAMS_STAMP_MIGRATION), "utf8"));
+const NOTIFY_ACCESSIBLE_MIGRATION = "20261124000000_notification_copy_accesible.sql";
+const NOTIFY_ACCESSIBLE_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, NOTIFY_ACCESSIBLE_MIGRATION), "utf8"));
 
 /** Every `CREATE FUNCTION public.x(...)` body, keyed by name, across migrations. */
 function publicFunctionsOf(sql: string): [string, string][] {
@@ -39,6 +42,8 @@ const PUBLIC_FUNCTIONS = new Map([
   ...publicFunctionsOf(SOFT_DELETE_SQL),
   ...publicFunctionsOf(NOTIFY_COPY_SQL),
   ...publicFunctionsOf(PARAMS_STAMP_SQL),
+  // Last on purpose: the newest `notify_matches` is the one the contract reads.
+  ...publicFunctionsOf(NOTIFY_ACCESSIBLE_SQL),
 ]);
 
 const CHAT_MIGRATION = "20261102000000_chat_pin.sql";
@@ -100,6 +105,7 @@ describe("base migration", () => {
       OBSERVATORY_MIGRATION,
       NOTIFY_COPY_MIGRATION,
       PARAMS_STAMP_MIGRATION,
+      NOTIFY_ACCESSIBLE_MIGRATION,
     ]);
   });
 
@@ -261,10 +267,13 @@ describe("base migration", () => {
     );
   });
 
-  it("keeps notification copy free of emojis", () => {
+  it("keeps notification copy free of emojis and of the written -x marker", () => {
     const notify = PUBLIC_FUNCTIONS.get("notify_matches") ?? "";
     expect(notify).not.toMatch(/\p{Extended_Pictographic}/u);
     expect(notify.toLowerCase()).not.toContain("perfecci");
+    // The OS reads a notification aloud; `-x` has no sound (ADR-053). The rest
+    // of the migration may quote the old wording: it is the search pattern.
+    expect(notify).not.toMatch(INCLUSIVE_X);
   });
 
   it("keeps participant tables free of client policies", () => {

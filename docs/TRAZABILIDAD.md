@@ -15,8 +15,8 @@ si cambian pesos, umbrales o parámetros.
 | Archivo | Hash registrado |
 |---|---|
 | data/matching-config.json | `45861517dec0e641` |
-| data/psychometric-params.json | `a31ed99658426302` |
-| data/self-reading.json | `3c021cda2e0b33fa` |
+| data/psychometric-params.json | `a05955c0ec1213e1` |
+| data/self-reading.json | `995b0be7b1efb87a` |
 
 ## Matriz
 
@@ -51,6 +51,7 @@ si cambian pesos, umbrales o parámetros.
 | T-27 | Sin ficha admitida no hay peso: la capa relacional pasa a 0 en romance y los demás pesos se renormalizan en proporción | EV-03, ADR-050 | prior_literatura | peso(c) ≤ Σ licencia(fichas admitidas de c); w_core ← w_core / Σ_remaining | `data/matching-config.json` | `scripts/literature/lib/layers.test.ts` |
 | T-28 | El costo de cada capa, el retorno de cada módulo, la varianza por ítem y el ruido del retest se miden en un solo arnés; el orden del menú de afinado se deriva del retorno por pregunta | ADR-051 | estimado_sintetico | peso(c) ≤ 0,02 ⟹ ítems(c) ≤ 6 · ratio de obligatorios ≤ 1,3 · ruido ≤ 0,35 banda (media) y ≤ 1,0 banda (p90) · ningún módulo antes de otro 3× más rentable | `scripts/matching/balance.ts` | `src/domain/psychometrics/single-item-sensitivity.test.ts` |
 | T-29 | La matemática lleva dos sellos independientes: la medición invalida una θ guardada y viaja en `profiles.params_version`; el puntaje no invalida ninguna respuesta y se firma en el navegador | ADR-052 | supuesto_diseno | measurementFirm ≠ ⟹ re-toma mínima (≤ 25 ítems, por factor); scoringFirm ≠ ⟹ aviso T1 con 0 preguntas; NULL = pre-sello ⟹ recalculo silencioso y nunca re-pregunta; ningún perfil sale del pool | `src/domain/matching/math-stamp.ts`, `src/domain/psychometrics/minimal-retake.ts` | `src/domain/matching/math-stamp.test.ts`, `src/domain/psychometrics/minimal-retake.test.ts`, `src/ui/profile/math-update-notice.test.ts` |
+| T-30 | La inclusión se mide en lo que se puede leer en voz alta: el vocabulario de filtros crece en aditivo, el filtro duro se verifica contra el banco y el marcador «-x» solo vive donde una persona lo elige | ADR-053 | supuesto_diseno | opciones(FIL1) = 6 y opciones(FIL2) = 10 con las anteriores intactas; ∀ identidad del banco ∃ orientación que la alcanza; ∀ opción de FIL1 ∃ identidad objetivo; copia renderizada ∧ modo default = neutro_e ⟹ sin «-x»; re-toma 2.2.0 → 2.3.0 = T2 con 8 ítems ≤ 25 | `src/domain/matching/hard-filters.ts`, `scripts/psychometrics/bank_core.py`, `src/testing/copy-guard.ts` | `src/domain/matching/hard-filters.test.ts`, `src/testing/copy-guard.test.ts`, `src/domain/messages/inclusive-text.test.ts` |
 
 ## Resultados que respaldan la matriz
 

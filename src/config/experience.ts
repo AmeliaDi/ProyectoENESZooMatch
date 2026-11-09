@@ -66,7 +66,7 @@ export const experienceSchema = z.strictObject({
      * so a layer someone stops sharing disappears without a reload (ADR-034).
      */
     refreshOnReturnMs: z.number().int().min(5000),
-    /** Below this many active profiles the empty state says "somos pocxs". */
+    /** Below this many active profiles the empty state says "todavía somos pocas". */
     fewPeopleThreshold: positiveInt,
     /** Areas listed under "lo que más conecta" (the rest are summed). */
     detailBreakdownMax: positiveInt,

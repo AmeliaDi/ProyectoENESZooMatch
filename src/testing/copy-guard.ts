@@ -1,7 +1,7 @@
 /**
  * Copy guards shared by every test that reads text shown to a person.
  *
- * Three lists, because three different mistakes are possible:
+ * Four lists, because four different mistakes are possible:
  * - `FORBIDDEN_COPY` — words the product decided not to use (clinical framing,
  *   insults, "the one", forever-and-always certainties).
  * - `OUTCOME_CLAIMS` — sentences that promise something will happen between two
@@ -10,6 +10,8 @@
  * - `CAUSAL_EFFECT` — "your trait makes the other person feel X". Only checked
  *   on narrative that reaches the screen, where it would turn a description of
  *   a style into a promise about a partner.
+ * - `INCLUSIVE_X` — the written `-x` marker in the copy nobody chose: it has no
+ *   sound, so it fails the read-aloud and screen-reader rule of ADR-053.
  *
  * The word lists that used to live inside each test file are kept there when
  * they are narrower on purpose (`destino` and `probabilidad` are ordinary words
@@ -36,6 +38,30 @@ export const OUTCOME_CLAIMS =
 
 /** "Trait X makes Y happen" — checked on rendered narrative only. */
 export const CAUSAL_EFFECT = /\bhace que\b|\bhacen que\b|\bhar[áa] que\b|\bhar[áa]n que\b/i;
+
+/**
+ * The written inclusive marker: `unx`, `lxs`, `tranquilx`, `con cada unx`.
+ *
+ * ADR-053 keeps it out of the copy the product writes. It is not a spelling
+ * mistake and nobody is ashamed of it — people do write it, and
+ * `inclusive-text.ts` still offers it as a mode a person picks for themself.
+ * What this guard protects is what nobody picked: a sentence the app puts on
+ * screen that has no sound, so it cannot be read aloud and a screen reader
+ * says a broken word exactly where the sentence meant to include someone.
+ *
+ * `/[a-z]+xs?\b/` alone is unusable, because `Fénix`, `Relax` and `Xbox` end in
+ * `x` and carry no marker. So the pattern starts at a word boundary and skips
+ * the closed list of x-words this project legitimately writes; a word glued to
+ * `_`, `{` or `-` is an identifier or a CSS class (`sub_sx`, `zm-box`), not
+ * copy. A new x-word that is not the marker goes in the list, in the same
+ * commit that adds it.
+ */
+const X_NOT_MARKER = "f[ée]nix|phoenix|fox|relax|netflix|xbox|box|max";
+
+export const INCLUSIVE_X = new RegExp(
+  `(?<![\\p{L}\\p{N}_{}-])(?!(?:${X_NOT_MARKER})\\b)[\\p{L}]+xs?\\b`,
+  "iu",
+);
 
 const LITERALS =
   /"((?:[^"\\\n]|\\.)*)"|'((?:[^'\\\n]|\\.)*)'|`((?:[^`\\]|\\[\s\S])*)`/g;

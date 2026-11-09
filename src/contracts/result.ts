@@ -83,7 +83,7 @@ export interface ResultDto {
   identity: IdentityDto;
   narrative: string;
   matches: { romance: MatchEntryDto[]; amistad: MatchEntryDto[] };
-  /** Coarse flag (never the count) so the empty state can say "somos pocxs". */
+  /** Coarse flag (never the count) so the empty state can say "todavía somos pocas". */
   few_people: boolean;
   no_match_message: string;
 }

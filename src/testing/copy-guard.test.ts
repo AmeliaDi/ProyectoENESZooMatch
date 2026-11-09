@@ -12,7 +12,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { CAUSAL_EFFECT, FORBIDDEN_COPY, OUTCOME_CLAIMS, jsonStrings, stringLiterals } from "./copy-guard";
+import { CAUSAL_EFFECT, FORBIDDEN_COPY, INCLUSIVE_X, OUTCOME_CLAIMS, jsonStrings, stringLiterals } from "./copy-guard";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
@@ -25,6 +25,7 @@ const PRODUCT_SURFACES = [
   "src/ui/constellation/types.ts",
   "src/ui/result/result-view.tsx",
   "data/explanation-copy.json",
+  "data/self-reading.json",
 ];
 
 /**
@@ -41,6 +42,11 @@ function textsOf(path: string): string[] {
     : stringLiterals(read(path).replace(/\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm, ""));
 }
 
+/** The quiz banks that ship, as far as the generator is concerned. */
+const QUIZ_SURFACES = readdirSync(resolve(process.cwd(), "data/quizzes"))
+  .filter((name) => name.endsWith(".json"))
+  .map((name) => `data/quizzes/${name}`);
+
 describe("copy guards cover every generated sentence", () => {
   it("finds the text of each source it claims to read", () => {
     for (const path of [...PRODUCT_SURFACES, ...PARTICIPANT_SURFACES])
@@ -51,6 +57,21 @@ describe("copy guards cover every generated sentence", () => {
     for (const path of PRODUCT_SURFACES) {
       for (const text of textsOf(path)) expect(text, `${path}: ${text}`).not.toMatch(FORBIDDEN_COPY);
     }
+  });
+
+  it("writes the inclusive marker only where a person chose it", () => {
+    const chosen = "src/domain/messages/inclusive-text.ts";
+    const swept = [...PRODUCT_SURFACES, ...PARTICIPANT_SURFACES, ...QUIZ_SURFACES];
+
+    expect(swept).not.toContain(chosen);
+    for (const path of swept) {
+      for (const text of textsOf(path)) expect(text, `${path}: ${text}`).not.toMatch(INCLUSIVE_X);
+    }
+
+    // The opt-in mode is the one place the marker is allowed to exist, so the
+    // guarantee is that it is not the default anyone lands on.
+    const dictionary = stringLiterals(read(chosen));
+    expect(dictionary.some((word) => INCLUSIVE_X.test(word))).toBe(true);
   });
 
   it("promises no relational outcome anywhere a person can read", () => {
@@ -73,12 +94,10 @@ describe("copy guards cover every generated sentence", () => {
   });
 
   it("reads the quiz banks that ship", () => {
-    const dir = resolve(process.cwd(), "data/quizzes");
-    const files = readdirSync(dir).filter((name) => name.endsWith(".json"));
-    expect(files.length).toBeGreaterThan(0);
-    for (const name of files) {
-      for (const text of jsonStrings(JSON.parse(readFileSync(resolve(dir, name), "utf8")))) {
-        expect(text, `${name}: ${text}`).not.toMatch(OUTCOME_CLAIMS);
+    expect(QUIZ_SURFACES.length).toBeGreaterThan(0);
+    for (const path of QUIZ_SURFACES) {
+      for (const text of textsOf(path)) {
+        expect(text, `${path}: ${text}`).not.toMatch(OUTCOME_CLAIMS);
       }
     }
   });

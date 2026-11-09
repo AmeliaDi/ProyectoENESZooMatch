@@ -25,7 +25,7 @@ from bank_model import FLAGS, ITEMS, ORIGINS, Item  # noqa: E402
 from bank_render import write_seed, write_test_md  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = "2.2.0"
+VERSION = "2.3.0"
 MAX_TEXT = 140
 CORE_LIKERT = 65  # + 3 hard filters = 68 (ADR-045 paga la deuda I5 del núcleo; era 55 + 3 = 58)
 

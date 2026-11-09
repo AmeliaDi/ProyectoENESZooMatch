@@ -24,6 +24,14 @@
 | FIL2 | Identidad de género | ¿Cómo te identificas? | mujer · hombre · no binarie · género fluido · agénero · otra · prefiero no decir | SENS |
 | FIL3 | Tipo de vínculo | ¿Qué tipo de vínculo te interesa ahora? | monogamia · no monogamia ética · sin definir aún · solo amistad · prefiero no decir | SENS |
 
+> **Actualizado en 2.3.0 (ADR-053), aditivo.** A estas dos listas se sumaron
+> `personas trans` y `cualquier género` en FIL1, y `mujer trans`, `hombre
+> trans` y `persona trans` en FIL2. Ningún valor anterior se retiró, así que
+> ninguna respuesta guardada quedó inválida. La tabla de arriba queda como
+> registro de la propuesta original; la fuente de la verdad es
+> `data/microtest.json`.
+| FIL3 | Tipo de vínculo | ¿Qué tipo de vínculo te interesa ahora? | monogamia · no monogamia ética · sin definir aún · solo amistad · prefiero no decir | SENS |
+
 Cambios frente al test actual:
 - "asexual" y "demisexual" dejan de mezclarse con géneros en FIL1. Pasan a
   un chip opcional "mi forma de sentir atracción" que **no filtra**, solo se
@@ -71,7 +79,7 @@ Inversos por factor: H 2, E 1, X 1, A 2, C 2, O 1 (10 de 24).
 | VAL3 | Apertura al cambio | Valoro elegir mi propio camino, aunque no sea el esperado. | + | orig | |
 | VAL4 | Conservación | Me importa respetar las tradiciones de mi familia o comunidad. | + | orig | |
 | VAL5 | Espiritualidad | La espiritualidad o la religión ocupa un lugar importante en mi vida. | + | orig | SENS |
-| VAL6 | Meta: crianza | Me gustaría criar hijxs algún día. | + | orig | SENS |
+| VAL6 | Meta: crianza | Me gustaría criar hijos e hijas algún día. | + | orig | SENS |
 | VAL7 | Meta: carrera | En esta etapa, mi carrera profesional es mi prioridad. | + | orig | |
 | VAL8 | Presente vs. futuro | Disfrutar el momento me importa más que ahorrar para el futuro. | + | orig | |
 
@@ -152,11 +160,11 @@ avatar muestra el aura neutra.
 | CON3 | Extra / acuerdo | Busco soluciones en las que ambas partes ganen algo. | + | orig | DS |
 | CON4 | Extra / reparación | Me cuesta pedir disculpas aunque sepa que me equivoqué. | − | orig | DS |
 | APE1 | Extra / ansiedad de apego | Me preocupa que las personas cercanas dejen de quererme. | + | orig | SENS |
-| APE2 | Extra / ansiedad de apego | Necesito que me confirmen seguido que todo está bien entre nosotrxs. | + | orig | SENS |
+| APE2 | Extra / ansiedad de apego | Necesito que me confirmen seguido que todo está bien en nuestra relación. | + | orig | SENS |
 | APE3 | Extra / evitación | Me incomoda depender emocionalmente de alguien. | + | orig | SENS |
 | APE4 | Extra / evitación | Me resulta fácil abrirme y contar lo que siento. | − | orig | |
 | LAM1 | Extra / palabras | Siento el cariño sobre todo en palabras y mensajes. | + | orig | |
-| LAM2 | Extra / tiempo | Para mí, el cariño se nota en el tiempo de calidad juntxs. | + | orig | |
+| LAM2 | Extra / tiempo | Para mí, el cariño se nota cuando compartimos tiempo de calidad. | + | orig | |
 | LAM3 | Extra / contacto | Los abrazos son mi forma favorita de dar cariño. | + | orig | |
 
 Pesos: CON + APE + LAM ≤ 0.05 en total (ADR-015), nunca piso ni dealbreaker.

@@ -3,7 +3,7 @@
 > Generado por `scripts/psychometrics/run.py`; **no editar a mano**. Datos **sintéticos**:
 > validan el código y el diseño del banco, **no** el instrumento real (eso requiere un piloto).
 > N = 6000, 194 ítems Likert, semilla 20261101, entrada `data/microtest.json`
-> sha256 `9ad6ec2453d5afdc…`, 195 s. Python 3.15 + numpy/scipy/statsmodels
+> sha256 `8628270d7c66b0f2…`, 163 s. Python 3.15 + numpy/scipy/statsmodels
 > (versiones en `scripts/psychometrics/requirements.txt`).
 
 ## 1. Generador

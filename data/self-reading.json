@@ -31,7 +31,7 @@
       "scales": [
         { "factor": "hex_h", "label": "Honestidad-Humildad", "low": "Gusto por el reconocimiento y lo material", "high": "Transparencia y trato justo",
           "hint": "Cuánto pesan para ti la transparencia, el trato justo y no presumir.",
-          "virtues": { "high": { "title": "Trato justo", "text": "Valoras la transparencia y tratar a todxs con equidad." } } },
+          "virtues": { "high": { "title": "Trato justo", "text": "Valoras la transparencia y tratar a todas las personas con equidad." } } },
         { "factor": "hex_e", "label": "Emocionalidad", "low": "Templanza ante el riesgo", "high": "Sensibilidad y lazos cercanos",
           "hint": "Qué tanto sientes los sustos y extrañas a tu gente cercana.",
           "virtues": { "high": { "title": "Corazón atento", "text": "Sientes con intensidad y cuidas los lazos con quien quieres." },
@@ -83,7 +83,7 @@
       "title": "Lo que te importa",
       "blurb": "Valores y metas de vida. Una diferencia grande aquí pesa más que en gustos.",
       "scales": [
-        { "factor": "val_autotrascendencia", "label": "Cuidado de lxs demás", "low": "Tu círculo cercano", "high": "El bienestar de todxs",
+        { "factor": "val_autotrascendencia", "label": "Cuidado de las demás personas", "low": "Tu círculo cercano", "high": "El bienestar de todas las personas",
           "virtues": { "high": { "title": "Generosidad", "text": "Te importa el bienestar incluso de quien no conoces." } } },
         { "factor": "val_autopromocion", "label": "Logro e influencia", "low": "Logro discreto", "high": "Éxito visible",
           "virtues": { "high": { "title": "Ambición sana", "text": "Te mueve crecer y dejar huella." } } },

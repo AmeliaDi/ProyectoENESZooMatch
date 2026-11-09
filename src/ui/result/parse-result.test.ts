@@ -5,6 +5,7 @@ import { formatIdentity } from "@/domain/identity/format-identity";
 import { explainPair } from "@/domain/explainability";
 import { MATCHING_CONFIG, pairScore } from "@/domain/matching";
 import { NO_MATCH_MESSAGE as DOMAIN_NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
+import { INCLUSIVE_X } from "@/testing/copy-guard";
 import { parseIdentity } from "@/ui/shared/parse-identity";
 
 import { NO_MATCH_MESSAGE, normalizeBadges, parsePublicResult } from "./parse-result";
@@ -128,27 +129,24 @@ function without(payload: Record<string, unknown>, key: string): Record<string, 
 // ─── No-match message ─────────────────────────────────────────────────────────
 
 describe("NO_MATCH_MESSAGE", () => {
-  it("keeps the exact product literal", () => {
-    expect(NO_MATCH_MESSAGE).toBe(
-      "aun no aparece nadie arriba del filtro pero tranquilx, solo es un proyecto de estadistica, no de amor \u003c3",
-    );
-  });
-
   it("comes from the domain, not from a second copy in the UI", () => {
     expect(DOMAIN_NO_MATCH_MESSAGE).toBe(NO_MATCH_MESSAGE);
   });
 
-  it("reassures with inclusive language", () => {
-    expect(NO_MATCH_MESSAGE).toContain("tranquilx");
+  // The screen and the notification are read aloud by the same operating
+  // system, so the UI copy carries the rule the notification guard checks
+  // (ADR-053): a pronounceable sentence, no -x, no emoticon.
+  it("is a sentence somebody can read aloud", () => {
+    expect(NO_MATCH_MESSAGE).toMatch(/^Todavía [a-z]/);
+    expect(NO_MATCH_MESSAGE.endsWith(".")).toBe(true);
+    expect(NO_MATCH_MESSAGE).not.toMatch(INCLUSIVE_X);
+    expect(NO_MATCH_MESSAGE).not.toMatch(/<3|tranquilx|estadistica/);
   });
 
-  it("keeps the heart emoticon", () => {
-    expect(NO_MATCH_MESSAGE).toContain("<3");
-  });
-
-  it("frames the outcome as statistics, not a verdict on the person", () => {
-    expect(NO_MATCH_MESSAGE).toContain("estadistica");
-    expect(NO_MATCH_MESSAGE).toContain("amor");
+  it("frames the outcome as an empty pool, not a verdict on the person", () => {
+    expect(NO_MATCH_MESSAGE).toContain("arriba del filtro");
+    expect(NO_MATCH_MESSAGE).toContain("No es un veredicto sobre ti");
+    expect(NO_MATCH_MESSAGE).toContain("cuando entre más gente");
   });
 
   it("stays under the 280-character notification budget", () => {

@@ -9,7 +9,7 @@
 - **Los datos sintéticos validan el código y la sensibilidad del modelo, no el mundo real.**
   Ninguna hipótesis de este documento dice que ZooMatch prediga buenas relaciones. Esa
   pregunta solo la responde el estudio piloto (§7).
-- La «verdad» de cada par la define un generador que nosotrxs elegimos (§2). Si el modelo
+- La «verdad» de cada par la define un generador que elegimos (§2). Si el modelo
   recupera esa verdad, se demuestra que mide con poco ruido lo que dice medir, no que la
   verdad elegida sea la correcta.
 - Hay **conocimiento previo**: `docs/MATCHING_RESULTADOS.md` (hash de entradas

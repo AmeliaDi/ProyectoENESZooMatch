@@ -62,7 +62,7 @@ export const NOTIFICATION_COPY = {
   romance_one_hidden:
     "Tu energía de {nombre} quedó arriba del filtro. La afinidad estimada es alta; el nombre de quien es lo ves en tu resultado.",
   romance_many:
-    "Tu energía de {nombre} quedó arriba del filtro junto a {n} personas del campus. La afinidad estimada es alta con cada unx; lo que puedan hacer con eso se ve platicando.",
+    "Tu energía de {nombre} quedó arriba del filtro junto a {n} personas del campus. La afinidad estimada es alta con cada una de esas personas; lo que puedan hacer con eso se ve platicando.",
   amistad_one:
     "Tu energía de {nombre} resonó arriba del filtro de amistad junto a {match}. Los puntos en común ya están; si la amistad cuaja se nota en la conversación.",
   amistad_one_hidden:
@@ -70,7 +70,7 @@ export const NOTIFICATION_COPY = {
   amistad_many:
     "Tu energía de {nombre} resonó arriba del filtro de amistad con {n} personas del campus. Hay amistades con terreno compartido; lo que sigue se ve platicando.",
   no_match:
-    "aun no aparece nadie arriba del filtro pero tranquilx, solo es un proyecto de estadistica, no de amor <3",
+    "Todavía no aparece nadie arriba del filtro. No es un veredicto sobre ti ni sobre el amor: cuando entre más gente al hábitat, esto se mueve.",
   welcome:
     "Tu esencia de {nombre} ya está registrada y tu nombre queda fijo: ya no cambia. Cuando alguien compatible entre al hábitat, te lo avisamos.",
   identity:

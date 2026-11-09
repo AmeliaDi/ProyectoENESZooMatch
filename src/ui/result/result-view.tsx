@@ -42,7 +42,7 @@ export const RESULT_FINE_COPY =
   "Afinidades estimadas con datos sintéticos: ordenan posibilidades, no son probabilidades. La lista puede cambiar cuando entra gente nueva o afinas tu perfil.";
 
 export const FEW_PEOPLE_COPY =
-  "Todavía somos pocxs en el cielo. Cuando entre más gente, tu constelación puede crecer.";
+  "Todavía somos pocas personas en el cielo. Cuando entre más gente, tu constelación puede crecer.";
 
 type View = "cielo" | "lista";
 
@@ -288,7 +288,7 @@ export function PublicResultView() {
           <ConstellationSection key={skyKey} result={result} track={track} emptyMessage={emptyMessage} />
         ) : matches.length === 0 ? (
           <EmptyState
-            title={result.few_people ? "Somos pocxs todavía" : "Tu cielo está tranquilo"}
+            title={result.few_people ? "Somos pocas personas todavía" : "Tu cielo está tranquilo"}
             body={emptyMessage}
             art={self ? <PixelAnimal animalId={self.animalId} colorId={self.colorId} mark={self.mark} size={72} /> : undefined}
           />

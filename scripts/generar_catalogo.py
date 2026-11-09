@@ -222,62 +222,62 @@ ETIQUETAS_FAMILIA: dict[str, str] = {
 FAMILIAS_NARRATIVAS: dict[str, dict[str, str]] = {
     "anfibios": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} que combina {rasgo_1} con {rasgo_2}. Te adaptas a distintos ambientes sin perder tu centro.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} crea un espacio seguro y tu {rasgo_2} invita a explorar juntxs.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} crea un espacio seguro y tu {rasgo_2} invita a explorar en compañía.",
         "cuidado": "Tu {rasgo_3} puede hacerte cambiar de piel a tu ritmo; avisa cuando necesites espacio.",
     },
     "insectos_aracnidos": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} que habita el campus con {rasgo_1} y {rasgo_2}. Tu tamaño pequeño no mide lo enorme de tu presencia.",
-        "vinculo": "Cuando conectas con {otrx}, tu {rasgo_1} abre conversaciones inesperadas y tu {rasgo_2} sostiene el vínculo; juntxs encuentran belleza en los detalles.",
+        "vinculo": "Cuando conectas con {otra_persona}, tu {rasgo_1} abre conversaciones inesperadas y tu {rasgo_2} sostiene el vínculo; encuentran belleza en los detalles.",
         "cuidado": "Tu {rasgo_3} también necesita pausas: no todo tiene que ser productivo y pedir ayuda no te hace menos.",
     },
     "aves": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Tienes el don de ver el campus desde otra altura.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} encuentra un cielo compartido y tu {rasgo_2} le da alas a los planes.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} encuentra un cielo compartido y tu {rasgo_2} le da alas a los planes.",
         "cuidado": "Cuida tu {rasgo_3}: a veces necesitas posarte y descansar antes de volver a volar.",
     },
     "roedores_herbivoros": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Construyes calma en los rincones que habitas.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} comparte provisiones y tu {rasgo_2} convierte lo cotidiano en refugio.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} comparte provisiones y tu {rasgo_2} convierte lo cotidiano en refugio.",
         "cuidado": "Tu {rasgo_3} merece cuidado: guardar energía también es una forma de quererte.",
     },
     "vida_marina": {
-        "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Habitas profundidades que no todxs se atreven a mirar.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} crea corriente y tu {rasgo_2} hace que flotar juntxs sea natural.",
+        "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Habitas profundidades que pocas personas se atreven a mirar.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} crea corriente y tu {rasgo_2} hace que flotar en compañía sea natural.",
         "cuidado": "Tu {rasgo_3} sube como marea; aprende a nombrarla antes de que te arrastre.",
     },
     "caninos": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Tu lealtad se siente como un lugar seguro.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} arma manada y tu {rasgo_2} sostiene la aventura.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} arma manada y tu {rasgo_2} sostiene la aventura.",
         "cuidado": "Tu {rasgo_3} también pide reciprocidad: no des todo sin preguntar qué necesitas tú.",
     },
     "felinos": {
-        "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Tu independencia tiene una ternura que pocxs ven.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} elige la confianza y tu {rasgo_2} se muestra sin máscaras.",
+        "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Tu independencia tiene una ternura que pocas personas ven.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} elige la confianza y tu {rasgo_2} se muestra sin máscaras.",
         "cuidado": "Tu {rasgo_3} necesita territorio propio; nombra tus tiempos y no confundas distancia con desamor.",
     },
     "osos": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Tu presencia contiene y protege.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} ofrece refugio y tu {rasgo_2} hace que el mundo se sienta más amable.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} ofrece refugio y tu {rasgo_2} hace que el mundo se sienta más amable.",
         "cuidado": "Tu {rasgo_3} puede volverse caparazón; deja que alguien te cuide de vez en cuando.",
     },
     "mamiferos_menores": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Tu ingenio convierte lo pequeño en extraordinario.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} encuentra complicidad y tu {rasgo_2} convierte cualquier plan en travesura.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} encuentra complicidad y tu {rasgo_2} convierte cualquier plan en travesura.",
         "cuidado": "Tu {rasgo_3} merece descanso: no tienes que estar siempre alerta para estar a salvo.",
     },
     "ungulados": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Avanzas con un ritmo que es solo tuyo.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} encuentra un horizonte compartido y tu {rasgo_2} hace que el viaje valga la pena.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} encuentra un horizonte compartido y tu {rasgo_2} hace que el viaje valga la pena.",
         "cuidado": "Tu {rasgo_3} necesita pasto fresco: cambia de ruta cuando el paisaje deje de nutrirte.",
     },
     "criaturas_misticas": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Caminas entre lo que se ve y lo que se intuye.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} abre un portal y tu {rasgo_2} invita a cruzar sin miedo.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} abre un portal y tu {rasgo_2} invita a cruzar sin miedo.",
         "cuidado": "Tu {rasgo_3} necesita tierra firme; aterriza tus visiones en pasos pequeños y compartidos.",
     },
     "criaturas_australes": {
         "esencia": "Eres {nombre}, un arquetipo de {familia_label} con {rasgo_1} y {rasgo_2}. Tu rareza es una forma de pertenencia.",
-        "vinculo": "Con {otrx}, tu {rasgo_1} encuentra un ecosistema compartido y tu {rasgo_2} celebra lo diferente.",
+        "vinculo": "Con {otra_persona}, tu {rasgo_1} encuentra un ecosistema compartido y tu {rasgo_2} celebra lo diferente.",
         "cuidado": "Tu {rasgo_3} pide un nido propio; no confundas adaptarte con desaparecer.",
     },
 }

@@ -73,10 +73,10 @@ Núcleo: **68 ítems** (65 Likert + 3 filtros), ≈ 7.9 min a 7 s/ítem. Módulo
 | 61 | VAL17 | 3 | val_autopromocion / reconocimiento | Me importa que mi trabajo sea reconocido, no nada más hecho. | + | original |  |
 | 62 | VAL18 | 3 | val_apertura_cambio / estimulacion | Me aburre hacer siempre lo mismo, aunque me vaya bien. | + | original |  |
 | 63 | VAL19 | 3 | val_conservacion / referencias | Me gusta mantener el orden y las formas que aprendí en casa. | + | original |  |
-| 64 | VAL6 | 3 | meta_crianza / deseo | Me gustaría criar hijxs algún día. | + | original | SENS |
-| 65 | FIL1 | 0 | filtro / interes_romantico | ¿Con quién te interesa conectar en lo romántico? (mujeres · hombres · personas no binarias · prefiero no decir) | sel. | original | SENS |
-| 66 | VAL13 | 3 | meta_crianza / temporalidad | Me veo criando hijxs en los próximos años. | + | original | SENS |
-| 67 | FIL2 | 0 | filtro / identidad_genero | ¿Cómo te identificas? (mujer · hombre · no binarie · género fluido · agénero · otra · prefiero no decir) | sel. | original | SENS |
+| 64 | VAL6 | 3 | meta_crianza / deseo | Me gustaría criar hijos e hijas algún día. | + | original | SENS |
+| 65 | FIL1 | 0 | filtro / interes_romantico | ¿Con quién te interesa conectar en lo romántico? (mujeres · hombres · personas no binarias · personas trans · cualquier género · prefiero no decir) | sel. | original | SENS |
+| 66 | VAL13 | 3 | meta_crianza / temporalidad | Me veo criando hijas o hijos en los próximos años. | + | original | SENS |
+| 67 | FIL2 | 0 | filtro / identidad_genero | ¿Cómo te identificas? (mujer · hombre · no binarie · mujer trans · hombre trans · persona trans · género fluido · agénero · otra · prefiero no decir) | sel. | original | SENS |
 | 68 | FIL3 | 0 | filtro / tipo_vinculo | ¿Qué tipo de vínculo te interesa ahora? (monogamia · no_monogamia_etica · sin_definir · solo_amistad · prefiero no decir) | sel. | original | SENS |
 
 ## Módulo `hexaco_facetas`: Personalidad a detalle (24 ítems)
@@ -205,11 +205,11 @@ Espacio, cercanía, conflicto, apego y cariño.
 | 3 | CON3 | 3 | con_acuerdo | Busco soluciones en las que ambas partes ganen algo. | + | original | DS, 1I |
 | 4 | CON4 | 3 | con_reparacion | Me cuesta pedir disculpas aunque sepa que me equivoqué. | − | original | DS, 1I |
 | 5 | APE1 | 3 | apego_ansiedad | Me preocupa que las personas cercanas dejen de quererme. | + | original | SENS |
-| 6 | APE2 | 3 | apego_ansiedad | Necesito que me confirmen seguido que todo está bien entre nosotrxs. | + | original | SENS |
+| 6 | APE2 | 3 | apego_ansiedad | Necesito que me confirmen seguido que todo está bien en nuestra relación. | + | original | SENS |
 | 7 | APE3 | 3 | apego_evitacion | Me incomoda depender emocionalmente de alguien. | + | original | SENS |
 | 8 | APE4 | 3 | apego_evitacion | Me resulta fácil abrirme y contar lo que siento. | − | original |  |
 | 9 | LAM1 | 3 | afecto_palabras | Siento el cariño sobre todo en palabras y mensajes. | + | original | 1I |
-| 10 | LAM2 | 3 | afecto_tiempo | Para mí, el cariño se nota en el tiempo de calidad juntxs. | + | original | 1I |
+| 10 | LAM2 | 3 | afecto_tiempo | Para mí, el cariño se nota cuando compartimos tiempo de calidad. | + | original | 1I |
 | 11 | LAM3 | 3 | afecto_contacto | Los abrazos son mi forma favorita de dar cariño. | + | original | 1I |
 | 12 | REL1 | 3 | afecto_detalles | Un detalle pequeño e inesperado me dice mucho. | + | original | 1I |
 | 13 | REL2 | 3 | afecto_servicio | Demuestro cariño ayudando con cosas prácticas. | + | original | 1I |

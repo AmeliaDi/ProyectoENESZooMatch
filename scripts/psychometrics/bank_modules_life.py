@@ -85,13 +85,13 @@ add("CON4", R, 3, "con_reparacion", None, "Me cuesta pedir disculpas aunque sepa
     {CONFL: -1})
 add("APE1", R, 3, "apego_ansiedad", None, "Me preocupa que las personas cercanas dejen de quererme.", 1, PO, "SENS")
 add("APE2", R, 3, "apego_ansiedad", None,
-    "Necesito que me confirmen seguido que todo está bien entre nosotrxs.", 1, PO, "SENS")
+    "Necesito que me confirmen seguido que todo está bien en nuestra relación.", 1, PO, "SENS")
 add("APE3", R, 3, "apego_evitacion", None, "Me incomoda depender emocionalmente de alguien.", 1, PO, "SENS")
 add("APE4", R, 3, "apego_evitacion", None, "Me resulta fácil abrirme y contar lo que siento.", -1, PO, "",
     {"intimidad_apertura_emocional": 1})
 add("LAM1", R, 3, "afecto_palabras", None, "Siento el cariño sobre todo en palabras y mensajes.", 1, PO, "",
     {"intimidad_palabras_afirmacion": 1})
-add("LAM2", R, 3, "afecto_tiempo", None, "Para mí, el cariño se nota en el tiempo de calidad juntxs.", 1, PO, "",
+add("LAM2", R, 3, "afecto_tiempo", None, "Para mí, el cariño se nota cuando compartimos tiempo de calidad.", 1, PO, "",
     {"intimidad_tiempo_calidad": 1})
 add("LAM3", R, 3, "afecto_contacto", None, "Los abrazos son mi forma favorita de dar cariño.", 1, PO, "",
     {"intimidad_contacto_fisico": 1})

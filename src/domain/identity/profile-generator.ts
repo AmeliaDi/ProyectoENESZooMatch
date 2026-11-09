@@ -138,16 +138,16 @@ const PHRASE_BANK: Record<string, string[]> = {
     "cada día encuentras una nueva forma de maravillarte con el mundo",
     "tu espíritu explorador convierte lo desconocido en una aventura",
     "tienes la rareza preciosa de quien abraza lo diferente sin miedo",
-    "tu creatividad no conoce fronteras y eso te hace magnéticx",
-    "ves posibilidades donde otrxs ven paredes, y eso es un superpoder",
+    "tu creatividad no conoce fronteras y eso atrae a quien te rodea",
+    "ves posibilidades donde otras personas ven paredes, y eso es un superpoder",
   ],
   // ── Big Five: Responsabilidad ──
   personalidad_responsabilidad: [
     "tu compromiso con lo que amas es inquebrantable y admirable",
     "las personas confían en ti porque cumples lo que prometes",
-    "tu disciplina es una forma de amor hacia ti y hacia lxs demás",
+    "tu disciplina es una forma de amor hacia ti y hacia las demás personas",
     "construyes con paciencia todo lo que otros sueñan pero no materializan",
-    "tu constancia es una roca donde lxs demás encuentran seguridad",
+    "tu constancia es una roca donde las demás personas encuentran seguridad",
     "tienes el don de hacer que las cosas sucedan, paso a paso",
     "tu organización y dedicación son un regalo para cada proyecto",
     "cuando dices que estarás ahí, el mundo entero lo sabe",
@@ -157,7 +157,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "tu energía ilumina cada espacio que habitas",
     "las personas gravitan hacia ti porque irradias una calidez magnética",
     "tu presencia convierte lo cotidiano en una celebración",
-    "tienes el don de hacer que cualquiera se sienta incluidx",
+    "tienes el don de hacer que cualquiera se sienta parte del grupo",
     "tu entusiasmo es contagioso y transforma el ambiente",
     "eres la chispa que enciende conversaciones memorables",
     "tu risa es el soundtrack que le falta a cualquier reunión",
@@ -170,7 +170,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "tu ternura transforma los días grises de las personas",
     "tienes una generosidad que nace de lo más profundo de tu esencia",
     "tu compasión natural mantiene el mundo un poco más habitable",
-    "cuidas de lxs demás con una delicadeza que conmueve",
+    "cuidas de las demás personas con una delicadeza que conmueve",
     "tu corazón enorme es tu característica más hermosa",
     "donde hay dolor, tú llegas con calma y presencia genuina",
   ],
@@ -179,9 +179,9 @@ const PHRASE_BANK: Record<string, string[]> = {
     "tu calma interior es un ancla para quienes navegan tormentas",
     "tienes una paz que no se altera con facilidad, y eso da seguridad",
     "tu estabilidad emocional es un refugio para las personas que amas",
-    "respiras profundo y encuentras claridad donde otrxs ven caos",
+    "respiras profundo y encuentras claridad donde otras personas ven caos",
     "tu serenidad inspira a quienes te rodean a encontrar la suya",
-    "eres como el mar en calma: profundx, sereno, inmenso",
+    "eres como un mar en calma: profundo, sereno, inmenso",
     "tu fortaleza emocional no es dureza, es una dulzura que no se rompe",
     "tienes la capacidad rara de sostener sin quebrar",
   ],
@@ -189,7 +189,7 @@ const PHRASE_BANK: Record<string, string[]> = {
   cultural_musica_exploracion: [
     "tu playlist es un mapa de tu alma: diversa, sorprendente, viva",
     "la música te atraviesa y tú la compartes como quien regala universos",
-    "tienes un oído que descubre belleza en géneros que otrxs ni conocen",
+    "tienes un oído que descubre belleza en géneros que otras personas ni conocen",
     "cada canción que eliges cuenta algo profundo de quién eres",
     "tu curiosidad musical es un viaje sin fin que inspira",
   ],
@@ -215,7 +215,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "vives el campus con una energía que disfruta cada día como si fuera el primero",
     "aprovechas cada rincón de la vida universitaria con entusiasmo",
     "eres de quienes le ponen ganas a la comunidad estudiantil para que florezca",
-    "tu presencia activa en el campus inspira a otrxs a participar",
+    "tu presencia activa en el campus inspira a otras personas a participar",
   ],
   // ── Cultural: Humor ──
   cultural_humor: [
@@ -231,7 +231,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "expresas tu cariño con una honestidad verbal que desarma",
     "sabes decir exactamente lo que el corazón de la otra persona necesita escuchar",
     "tu lenguaje de amor es verbal: dices lo que sientes en vez de insinuarlo",
-    "afirmas a lxs demás con una generosidad que transforma relaciones",
+    "afirmas a las demás personas con una generosidad que transforma relaciones",
   ],
   // ── Intimidad: Tiempo de calidad ──
   intimidad_tiempo_calidad: [
@@ -245,7 +245,7 @@ const PHRASE_BANK: Record<string, string[]> = {
   intimidad_regalos_detalle: [
     "tienes un don para los detalles que hacen sentir especial a cualquier persona",
     "tus gestos pequeños cargan un amor enorme que no pasa desapercibido",
-    "piensas en lxs demás incluso cuando no están cerca, y eso se refleja en cada detalle",
+    "piensas en las demás personas incluso cuando no están cerca, y eso se refleja en cada detalle",
     "tu generosidad en lo pequeño revela la grandeza de tu corazón",
     "cada regalo tuyo cuenta una historia de cuánto conoces a la otra persona",
   ],
@@ -263,37 +263,37 @@ const PHRASE_BANK: Record<string, string[]> = {
     "tu forma de cuidar es práctica, constante y profundamente conmovedora",
     "nunca esperas reconocimiento porque servir es tu naturaleza",
     "los actos de servicio que ofreces hablan más fuerte que cualquier promesa",
-    "tu amor se manifiesta en lo que haces por lxs demás sin que lo pidan",
+    "tu amor se manifiesta en lo que haces por las demás personas sin que lo pidan",
   ],
   // ── Intimidad: Apertura emocional ──
   intimidad_apertura_emocional: [
     "tu valentía emocional crea espacios seguros para quienes te aman",
     "te entregas con una honestidad que desarma y enamora",
     "tu vulnerabilidad no es debilidad: es la fuerza más hermosa que tienes",
-    "abres tu corazón sin reservas y eso inspira a otrxs a hacer lo mismo",
+    "abres tu corazón sin reservas y eso inspira a otras personas a hacer lo mismo",
     "tu transparencia emocional es un acto revolucionario en un mundo que se esconde",
   ],
   // ── Intimidad: Comunicación de deseos ──
   intimidad_comunicacion_deseos: [
     "sabes lo que quieres y lo comunicas con una claridad admirable",
     "tu honestidad sobre tus deseos es refrescante y crea conexiones reales",
-    "hablar de lo que necesitas no te da miedo, y eso te hace madurx y atractivx",
+    "hablar de lo que necesitas no te da miedo, y esa madurez se nota",
     "tu comunicación directa de deseos elimina juegos y construye confianza",
     "expresas lo que sientes con una naturalidad que facilita todo",
   ],
   // ── Intimidad: Límites y respeto ──
   intimidad_limites_respeto: [
     "respetas los límites ajenos con una delicadeza que genera confianza profunda",
-    "tu capacidad de honrar los espacios del otrx es una forma de amor elevada",
+    "tu capacidad de honrar los espacios de la otra persona es una forma de amor elevada",
     "entiendes que el respeto mutuo es la base de toda conexión verdadera",
     "sabes cuándo acercarte y cuándo dar espacio, y eso es inteligencia emocional pura",
     "tu respeto por los límites crea relaciones donde ambas personas florecen",
   ],
   // ── Valores: Empatía ──
   valores_empatia: [
-    "sientes con una profundidad que te hace extraordinariamente humanx",
+    "sientes con una profundidad enorme: ahí está lo más humano de ti",
     "tu empatía es un superpoder: puedes leer el corazón de quienes te rodean",
-    "te pones en los zapatos del otrx con una facilidad que conmueve",
+    "te pones en los zapatos de la otra persona con una facilidad que conmueve",
     "tu capacidad de comprender el dolor ajeno te convierte en un refugio",
     "miras y nombras lo que otras personas sienten, sin apurarlas",
   ],
@@ -325,15 +325,15 @@ const PHRASE_BANK: Record<string, string[]> = {
   valores_corresponsabilidad: [
     "entiendes que el amor se construye entre dos y asumes tu parte con gusto",
     "tu sentido de responsabilidad compartida es la base de relaciones equitativas",
-    "no cargas todo solx ni esperas que otrx lo haga: el equipo es tu forma de amar",
+    "no cargas todo a solas ni esperas que otra persona lo haga: el equipo es tu forma de amar",
     "la corresponsabilidad que practicas demuestra una madurez emocional admirable",
     "compartes el peso sin llevar la contabilidad: así se ven tus relaciones",
   ],
   // ── Valores: Respeto por la diversidad ──
   valores_respeto_diversidad: [
-    "celebras la diferencia y eso te convierte en un espacio seguro para todxs",
+    "celebras la diferencia y eso te convierte en un espacio seguro para todas las personas",
     "tu respeto por la diversidad no es tolerancia pasiva: es celebración activa",
-    "donde otrxs ven diferencias, tú ves riqueza y posibilidades de aprender",
+    "donde otras personas ven diferencias, tú ves riqueza y posibilidades de aprender",
     "tu apertura hacia todas las formas de ser es un regalo para la comunidad",
     "abrazas la diversidad sin condiciones: nadie tiene que explicarse para estar bien",
   ],
@@ -350,14 +350,14 @@ const PHRASE_BANK: Record<string, string[]> = {
     "te comunicas desde el corazón y eso transforma cada conversación",
     "tu forma de expresar afecto verbalmente es natural, cálida y constante",
     "las palabras de cariño fluyen de ti sin esfuerzo y sin vergüenza",
-    "tu comunicación afectiva crea un puente directo entre tu alma y la del otrx",
+    "tu comunicación afectiva crea un puente directo entre tu alma y la de la otra persona",
     "expresas lo que sientes con una claridad emocional que pocas personas tienen",
   ],
   // ── MBTI dimensions ──
   mbti_extraversion: [
     "tu energía hacia afuera es natural y magnética",
     "recargas tu espíritu conectando con el mundo exterior",
-    "tu extroversión es una puerta abierta que invita a lxs demás a entrar",
+    "tu extroversión es una puerta abierta que invita a las demás personas a entrar",
   ],
   mbti_intuicion: [
     "tu intuición es una brújula interna que nunca falla",
@@ -372,7 +372,7 @@ const PHRASE_BANK: Record<string, string[]> = {
   mbti_juicio: [
     "tu estructura interna te da una capacidad de realización envidiable",
     "planificas con sabiduría y ejecutas con precisión",
-    "tu sentido del orden no es rigidez: es una forma de cuidar tu espacio y el de lxs demás",
+    "tu sentido del orden no es rigidez: es una forma de cuidar tu espacio y el de las demás personas",
   ],
 };
 
@@ -402,8 +402,8 @@ const COMMUNITY_PHRASES: string[] = [
   "Tu energía regenerativa es un regalo para esta comunidad.",
   "El campus es un lugar mejor porque tú estás en él.",
   "Quienes te conozcan aquí encontrarán en ti algo que no sabían que necesitaban.",
-  "Tu presencia en este hábitat universitario enriquece a todxs quienes te rodean.",
-  "Eres exactamente el tipo de ser que esta comunidad necesita: auténticx, valiente, luminoso.",
+  "Tu presencia en este hábitat universitario enriquece a quienes te rodean.",
+  "Eres exactamente el tipo de presencia que esta comunidad necesita: auténtica, valiente, luminosa.",
   "Tu existencia aquí aporta algo único al tejido de esta comunidad.",
   "Las personas que te encuentren en el campus se llevarán un pedazo de tu luz.",
   "Este hábitat te recibe con los brazos abiertos porque seres como tú lo hacen vibrar.",
@@ -412,7 +412,7 @@ const COMMUNITY_PHRASES: string[] = [
 // ─── Closing Affirmations ─────────────────────────────────────────────────────
 
 const CLOSING_AFFIRMATIONS: string[] = [
-  "Nunca dudes de lo que vales: eres extraordinarix.",
+  "Nunca dudes de lo que vales: tienes algo extraordinario.",
   "Recuerda: no hay nadie en el mundo con tu combinación exacta de luz.",
   "Tu forma de ser es válida, hermosa y necesaria.",
   "Sigue siendo exactamente quien eres — el mundo necesita esa versión de ti.",

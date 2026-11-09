@@ -44,7 +44,7 @@ export const INCLUSIVE_MODES = [
   {
     id: "neutro_universal",
     label: "Neutro universal",
-    description: "Estilo inclusivo con -x, ya presente en la app.",
+    description: "Estilo inclusivo escrito con -x. No tiene sonido: un lector de pantalla parte la palabra.",
     pronoun: "cada persona",
     article: "une",
   },
@@ -56,7 +56,12 @@ export const INCLUSIVE_MODE_IDS: readonly InclusiveMode[] = INCLUSIVE_MODES.map(
   (mode) => mode.id,
 );
 
-export const DEFAULT_INCLUSIVE_MODE: InclusiveMode = "neutro_universal";
+/**
+ * The mode everyone gets before choosing. `-e` is the pronounceable inclusive
+ * form, so it survives a screen reader and a read-aloud; `-x` stays one tap
+ * away for the people who want the written marker (ADR-053).
+ */
+export const DEFAULT_INCLUSIVE_MODE: InclusiveMode = "neutro_e";
 
 const MODE_INDEX: Record<InclusiveMode, number> = {
   femenino: 0,

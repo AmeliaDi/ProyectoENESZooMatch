@@ -58,7 +58,7 @@ amiga que sabe estadística: cálida, sin exagerar y sin mentir.
 |---|---|
 | Carga | "Encendiendo estrellas…" |
 | Vacío (sin match) | "aun no aparece nadie arriba del filtro pero tranquilx, solo es un proyecto de estadistica, no de amor <3" |
-| Vacío (pocas personas) | "Todavía somos pocxs en el cielo. Cuando entre más gente, tu constelación puede crecer." |
+| Vacío (pocas personas) | "Todavía somos pocas personas en el cielo. Cuando entre más gente, tu constelación puede crecer." |
 | Error de red | Título: "Se nubló la conexión" · Cuerpo: "No pudimos cargar tu constelación. Intenta de nuevo en un momento." |
 | Error de matrícula | "Escribe tu matrícula completa: 9 números, sin letras ni guiones." |
 | Clave incorrecta | "La matrícula o la clave no coinciden. Revisa e intenta de nuevo." (nunca dice cuál) |

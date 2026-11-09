@@ -13,11 +13,11 @@ import {
   type NotificationContext,
 } from "@/domain/messages/notification-copy";
 import { EGG_DISPLAY_NAME, formatIdentity } from "@/domain/identity/format-identity";
-import { OUTCOME_CLAIMS } from "@/testing/copy-guard";
+import { INCLUSIVE_X, OUTCOME_CLAIMS } from "@/testing/copy-guard";
 import type { NotificationType } from "@/types/microtest";
 
 /** Where `notify_matches` lives; the copy in there has to be this copy. */
-const NOTIFY_MIGRATION = "20261122000000_notification_copy_estimated_affinity.sql";
+const NOTIFY_MIGRATION = "20261124000000_notification_copy_accesible.sql";
 const NOTIFY_SQL = readFileSync(resolve(process.cwd(), "supabase/migrations", NOTIFY_MIGRATION), "utf8");
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -51,8 +51,11 @@ const GENDERED_WORDS = [
   "ellas",
 ] as const;
 
-/** Neutral "-x" / "-xs" marker used for inclusive Spanish (tranquilx, ellxs, unx). */
-const NEUTRAL_X_PATTERN = /[A-Za-záéíóúñ]+xs?\b/i;
+/**
+ * The written `-x` marker lives in `INCLUSIVE_X` (copy-guard): a notification
+ * is the one text that is read aloud by the operating system, so the marker has
+ * no place here and the suite asserts that.
+ */
 
 /**
  * Names here are always the output of `formatIdentity()`. The generator only
@@ -105,25 +108,22 @@ const ALL_COPY: Array<{ type: NotificationType; title: string; body: string }> =
 // ─── No-match message ─────────────────────────────────────────────────────────
 
 describe("NO_MATCH_MESSAGE", () => {
-  it("keeps the product literal without promising that someone will arrive", () => {
-    expect(NO_MATCH_MESSAGE).toBe(
-      "aun no aparece nadie arriba del filtro pero tranquilx, solo es un proyecto de estadistica, no de amor <3",
-    );
+  it("is the canonical sentence, with no second copy route", () => {
     expect(NO_MATCH_MESSAGE).toBe(NOTIFICATION_COPY.no_match);
   });
 
-  it("reassures with inclusive language", () => {
-    expect(NO_MATCH_MESSAGE).toContain("tranquilx");
-    expect(NO_MATCH_MESSAGE).toMatch(NEUTRAL_X_PATTERN);
+  it("describes the pool instead of ruling on the person", () => {
+    expect(NO_MATCH_MESSAGE).toContain("arriba del filtro");
+    expect(NO_MATCH_MESSAGE).toContain("veredicto");
+    expect(NO_MATCH_MESSAGE).toContain("más gente");
+    expect(NO_MATCH_MESSAGE).not.toMatch(OUTCOME_CLAIMS);
   });
 
-  it("keeps the heart emoticon", () => {
-    expect(NO_MATCH_MESSAGE).toContain("<3");
-  });
-
-  it("frames the result as a statistics project, not a verdict", () => {
-    expect(NO_MATCH_MESSAGE).toContain("estadistica");
-    expect(NO_MATCH_MESSAGE).toContain("amor");
+  it("is a sentence somebody can read aloud", () => {
+    expect(NO_MATCH_MESSAGE).toMatch(/^Todavía [a-z]/);
+    expect(NO_MATCH_MESSAGE.endsWith(".")).toBe(true);
+    expect(NO_MATCH_MESSAGE).not.toMatch(INCLUSIVE_X);
+    expect(NO_MATCH_MESSAGE).not.toMatch(/<3|tranquilx|estadistica/);
   });
 
   it("stays under the 280-character notification budget", () => {
@@ -171,7 +171,7 @@ describe("generateNotificationCopy — match_romance", () => {
     expect(copy.body).toContain("3");
     expect(copy.body).toContain("personas del campus");
     expect(copy.body).not.toContain(MATCH_NAME);
-    expect(copy.body).toMatch(NEUTRAL_X_PATTERN);
+    expect(copy.body).toContain("cada una de esas personas");
   });
 
   it("scales the count text to the number of matches", () => {
@@ -406,6 +406,10 @@ describe("all notification copy", () => {
       for (const word of GENDERED_WORDS) {
         expect(haystack, `${type} copy contains '${word}'`).not.toContain(word);
       }
+      // A notification is the text the OS reads aloud, so the written marker
+      // has to be spelled out in words the voice can say (ADR-053).
+      expect(title, `${type} title`).not.toMatch(INCLUSIVE_X);
+      expect(body, `${type} body`).not.toMatch(INCLUSIVE_X);
     }
   });
 

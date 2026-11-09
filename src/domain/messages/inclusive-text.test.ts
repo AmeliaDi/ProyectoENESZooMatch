@@ -9,6 +9,8 @@ import {
   pronounFor,
 } from "./inclusive-text";
 
+import { INCLUSIVE_X } from "@/testing/copy-guard";
+
 describe("formatInclusive", () => {
   it("renders the four curated modes for dictionary words", () => {
     const template = "Bienvenid{o}, quedate tranquil{o}";
@@ -48,10 +50,13 @@ describe("formatInclusive", () => {
     expect(rendered).toBe("Bienvenide, ajolotito rosa. {token_desconocido}");
   });
 
-  it("is deterministic and defaults to the universal mode", () => {
-    const once = formatInclusive("Bienvenid{o}");
-    expect(once).toBe(formatInclusive("Bienvenid{o}", DEFAULT_INCLUSIVE_MODE));
-    expect(formatInclusive("Bienvenid{o}")).toBe(formatInclusive("Bienvenid{o}"));
+  it("is deterministic and defaults to the mode that can be read aloud", () => {
+    const template = "Bienvenid{o}, quedate tranquil{o}";
+
+    expect(DEFAULT_INCLUSIVE_MODE).toBe("neutro_e");
+    expect(formatInclusive(template)).toBe("Bienvenide, quedate tranquile");
+    expect(formatInclusive(template)).toBe(formatInclusive(template, DEFAULT_INCLUSIVE_MODE));
+    expect(formatInclusive(template)).not.toMatch(INCLUSIVE_X);
   });
 });
 
@@ -70,6 +75,12 @@ describe("mode metadata", () => {
       expect(pronounFor(mode.id).length).toBeGreaterThan(0);
       expect(articleFor(mode.id).length).toBeGreaterThan(0);
     }
+  });
+
+  it("says out loud what the -x mode costs, so the choice is informed", () => {
+    const written = INCLUSIVE_MODES.find((mode) => mode.id === "neutro_universal");
+
+    expect(written?.description).toMatch(/lector de pantalla/);
   });
 
   it("validates mode values", () => {

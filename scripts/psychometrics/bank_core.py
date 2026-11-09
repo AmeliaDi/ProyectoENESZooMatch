@@ -21,11 +21,17 @@ from bank_model import (AMA, APE, CONF, EST, EXT, PH, PO, RES, N, add, ennea, mb
 
 # ─── Layer 0: hard filters (romance only, end of test) ────────────────────────
 
+# ADR-053: additive only. Every value that existed before is still here, so an
+# answer stored under 2.2.x stays valid. "cualquier género" is the one click a
+# pan or bi person needs (before, they had to tick all three boxes, and could
+# not say so at all without also ticking "prefiero no decir").
 add("FIL1", N, 0, "filtro", "interes_romantico", "¿Con quién te interesa conectar en lo romántico?", 0, PO,
-    "SENS", opciones=["mujeres", "hombres", "personas no binarias", "prefiero no decir"],
+    "SENS",
+    opciones=["mujeres", "hombres", "personas no binarias", "personas trans", "cualquier género", "prefiero no decir"],
     campo_perfil="orientacion_sexual", romance_only=True)
 add("FIL2", N, 0, "filtro", "identidad_genero", "¿Cómo te identificas?", 0, PO, "SENS",
-    opciones=["mujer", "hombre", "no binarie", "género fluido", "agénero", "otra", "prefiero no decir"],
+    opciones=["mujer", "hombre", "no binarie", "mujer trans", "hombre trans", "persona trans", "género fluido",
+              "agénero", "otra", "prefiero no decir"],
     campo_perfil="identidad_genero", romance_only=True)
 add("FIL3", N, 0, "filtro", "tipo_vinculo", "¿Qué tipo de vínculo te interesa ahora?", 0, PO, "SENS",
     opciones=["monogamia", "no_monogamia_etica", "sin_definir", "solo_amistad", "prefiero no decir"],
@@ -75,8 +81,8 @@ add("VAL18", N, 3, "val_apertura_cambio", "estimulacion", "Me aburre hacer siemp
 add("VAL4", N, 3, "val_conservacion", None, "Me importa respetar las tradiciones de mi familia o comunidad.", 1, PO)
 add("VAL19", N, 3, "val_conservacion", "referencias",
     "Me gusta mantener el orden y las formas que aprendí en casa.", 1, PO)
-add("VAL6", N, 3, "meta_crianza", "deseo", "Me gustaría criar hijxs algún día.", 1, PO, "SENS")
-add("VAL13", N, 3, "meta_crianza", "temporalidad", "Me veo criando hijxs en los próximos años.", 1, PO, "SENS")
+add("VAL6", N, 3, "meta_crianza", "deseo", "Me gustaría criar hijos e hijas algún día.", 1, PO, "SENS")
+add("VAL13", N, 3, "meta_crianza", "temporalidad", "Me veo criando hijas o hijos en los próximos años.", 1, PO, "SENS")
 add("VAL7", N, 3, "meta_carrera", "prioridad", "En esta etapa, mi carrera profesional es mi prioridad.", 1, PO)
 add("VAL14", N, 3, "meta_carrera", "movilidad",
     "Cambiaría de ciudad o de país por una oportunidad que me importe profesionalmente.", 1, PO)

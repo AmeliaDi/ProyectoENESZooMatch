@@ -295,11 +295,13 @@ admitida`, y `layers.test.ts` deja de ser una nota para ser la puerta.
   exclusividad funciona como veto legítimo. No es una decisión estadística a posteriori: es aplicar la
   regla de licenciamiento (criterio 3) a un peso que nunca tuvo ficha.
 
-## 4. Reparto entregado (banco v2.2.0: 68 ítems obligatorios, 7,93 min)
+## 4. Reparto entregado (banco v2.3.0: 68 ítems obligatorios, 7,93 min)
 
 Contado sobre `data/microtest.json`, no propuesto: `npm run data:layers` falla si este número se
 separa del banco (ADR-044). El obligatorio se entrega repartido en tres quizzes de 24 / 30 / 14
-reactivos, cortados por familia de puntuación y con lo sensible al final (ADR-045).
+reactivos, cortados por familia de puntuación y con lo sensible al final (ADR-045). La 2.3.0
+(ADR-053) tocó solo las listas de opciones de `FIL1`/`FIL2` y el texto de cuatro enunciados, así que
+el conteo de reactivos y de minutos queda idéntico al de la 2.2.0.
 
 | Bloque | Capa | Ítems | Origen | Papel en el puntaje |
 |---|---|---|---|---|

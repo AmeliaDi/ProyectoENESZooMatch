@@ -2172,3 +2172,109 @@ Todo el diseño se ordena alrededor de una distinción que antes no estaba escri
   `scripts/matching/divergence.{ts,mjs}`, `docs/DIVERGENCIA_RESULTADOS.md`,
   `docs/COMUNICADO_USUARIOS.md` reescrito, `data/matching-config.json` a **2.2** (hash registrado
   `2115393e24a07408 → 45861517dec0e641`) y `docs/TRAZABILIDAD.md` con la fila **T-29**.
+
+## ADR-053 · La inclusión se mide en lo que se puede leer en voz alta: vocabulario aditivo, filtro verificable y copia sin marcador escrito
+
+**Contexto.** La instrucción permanente de la usuaria al ejecutar la afinación fue
+«recuerda mantener la perspectiva de género, y la inclusión al máximo. +18 aun», con contenido
+adulto aprobado y el público maduro como dado. El pase encontró tres cosas distintas que se
+llamaban «inclusión» y que habían que separarse:
+
+- El vocabulario de los filtros duros era más chico que la gente: `FIL1` ofrecía 3 opciones y
+  `FIL2` 7, y el motor no podía resolver «personas trans» porque no apuntaba a ninguna identidad
+  del vocabulario. Una persona que ya había elegido «mujeres» no puede recibir, después, un
+  significado distinto de su respuesta; por eso la única modificación posible era **aditiva**.
+- La copia llevaba el marcador escrito «-x» (`tranquilx`, `con cada unx`, `pocxs`, `juntxs`). No es
+  una falta de ortografía ni una falta de voluntad: es una forma que mucha gente usa a propósito.
+  El problema es específico del sitio: una notificación es el único texto que el sistema operativo
+  **lee en voz alta**, y «-x» no tiene sonido — un lector de pantalla dice una palabra partida
+  justo donde la frase quería incluir. La regla salió de ahí: el marcador vive donde una persona lo
+  elige, nunca donde nadie lo eligió.
+- El banco y el SQL tenían dos rutas para la misma frase (`notification-copy.ts` y
+  `notify_matches`), que es la razón por la que el texto de `no_match` pudo corregirse en TS sin
+  corregir lo que la gente lee.
+
+**Decisión.**
+
+- **Banco 2.3.0, aditivo** (`scripts/psychometrics/bank_core.py`, `bank_modules_life.py`,
+  `bank.py`). `FIL1` pasa de 3 a 6 opciones (`personas no binarias`, `personas trans`, `cualquier
+  género`, y se queda `prefiero no decir`); `FIL2` de 7 a 10 (`mujer trans`, `hombre trans`,
+  `persona trans`, `género fluido`, `agénero`, `otra`). Ninguna opción anterior se retira. Los
+  enunciados que dependían del marcador se reescriben **sin mover el constructo**: `VAL6` y
+  `VAL13` conservan el verbo de crianza y nombran a las dos («criar hijos e hijas», «criando hijas
+  o hijos»), `APE2` dice «todo está bien en nuestra relación» y `LAM2` «cuando compartimos tiempo
+  de calidad». `docs/ITEMS_PROPUESTA.md` muestra ya el texto que corre.
+- **El filtro duro se verifica, no se comenta** (`src/domain/matching/hard-filters.ts`). El mapa
+  `ORIENTATION_TARGETS` resuelve cada opción de `FIL1` contra el vocabulario de `FIL2`, y
+  `ORIENTATION_TARGET_KEYS` se exporta para que las pruebas puedan confrontarlo con el banco.
+  `hard-filters.test.ts` (11 casos) fija las cinco invariantes que sin prueba se rompen solas:
+  todo lo que hay en el banco sigue siendo elegible; ninguna identidad del banco queda
+  inalcanzable; ninguna opción de orientación apunta a vacío; «cualquier género» alcanza a las 9
+  identidades; una mujer trans cuenta dentro de «mujeres» y no dentro de «hombres». La asimetría
+  del `prefiero no decir` (quien lo elige no filtra, pero sí lo filtran) queda como deuda escrita:
+  cambiarla exigiría volver a preguntar, y §4 del prompt maestro prohíbe filtrar por algo que nadie
+  declaró.
+- **La mitad numérica está probada inerte.** `run.py` volvió a correrse (`.venv-psy`, porque el
+  `python` del PATH no trae numpy) y en `data/psychometric-params.json` se movió **solo**
+  `entrada_sha256` (`a31ed99658426302 → a05955c0ec1213e1` en el hash registrado): cargas `a`,
+  umbrales `b`, `clave`, factores y covarianza latente idénticos. Ningún número publicado de
+  `docs/VALIDACION_RESULTADOS.md` cambia, porque el generador sintético todavía declara el
+  vocabulario 2.2 (ver Consecuencias): el arnés volvió a correrse después de este pase y el archivo
+  cambió **una sola línea**, la de los hashes de entrada. Esa es la prueba, no la intención.
+- **Copia: una sola ruta y una regla de sonido** (`src/testing/copy-guard.ts`). Sale `INCLUSIVE_X`,
+  que es un patrón con lista cerrada de excepciones (`fénix`, `relax`, `xbox`, `max`, `netflix`,
+  `phoenix`, `fox`), porque `/[a-z]+xs?\b/` marca 3 962 falsos positivos en el repo (`px`, `hex`,
+  `index`, `viewBox`) y en la copia (`Fénix`, `Relax`, `HBO Max`) el marcador no tiene forma de
+  distinguirse por ortografía. Las superficies barridas crecen con `data/self-reading.json` y
+  `data/quizzes/*.json`. `src/ui/result/result-view.tsx` y `docs/GUIA_DE_TONO.md` pasan a decir
+  «Todavía somos pocas personas en el cielo».
+- **Migración** `supabase/migrations/20261124000000_notification_copy_accesible.sql`: reescribe
+  `notify_matches` con los dos literales cambiados (el cuerpo va idéntico al de 20261122, generado
+  por script para no transcribir a mano) y **solo toca filas `read = false`**; un aviso ya leído es
+  historial de esa persona y reescribirlo sería editar algo que efectivamente leyó. `no_match`
+  deja de ser la broma en minúsculas sin acentos y con «<3»: ahora es una frase que se puede leer
+  en voz alta y que dice lo mismo («Todavía no aparece nadie arriba del filtro. No es un veredicto
+  sobre ti ni sobre el amor: cuando entre más gente al hábitat, esto se mueve.»).
+- **El marcador se queda donde se elige** (`src/domain/messages/inclusive-text.ts`). Los cuatro
+  modos siguen siendo cuatro: quien quiera la forma escrita con «-x» la sigue teniendo a un tap, y
+  su descripción dice ahora lo que cuesta («no tiene sonido: un lector de pantalla parte la
+  palabra»). Lo que cambia es el **default**, que pasa de `neutro_universal` a `neutro_e`: la forma
+  pronunciable es la que recibe quien nunca eligió.
+- **Plan de re-toma real** (`minimalRetake` entre el banco/params de `HEAD` y los del árbol de
+  trabajo): nivel **T2**, **8 preguntas** (`VAL6`, `FIL1`, `VAL13`, `FIL2`, `FIL3`, `APE1`, `APE2`,
+  `LAM2`) en 4 bloques — `meta_crianza`, `filtro`, `apego_ansiedad`, `afecto_tiempo` —, 189 ítems
+  recalculados sin volver a preguntar, `retired = []`, `overCap = false` (presupuesto 25). Se
+  re-preguntan 6 enunciados y arrastran 2 más por la regla de familia de factor (I9).
+
+**Consecuencias.**
+
+- Nadie pierde respuestas y nadie sale del pool: la mitad de vocabulario no invalida una θ porque
+  los filtros no se puntúan; la mitad reescrita arrastra a su familia entera, que es lo que el
+  modelo de respuesta graduada estima en conjunto. El sello de medición se mueve (banco
+  2.2.0 → 2.3.0 y `entrada_sha256` nuevo), así que perfiles ya sellados reciben el aviso T2 con 8
+  preguntas, no un examen de 197.
+- **No se cambió lo que necesita OK de la usuaria.** `scripts/matching/population.ts` sigue
+  declarando el vocabulario 2.2 en el generador sintético; por eso **H2** (cobertura romance para
+  identidades no binarias) se queda en **57,3 % [46,1, 67,9]**, debajo del 60 % publicado, por la
+  razón estructural ya documentada: 2 de 8 grupos sintéticos declaran «personas no binarias».
+  Cambiar el generador mueve el null de permutación y `minimum_similarity_exclusive`, y §5 del
+  prompt maestro pide esperar el OK antes de tocar un umbral de corte. Queda propuesto, no hecho.
+- Deuda dejada en el texto, no tapada: «prefiero no decir» sigue siendo paso-neutro asimétrico;
+  `data/quizzes/picante.json` ofrece «'capitana' o 'jefe'» y no tiene salida muxhe/xegua; el
+  requisito +18 es una casilla de consentimiento, no una verificación de edad; y el placeholders
+  `{otra_persona}` del catálogo (`esencia`/`vinculo`) sigue sin llenarse porque ninguna pantalla
+  consume esos dos campos.
+- Artefactos: `scripts/psychometrics/bank_core.py`, `bank_modules_life.py` y `bank.py` (**2.3.0**),
+  `data/microtest.json` / `docs/TEST.md` / `supabase/seed.sql` regenerados,
+  `data/psychometric-params.json` / `docs/MEDICION.md` re-estimados (solo la corrida),
+  `src/domain/matching/hard-filters.ts` (+ `hard-filters.test.ts`, 11 casos),
+  `src/testing/copy-guard.ts` (`INCLUSIVE_X`) con su barrido en `copy-guard.test.ts`,
+  `src/domain/messages/notification-copy.ts` y la migración `20261124000000` (con
+  `schema.test.ts` y `notification-copy.test.ts` apuntando a ella),
+  `src/domain/messages/inclusive-text.ts` (+ default en `inclusive-text.test.ts`),
+  `src/ui/result/result-view.tsx` con su prueba de literal (`src/ui/result/parse-result.test.ts`,
+  ahora propiedades en lugar de la broma retirada), `docs/ITEMS_PROPUESTA.md`, `docs/GUIA_DE_TONO.md`,
+  `docs/PANTALLAS.md`, `docs/CHAT.md`, `docs/AVATARES.md`, `docs/MANUAL_ADMINISTRADOR.md`,
+  `docs/PREREGISTRO.md`, `data/avatar-config.json`, `data/arquetipos.json` y
+  `scripts/generar_catalogo.py` (`{otrx}` → `{otra_persona}`), y `docs/TRAZABILIDAD.md` con la fila
+  **T-30** y los hashes `a05955c0ec1213e1` / `995b0be7b1efb87a`.

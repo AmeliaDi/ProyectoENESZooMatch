@@ -1,7 +1,7 @@
 {
  "version": "psychometric-params-1",
  "generado_por": "scripts/psychometrics/run.py",
- "entrada_sha256": "9ad6ec2453d5afdcd03e9c77bf49cd2804b5e32c0e282cced3a353f290d442e1",
+ "entrada_sha256": "8628270d7c66b0f2808c12ac7fc52d16ba36f27dcffb4b5f90bc8c8d1d82a7de",
  "semilla": 20261101,
  "n_sintetico": 6000,
  "advertencia": "Parámetros estimados sobre datos SINTÉTICOS: validan el código, no el instrumento real.",
