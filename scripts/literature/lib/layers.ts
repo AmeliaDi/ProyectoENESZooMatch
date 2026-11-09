@@ -8,14 +8,19 @@ import { readFileSync } from "node:fs";
 import { z } from "zod";
 
 const verification = z.enum(["crossref_abstract", "crossref_metadatos", "pendiente_humana"]);
-const effect = z.enum(["similitud", "ventana", "complementariedad", "nivel", "nulo", "desconocido"]);
+/**
+ * "seleccion" is assortative mating: partners turn out to be similar. It is the
+ * category error the audit found repeated across cards, so it is a value of its
+ * own and never admissible for scoring — similarity observed in existing couples
+ * says nothing about which couple will form or how it will do afterwards.
+ */
+const effect = z.enum(["similitud", "ventana", "complementariedad", "seleccion", "nivel", "nulo", "desconocido"]);
 const decision = z.enum(["admitida", "extra_peso_minimo", "opcional_narrativa", "descartada"]);
 
 export const layerCriteriaSchema = z.object({
   version: z.string(),
   evidence: z.object({
     minVerifiedStudies: z.number().int().positive(),
-    requireDyadicOrRelationalOutcome: z.boolean(),
     admissibleForScore: z.array(effect).min(1),
   }),
   redundancy: z.object({ maxLatentCorrelationWithHexaco: z.number().gt(0).lt(1) }),
@@ -99,8 +104,29 @@ export interface CandidateEvaluation {
   readonly verifiedSupporting: number;
 }
 
+/**
+ * Studies that license THIS layer's scoring function: verified at abstract
+ * level, an effect type admissible for scoring, and the same functional form the
+ * layer actually uses. A complementarity result does not license a symmetric
+ * similarity kernel, and selection never licenses anything — that was the
+ * category error the audit found repeated in the cards.
+ */
+/**
+ * Studies that license this layer's scoring function. Three gates: the abstract
+ * was actually read, the effect is a pair-level form (`admissibleForScore`
+ * deliberately omits `nivel` and `seleccion`: actor-level effects and assortment
+ * say nothing about compatibility), and the effect **matches the form the layer
+ * would be scored with** — a complementarity result does not license a
+ * symmetric similarity kernel.
+ */
 export function verifiedSupportingStudies(c: LayerCandidate, criteria: LayerCriteria): number {
-  return c.evidencia.filter((s) => s.verificacion === "crossref_abstract" && criteria.evidence.admissibleForScore.includes(s.efecto)).length;
+  const form = c.efectoParaPuntaje === "solo_nivel" ? "nivel" : c.efectoParaPuntaje;
+  return c.evidencia.filter(
+    (s) =>
+      s.verificacion === "crossref_abstract" &&
+      criteria.evidence.admissibleForScore.includes(s.efecto) &&
+      s.efecto === form,
+  ).length;
 }
 
 export function evaluateCandidate(c: LayerCandidate, criteria: LayerCriteria): CandidateEvaluation {
@@ -185,4 +211,18 @@ export function decisionTable(data: LayerCandidates, evaluations: readonly Candi
     "|---|---|---|---|---|---|---|",
     ...rows,
   ].join("\n");
+}
+
+/**
+ * Splices the computed table into §2 of docs/CAPAS_EVIDENCIA.md. The section
+ * promises the table is the output of `npm run data:layers`; before this, that
+ * copy was hand-pasted and had drifted from the registry.
+ */
+export function syncDecisionTable(doc: string, table: string): string {
+  const lines = doc.split("\n");
+  const start = lines.findIndex((line) => line.startsWith("| Capa candidata |"));
+  if (start < 0) throw new Error("docs/CAPAS_EVIDENCIA.md: no está la tabla de decisión de §2");
+  let end = start;
+  while (end < lines.length && lines[end]!.startsWith("|")) end += 1;
+  return [...lines.slice(0, start), ...table.split("\n"), ...lines.slice(end)].join("\n");
 }

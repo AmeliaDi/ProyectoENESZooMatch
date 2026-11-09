@@ -1353,3 +1353,93 @@ interruptores por categoría y una invitación amable después de eclosionar. To
   cuando todo esté conectado.
 - Ningún sonido, vibración ni preferencia escribe identificador alguno en logs o analítica.
 
+## ADR-043 · Sin pisos no compensatorios y datos sensibles enumerados fuera del puntaje
+
+**Contexto.** La auditoría de los 17 constructos (`DEEP_RESEARCH_CONSTRUCTOS_DE_EMPAREJAMIENTO.md`,
+commit `23623f0`) terminó con tres cosas que el config no podía seguir ignorando.
+
+1. La capa «actitudes sociales y perspectiva de género» perdió cinco citas que no resuelven en el
+   registro de handles. Al rehacerla con fuentes verificadas quedan **1** estudio con el efecto y la
+   forma que exige su función de puntaje, y el criterio de admisión pedía solo **1**: la puerta estaba
+   abierta de arriba abajo.
+2. `requireDyadicOrRelationalOutcome` estaba declarado en `layer-criteria.json` pero **nadie lo leía**,
+   y el contador comparaba solo `verificacion` + `admissibleForScore`, nunca la *forma*. Un resultado de
+   complementariedad habilitaba un núcleo de similitud simétrico, que es justo lo que el motor no sabe
+   hacer de otra manera.
+3. `dealbreakers` imponía un **piso de 0,35** — un veto que multiplica todo el puntaje — construido sobre
+   tres factores de los cuales `val_espiritualidad` (VAL5) y `meta_crianza` (VAL6) tienen **un solo ítem**
+   cada uno. Con el ruido de retest de un ítem medido en 1,22× la banda útil del track (§5 del reporte,
+   arnés en `src/domain/psychometrics/single-item-sensitivity.test.ts`), el sistema estaba vetando parejas
+   por ruido de medición. Y el veto legítimo —«busco relación exclusiva vs. no»— ya vive donde debe:
+   `hard_filters.tipo_relacion_busca`, que es una declaración explícita de la persona, no una estimación.
+
+A eso se suma la LFPDPPP art. 9: creencias religiosas y opiniones políticas son categorías sensibles
+enumeradas, y el banco ya las marcaba (`banderas: ["SENS"]`) mientras el config las puntuaba.
+
+**Decisión.**
+- **Cero pisos (`floors`) en ambos tracks.** La regla general, no el caso: en este modelo *toda* categoría
+  se estima desde θ̂ posterior, así que un piso es siempre un veto sobre una estimación. El soft-min con
+  β=6 (romance) / 4 (amistad) ya recoge «una categoría núcleo débil duele», que es lo que la evidencia
+  dice. `floorFactor ≡ 1`; el mecanismo sigue en el código por si algún día un piso se apoya en ítems
+  suficientes, y `config.test.ts` lo exige: **ningún piso sobre una categoría con factores de un solo ítem.**
+- **Fuera del puntaje `act_igualdad`, `val_espiritualidad` y `soc_politica`.** Se siguen estimando y
+  siguen legibles en «Tu carta» (ADR-030 ya los tenía en `sharing.neverShare`); lo que no hacen es pesar.
+  `dealbreakers` queda con `meta_crianza` y `estilo` pasa de 18 a 17 factores. El schema lo hace
+  invariante: `NON_SCORED_FACTORS` en `src/config/matching.ts` rechaza cualquier categoría que los liste.
+  Ya había una medición propia en esa dirección: `docs/VALIDACION.md` §2 reportó que ablacionar
+  `act_igualdad` o `val_espiritualidad` *mejora* la recuperación de la hipótesis «ventana» (ΔAUC
+  −0,084 y −0,066). Con su cautela original —eso habla de un modelo de validación sintético, no de la
+  realidad—, hoy la decisión deja de ser una apuesta de diseño y pasa a estar documentada.
+- **`dealbreakers` 0,20 → 0,05 y sus 0,15 repartidos** (`personalidad` 0,35→0,40, `valores` 0,20→0,25,
+  `relacional` 0,15→0,20). El motivo es aritmético: un solo factor con peso relativo 1,0 se queda todo el
+  peso de la categoría, así que mantener 0,20 habría dado a VAL6 **2,9×** la concentración del factor más
+  pesado del modelo (`hex_h` = 1,3/6,5 × 0,35 ≈ 0,07). Con 0,05 su cuota efectiva (0,05) queda por debajo
+  de la de `hex_h` en el config nuevo (1,3/6,5 × 0,40 ≈ 0,08). `estilo` no sube porque acaba de perder un
+  factor.
+- **Criterios de admisión endurecidos y ahora sí leídos** (`data/literature/layer-criteria.json`
+  v2026-11-08): `minVerifiedStudies` 1 → 2, y `verifiedSupportingStudies` compara la **forma** del efecto
+  con la función con la que la capa se puntúa. `requireDyadicOrRelationalOutcome` **se borra**: el
+  typecheck demostró que era código muerto (ningún efecto que sobreviviera a `admissibleForScore` podía
+  ser `seleccion`), y un knob que finge aplicarse es peor que no tenerlo. Su trabajo lo hace la lista:
+  `admissibleForScore` omite `nivel` y `seleccion`, y la `_nota` del archivo explica ahora por qué. La
+  tabla de `docs/CAPAS_EVIDENCIA.md` vuelve a salir de `npm run data:layers` —y el script la escribe,
+  con un test que falla si el doc y el registry se separan (antes era una copia a mano que ya se había
+  ido a su aire: decía `descartada` y licencia `no` para apego, que el registry resuelve desde ADR-015).
+
+**Consecuencias.**
+
+- Con el registry recalculado, la capa de género queda `opcional_narrativa` (peso 0), no el «≤0,02» que
+  sugirió el reporte: `extrasWeight` ya está clavado en el tope de ADR-015 (apego 0,02 + conflicto 0,02 +
+  afecto 0,01 = 0,05), así que un extra de 0,02 era imposible sin romper un tope que aprobó la usuaria. La
+  otra vía — puntuar la *dirección* de la asimetría— obligaría a usar el sexo/género declarado como insumo
+  del puntaje, que es una pregunta de consentimiento sobre personas reales, no una decisión estadística.
+- `budgetSummary` ahora reporta **54** ítems núcleo (6,3 min) contra un `coreTargetItems` de 60 ± 3, así que
+  `withinBudget` sale **false**. El núcleo **entregado** no cambió: siguen siendo 60 ítems. La diferencia es
+  que la contabilidad del registry estaba mal asignada y el 60 anterior era una coincidencia aritmética —
+  `plan.itemsNucleo` cuenta por **familia de prefijo**, no por factor: de los 6 ítems `ACT` del núcleo solo
+  ACT1-3 miden `act_igualdad`, ACT4/ACT6 miden `act_compromiso_social` (categoría `valores`) y ACT5 mide
+  `rel_autonomia` (categoría `relacional`, que el registry no desglosa en ninguna ficha). No se baja el
+  blanco para que el check pase: **derivar `plan` del banco es B2** y **B3 fija el blanco** al rediseñar la
+  entrega en quizzes de ≤ 40 ítems. La aserción de `layers.test.ts` es la alarma mientras falte eso.
+- Cambian los factores del vector (`meta_crianza` sigue, los otros tres se estiman pero no puntúan) y los
+  pesos, así que **todo `pairScore` existente queda obsoleto**: los umbrales se re-estiman con
+  `npm run data:matching` (antes: romance 0,5374 / referencia 0,5877, cobertura 66,5 %; amistad 0,4643,
+  cobertura 100 %). Después de este cambio, los números nuevos están en `docs/MATCHING_RESULTADOS.md`.
+  Esto es exactamente lo que B9 convierte en `params_version` y en una lista mínima de re-testeo.
+- **El retiro de pisos bajó el ruido de retest del ítem único de 1,22× a 0,30× la banda útil** (núcleo:
+  |Δ| medio 0,0612 → 0,0132 y p90 0,1643 → 0,0253, contra una banda que pasó de 0,0503 a 0,0440; retests
+  con ruido ≥ 1 banda 47/120 → 4/120; retests que cruzan el umbral 7/120 → 5/120). Medido con el mismo
+  arnés de §5 del reporte (`src/domain/psychometrics/single-item-sensitivity.test.ts`), que recalcula la
+  banda desde el config. Es la confirmación numérica de lo que §5 predijo en texto: «un piso en `valores`
+  o un 0,35 en `estilo` no están midiendo desacuerdo, están amplificando varianza de medida». El piso
+  multiplicaba el ruido justo donde más sensible era —`min(1, s_c/piso_c)` mueve ~14 % el puntaje núcleo
+  cuando `s_c` ronda el piso, y `dealbreakers` tenía factores de un ítem bajo un piso de 0,35—; la cola
+  pesada del p90 era el piso, no el ítem. Quedan 5/120 cruces de umbral por retest: eso ya no es un piso,
+  es el soft-min sobre factores de un ítem, y lo atiende B2.
+- El hash registrado de `data/matching-config.json` sube a la versión 2.1 y `docs/TRAZABILIDAD.md`
+  actualiza T-06, T-07 y añade T-22.
+- Queda abierto y es trabajo explícito: **`meta_crianza` necesita un segundo ítem** (B2.2, regla de
+  factores de un solo ítem) y la alternativa correcta para el veto de crianza es un `hard_filters`
+  declarado, que requiere campo de quiz, columna y UI (no entra en este ADR).
+
+

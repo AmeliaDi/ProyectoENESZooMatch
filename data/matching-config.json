@@ -1,6 +1,6 @@
 {
-  "version": "2.0",
-  "nota": "Modelo por capas (docs/MATCHING.md). Cada constante: {valor, etiqueta, fuente}. Sin validez predictiva demostrada: los pesos son priors débiles o supuestos de diseño.",
+  "version": "2.1",
+  "nota": "Modelo por capas (docs/MATCHING.md). Cada constante: {valor, etiqueta, fuente}. Sin validez predictiva demostrada: los pesos son priors débiles o supuestos de diseño. 2.1 (B1): sin pisos (floors) en ninguna capa; fuera del puntaje act_igualdad, val_espiritualidad y soc_politica.",
   "scoring": {
     "quadrature_nodes": { "valor": 41, "etiqueta": "supuesto_diseno", "fuente": "Precisión numérica de la verificación EAP (error < 1e-6 en momentos normales)" },
     "mbti_ambiguity_se": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Eje ambiguo si |θ| < 1·SE posterior (ADR-017)" },
@@ -33,9 +33,9 @@
     "dealbreakers": {
       "kind": "deadzone",
       "etiqueta": "supuesto_diseno",
-      "fuente": "EV-105 (metas compartidas); forma no lineal: diferencias pequeñas toleradas, grandes hunden",
-      "factors": { "meta_crianza": 1.0, "val_espiritualidad": 1.0, "act_igualdad": 1.0 },
-      "tolerance": { "meta_crianza": 0.75, "val_espiritualidad": 0.75, "act_igualdad": 0.75 },
+      "fuente": "EV-105 (metas compartidas); forma no lineal: diferencias pequeñas toleradas, grandes hunden. Sin pisos: el veto que importa (exclusividad/tipo de relación) ya se declara en hard_filters, no se estima desde un latente ruidoso.",
+      "factors": { "meta_crianza": 1.0 },
+      "tolerance": { "meta_crianza": 0.75 },
       "scale": { "valor": 0.6, "etiqueta": "supuesto_diseno", "fuente": "Una brecha de 2 DE deja ≈ 0.1" },
       "combine": "product"
     },
@@ -51,8 +51,8 @@
     "estilo": {
       "kind": "kernel",
       "etiqueta": "supuesto_diseno",
-      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada)",
-      "factors": { "int_realista": 1.0, "int_investigador": 1.0, "int_artistico": 1.0, "int_emprendedor": 1.0, "int_convencional": 1.0, "int_vida_nocturna": 1.0, "int_actividad_fisica": 1.0, "int_juegos": 1.0, "int_cultura": 1.0, "int_animales": 1.0, "int_comida": 1.0, "int_fiesta": 1.0, "soc_rutina": 1.0, "soc_redes": 1.0, "soc_dinero": 1.0, "soc_familia": 1.0, "soc_campus": 1.0, "soc_politica": 1.0 },
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "factors": { "int_realista": 1.0, "int_investigador": 1.0, "int_artistico": 1.0, "int_emprendedor": 1.0, "int_convencional": 1.0, "int_vida_nocturna": 1.0, "int_actividad_fisica": 1.0, "int_juegos": 1.0, "int_cultura": 1.0, "int_animales": 1.0, "int_comida": 1.0, "int_fiesta": 1.0, "soc_rutina": 1.0, "soc_redes": 1.0, "soc_dinero": 1.0, "soc_familia": 1.0, "soc_campus": 1.0 },
       "bandwidth_per_sqrt_dim": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Igual que personalidad" }
     },
     "big_five": {
@@ -128,29 +128,29 @@
   "tracks": {
     "romance": {
       "etiqueta": "supuesto_diseno",
-      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md",
-      "minimum_similarity_exclusive": { "valor": 0.5374, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.97 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07).",
+      "minimum_similarity_exclusive": { "valor": 0.5725, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.97 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
       "null_alpha": { "valor": 0.03, "etiqueta": "supuesto_diseno", "fuente": "Tasa de falso match por par bajo la nula; bajada de 0.05 a 0.03 para un romance más exigente (ADR-022)" },
-      "reference_high": { "valor": 0.5877, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
+      "reference_high": { "valor": 0.6165, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
       "max_matches": { "valor": 3, "etiqueta": "supuesto_diseno", "fuente": "Top-K por persona" },
       "hard_filters": ["orientacion_sexual", "identidad_genero", "tipo_relacion_busca"],
       "beta": { "valor": 6, "etiqueta": "supuesto_diseno", "fuente": "Estrictez del soft-min (comparativa en docs/MATCHING.md)" },
-      "core": { "personalidad": 0.35, "valores": 0.2, "dealbreakers": 0.2, "relacional": 0.15, "estilo": 0.1 },
+      "core": { "personalidad": 0.4, "valores": 0.25, "dealbreakers": 0.05, "relacional": 0.2, "estilo": 0.1 },
       "tail": { "conflicto": 0.02, "apego": 0.02, "afecto": 0.01, "mbti": 0.005, "eneagrama": 0.005, "big_five": 0 },
-      "floors": { "dealbreakers": 0.35, "valores": 0.25 }
+      "floors": {}
     },
     "amistad": {
       "etiqueta": "supuesto_diseno",
       "fuente": "Amistad: más estilo e intereses, sin filtros duros ni dealbreakers de pareja",
-      "minimum_similarity_exclusive": { "valor": 0.4643, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.85 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
+      "minimum_similarity_exclusive": { "valor": 0.4649, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.85 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
       "null_alpha": { "valor": 0.15, "etiqueta": "supuesto_diseno", "fuente": "Amistad menos estricta que romance" },
-      "reference_high": { "valor": 0.5524, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
+      "reference_high": { "valor": 0.5548, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
       "max_matches": { "valor": 5, "etiqueta": "supuesto_diseno", "fuente": "Top-K por persona" },
       "hard_filters": [],
       "beta": { "valor": 4, "etiqueta": "supuesto_diseno", "fuente": "Menos estricta que romance" },
       "core": { "personalidad": 0.4, "valores": 0.25, "estilo": 0.35 },
       "tail": { "mbti": 0.005, "eneagrama": 0.005, "big_five": 0 },
-      "floors": { "valores": 0.2 }
+      "floors": {}
     }
   },
   "explainability": {

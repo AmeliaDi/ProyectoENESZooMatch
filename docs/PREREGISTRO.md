@@ -95,6 +95,17 @@ diseño**. Para H2:
 Pesos, β, umbrales y pisos quedan como están. Esta fase **mide**; si algo falla, se reporta
 y la corrección se propone para aprobación en una fase posterior.
 
+> **Enmienda 2026-11-08 · §5 y H7 (ADR-043).** «Quedan como están» dejó de ser cierto por la
+> auditoría de constructos, no por esta fase. Hoy: **cero pisos** (`floors = {}` en ambos tracks),
+> `act_igualdad` / `val_espiritualidad` / `soc_politica` fuera del puntaje, pesos núcleo
+> renormalizados (romance: personalidad ,40 · valores ,25 · dealbreakers ,05 · relacional ,20 ·
+> estilo ,10) y `npm run data:matching` re-estimó umbral y `reference_high` (los números nuevos
+> están en `docs/MATCHING_RESULTADOS.md`). **Consecuencia para H7:** ablacionar `act_igualdad`
+> ahora da ΔAUC ≈ 0 *por construcción* —peso 0—, así que deja de ser una prueba de la capa y pasa
+> a ser una comprobación de que el retiro fue limpio. La ablación sigue siendo la prueba correcta
+> para las capas que sí pesan. No se reescribe el texto de arriba: un registro preregistrado se
+> enmienda con fecha, no se edita hacia atrás.
+
 ## 6. Reproducibilidad
 
 - Un comando: `npm run data:validate` encadena la validación de esquemas y

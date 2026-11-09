@@ -68,16 +68,16 @@ Nota: Selfhout 2010 ya estaba verificado en `EVIDENCIA.md` (EV-17).
 | Capa candidata | 1. Evidencia (estudios verificados) | 2. No redundante | 3. Licencia u originales | 4. Ítems núcleo + opcionales | 5. Sin dato sensible | Decisión |
 |---|---|---|---|---|---|---|
 | Valores personales y metas de vida (Schwartz) | sí (3) | sí | sí | 8 + 4 | sí | **admitida** |
-| Actitudes sociales y perspectiva de género | sí (2) | sí | sí | 6 + 2 | sí | **admitida** |
+| Actitudes sociales y perspectiva de género | **no** (1) | sí | sí | 6 + 2 | sí | **opcional_narrativa** |
 | Intereses, ocio y estilo de vida universitario | sí (2) | sí | sí | 6 + 6 | sí | **admitida** |
-| Apego adulto (ansiedad y evitación) | **no** (0) | sí | **no** | 0 + 0 | sí | **descartada** |
-| Estilos de conflicto y comunicación | **no** (0) | sí | sí | 0 + 4 | sí | **opcional_narrativa** |
+| Apego adulto (ansiedad y evitación) | **no** (0) | sí | sí | 0 + 4 | sí | **extra_peso_minimo** |
+| Estilos de conflicto y comunicación | **no** (0) | sí | sí | 0 + 4 | sí | **extra_peso_minimo** |
 | Orientación sociosexual (SOI-R) | **no** (0) | sí | sí | 0 + 0 | **no** | **descartada** |
-| Empatía (IRI) | **no** (0) | **no** | **no** | 0 + 0 | sí | **descartada** |
-| Inteligencia emocional percibida (TMMS-24) | **no** (0) | **no** | **no** | 0 + 0 | sí | **descartada** |
-| Necesidad de cognición | **no** (0) | **no** | **no** | 0 + 0 | sí | **descartada** |
+| Empatía (IRI) | **no** (0) | **no** | sí | 0 + 0 | sí | **descartada** |
+| Inteligencia emocional percibida (TMMS-24) | **no** (0) | **no** | sí | 0 + 0 | sí | **descartada** |
+| Necesidad de cognición | **no** (0) | **no** | sí | 0 + 0 | sí | **descartada** |
 | Estilos de humor (HSQ) | **no** (0) | sí | sí | 0 + 1 | sí | **opcional_narrativa** |
-| Lenguajes del amor | **no** (0) | sí | **no** | 0 + 0 | sí | **descartada** |
+| Lenguajes del amor | **no** (0) | sí | sí | 0 + 3 | sí | **extra_peso_minimo** |
 
 **`opcional_narrativa`:** la capa vive en un módulo opcional, con
 **peso 0** en el puntaje. Solo alimenta frases del tipo "lo que podrían
@@ -104,23 +104,47 @@ platicar".
   - 4 opcionales.
   - Función de similitud con penalización asimétrica en valores centrales.
 
-### 3.2 Actitudes sociales y perspectiva de género: **admitida**
+### 3.2 Actitudes sociales y perspectiva de género: **opcional_narrativa** (peso 0)
 
-- **Evidencia:**
-  - Leikas 2018: la similitud en actitudes políticas se asocia a la
-    satisfacción.
-  - Luo & Klohnen 2005: fuerte emparejamiento selectivo por actitudes.
-  - Alford 2011 y Park 2020 (roles de género): solo metadatos.
-  - Miculka & Imhoff 2026 (249 díadas, preregistrado): extracción
-    `pendiente_humana`.
-- **Escala en español:** ISA (Expósito, Moya & Glick 1998; EV-115). La
-  licencia no está verificada y la escala mide sexismo, que es un
-  constructo evaluativo.
-- **Plan:**
-  - 6 ítems originales de **actitudes**: igualdad de trato, reparto de
-    cuidados, diversidad y autonomía.
-  - No hay ítems partidistas ni de identidad.
-  - Dealbreaker asimétrico solo en igualdad de trato.
+Re-auditada el 2026-11-08 con el verificador corregido: el contador ahora compara la **forma**
+del efecto con la función de puntaje de la capa, y `admissibleForScore` deja fuera `nivel` y
+`seleccion`. Así que un hallazgo de *selección* o de *complementariedad* ya no habilita un
+núcleo de similitud simétrica. Con eso, de las siete fuentes de la ficha **solo una cuenta** y
+el criterio pide dos (`minVerifiedStudies: 2`).
+
+- **Evidencia (7 filas, todas resueltas en `https://doi.org/api/handles/`):**
+  - Leikas 2018 (EV-24): similitud en actitudes políticas ↔ satisfacción. **La única que
+    cuenta.**
+  - Luo & Klohnen 2005 (EV-22) y Hudde 2020: **selección**. Hudde, contra dos
+    contrafactuales: «real couples differ only slightly from randomly mated couples, which
+    suggests rather weak attitudinal similarity». Describe con quién se forma pareja, no
+    qué pasa después.
+  - Miculka & Imhoff 2026 (249 díadas, preregistrado, RSA): **nulo** explícito — «only
+    little support that similarity predicted relationship satisfaction». Similitud
+    descriptiva sin poder predictivo: el error de categoría central de esta capa.
+  - Park, Qin, Horne, Impett, Yorgason & Cheung 2025 (PNAS Nexus, 1.327 parejas EE. UU. +
+    5.856 alemanas, diádico longitudinal): **complementariedad direccional** — mayor
+    satisfacción cuando el hombre es *al menos tan igualitario como la mujer*, «compared
+    with the reverse». No respalda la distancia simétrica `|self − other|` que este motor
+    calcula, y los propios autores lo leen como similitud o complementariedad según
+    contexto cultural.
+  - Alford 2011 y Park, Jun & Joo 2020: solo metadatos (sin abstract); además, parejas
+    coreanas de mediana edad, fuera de la población del proyecto.
+- **Escala en español:** ISA (Expósito, Moya & Glick 1998; EV-115). Licencia no verificada;
+  la usuaria aprobó el uso personal y académico (ADR-015).
+- **Plan:** 5 ítems originales de actitudes — ACT1 (reparto de cuidados), ACT2 (igualdad de
+  trato), ACT3 (roles) en el núcleo; ACT7 (expresión de género) y ACT8 (decisión
+  unipersonal) en el módulo opcional. No hay ítems partidistas ni de identidad. Alimentan
+  `act_igualdad` y la lectura propia, **con peso 0 en el puntaje**. El `plan.itemsNucleo` de
+  la ficha dice 6 porque cuenta la familia `ACT`, y ACT4/ACT5/ACT6 pertenecen a otros
+  factores: derivar el plan del banco es B2.
+- **Por qué no es un extra de peso mínimo:** `extrasWeight` ya está clavado en el tope de
+  ADR-015 (apego 0,02 + conflicto 0,02 + afecto 0,01 = 0,05), así que no hay 0,02 libre. La
+  otra vía —codificar la *dirección* de la asimetría— obligaría a usar el sexo/género
+  declarado como insumo del puntaje, que es una pregunta de consentimiento sobre personas
+  reales, no una decisión estadística.
+- **Movido en el config (ADR-043):** fuera de `dealbreakers` y por lo tanto de su piso de
+  0,35. Falta el término asimétrico antes de volver a puntuarla.
 
 ### 3.3 Intereses, ocio y estilo de vida: **admitida**
 

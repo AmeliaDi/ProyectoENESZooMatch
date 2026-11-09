@@ -65,6 +65,39 @@ describe("config loading", () => {
     expect(() => loadConfig("matching-config", matchingConfigSchema, bad)).toThrow(/floor on non-core apego/);
   });
 
+  it("has no non-compensatory floor on any track (ADR-043)", () => {
+    for (const [name, track] of Object.entries(MATCHING_CONFIG.tracks)) {
+      expect(Object.keys(track.floors), `${name}: floors are vetoes on estimated latents`).toEqual([]);
+    }
+  });
+
+  it("keeps enumerated sensitive factors out of every scored category (ADR-043)", () => {
+    const sensitive = ["val_espiritualidad", "soc_politica", "act_igualdad"];
+    for (const [id, category] of Object.entries(MATCHING_CONFIG.categories)) {
+      for (const factor of sensitive) {
+        expect(Object.keys(category.factors), `${id} scores ${factor}`).not.toContain(factor);
+      }
+    }
+    const bad = clone(rawMatching);
+    (bad.categories.estilo.factors as Record<string, number>).soc_politica = 1.0;
+    expect(() => loadConfig("matching-config", matchingConfigSchema, bad)).toThrow(/enumerated sensitive/);
+  });
+
+  it("never floors a category whose factors are measured by a single item", () => {
+    const itemsByFactor = new Map<string, number>();
+    for (const item of QUIZ_ITEMS) {
+      if (item.factor === undefined) continue;
+      itemsByFactor.set(item.factor, (itemsByFactor.get(item.factor) ?? 0) + 1);
+    }
+    for (const [name, track] of Object.entries(MATCHING_CONFIG.tracks)) {
+      for (const categoryId of Object.keys(track.floors) as (keyof typeof MATCHING_CONFIG.categories)[]) {
+        for (const factor of Object.keys(MATCHING_CONFIG.categories[categoryId].factors)) {
+          expect(itemsByFactor.get(factor) ?? 0, `${name}: floor on ${categoryId}/${factor} (1 item ⇒ veto on noise)`).toBeGreaterThanOrEqual(2);
+        }
+      }
+    }
+  });
+
   it("requires provenance labels on every annotated constant", () => {
     const bad = clone(rawMatching);
     (bad.group.beta as { etiqueta: string }).etiqueta = "porque_si";

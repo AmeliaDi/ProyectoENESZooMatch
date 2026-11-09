@@ -14,7 +14,7 @@ si cambian pesos, umbrales o parámetros.
 
 | Archivo | Hash registrado |
 |---|---|
-| data/matching-config.json | `2d0c61300e6d2460` |
+| data/matching-config.json | `9308cb58fad3cf26` |
 | data/psychometric-params.json | `d25ff00d96fc3820` |
 | data/self-reading.json | `3c021cda2e0b33fa` |
 
@@ -27,8 +27,8 @@ si cambian pesos, umbrales o parámetros.
 | T-03 | Calidad de respuesta (ℓz, longstring, DE intra-persona) templa la verosimilitud | EV-76, EV-77 | supuesto_diseno | q ∈ [q_min, 1] multiplica log p(x\|θ) | `src/domain/psychometrics/latent.ts` | `src/domain/psychometrics/latent.test.ts` |
 | T-04 | Similitud por núcleo gaussiano esperado bajo ambas posteriores (no premia la incertidumbre) | EV-90, EV-91 | supuesto_diseno | E[k] = Π r/√(r²+s²)·exp(−½μ²/(r²+s²)) | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
 | T-05 | Penalización asimétrica en Honestidad-Humildad baja | EV-104 | prior_literatura | μ ← μ·(1 + η·max(0, −min θ)) | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
-| T-06 | Dealbreakers y metas de relación con ventana de tolerancia (producto) | EV-105, EV-58 | supuesto_diseno | g(δ) = exp(−½(max(0,\|δ\|−tol)/scale)²) | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
-| T-07 | Agregación estricta por soft-min con pisos y cola mínima; descomposición exacta en contribuciones | EV-27, ADR-017 | supuesto_diseno | S = −(1/β) log Σ w e^{−βs}; total = (1−Στ)·F·S + Σ τ s | `src/domain/matching/pair-score.ts` | `src/domain/matching/layers.test.ts` |
+| T-06 | Ventana de tolerancia para metas de relación; `dealbreakers` reducido a la meta declarada `meta_crianza` | EV-105, EV-58 | supuesto_diseno | g(δ) = exp(−½(max(0,\|δ\|−tol)/scale)²) | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
+| T-07 | Agregación estricta por soft-min sin pisos y cola mínima; descomposición exacta en contribuciones | EV-27, ADR-017 | supuesto_diseno | S = −(1/β) log Σ w e^{−βs}; total = (1−Στ)·S + Σ τ s | `src/domain/matching/pair-score.ts` | `src/domain/matching/layers.test.ts` |
 | T-08 | MBTI y eneagrama: peso ≤ 0.02 (identidad visual y narrativa) | EV-30, EV-31, EV-32, ADR-015 | prior_literatura | Σ τ_capa4 ≤ 0.02 (Zod) | `src/config/matching.ts` | `src/config/config.test.ts` |
 | T-09 | Apego, conflicto y afecto solo como extras (≤ 0.05, sin piso) | EV-54, EV-58, EV-107, ADR-015 | prior_literatura | Σ τ_extras ≤ 0.05 (Zod) | `src/config/matching.ts` | `src/config/config.test.ts` |
 | T-10 | Big Five con peso 0 (redundante con HEXACO) | EV-101, ADR-015 | estimado_sintetico | r latente > 0.70 ⇒ fuera del puntaje | `data/matching-config.json` | `src/config/config.test.ts` |
@@ -43,6 +43,7 @@ si cambian pesos, umbrales o parámetros.
 | T-19 | Confianza «alta» solo con margen, sin área núcleo bajo el piso y con incertidumbre posterior acotada | ADR-017, ADR-021 | estimado_sintetico | rel ≥ m ∧ min_c s_c ≥ piso ∧ ū² ≤ u_max | `src/domain/explainability/layered.ts` | `src/domain/explainability/layered.test.ts` |
 | T-20 | Explicación por capas con las contribuciones exactas del puntaje; MBTI/eneagrama solo como narrativa con su peso real | ADR-021, T-07 | supuesto_diseno | pts_c = 100·contribution_c; Σ pts = 100·total | `src/domain/explainability/layered.ts` | `src/application/get-result.test.ts` |
 | T-21 | Módulos opcionales: se fusionan con lo guardado y se re-puntúa; amistad sugiere intereses primero | ADR-016, ADR-020, ADR-021 | supuesto_diseno | — | `src/application/refine-profile.ts` | `src/application/refine-profile.test.ts` |
+| T-22 | Sin pisos no compensatorios y factores de categorías sensibles enumeradas fuera del puntaje | EV-105, EV-58, ADR-043 | supuesto_diseno | floors = {} ; factors ∩ {val_espiritualidad, soc_politica, act_igualdad} = ∅ | `src/config/matching.ts` | `src/config/config.test.ts` |
 
 ## Resultados que respaldan la matriz
 

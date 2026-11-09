@@ -164,8 +164,10 @@ describe("impacto aguas abajo de los priors del puente", () => {
     );
     expect(N).toBe(120);
     // Descoplar el puente (priors a cero) renueva casi la mitad del top-3: es
-    // un cambio de producto, no un "no tocar nada".
+    // un cambio de producto, no un "no tocar nada". Con los pisos fuera (ADR-043)
+    // el panorama es más suave y la medida bajó de >0,5 a 0,475; el suelo del
+    // discurso sigue siendo «casi la mitad de las personas ve nombres nuevos».
     expect(inter / union).toBeLessThan(0.7);
-    expect(changedPeople / N).toBeGreaterThan(0.5);
+    expect(changedPeople / N).toBeGreaterThan(0.4);
   }, 120_000);
 });

@@ -18,7 +18,7 @@ flowchart TD
   D -->|q menor que 1| B
   C --> E[Perfil latente guardado en profiles.latent_profile]
   E --> F[Similitud esperada por categoría]
-  F --> G[Soft-min del núcleo + pisos + cola mínima]
+  F --> G[Soft-min del núcleo + cola mínima]
   G --> H{Mayor que el cuantil nulo}
   H -->|sí| I[Top-K por persona + insignias por contribución]
 ```
@@ -62,7 +62,7 @@ producir un match falsamente alto.
 |---|---|---|
 | Núcleo gaussiano (tipo Mahalanobis diagonal) | ∏_f r/√(r²+s²) · exp(−½ μ²/(r²+s²)), con r² = h²/w_f y h = c√d | personalidad (HEXACO), valores, estilo, big_five, mbti |
 | Asimetría en H-H | μ ← μ · (1 + η · max(0, −min(θₐ, θ_b))), η = 0.5 | personalidad: brechas en H-H baja penalizan más |
-| Ventana de tolerancia | g(δ) = exp(−½ (max(0, \|δ\| − tol) / escala)²), con su esperanza por Gauss–Hermite (21 nodos) | dealbreakers (producto: una brecha grande hunde), relacional, conflicto, apego y afecto (media geométrica) |
+| Ventana de tolerancia | g(δ) = exp(−½ (max(0, \|δ\| − tol) / escala)²), con su esperanza por Gauss–Hermite (21 nodos) | dealbreakers (producto; desde ADR-043 solo `meta_crianza`), relacional, conflicto, apego y afecto (media geométrica) |
 | Solapamiento de distribuciones | Coeficiente de Bhattacharyya Σ√(p·q) de los softmax, contraído hacia `neutral` por (1 − Hₐ)(1 − H_b) | eneagrama |
 
 Propiedades probadas (`layers.test.ts` y `matching.test.ts`):
@@ -81,8 +81,14 @@ Propiedades probadas (`layers.test.ts` y `matching.test.ts`):
 - S_núcleo = −(1/β) log Σ_c w_c e^{−β s_c}, un soft-min ponderado:
   - cumple min(s) ≤ S ≤ Σ w s;
   - β = 6 en romance y β = 4 en amistad.
-- F = ∏_{c ∈ pisos} min(1, s_c / piso_c). Los pisos de romance son dealbreakers .35 y valores .25.
-- total = (1 − Σ τ) · F · S_núcleo + Σ_t τ_t s_t, donde la cola son los extras y la capa 4.
+- **F = 1: no hay pisos.** Desde ADR-043 ninguna categoría lleva piso, en ningún track. Un piso es un veto
+  multiplicativo sobre una similitud *estimada* desde θ̂, y en este modelo toda categoría lo está; el soft-min
+  ya hace el trabajo que la evidencia permite («una categoría núcleo débil duele», no «esa pareja no existe»).
+  El veto que sí tiene sentido es una declaración explícita y vive en `hard_filters`. El mecanismo queda en
+  el código y el validador lo mantiene honesto: un piso solo es legal sobre una categoría cuyos factores
+  tienen ≥ 2 ítems (`src/config/config.test.ts`).
+- total = (1 − Σ τ) · F · S_núcleo + Σ_t τ_t s_t, donde la cola son los extras y la capa 4 (con F ≡ 1 el
+  término sobra, pero la fórmula es la que ejecuta `pair-score.ts`).
 - **Descomposición exacta para la explicación.**
   - Se define π_c = w_c e^{−β s_c} / Σ w e^{−β s}.
   - Entonces S = Σ π_c s_c + KL(π‖w)/β.
@@ -95,11 +101,11 @@ Propiedades probadas (`layers.test.ts` y `matching.test.ts`):
 
 | Categoría | Romance | Amistad | Etiqueta | Fuente |
 |---|---|---|---|---|
-| personalidad (HEXACO) | .35 | .40 | prior_literatura | EV-101, EV-104 (Liu 2018: H y O) |
-| valores | .20 | .25 | prior_literatura | EV-105 (efecto pequeño) |
-| dealbreakers (crianza, espiritualidad, igualdad) | .20 | — | supuesto_diseno | EV-105 (metas) |
-| relacional | .15 | — | supuesto_diseno | EV-105 |
-| estilo e intereses | .10 | .35 | supuesto_diseno | sin evidencia predictiva |
+| personalidad (HEXACO) | .40 | .40 | prior_literatura | EV-101, EV-104 (Liu 2018: H y O) |
+| valores | .25 | .25 | prior_literatura | EV-105 (efecto pequeño) |
+| dealbreakers (solo crianza) | .05 | — | supuesto_diseno | EV-105 (metas); ADR-043 saca espiritualidad e igualdad |
+| relacional | .20 | — | supuesto_diseno | EV-105 |
+| estilo e intereses (17 factores) | .10 | .35 | supuesto_diseno | sin evidencia predictiva; sin `soc_politica` (ADR-043) |
 | conflicto / apego / afecto (cola) | .02 / .02 / .01 | — | prior_literatura / supuesto | EV-58, EV-54, EV-107: efectos actor, nunca piso |
 | MBTI / Eneagrama (cola) | .005 / .005 | .005 / .005 | prior_literatura | Pittenger 1993; Hook et al. 2021: identidad |
 | Big Five | 0 | 0 | supuesto_diseno | derivado de HEXACO; no se cuenta dos veces |

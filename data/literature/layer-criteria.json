@@ -1,12 +1,11 @@
 {
   "_comentario": "Criterios de admisión de capas (Fase 2 del afinado). Todos son obligatorios para que una capa entre al puntaje. Lo evalúa scripts/literature/lib/layers.ts; las fichas están en layer-candidates.json y la tabla en docs/CAPAS_EVIDENCIA.md.",
-  "version": "2026-11-01",
+  "version": "2026-11-08",
   "evidence": {
     "_etiqueta": "supuesto_diseno",
-    "minVerifiedStudies": 1,
-    "requireDyadicOrRelationalOutcome": true,
+    "minVerifiedStudies": 2,
     "admissibleForScore": ["similitud", "ventana", "complementariedad"],
-    "_nota": "Un efecto solo de nivel (actor/pareja) no justifica una función de compatibilidad: puntuar niveles equivaldría a declarar a unas personas 'más emparejables' que otras."
+    "_nota": "Tres puertas en verifiedSupportingStudies: abstract leído (crossref_abstract), efecto dentro de admissibleForScore, y que el efecto SEA LA MISMA FORMA que la capa puntúa (c.efectoParaPuntaje). admissibleForScore omite a propósito 'nivel' y 'seleccion': un efecto solo de nivel equivaldría a declarar a unas personas 'más emparejables' que otras, y que las parejas ya formadas se parezcan describe emparejamiento selectivo, no predice un resultado. Con eso, una complementariedad verificada no habilita un kernel de similitud simétrica y una selección no habilita nada. minVerifiedStudies subió de 1 a 2 el 2026-11-08 porque con 1 bastaba una sola ficha para admitir una capa."
   },
   "redundancy": {
     "_etiqueta": "supuesto_diseno",

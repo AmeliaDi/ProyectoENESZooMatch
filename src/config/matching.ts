@@ -27,6 +27,15 @@ const HARD_FILTER_FIELDS = [
 /** Tolerance for floating-point sums of hand-written weights. */
 const WEIGHT_SUM_TOLERANCE = 1e-9;
 
+/**
+ * Factors that may never enter a compatibility score. Two of them are
+ * enumerated sensitive categories under LFPDPPP art. 9 (creencias religiosas,
+ * opiniones políticas) and the third is the gender-attitude layer the layer
+ * registry demotes to narrative (docs/CAPAS_EVIDENCIA.md). They stay estimated
+ * and readable in «Tu carta»; they just carry no weight. ADR-043, T-22.
+ */
+const NON_SCORED_FACTORS: readonly string[] = ["val_espiritualidad", "soc_politica", "act_igualdad"];
+
 const label = z.enum(PARAM_LABELS);
 const provenance = { etiqueta: label, fuente: z.string().min(1) };
 
@@ -192,6 +201,13 @@ export const matchingConfigSchema = z
     }
     if (config.quality.longstring_max <= config.quality.longstring_ok) {
       ctx.addIssue({ code: "custom", message: "quality.longstring_max must exceed longstring_ok" });
+    }
+    for (const [id, category] of Object.entries(config.categories)) {
+      for (const factor of Object.keys(category.factors)) {
+        if (NON_SCORED_FACTORS.includes(factor)) {
+          ctx.addIssue({ code: "custom", message: `${id} scores ${factor}, an enumerated sensitive category (ADR-043)` });
+        }
+      }
     }
     for (const [name, track] of Object.entries(config.tracks)) {
       const groups = [
