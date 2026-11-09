@@ -2136,6 +2136,20 @@ Todo el diseño se ordena alrededor de una distinción que antes no estaba escri
   y 17 sin `p_preserve_color`), con su `REVOKE`/`GRANT` EXECUTE a `service_role`. El `UPDATE` escribe
   `scored_at = now(), params_version = p_params_version`, así que **el sello se pone en cada guardado
   y no existe un perfil sellado a mano**.
+- **Aplicada en producción el 2026-11-29** (`npm run db:apply -- --migration …`): columna, índice y
+  RPC de 18 argumentos verificados sobre la base llena, con los conteos intactos antes y después
+  (223 perfiles, 168 con test, 19 615 respuestas, 1 010 matches, 1 560 avisos) y los 168 perfiles con
+  test en `params_version IS NULL`, que es exactamente el estado T1 que describe la regla 1. Hasta
+  ese día la base venía dos migraciones detrás de `HEAD` y el `select` de `profile-repository.ts`
+  pedía una columna que no existía: desplegar `main` sin aplicarla había roto la lectura de perfiles
+  de las 168 personas con test. Respaldo del DDL previo tomado antes de correrla.
+- **Y faltaba el sembrado** (descubierto al correr `qa-api.mjs` contra esa misma base el mismo día):
+  `quiz_items` tenía 173 filas contra 197 del banco, así que `quiz_responses.item_id` rechazaba los
+  24 ítems nuevos de B2/B3 con `23503` y guardar el test devolvía 503 — se arregló con
+  `npm run db:apply -- --seed` (197 ítems, 0 obsoletos borrados) y el flujo completo volvió a pasar:
+  `quiz completo` 200, resultado con 3 de romance y 5 de amistad, sharing en bandas, pausa y
+  borrado. La regla queda escrita en `DESPLIEGUE.md`: cambiar el banco obliga a re-sembrar antes de
+  desplegar, porque la tabla no alimenta el quiz pero sí es la llave foránea de las respuestas.
 - **El aviso** (`src/ui/profile/math-update-notice.tsx`) tiene las dos variantes y no se mezclan. T1:
   una línea (`role="status"`), recordada **por firma** en `localStorage`, nunca a quien llega por
   primera vez. T2/T3: `Frame` + botón fantasma, con «Afinar mi perfil» a `/afinar` y cierre
@@ -2235,6 +2249,13 @@ llamaban «inclusión» y que habían que separarse:
   deja de ser la broma en minúsculas sin acentos y con «<3»: ahora es una frase que se puede leer
   en voz alta y que dice lo mismo («Todavía no aparece nadie arriba del filtro. No es un veredicto
   sobre ti ni sobre el amor: cuando entre más gente al hábitat, esto se mueve.»).
+- **La auditoría de la tabla viva encontró una segunda forma** (migración aplicada en producción el
+  2026-11-29): 62 avisos `match_romance` sin leer cerraban con «resonó con cada unx de ellxs.», que
+  es copia de una versión anterior del motor y el `replace` de «es alta con cada unx;» no tocaba. La
+  migración lleva ahora las dos formas a la misma frase canónica («cada una de esas personas»); los
+  170 avisos ya leídos con ese texto se quedan como están, por la misma regla de arriba. El guard lo
+  verifica en `notification-copy.test.ts` — una migración que purga el marcador tiene que nombrar
+  todas las formas que existen en la tabla, no solo la que escribe el código de hoy.
 - **El marcador se queda donde se elige** (`src/domain/messages/inclusive-text.ts`). Los cuatro
   modos siguen siendo cuatro: quien quiera la forma escrita con «-x» la sigue teniendo a un tap, y
   su descripción dice ahora lo que cuesta («no tiene sonido: un lector de pantalla parte la

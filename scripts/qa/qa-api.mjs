@@ -154,7 +154,13 @@ const aSeesB = await entryFor(a, bAlias);
 const bSeesA = aSeesB ? await entryFor(b, firstAlias) : null;
 row("cuentas QA son match entre sí", aSeesB ? aSeesB.track : "no", Boolean(aSeesB && bSeesA));
 if (aSeesB && bSeesA && aSeesB.track === bSeesA.track) {
-  await chatChecks({ a, b, aLock: withLock(a, lockCookie(unlocked)), row, post, get, withLock, lockCookie, aSeesB, bSeesA });
+  // Un fallo dentro del chat no puede dejar las dos matrículas falsas vivas en
+  // la base: la limpieza de abajo tiene que correr siempre.
+  try {
+    await chatChecks({ a, b, aLock: withLock(a, lockCookie(unlocked)), row, post, get, withLock, lockCookie, aSeesB, bSeesA });
+  } catch (error) {
+    row("chat QA sin excepciones", `excepción: ${error?.message ?? error}`, false);
+  }
 }
 for (const s of [a, b]) {
   const d = await fetch(BASE + "/api/privacy", { method: "DELETE", headers: { origin: BASE, cookie: s.cookie } });

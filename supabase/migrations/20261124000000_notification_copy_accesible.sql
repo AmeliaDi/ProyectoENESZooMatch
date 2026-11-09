@@ -160,8 +160,16 @@ END;
 $$;
 -- ─── Los avisos sin leer que aún llevan el marcador «-x» ─────────────────────
 
+-- Dos formas vivas, no una. La auditoría del esquema en producción (2026-11-29)
+-- encontró 62 avisos `match_romance` sin leer cerrando con «resonó con cada unx
+-- de ellxs.», que es copia de una versión anterior del motor: el `replace` de
+-- «es alta con cada unx;» no la tocaba y se quedaban con la palabra partida.
+-- Las dos se van con la misma fórmula, «cada una de esas personas», que ya usa
+-- la copia canónica de arriba.
 UPDATE public.notifications
-SET body = replace(body, 'es alta con cada unx;', 'es alta con cada una de esas personas;')
+SET body = replace(
+         replace(body, 'es alta con cada unx;', 'es alta con cada una de esas personas;'),
+         'resonó con cada unx de ellxs.', 'resonó con cada una de esas personas.')
 WHERE read = false
   AND type = 'match_romance'
   AND body LIKE '%con cada unx%';

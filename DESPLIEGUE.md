@@ -123,6 +123,23 @@ Con un token personal (`SUPABASE_ACCESS_TOKEN=sbp_...` en `.env.local`, nunca en
 recarga PostgREST. Si el esquema ya tiene tablas se detiene sin tocar nada;
 `npm run db:apply -- --status` muestra el conteo de filas por tabla.
 
+Sobre un esquema **con datos** hay dos caminos, y los dos son idempotentes:
+
+```bash
+npm run db:apply -- --migration supabase/migrations/<archivo>.sql  # una migración
+npm run db:apply -- --seed                                        # re-sembrar (ver abajo)
+```
+
+El arnés rechaza cualquier migración que no declare su idempotencia en los primeros
+2000 bytes del archivo, y cualquier `CREATE TABLE public.…`: sobre una base viva solo
+entran cambios aditivos (`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP … IF EXISTS`).
+
+**Después de tocar `data/microtest.json` hay que re-sembrar antes de desplegar.** La app
+no lee los ítems de la base (viajan en el bundle desde `data/*.json`), pero
+`quiz_responses.item_id` es llave foránea contra `quiz_items`: un ítem nuevo que no esté
+sembrado hace que **guardar el test complete reviente con 23503** y la persona reciba un
+503 al final del cuestionario, justo cuando ya contestó todo.
+
 ### Diagnóstico de "El cielo no responde"
 
 `/api/enter` deja una línea JSON en los logs de funciones de Vercel (o en la terminal
@@ -137,6 +154,9 @@ de `next dev`) sin datos personales:
 | `enter.failed` `step: create_user` | Supabase Auth rechazó al usuario | Authentication → Providers → Email habilitado; *Allow new users to sign up* activo |
 | `enter.failed` `step: insert_profile` | Esquema desactualizado | Reaplicar la migración base |
 | `enter.failed` `step: generate_link` / `verify_otp` | Magic link deshabilitado o clave publishable de otro proyecto | Proveedor Email y que URL y claves sean del mismo proyecto |
+| `POST /api/quiz` → 503 `storage.failed` al terminar el test, con `23503 … quiz_responses_item_id_fkey` en el log | El banco del bundle trae ítems que no están en `quiz_items` | `npm run db:apply -- --seed` (idempotente; no borra ítems con respuestas) |
+| Cualquier 503 `storage.failed` | El repositorio traga el error de Postgres y no deja causa: `saveQuizResult` devuelve `failed` sin loguear | Reproducir con `BASE=http://localhost:… node scripts/qa/qa-api.mjs` contra una corrida local, o temporalmente sobre `res.error` en `src/infrastructure/supabase/profile-repository.ts` |
+
 
 Nombres aceptados (el primero es el canónico; ver `src/infrastructure/env/env-aliases.ts`):
 

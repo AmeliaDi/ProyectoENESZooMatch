@@ -382,6 +382,21 @@ describe("notify_matches repeats these templates", () => {
     const [, functionBody] = NOTIFY_SQL.split("CREATE OR REPLACE FUNCTION public.notify_matches");
     expect(functionBody?.split("-- ─── Los avisos sin leer")[0] ?? "").not.toMatch(OUTCOME_CLAIMS);
   });
+
+  it("purges every -x wording that is actually alive in the table", () => {
+    // The audit of the populated schema found two shapes of the same sentence,
+    // not one. A rewrite that names only the one the code writes today leaves
+    // the other sitting in someone's inbox with a word that has no sound.
+    const rewrite = NOTIFY_SQL.split("-- ─── Los avisos sin leer")[1] ?? "";
+    expect(rewrite).toContain("es alta con cada unx;");
+    expect(rewrite).toContain("resonó con cada unx de ellxs.");
+    expect(rewrite.match(/cada una de esas personas/g)?.length).toBeGreaterThanOrEqual(2);
+
+    // A notice somebody already read is their history; the rewrite is unread-only.
+    for (const statement of rewrite.split("UPDATE public.notifications").slice(1)) {
+      expect(statement.slice(0, 400)).toContain("read = false");
+    }
+  });
 });
 
 // ─── Whole-suite copy guarantees ──────────────────────────────────────────────

@@ -35,9 +35,29 @@ Scripts reproducibles:
 **39/39 OK** (las mismas 39 en local).
 
 **Tras ADR-054** la lista de `qa-api.mjs` subió a 41 comprobaciones: `GET /afinar/retomar`
-(la pantalla de re-toma, 200) y `GET /api/quiz/retake` sin sesión (401). **No se han
-corrido todavía**: necesitan un `BASE` con Supabase, y el script entra, testa y borra una
-matrícula falsa, así que quedan para la próxima corrida completa.
+(la pantalla de re-toma, 200) y `GET /api/quiz/retake` sin sesión (401).
+
+**Corrida 2026-11-29** con `BASE=http://localhost:3124` sobre `next start` del árbol de
+trabajo y la base de producción ya migrada y re-sembrada: **las 41 del trayecto no-chat
+pasan**, incluidas las dos nuevas y `quiz completo` 200 con `matches 3/5`. Lo que quedó
+marcado como FALLA en esa corrida no es el trayecto de emparejamiento:
+
+| Fila | Por qué falla | Qué es |
+|---|---|---|
+| `GET /dev/avatars`, `/dev/ui`, `/dev/physics` | El script asume que `localhost` implica `next dev`; aquí corrió un build de producción, donde esas rutas correctamente no existen | Falso positivo del arnés |
+| Las 10 filas del bloque de chat (`señal enviada`, `3 tarjetas solo a quien le toca`, `hasPin=undefined`, …) | El chat está en edición (WIP de la usuaria en `src/application/chat/*` y `src/ui/chat/*`); la corrida revienta en `qa-chat.mjs:39` porque la lista de tarjetas viene vacía | Fuera del trayecto B1–B9; hay que re-correrlo cuando el chat se congele |
+
+Dos cosas aportó la corrida, y las dos se corrigieron:
+
+- **`quiz completo` daba 503.** El error de Postgres era `23503 … quiz_responses_item_id_fkey`
+  sobre `INT13`: el banco en git tiene **197** ítems y `public.quiz_items` tenía **173** — los
+  24 ítems nuevos de B2/B3 nunca se re-sembraron. `npm run db:apply -- --seed` los metió
+  (0 obsoletos borrados) y el guardado volvió a funcionar. Dato del que se deriva la regla en
+  `DESPLIEGUE.md`: la app no lee los ítems de la base, pero la llave foránea sí los necesita.
+- **El arnés moría antes de limpiarse.** Como `chatChecks` lanzaba sin captura, las dos
+  matrículas falsas se quedaban vivas en la base (hay que borrarlas a mano con
+  `POST /api/enter` + `DELETE /api/privacy`). Ahora la sección de chat va en `try/catch` y
+  deja una fila `chat QA sin excepciones`, así que la limpieza siempre corre.
 
 > No hay padrón de matrículas: cualquier matrícula de exactamente 9 dígitos
 > puede registrarse. Desde ADR-026 la matrícula es la única credencial (sin
