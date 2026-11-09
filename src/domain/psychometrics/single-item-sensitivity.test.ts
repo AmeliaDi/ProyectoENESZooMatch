@@ -2,84 +2,19 @@ import { describe, expect, it } from "vitest";
 
 import { MATCHING_CONFIG, QUIZ_ITEMS } from "@/config";
 import { PSYCHOMETRIC_PARAMS } from "@/config/psychometric-params";
-import { factorEffectiveWeights, pairScore } from "@/domain/matching/pair-score";
-import { mulberry32 } from "@/domain/shared/random";
+import { factorEffectiveWeights } from "@/domain/matching/pair-score";
 
-import { buildMeasurementModel, scoreLatent } from "./latent";
-import { drawTheta, priorFactor, simulateResponses } from "./simulate";
-
-const BAND =
-  MATCHING_CONFIG.tracks.romance.reference_high - MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive;
-
-const REPS = 120;
-const THRESHOLD = MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive;
-
-/** Ítems que el modelo de medición conoce, agrupados por factor. */
-function itemsByFactor(source?: readonly string[]): Map<string, string[]> {
-  const known = new Set(Object.keys(PSYCHOMETRIC_PARAMS.items));
-  const ids = source ? new Set(source) : null;
-  const map = new Map<string, string[]>();
-  for (const item of QUIZ_ITEMS) {
-    if (!item.factor || !known.has(item.id)) continue;
-    if (ids && !ids.has(item.id)) continue;
-    const list = map.get(item.factor) ?? [];
-    list.push(item.id);
-    map.set(item.factor, list);
-  }
-  return map;
-}
-
-function run(label: string, answered: string[], noisy: string[], model: ReturnType<typeof buildMeasurementModel>, lower: number[][]) {
-  const noisySet = new Set(noisy);
-  const stable = answered.filter((id) => !noisySet.has(id));
-
-  let sum = 0;
-  let max = 0;
-  let overBand = 0;
-  let flips = 0;
-  const quantiles: number[] = [];
-
-  for (let r = 0; r < REPS; r += 1) {
-    // La misma persona latente, dos sesiones: solo cambian las respuestas.
-    const truthA = drawTheta(lower, mulberry32(210000 + r));
-    const truthB = drawTheta(lower, mulberry32(410000 + r));
-
-    const responsesA = [...simulateResponses(model, stable, truthA, mulberry32(310000 + r)), ...simulateResponses(model, noisy, truthA, mulberry32(610000 + r))];
-    const responsesB = [...simulateResponses(model, stable, truthB, mulberry32(510000 + r)), ...simulateResponses(model, noisy, truthB, mulberry32(710000 + r))];
-    // Réplica 2: mismo θ, mismo set estable, distinto sorteo en los ítems únicos.
-    const againA = [...responsesA.filter((x) => !noisySet.has(x.itemId)), ...simulateResponses(model, noisy, truthA, mulberry32(810000 + r))];
-    const againB = [...responsesB.filter((x) => !noisySet.has(x.itemId)), ...simulateResponses(model, noisy, truthB, mulberry32(910000 + r))];
-
-    const total = (a: typeof responsesA, b: typeof responsesB) =>
-      pairScore(
-        scoreLatent(model, a, MATCHING_CONFIG.quality),
-        scoreLatent(model, b, MATCHING_CONFIG.quality),
-        MATCHING_CONFIG.tracks.romance,
-        MATCHING_CONFIG.categories,
-      ).total;
-
-    const d = Math.abs(total(responsesA, responsesB) - total(againA, againB));
-    sum += d;
-    max = Math.max(max, d);
-    if (d >= BAND) overBand += 1;
-    if (total(responsesA, responsesB) >= THRESHOLD !== total(againA, againB) >= THRESHOLD) flips += 1;
-    quantiles.push(d);
-  }
-
-  quantiles.sort((x, y) => x - y);
-  const q = (p: number) => quantiles[Math.floor(p * (REPS - 1))]!.toFixed(4);
-  console.log(
-    `${label} — ${answered.length} items contestados, ${noisy.length} de factor unico (${((noisy.length / answered.length) * 100).toFixed(0)}% del test).\n` +
-      `  |delta total| por retest: medio ${(sum / REPS).toFixed(4)}  p50 ${q(0.5)}  p90 ${q(0.9)}  maximo ${max.toFixed(4)}\n` +
-      `  banda util (umbral -> reference_high) = ${BAND.toFixed(4)};  media/banda = ${((sum / REPS) / BAND).toFixed(2)}x\n` +
-      `  retests con ruido >= 1 banda: ${overBand}/${REPS}   |   retests que cruzan el umbral: ${flips}/${REPS}`,
-  );
-  return { mean: sum / REPS, max, overBand, flips };
-}
+import { buildMeasurementModel } from "./latent";
+import {
+  itemsByFactor,
+  measureRetest,
+  retestPriorFactor,
+  singleItemIds,
+} from "./retest-noise";
 
 describe("ruido de los factores de un solo item", () => {
   const model = buildMeasurementModel(PSYCHOMETRIC_PARAMS);
-  const lower = priorFactor(PSYCHOMETRIC_PARAMS.covarianza_latente.matriz);
+  const lower = retestPriorFactor();
 
   /**
    * Techo por camino de entrega, medido con sorteo fijo. Antes de ADR-044 el
@@ -108,20 +43,26 @@ describe("ruido de los factores de un solo item", () => {
       const answered = items.filter((i) => model.items.has(i.id)).map((i) => i.id);
       // Un factor es "de un solo ítem" dentro de este camino: el banco puede
       // tener más, pero quien solo hace el núcleo contesta una pregunta de él.
-      const single = new Set(
-        [...itemsByFactor(answered).entries()].filter(([, ids]) => ids.length === 1).map(([f]) => f),
-      );
-      const factorOf = new Map(items.map((i) => [i.id, i.factor]));
-      const noisy = answered.filter((id) => single.has(factorOf.get(id) ?? ""));
+      const noisy = singleItemIds(answered);
       expect(noisy.length).toBeGreaterThan(0);
       const ceiling = CEILINGS[label as keyof typeof CEILINGS];
-      const { mean, overBand, flips } = run(label, answered, noisy, model, lower);
+      const sample = measureRetest(label, answered, noisy, model, lower);
+      console.log(
+        `${sample.label} — ${sample.answered} items contestados, ${sample.singleItems} de factor unico ` +
+          `(${(sample.singleShare * 100).toFixed(0)}% del test).\n` +
+          `  |delta total| por retest: medio ${sample.mean.toFixed(4)}  p50 ${sample.p50.toFixed(4)}  ` +
+          `p90 ${sample.p90.toFixed(4)}  maximo ${sample.max.toFixed(4)}\n` +
+          `  banda util (umbral -> reference_high) = ${sample.band.toFixed(4)};  ` +
+          `media/banda = ${(sample.mean / sample.band).toFixed(2)}x  p90/banda = ${(sample.p90 / sample.band).toFixed(2)}x\n` +
+          `  retests con ruido >= 1 banda: ${sample.overBand}/${sample.reps}   |   ` +
+          `retests que cruzan el umbral: ${sample.flips}/${sample.reps}`,
+      );
       // Un factor de un solo item no puede sostener un discurso de compatibilidad
       // si su propio ruido de retest es una fraccion relevante de la banda util.
-      expect(mean, `${label}: el arnés sigue moviendo el puntaje`).toBeGreaterThan(ceiling.floor);
-      expect(mean / BAND, `${label}: media/banda`).toBeLessThanOrEqual(ceiling.ratio);
-      expect(overBand, label).toBeLessThanOrEqual(ceiling.overBand);
-      expect(flips, label).toBeLessThanOrEqual(ceiling.flips);
+      expect(sample.mean, `${label}: el arnés sigue moviendo el puntaje`).toBeGreaterThan(ceiling.floor);
+      expect(sample.mean / sample.band, `${label}: media/banda`).toBeLessThanOrEqual(ceiling.ratio);
+      expect(sample.overBand, label).toBeLessThanOrEqual(ceiling.overBand);
+      expect(sample.flips, label).toBeLessThanOrEqual(ceiling.flips);
     }
   }, 300_000);
 });
@@ -165,4 +106,3 @@ describe("criterio I5: ningun factor pesado se mide con un solo item", () => {
     expect(mass).toBeLessThanOrEqual(SINGLE_ITEM_MASS_CEILING[trackId] ?? 0);
   });
 });
-

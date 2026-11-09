@@ -1974,3 +1974,101 @@ búsqueda dirigida del 2026-11-08 sobre 17 handles) no cerró el hueco:
 - Artefactos regenerados con el cambio: `docs/MATCHING_RESULTADOS.md` (hash de entradas
   `cfe29665c8f94948` → `168050b7a90289c6`) y el hash registrado de `data/matching-config.json` en
   `docs/TRAZABILIDAD.md` (`a7a5561ab19754ba` → `2115393e24a07408`), con la fila **T-27** nueva.
+
+## ADR-051 · Pase B8: se mide el costo de cada capa, se corrige el orden de afinado y el config queda igual
+
+**Contexto.** **B8** pedía una auditoría de balance global con salida obligatoria: una sola tabla
+`capa · ítems · peso · cociente · ruido · track` más el diff de `data/matching-config.json`, y seis
+barandas concretas — costo/peso por capa (una capa ≤ 0,02 no puede costar más de 4-6 preguntas; una
+de 0,20 necesita ≥ 6 factores con ≥ 2 ítems), tracks balanceados en ≤ 1,3× respuestas obligatorias,
+varianza por ítem re-medida con datos reales si existen y sintéticos si no, ruido contributors ≤ 0,35×
+la banda en la media y ≤ 1,0× en el p90, ninguna tarjeta de explicabilidad colgando de una capa ya
+retirada, y barra de progreso real por quiz («nunca un porcentaje que vuelva a 100 cuando abre el
+siguiente»). Nada de eso estaba medido: los pesos se habían ajustado pase por pase (ADR-044 a ADR-050)
+sin una vista conjunta de qué paga cada pregunta.
+
+**Decisión.**
+
+- Se escribe el arnés **`scripts/matching/balance.ts`** (seis secciones) con su runner
+  **`scripts/matching/balance.mjs`**. Se corre con
+  `node --no-warnings scripts/matching/balance.mjs [--write]`: deja la máquina-lectura en
+  `.qa/balance.json` siempre y regenera `docs/BALANCE.md` solo con `--write`. No se añadió un script
+  de npm porque `package.json` lleva trabajo en curso del equipo; la ruta canónica es la del comando.
+- Las seis barandas quedan como constantes nombradas en el propio script (`EXTRA_WEIGHT_CEILING` 0,02
+  con `EXTRA_ITEMS_CEILING` 6, `HEAVY_WEIGHT_FLOOR` 0,2 con `HEAVY_FACTOR_FLOOR` 6 y
+  `HEAVY_ITEMS_PER_FACTOR` 2, `NOISE_MEAN_RAIL` 0,35 / `NOISE_P90_RAIL` 1, `TRACK_ANSWER_RATIO_RAIL`
+  1,3, `RETORN_RATIO_RAIL` 3, `FLAT_MODAL_SHARE` 0,8), así que mover una barra es mover una línea y
+  el doc se regenera solo.
+- El ruido del retest **se extrae a `src/domain/psychometrics/retest-noise.ts`** para que el arnés de
+  B8 y la prueba I5 (`single-item-sensitivity.test.ts`) midan con las mismas semillas (210000…910000,
+  `REPS = 120`) y no puedan separarse; la prueba pasa a consumir `measureRetest()` y a afirmar contra
+  `sample.band`, con los mismos números de antes del refactor (byte a byte).
+- **El diff de `data/matching-config.json` es vacío, y es el hallazgo.** Las dos capas «caras» son
+  `eneagrama` (27 ítems del banco, 9 obligatorios, peso eficaz 0,005 → 5 400 ítems por unidad de
+  puntaje) y `mbti` (16 ítems, 4 obligatorios, 0,005 → 3 200). Bajarles el peso a 0 no ahorra una
+  sola pregunta: esos ítems se responden igual y lo que sostienen es la **identidad del avatar** y la
+  lectura personal, no el orden de los pares. La regla está diseñada para capas que se *ofrecen* por
+  puntaje, así que se reporta la tensión en `docs/BALANCE.md` §1 y se deja la decisión de mover los
+  13 ítems obligatorios de identidad al módulo opcional como trabajo aparte — no se tocan los pesos
+  para que una tabla salga verde. Las capas del núcleo cumplen por construcción: `personalidad`
+  102 ítems/peso con 6 factores × 8 ítems, `valores` 61, `dealbreakers` 34, `estilo` 289 (17 factores
+  sin ninguno de un ítem). Ninguna capa llega hoy a 0,20 en peso eficaz, así que la regla de «≥ 6
+  factores con ≥ 2 ítems» no se viola en ninguna.
+- **Sí cambia el orden de «¿quieres afinar tu perfil?»**, que era la única violación medible del pase
+  y no tocaba el puntaje. `EXPERIENCE.refine.order` (`data/experience.json`):
+
+  | Track | Antes | Después |
+  |---|---|---|
+  | romance | `relacional, valores, hexaco_facetas, intereses, estilo_vida, …` | `valores, hexaco_facetas, intereses, estilo_vida, relacional, …` |
+  | amistad | `intereses, estilo_vida, valores, relacional, hexaco_facetas, …` | `intereses, estilo_vida, valores, hexaco_facetas, relacional, …` |
+
+  La regla: un módulo no se ofrece antes que otro ≥ 3× más rentable **por pregunta**. En romance,
+  `relacional` iba primera con retorno 0,0025/pregunta mientras `valores` (0,0112, 4,5×) y
+  `hexaco_facetas` (0,0098, 3,9×) venían después → **2 violaciones**; en amistad `relacional` (20
+  ítems, 0,000) se colaba antes de `hexaco_facetas` (0,0083) → 0 violaciones por cómo estaba escrita
+  la comparación de a pares. Después: **0 y 0**. Es cambio de orden de menú, no de pesos: el config
+  de matching no se toca y las pruebas de `refine-flow.test.ts` siguen hablando contra
+  `EXPERIENCE.refine.order[track]`, no contra una lista clavada.
+- **La obsolescencia de Morris se juzga por umbrales, no por hash.** `scripts/matching/pipeline.ts`
+  calcula `inputHash` sobre `data/matching-config.json` **antes** de que `writeCalibration()` reescriba
+  el umbral en ese mismo archivo, así que el hash declarado en `.qa/matching.json`
+  (`168050b7a90289c6`) nunca coincide con el del config vigente (`3c0fb7ca9d39bf69`) y un chequeo por
+  hash daría una alarma falsa en cada pase. `readMorris()` compara `ceil(threshold·1e4)/1e4` y
+  `reference_high` por pista contra el config; si coinciden, los μ* están vigentes y el aviso se
+  silencia. La corrección del arnés (hashear después de escribir) es trabajo de B9, no de este pase.
+- **Varianza: la barra de datos reales todavía no se cumple.** Sonda de solo lectura sobre
+  `public.quiz_responses` (2026-11-08, conteos agregados, sin PII): el ítem más contestado tiene
+  **13 respuestas**, y `.limit()` del cliente devuelve máximo 1 000 filas. Con 13 respuestas por ítem
+  no se puede estimar una desviación típica utilizable, así que §4 se mide con 600 personas simuladas
+  bajo el mismo modelo de medición que el scorer invierte (semilla 90210) y el doc lo dice en la
+  primera línea. La barra para re-medir con datos reales es **30 respuestas por ítem**.
+
+**Consecuencias.**
+
+| Baranda B8 | Medida | Veredicto |
+|---|---|---|
+| Capa ≤ 0,02 con > 6 preguntas | violan la regla `eneagrama` (27 ítems, 0,005) y `mbti` (16, 0,005); `afecto` 5, `conflicto` 4 y `apego` 4 se quedan bajo el tope de 6 | 2 marcadas «caras», y son identidad de avatar → se reporta, no se re-pesa |
+| Capa ≥ 0,20 con ≥ 6 factores × 2 ítems | ninguna capa llega a 0,20 eficaz; la más pesada `personalidad` 0,470 con 6 × 8 | cumple |
+| Capa con peso 0 que cuesta preguntas | romance `relacional` (7 del banco) y `big_five` (15); amistad añade `dealbreakers` 2, `conflicto` 4, `apego` 4, `afecto` 5 | **no cumple en amistad**: 6 capas cuestan preguntas y no puntúan ahí |
+| Ratio de respuestas obligatorias entre tracks | 65 vs 65 que puntúan (**1,00×**); 68 vs 65 contestando (**1,05×** por `FIL1-FIL3`) | cumple (≤ 1,3×) |
+| Ruido de retest (media / p90 sobre la banda) | núcleo 0,20× y 0,52× sobre la banda romance 0,0615; banco completo 0,03× y 0,06× | cumple (≤ 0,35× / ≤ 1,0×) |
+| Ítems planos (≥ 80 % en una respuesta) | 0 de 194 | cumple |
+| Orden del menú de afinado | romance 2 → **0** violaciones; amistad 0 → 0 | cumple |
+| Explicabilidad sin tarjeta huérfana | `positive()` en `pair-score.ts` + filtro `contribution > 0` en `layered.ts` y `compute-matches.ts` | cumple: `relacional` y `big_five` salieron de las tarjetas sin tocar una |
+| Progreso real por quiz | `public-quiz.tsx` pinta las estrellas sobre los 68 obligatorios con `answered` acumulado; `/quizzes/[quiz_id]` lleva su propia barra | cumple: ningún porcentaje vuelve a 100 |
+
+- Se reportan tres cosas que este pase **no** arregla y quedan escritas: (a) `relacional` en amistad
+  cuesta 20 preguntas de módulo y 0 puntaje —específicamente 20 de 20 ítems sin capa con peso—;
+  (b) `nobinarie_todes` sigue en 57,3 % de cobertura y es un artefacto del generador de población
+  (ADR-050), no del config; (c) la tensión `eneagrama`/`mbti`-avatar necesita una decisión de producto
+  antes que una de pesos.
+- §4 del doc lista el decil con menos varianza (20 ítems: `SOC1`, `C5`, `O3`, `EN8`, `SUB2`, `MB10`,
+  `EN25`, `SOC3`, `INT22`, `MB8`, `MB16`, `VAL17`, `ACT4`, `VAL12`, `APE2`, `C3`, `MB9`, `ACT3`, `C7`,
+  `O8`) como candidatos a re-escribirse cuando haya 30 respuestas reales por ítem, no como ítems
+  rotos: todos informativos bajo el modelo.
+- Costo del arnés: ~13 s por corrida (600 personas para varianza + 120 retests × 2 caminos). Nada del
+  camino de request lo toca: `balance.ts` vive en `scripts/`, importa el dominio solo para calcular.
+- Artefactos del pase: `docs/BALANCE.md` (nuevo, generado), `scripts/matching/balance.ts` y
+  `scripts/matching/balance.mjs` (nuevos), `src/domain/psychometrics/retest-noise.ts` (nuevo),
+  `src/domain/psychometrics/single-item-sensitivity.test.ts` (pasa al helper compartido),
+  `data/experience.json` (orden de afinado) y `docs/TRAZABILIDAD.md` con la fila **T-28**.

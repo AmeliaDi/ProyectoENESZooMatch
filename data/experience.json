@@ -25,8 +25,8 @@
   "refine": {
     "draftKey": "zoomatch:refine-draft",
     "order": {
-      "amistad": ["intereses", "estilo_vida", "valores", "relacional", "hexaco_facetas", "actitudes", "puente_big_five", "mbti", "eneagrama", "subtipo"],
-      "romance": ["relacional", "valores", "hexaco_facetas", "intereses", "estilo_vida", "actitudes", "puente_big_five", "mbti", "eneagrama", "subtipo"]
+      "amistad": ["intereses", "estilo_vida", "valores", "hexaco_facetas", "relacional", "actitudes", "puente_big_five", "mbti", "eneagrama", "subtipo"],
+      "romance": ["valores", "hexaco_facetas", "intereses", "estilo_vida", "relacional", "actitudes", "puente_big_five", "mbti", "eneagrama", "subtipo"]
     }
   },
   "result": {
