@@ -4,7 +4,7 @@
 > **Datos sintéticos: validan el código y la sensibilidad, no el mundo real.**
 
 - Semilla 1515870810; 600 perfiles; 264 con banco completo.
-- Hash SHA-256 (16 hex, LF) de entradas: `matching-config` 2115393e24a07408, `psychometric-params` a31ed99658426302, `self-reading` 3c021cda2e0b33fa.
+- Hash SHA-256 (16 hex, LF) de entradas: `matching-config` 45861517dec0e641, `psychometric-params` a31ed99658426302, `self-reading` 3c021cda2e0b33fa.
 
 ## H1 · Modelo contra línea base (AUC, bootstrap pareado por persona, B = 200)
 
