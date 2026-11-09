@@ -1,7 +1,8 @@
 /**
  * Copy of the conversations between matches (docs/CHAT.md §10–13,
  * docs/GUIA_DE_TONO.md): affectionate, brief, no pressure, no "visto", no
- * mention of anyone not answering. Checked by screens.test.ts.
+ * mention of anyone not answering. "Su turno" names whose move it is and never
+ * how long they have taken; there is no clock on it. Checked by screens.test.ts.
  */
 import type { ReportReason } from "@/contracts/chat";
 
@@ -11,9 +12,15 @@ export const CONVERSATION_COPY = {
   amistad: "Amistad",
   stageFree: "Chat libre",
   stageRounds: "Rondas de preguntas",
+  /** The same stage for one line of an inbox row (docs/PANTALLAS.md §8c). */
+  stageRoundsBrief: "Rondas",
   stagePaused: "En pausa",
   unread: "Nuevo",
   myTurn: "Te toca",
+  /** The round is waiting on the other side; no clock, no blame (docs/CHAT.md §11). */
+  theirTurn: "Su turno",
+  /** How many conversations hold something the viewer has not opened. */
+  tallyNew: "Sin leer",
 
   loading: "Abriendo tus conversaciones…",
   loadingOne: "Abriendo la conversación…",
@@ -73,6 +80,11 @@ export const CONVERSATION_COPY = {
   emojiSearch: "Buscar emoji",
   emojiRecent: "Recientes",
   emojiNone: "No encontramos ese emoji.",
+  arenaLabel: "Encuentro de animalitos",
+  mochilaTitle: "Mochila de regalos",
+  mochilaSubtitle: "Entre más interactúen en rondas y mensajes, más detalles desbloquean para regalarse.",
+  registroTitle: "Registro de conversación",
+  registroSubtitle: "Bitácora completa de preguntas, respuestas, regalos y mensajes del encuentro.",
 } as const;
 
 /** Signals ❤️ / 🤗 in the detail sheet and invitations received. */

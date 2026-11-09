@@ -5,46 +5,21 @@
  * the first-time guide, the rounds, the question of the turn (cards), the free
  * chat invitation, the free chat, and the safety menu always one tap away.
  */
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import type { ConversationDto } from "@/contracts/chat";
-import { formatIdentity } from "@/domain/identity/format-identity";
 import { emitSound } from "@/ui/feedback/feedback";
 import { Button } from "@/ui/kit/button";
-import { Chip } from "@/ui/kit/surfaces";
 import { EmptyState, ErrorState, LoadingState } from "@/ui/kit/states";
 
-import { CHAT_COPY, CONVERSATION_COPY, roundsStage, stageLabel, trackLabel } from "./chat-copy";
+import { CHAT_COPY, CONVERSATION_COPY } from "./chat-copy";
 import { ChatGuide } from "./chat-guide";
+import { EncounterStage } from "./encounter-stage";
 import { FreeChat } from "./free-chat";
-import { PeerSprite } from "./peer-sprite";
 import { QuestionCards } from "./question-cards";
 import { RoundsView } from "./rounds-view";
 import { SafetyMenu } from "./safety-menu";
 import { useConversation, type ConversationActions, type PendingMessage } from "./use-conversation";
-
-const SPRITE_SIZE = 48;
-
-function Header({ convo }: { convo: ConversationDto }) {
-  const currentQuestion = Math.min(convo.minRoundsForFree, Math.max(1, convo.rounds.length || convo.completedRounds + 1));
-  const progressText =
-    convo.stage === "rounds"
-      ? roundsStage(currentQuestion, convo.minRoundsForFree)
-      : stageLabel(convo.stage, convo.completedRounds);
-  const name = formatIdentity(convo.peer.identity);
-  return (
-    <header className="zm-convo__head">
-      <PeerSprite identity={convo.peer.identity} size={SPRITE_SIZE} />
-      <div className="zm-convo__who">
-        <h2 className="zm-chat__title">{name.title}</h2>
-        <p className="zm-convo__meta">
-          <Chip tone={convo.track} icon={convo.track}>{trackLabel(convo.track)}</Chip>
-          <span className="zm-num">{progressText}</span>
-        </p>
-      </div>
-    </header>
-  );
-}
 
 function Turn({ convo, actions }: { convo: ConversationDto; actions: ConversationActions }) {
   if (convo.stage === "paused") {
@@ -89,13 +64,22 @@ export interface ConversationViewProps {
 export function ConversationView({ id, onBack, onLock, onLocked }: ConversationViewProps) {
   const { state, pending, actions } = useConversation(id, onLocked);
   const chimed = useRef(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (state.kind !== "ready" || chimed.current) return;
     chimed.current = true;
     emitSound("chat_abierto");
   }, [state.kind]);
+
+  const focusComposer = useCallback(() => {
+    const el = rootRef.current?.querySelector<HTMLElement>("textarea, .zm-cards, .zm-rounds, .zm-free");
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (el instanceof HTMLTextAreaElement) el.focus();
+  }, []);
+
   return (
-    <div className="zm-convo">
+    <div ref={rootRef} className="zm-convo">
       <div className="zm-chat__actions zm-convo__bar">
         <Button variant="ghost" icon="back" onClick={onBack}>{CONVERSATION_COPY.back}</Button>
         {state.kind === "ready" ? <SafetyMenu convo={state.convo} actions={actions} onGone={onBack} /> : null}
@@ -108,7 +92,7 @@ export function ConversationView({ id, onBack, onLock, onLocked }: ConversationV
       ) : null}
       {state.kind === "ready" ? (
         <>
-          <Header convo={state.convo} />
+          <EncounterStage convo={state.convo} actions={actions} onFocusComposer={focusComposer} />
           <Body convo={state.convo} pending={pending} actions={actions} />
         </>
       ) : null}

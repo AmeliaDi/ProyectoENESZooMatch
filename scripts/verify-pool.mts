@@ -96,11 +96,14 @@ console.log("Excluidas — sin quiz_completed_at:", poolStats?.missing_quiz ?? 0
 console.log("Excluidas — pausadas:", poolStats?.paused ?? 0);
 console.log("Excluidas — eliminadas:", poolStats?.deleted ?? 0);
 
-const excluded = (poolStats?.missing_quiz ?? 0) + (poolStats?.paused ?? 0) + (poolStats?.deleted ?? 0);
+const excluded = (poolStats?.missing_quiz ?? 0) + (poolStats?.paused ?? 0);
 if (excluded === 0) {
-  console.log("\n✓ Toda persona eclosionada está en el pool. Ninguna exclusion inesperada.");
+  console.log("\n✓ Toda persona eclosionada activa está en el pool.");
+  if ((poolStats?.deleted ?? 0) > 0) {
+    console.log(`  (${poolStats?.deleted} cuentas eliminadas — exclusión esperada)`);
+  }
 } else {
-  console.log(`\n⚠ ${excluded} eclosionadas fuera del pool (revisar causas arriba).`);
+  console.log(`\n⚠ ${excluded} eclosionadas activas fuera del pool (revisar causas arriba).`);
 }
 
 // ─── 2. Zero-match distribution ─────────────────────────────────────────────

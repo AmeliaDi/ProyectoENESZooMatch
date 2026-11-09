@@ -72,7 +72,9 @@ export function NewPinForm({ submit, title, onDone }: NewPinFormProps) {
   return (
     <form className="zm-chat__form" onSubmit={(e) => { e.preventDefault(); if (value.length === LENGTH) complete(value); }}>
       <h2 className="zm-chat__title">{title}</h2>
-      <p className="zm-chat__step">{first === null ? CHAT_COPY.createStep : CHAT_COPY.confirmStep}</p>
+      <p className="zm-chat__step">
+        {first === null ? CHAT_COPY.createStep : CHAT_COPY.confirmStep} · {CHAT_COPY.lockNote}
+      </p>
       <PinInput ref={inputRef} value={value} onChange={setValue} onComplete={complete} disabled={busy} describedBy={messageId} invalid={message !== null} />
       <p id={messageId} className="zm-chat__message" role="status" aria-live="polite">{message}</p>
       {first !== null ? (

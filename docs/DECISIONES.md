@@ -2476,3 +2476,79 @@ demasiado para ti ahora» y llevar a otra parte, no soltar un quiz largo con la 
   `profile-view.tsx` y en el barrido de copias de `screens.test.ts`, y `docs/PANTALLAS.md` (carta,
   «Aviso de los quizzes»). Sin migración, sin RPC nueva, sin columna nueva.
 
+## ADR-056 · La bandeja se gana su espacio: el párrafo del candado sale de `/chats`, y el inbox dice qué hay sin leer y de quién es el turno
+
+**Contexto.** La petición fue en tres partes: quitar el texto «Un PIN simple para que tus chats
+queden entre tú y tu match. No cifra los mensajes: es un candado para quien tome tu dispositivo»
+porque «en el chat toma mucho espacio», poner en «Tus conversaciones» un indicador de si hay mensaje
+nuevo y «a quién le va», y optimizar el espacio UI en móvil con prioridad. Lo que se midió antes de
+tocar nada, sobre `next start` propio en 390 × 844 con DPR 3 y CDP:
+
+- La pantalla de chats abierta gastaba **1439 px** de alto. De eso, el párrafo de introducción son
+  **72 px** y la línea final de enlaces **42 px**: 114 px —un 8 % de la pantalla— eran texto que no
+  es bandeja.
+- Cada fila del inbox era un bloque de tres líneas de texto con las marcas «Nuevo»/«Te toca» en una
+  columna aparte. Con dos marcas, el ancho disponible apretaba el alias y la fila **subía a 124–132 px**
+  (la suma de seis filas de ejemplo: 563 px). El alias no se puede truncar con puntos suspensivos:
+  `PeerSprite` exige que su `aria-label` sea exactamente el nombre impreso (`formatIdentity(...).title`),
+  así que acortar a la vista obliga a acortar para el lector de pantalla.
+- Los datos del turno **ya venían** en `GET /api/chat/inbox` (`InboxEntryDto`: `stage`,
+  `completedRounds`, `unread`, `myTurn`, `updatedAt`). No hizo falta ni una columna ni una RPC. La
+  pregunta era si `myTurn` autoriza a decir «Su turno».
+
+**Decisión.**
+
+- **`turnOf` es derivación, no dato nuevo.** En `src/ui/chat/chat-parse.ts`:
+  `myTurn → "mine"`, y si no, `stage === "rounds" → "theirs"`, si no `null`. Se sostiene en el
+  modelo de dominio: en `rounds` un lado puede deber la respuesta de la ronda abierta o ser el
+  siguiente que elige pregunta, y el servidor ya calculó que el espectador no puede hacer ninguna de
+  las dos; en `free` y `paused` no hay turno de nadie y la fila **no** marca nada. Es decir: nunca se
+  afirma de quién es el movimiento cuando el modelo no lo garantiza.
+- **La palabra es «Su turno», y no hay reloj.** §10.0.3 de `docs/CHAT.md` prohíbe «visto» y avisos de
+  que alguien no respondió. Nombrar de quién es el movimiento es un hecho, no un reclamo; lo que sería
+  presión es acompañarlo de cuánto lleva esperando. Por eso el rótulo vive junto a «Te toca» y «Nuevo»
+  sin ninguna duración al lado, y el encabezado de `conversation-copy.ts` queda diciendo esto mismo
+  para que el siguiente cambio lo lea antes de agregar un cronómetro.
+- **La promesa honesta no se borra: se muda.** `CHAT_COPY.intro` sigue existiendo y sigue imprimiéndose
+  en `/ajustes#chats`. En `/chats` se elimina el párrafo y la línea de enlaces, el enlace a ajustes pasa
+  a ser un engrane en la cabecera (icono `settings`, 44 px, `aria-label="Ajustes de tu candado"`) y donde
+  nace el PIN —el formulario de creación— queda `CHAT_COPY.lockNote`: «El candado es para quien tome tu
+  dispositivo; no cifra los mensajes». Quien crea el candado recibe la advertencia en el momento en que
+  decide el número; quien ya lo tiene la lee completa en ajustes. Un test de fuente lo fija:
+  `chats-view.tsx` no puede contener `CHAT_COPY.intro` ni `zm-chat__intro`, `pin-forms.tsx` sí contiene
+  `lockNote`, y `lockNote.length < intro.length / 1.5`.
+- **Fila de dos líneas y recuentos en la cabecera.** Las marcas pasan a la misma línea del stage
+  (`.zm-inbox__line`, `flex-wrap`), el escenario usa la forma corta (`stageShort`: «Rondas», «1 ronda
+  lista», «2 rondas listas», «Chat libre», «En pausa») y «Sin leer · N» y «Te toca · N» se ponen junto
+  al título solo cuando N > 0. `stageLabel` (forma larga) no se toca: la cabecera de la conversación y
+  `screens.test.ts` la siguen usando. La estrella del marcador es `<Icon name="loading" filled />`
+  porque el atlas no tiene «star».
+
+**Consecuencias.**
+
+- **Medido, no supuesto:** la pantalla baja de 1439 px a **1186 px** (−253 px, −17.6 %), las seis filas
+  de ejemplo de 563 px a **452 px** y su altura de `[108, 132, 64, 108, 87, 64]` a
+  `[88, 108, 56, 56, 88, 56]`. La cabecera de la bandeja **crece 28 px** (30 → 58) al meter los
+  recuentos, y aun así el total baja: los recuentos se pagan con el espacio que libera el párrafo. El
+  blanco táctil mínimo sigue en 44 px (`--zm-touch`), `overflowX` en falso y cero textos recortados,
+  antes y después. Todo en 390 × 844; en escritorio el cambio es estructural pero no se midió.
+- **El indicador no promete más de lo que sabe.** `unread` es lo que el servidor ya deriva
+  (`src/application/chat/conversation.ts`: sin `seenAt`, o mensaje del otro lado posterior a `seenAt`),
+  así que «Nuevo» significa «hay algo que no has abierto», no «hay N mensajes». El texto nunca cuenta
+  mensajes: si algún día se quisiera el número, haría falta una columna y ese es otro ADR.
+- **Dos cosas quedan explícitamente sin hacer**, no tapadas: (a) la barra de la conversación abierta
+  (`.zm-convo__bar`, tres botones con etiqueta larga) es el siguiente candidato obvio de espacio en
+  móvil y no se tocó porque vive en `conversation-view.tsx` y `free-chat.tsx`, que están con trabajo sin
+  commit de otra persona; (b) las alturas medidas son de un fixture de seis conversaciones con todas las
+  combinaciones de marca, no de datos reales: sirve para comparar antes/después en el mismo DOM, no para
+  afirmar cuánto mide la bandeja de una persona concreta.
+- **Puertas:** `npx tsc --noEmit` limpio, `npx vitest run` en 138 archivos (4 saltados) con **1574
+  pruebas pasando** (23 saltadas), `eslint` limpio sobre `src/ui/chat` y `src/ui/screens.test.ts`, y
+  `npm run build` en verde. `src/ui/chat/chat-parse.test.ts` agrega `describe("turnOf")` (mío con
+  `myTurn` en `rounds` y en `free`; del otro solo dentro de `rounds`; `null` en `free` y `paused`), y
+  `screens.test.ts` barre `stageShort("rounds", 2)` en la lista de copias sin presión.
+- Artefactos: `src/ui/chat/chat-parse.ts`, `inbox-list.tsx`, `chats-view.tsx`, `pin-forms.tsx`,
+  `chat-copy.ts`, `conversation-copy.ts`, `src/app/chat.css`, las dos pruebas citadas, y
+  `docs/CHAT.md` (§1, §10.0.3, §13.2) con `docs/PANTALLAS.md` §8c. Sin migración, sin RPC, sin columna,
+  sin endpoint nuevo.
+

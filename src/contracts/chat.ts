@@ -93,6 +93,8 @@ export interface ConversationDto {
   id: string;
   track: ChatTrack;
   peer: ChatPeerDto;
+  /** The viewer's own hatched identity for the encounter stage, when available. */
+  me?: ChatPeerDto;
   stage: ConversationStage;
   pausedByMe: boolean;
   muted: boolean;

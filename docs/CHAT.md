@@ -12,7 +12,11 @@
 - **Un PIN por persona**, no por conversación: se crea una vez y abre todos tus chats. Nunca se
   comparte entre dos personas.
 - Copy de referencia: «Un PIN simple para que tus chats queden entre tú y tu match. No cifra
-  los mensajes: es un candado para quien tome tu dispositivo».
+  los mensajes: es un candado para quien tome tu dispositivo». Es la promesa honesta del candado
+  y **tiene que seguir visible**, pero no en la bandeja: vive en `/ajustes#chats` completa, y en
+  el formulario donde nace el PIN sale en una línea («El candado es para quien tome tu
+  dispositivo; no cifra los mensajes», `CHAT_COPY.lockNote`). `screens.test.ts` revisa que la
+  pantalla de chats ya no la imprima y que el formulario sí.
 
 ### 1.1 Límite honesto frente a la entrada solo con matrícula
 
@@ -193,7 +197,9 @@ cookie.
 2. **Anonimato:** dentro del chat solo hay alias y sprite. Ni las notificaciones identifican a
    nadie.
 3. **Sin presión:** nunca hay «visto» ni avisos de que alguien no respondió, y no se mete prisa.
-   Retirarse siempre es fácil y no pide explicación.
+   Retirarse siempre es fácil y no pide explicación. Lo que sí se permite es decir **de quién es
+   el turno** («Su turno») y **cuánto hay sin leer** («Sin leer · 3»): nombran un hecho, nunca
+   cuánto tiempo lleva esperando nadie, y no hay un reloj junto a ninguno de los dos.
 4. **Estructura que protege:** las preguntas guiadas bajan la ansiedad y limitan el abuso; al
    chat libre se llega después, no se da por hecho.
 
@@ -558,9 +564,15 @@ Códigos nuevos: `chat.adult_required` (403), `chat.cooldown` (409), `chat.too_m
 
 ### 13.2 Chats
 
-- **Bandeja:** primero las invitaciones (tarjetas con borde del color de la pista); después las
-  conversaciones con sprite, alias, «Romance · Rondas de preguntas · 2 rondas», y las marcas
-  «Nuevo» (estrella pixel más la palabra) y «Te toca». No hay contadores.
+- **Cabecera de la pantalla:** título «Chats» y tres iconos — engrane (ajustes del candado),
+  volver al cielo y salir. No hay párrafo de introducción: el espacio lo ocupa la bandeja.
+- **Bandeja:** primero las invitaciones (tarjetas con borde del color de la pista); después
+  «Tus conversaciones», con dos recuentos junto al título que solo aparecen si son mayores que
+  cero: «Sin leer · N» (estrella pixel) y «Te toca · N». Cada fila es un botón de dos líneas de
+  texto —sprite, alias, y debajo `Romance · 2 rondas listas` con las marcas en línea «Nuevo»,
+  «Te toca» o «Su turno»— y sube de fondo cuando tiene algo sin leer. Quién tiene el turno sale
+  del `myTurn` y `stage` que manda el servidor (`turnOf`), no se inventa nada: en `free` y
+  `paused` no hay turno que nombrar y la fila queda sin marca.
 - **Conversación:**
   1. barra con «Volver», «Opciones de seguridad» y «Cerrar el candado»;
   2. cabecera con el sprite de 48 px y la pista;

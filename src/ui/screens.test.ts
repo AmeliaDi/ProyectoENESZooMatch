@@ -32,6 +32,7 @@ import {
   pausedMessage,
   roundsStage,
   stageLabel,
+  stageShort,
 } from "./chat/chat-copy";
 import { REPORT_REASON_LABELS } from "./chat/conversation-copy";
 import { CONSTELLATION_COPY } from "./constellation/types";
@@ -94,6 +95,7 @@ describe("copy", () => {
     ...Object.values(REPORT_REASON_LABELS),
     ...["chat.cooldown", "chat.too_many_signals", "chat.link_blocked", "chat.offensive", "chat.slow_down", "chat.repeated"].map((c) => errorCopy(c) ?? ""),
     stageLabel("rounds", 2),
+    stageShort("rounds", 2),
     charsLeft(1),
     charsLeft(-4),
     ...Object.values(CHAT_EVENT_LABELS),
@@ -164,8 +166,18 @@ describe("typography guards", () => {
 describe("chat lock copy", () => {
   it("is honest that the PIN is a lock, not encryption", () => {
     expect(CHAT_COPY.intro).toContain("No cifra los mensajes");
+    expect(CHAT_COPY.lockNote).toContain("no cifra los mensajes");
     expect(CHAT_COPY.weak).toBe("Elige uno que solo tú recuerdes.");
     expect(CHAT_COPY.empty).not.toMatch(/pronto|seguro que|vas a/i);
+  });
+
+  it("keeps the long disclosure off the screen where the chats live", () => {
+    const gate = readFileSync(resolve("src/ui/chat/chats-view.tsx"), "utf8");
+    const form = readFileSync(resolve("src/ui/chat/pin-forms.tsx"), "utf8");
+    expect(gate).not.toContain("CHAT_COPY.intro");
+    expect(gate).not.toContain("zm-chat__intro");
+    expect(form).toContain("CHAT_COPY.lockNote");
+    expect(CHAT_COPY.lockNote.length).toBeLessThan(CHAT_COPY.intro.length / 1.5);
   });
 
   it("counts down calmly and pluralizes", () => {
@@ -185,6 +197,11 @@ describe("chat lock copy", () => {
     expect(stageLabel("rounds", 2)).toBe("Rondas de preguntas · 2 rondas");
     expect(stageLabel("free", 3)).toBe("Chat libre");
     expect(stageLabel("paused", 3)).toBe("En pausa");
+    expect(stageShort("rounds", 0)).toBe("Rondas");
+    expect(stageShort("rounds", 1)).toBe("1 ronda lista");
+    expect(stageShort("rounds", 2)).toBe("2 rondas listas");
+    expect(stageShort("free", 3)).toBe("Chat libre");
+    expect(stageShort("paused", 1)).toBe("En pausa");
     expect(charsLeft(1)).toBe("1 carácter disponible");
     expect(charsCounter(12, 300)).toEqual({ visual: "12/300", spoken: "12 de 300 caracteres" });
     expect(SAFETY_COPY.closeBody).toBe("Puedes cerrarla sin explicar nada. Desaparecerá para las dos personas.");

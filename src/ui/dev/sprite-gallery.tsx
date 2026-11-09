@@ -12,6 +12,7 @@
  */
 
 import { useReducedMotionPreference } from "@/ui/constellation/hooks";
+import Image from "next/image";
 import Link from "next/link";
 import {
   memo,
@@ -122,6 +123,10 @@ const ANIMALS_LIST: AnimalEntry[] = ANIMALS.map((animal) => {
 });
 
 const ANIMAL_TOTAL = ANIMALS_LIST.length;
+
+/** Muestra de la prueba de retrato JRPG por IA: solo el ajolotito. */
+const PORTRAIT_SAMPLE = ANIMALS_LIST.find((entry) => entry.id === "ajolotito");
+const PORTRAIT_SRC = "/dev/portraits/ajolotito.png";
 
 // ─── Fondos del escenario ────────────────────────────────────────────────────
 
@@ -364,6 +369,91 @@ function Segmented({ legend, options, value, onChange }: SegmentedProps) {
   );
 }
 
+// ─── Retrato por IA frente al sprite del motor ─────────────────────────────────
+
+interface PortraitComparisonProps {
+  entry: AnimalEntry;
+  colorId: string;
+  colorName: string;
+  px: number;
+  bgStyle: CSSProperties;
+}
+
+/**
+ * Muestra de evaluación: el mismo animalito lado a lado, generado por el motor
+ * determinista y por Adobe Firefly. El retrato es referencia visual decorativa;
+ * el sprite del motor sigue siendo el canal que codifica estilo de apego,
+ * tríada del Eneagrama y energía E/I en celdas concretas de la rejilla.
+ */
+function PortraitComparison({
+  entry,
+  colorId,
+  colorName,
+  px,
+  bgStyle,
+}: PortraitComparisonProps) {
+  const box = px + 20;
+
+  return (
+    <section
+      aria-label="Prueba de retrato por IA"
+      className="mt-4 border border-atlas-grid bg-atlas-frame p-4"
+    >
+      <div className="flex flex-col gap-1">
+        <h2 className="font-pixel text-sm font-semibold text-atlas-fg">
+          Retrato por IA vs sprite del motor
+        </h2>
+        <p className="max-w-2xl text-xs text-atlas-muted">
+          Prueba con {entry.diminutivo} ({entry.nombre}) en {colorName}. A la
+          izquierda, el sprite de 16×16 del motor determinista. A la derecha, un
+          retrato JRPG generado con Adobe Firefly y con el fondo recortado en
+          local. Sirve para juzgar el estilo: no sustituye al sprite ni a su
+          lectura de apego, tríada y energía.
+        </p>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-start gap-4">
+        <figure className="flex flex-col items-center gap-2">
+          <div
+            className="grid place-items-center border border-atlas-grid"
+            style={{ ...bgStyle, width: box, height: box }}
+          >
+            <SpriteView
+              animalId={entry.id}
+              colorId={colorId}
+              frame="idle_1"
+              px={px}
+              label={`${entry.diminutivo}, sprite del motor en ${colorName}`}
+            />
+          </div>
+          <figcaption className="font-pixel text-[0.58rem] uppercase tracking-[0.12em] text-atlas-gold">
+            motor · 16×16
+          </figcaption>
+        </figure>
+
+        <figure className="flex flex-col items-center gap-2">
+          <div
+            className="grid place-items-center border border-atlas-grid"
+            style={{ ...bgStyle, width: box, height: box }}
+          >
+            <Image
+              src={PORTRAIT_SRC}
+              alt={`${entry.diminutivo}, retrato JRPG sin fondo`}
+              width={px}
+              height={px}
+              unoptimized
+              style={{ width: px, height: px }}
+            />
+          </div>
+          <figcaption className="font-pixel text-[0.58rem] uppercase tracking-[0.12em] text-atlas-gold">
+            firefly · retrato
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+  );
+}
+
 // ─── Componente principal ──────────────────────────────────────────────────────
 
 export function SpriteGallery() {
@@ -521,6 +611,16 @@ export function SpriteGallery() {
             </p>
           </div>
         </header>
+
+        {PORTRAIT_SAMPLE ? (
+          <PortraitComparison
+            entry={PORTRAIT_SAMPLE}
+            colorId={colorId}
+            colorName={activeColor?.nombre ?? colorId}
+            px={px}
+            bgStyle={bgStyle}
+          />
+        ) : null}
 
         {/* ── Barra de controles ─────────────────────────────────────── */}
         <section

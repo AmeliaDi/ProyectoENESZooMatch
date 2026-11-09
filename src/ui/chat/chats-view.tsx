@@ -99,6 +99,9 @@ export function ChatsView() {
       plate="Lámina 06 · chats"
       actions={
         <>
+          <Link href="/ajustes#chats" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Ajustes de tu candado">
+            <Icon name="settings" />
+          </Link>
           <Link href="/resultado" className="zm-box zm-btn zm-btn--ghost zm-btn--icon" aria-label="Volver a mi cielo">
             <Icon name="back" />
           </Link>
@@ -108,7 +111,6 @@ export function ChatsView() {
     >
       <main className="zm-chat">
         <h1 className="zm-chat__heading">Chats</h1>
-        <p className="zm-chat__intro">{CHAT_COPY.intro}</p>
         <section className="zm-box zm-box--frame zm-chat__panel">
           {screen.kind === "loading" ? <LoadingState title="Revisando tu candado…" /> : null}
           {screen.kind === "error" ? (
@@ -116,9 +118,6 @@ export function ChatsView() {
           ) : null}
           {screen.kind === "ready" ? <Gate status={screen.status} refresh={refresh} /> : null}
         </section>
-        <p className="zm-detail__muted">
-          ¿Quieres cambiar tu PIN o ver la actividad de tu candado? <Link href="/ajustes#chats">Ve a Ajustes</Link>
-        </p>
       </main>
     </AtlasShell>
   );

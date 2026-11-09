@@ -93,6 +93,21 @@ export function parseInbox(value: unknown): { conversations: InboxEntry[]; invit
   return { conversations: listOf(value.conversations, parseInboxEntry), invitations: listOf(value.invitations, parseInvitation) };
 }
 
+/**
+ * Whose move it is, for the row and the tallies beside «Tus conversaciones».
+ *
+ * The server's `myTurn` means "the viewer can act right now", so when it is
+ * false inside the guided stage the move is by construction the other side's:
+ * an answer they still owe on the open round, or the next question they get to
+ * choose. `free` and `paused` have no turn to name, so those rows stay quiet —
+ * and nothing here ever says how long anyone has taken (docs/CHAT.md §11, sin
+ * presión).
+ */
+export function turnOf(entry: InboxEntry): "mine" | "theirs" | null {
+  if (entry.myTurn) return "mine";
+  return entry.stage === "rounds" ? "theirs" : null;
+}
+
 export function parseRound(value: unknown): RoundDto | null {
   if (!isRecord(value)) return null;
   const index = count(value.index);
@@ -155,9 +170,12 @@ export function parseConversation(value: unknown): ConversationDto | null {
   const stage = oneOf(STAGES, value.stage);
   const peer = parsePeer(value.peer);
   if (id === null || track === null || stage === null || peer === null) return null;
+  const me = parsePeer(value.me);
   const reactions = listOf(value.reactions, (r) => (typeof r === "string" && r.length > 0 ? r : null));
   return {
-    id, track, peer, stage,
+    id, track, peer,
+    ...(me ? { me } : {}),
+    stage,
     pausedByMe: value.pausedByMe === true,
     muted: value.muted === true,
     rounds: listOf(value.rounds, parseRound),

@@ -7,6 +7,8 @@ import type { ChatTrack, ConversationStage } from "@/contracts/chat";
 export const CHAT_COPY = {
   intro:
     "Un PIN simple para que tus chats queden entre tú y tu match. No cifra los mensajes: es un candado para quien tome tu dispositivo.",
+  /** The one-line form of `intro`, for the screen where the PIN is born. */
+  lockNote: "El candado es para quien tome tu dispositivo; no cifra los mensajes.",
   createTitle: "Crea tu PIN",
   createStep: "Escribe 4 dígitos que solo tú recuerdes.",
   confirmStep: "Escríbelo otra vez para confirmarlo.",
@@ -54,6 +56,17 @@ export function stageLabel(stage: ConversationStage, completed: number): string 
   if (stage === "free") return CONVERSATION_COPY.stageFree;
   if (completed === 0) return CONVERSATION_COPY.stageRounds;
   return `${CONVERSATION_COPY.stageRounds} · ${completed} ${completed === 1 ? "ronda" : "rondas"}`;
+}
+
+/**
+ * The same stage short enough to sit on one line of an inbox row at 390 px:
+ * the track already tells the eye where it is, so the count stands alone.
+ */
+export function stageShort(stage: ConversationStage, completed: number): string {
+  if (stage === "paused") return CONVERSATION_COPY.stagePaused;
+  if (stage === "free") return CONVERSATION_COPY.stageFree;
+  if (completed === 0) return CONVERSATION_COPY.stageRoundsBrief;
+  return `${completed} ${completed === 1 ? "ronda lista" : "rondas listas"}`;
 }
 
 /** Discreet "X/300" counter, read by screen readers as words. */

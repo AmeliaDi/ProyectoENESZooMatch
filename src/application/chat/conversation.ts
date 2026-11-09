@@ -122,7 +122,7 @@ export async function getConversation(id: string, viewer: string, deps: Conversa
   const now = deps.clock.now();
   const [messages, peers, suggestions] = await Promise.all([
     messagesFor(loaded.value, now, options, deps),
-    peerMap([otherOf(row, viewer)], deps.conversations),
+    peerMap([viewer, otherOf(row, viewer)], deps.conversations),
     suggestionsFor(loaded.value, viewer, refresh, deps),
   ]);
   if (!messages.ok) return messages;
@@ -130,6 +130,7 @@ export async function getConversation(id: string, viewer: string, deps: Conversa
   await deps.conversations.markSeen(id, sideOf(row, viewer), now);
   return ok(toDto(loaded.value, viewer, now, {
     peer: peers.value.get(otherOf(row, viewer)),
+    me: peers.value.get(viewer),
     messages: messages.value.list,
     hasOlder: messages.value.hasOlder,
     suggestions,

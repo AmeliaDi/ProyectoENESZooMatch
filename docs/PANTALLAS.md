@@ -214,8 +214,8 @@ flowchart TD
 
 ## 8c. Chats (`/chats`, `src/ui/chat/chats-view.tsx`)
 
-- **Objetivo:** el candado frente a tus chats (ADR-029, `docs/CHAT.md`). El chat
-  todavía no existe; esta pantalla es su puerta.
+- **Objetivo:** la puerta y la bandeja de tus chats (ADR-029 candado, ADR-056 espacio del
+  inbox; `docs/CHAT.md`).
 - **Estados**, según `GET /api/chat/status`:
   - sin PIN → «Crea tu PIN» en dos pasos; si es trivial, «Elige uno que solo tú
     recuerdes» y se vuelve al primer paso;
@@ -223,15 +223,32 @@ flowchart TD
     pausa, «Tómate un respiro…» con cuenta regresiva y el enlace «Olvidé mi PIN»;
   - restablecimiento pendiente → aviso visible, cancelar con el PIN actual y,
     cuando termina la espera de 24 h, crear el PIN nuevo;
-  - abierto → estado vacío «Aquí vivirán tus chats cuando tú y un match acepten
-    conversar» y el botón «Cerrar el candado».
+  - abierto → invitaciones y conversaciones, o «Aquí vivirán tus chats cuando tú y
+    un match acepten conversar» si no hay nada, y el botón «Cerrar el candado».
 - **PIN:** un solo `<input>` numérico (sin autocompletar ni gestor de
   contraseñas) bajo 4 casillas pixel decorativas. Cada dígito enciende una
   estrella, y el botón de mostrar u ocultar vuelve a enmascararlo. Usa
   `aria-live` para errores y pausas. Sin animación con `prefers-reduced-motion`.
+  Bajo el paso va la línea «El candado es para quien tome tu dispositivo; no
+  cifra los mensajes» —la promesa honesta cabe entera en `/ajustes#chats`, y en
+  la pantalla de chats ya no se imprime el párrafo largo.
+- **Bandeja (`inbox-list.tsx`):** «Tus conversaciones» lleva al lado los
+  recuentos que aplican («Sin leer · N» con estrella pixel, «Te toca · N»), y
+  cada fila es un botón de dos líneas: sprite + alias arriba; abajo la pista con
+  el stage corto (`Romance · 2 rondas listas`, `Amistad · Rondas`, `Chat libre`,
+  `En pausa`) y en la misma línea la marca «Nuevo», «Te toca» o «Su turno». La
+  fila con algo sin leer sube el fondo. Nada de relojes ni de «no respondió».
+- **Espacio en móvil** (390 × 844, DPR 3, medido con CDP sobre la hoja de estilos
+  real, ADR-056): la pantalla pasa de **1439 px a 1186 px** de alto (−253 px,
+  −17.6 %); el párrafo de introducción (72 px) y la línea final de enlaces (42 px)
+  desaparecen, y las seis filas de ejemplo pasan de `[108, 132, 64, 108, 87, 64]` a
+  `[88, 108, 56, 56, 88, 56]` (563 → 452 px). La cabecera de la bandeja crece 28 px
+  al meter los recuentos, y aún así el total baja. El blanco táctil mínimo sigue en
+  44 px, no hay desborde horizontal y ningún texto sale recortado.
 - **Al ocultar la página** (`pagehide`), `sendBeacon` cierra el candado.
-- **Enlaces:** línea fina del resultado y Ajustes → Chats (cambiar PIN, olvidé mi
-  PIN, actividad reciente e intentos fallidos).
+- **Enlaces:** un engrane en la cabecera de la pantalla lleva a
+  `/ajustes#chats` (cambiar PIN, olvidé mi PIN, actividad reciente e intentos
+  fallidos); la línea fina del resultado también llega aquí.
 
 ## 8d. Volver a responder (`/afinar/retomar`, `src/ui/retake/retake-page.tsx`)
 

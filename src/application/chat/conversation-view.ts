@@ -96,6 +96,7 @@ function roundDto(round: RoundRow, ctx: RoundContext): RoundDto {
 
 export interface ViewExtras {
   peer: ChatPeer | undefined;
+  me?: ChatPeer | undefined;
   messages: MessageRow[];
   hasOlder: boolean;
   suggestions: PromptCard[];
@@ -114,6 +115,7 @@ export function toDto(loaded: Loaded, viewer: string, now: Date, extras: ViewExt
     id: row.id,
     track: row.track,
     peer: toPeerDto(extras.peer),
+    ...(extras.me ? { me: toPeerDto(extras.me) } : {}),
     stage,
     pausedByMe: facts.pausedBy === side,
     muted: side === "a" ? row.mutedA : row.mutedB,

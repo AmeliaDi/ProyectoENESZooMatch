@@ -15,6 +15,8 @@ import {
   parseOk,
   parsePeer,
   parseRound,
+  turnOf,
+  type InboxEntry,
 } from "./chat-parse";
 import { hasInterestHandle, interestKey } from "./interest-api";
 
@@ -90,6 +92,25 @@ describe("parseInbox", () => {
   it("returns null when the list itself is missing", () => {
     expect(parseInbox({})).toBeNull();
     expect(parseInbox({ conversations: "nope" })).toBeNull();
+  });
+});
+
+describe("turnOf", () => {
+  function row(over: Record<string, unknown>): InboxEntry {
+    const parsed = parseInboxEntry({ ...entry, ...over });
+    if (parsed === null) throw new Error("fixture should parse");
+    return parsed;
+  }
+
+  it("names the viewer whenever the server says they can act", () => {
+    expect(turnOf(row({ myTurn: true, stage: "rounds" }))).toBe("mine");
+    expect(turnOf(row({ myTurn: true, stage: "free" }))).toBe("mine");
+  });
+
+  it("names the other side only while the guided rounds are open", () => {
+    expect(turnOf(row({ myTurn: false, stage: "rounds" }))).toBe("theirs");
+    expect(turnOf(row({ myTurn: false, stage: "free" }))).toBeNull();
+    expect(turnOf(row({ myTurn: false, stage: "paused" }))).toBeNull();
   });
 });
 

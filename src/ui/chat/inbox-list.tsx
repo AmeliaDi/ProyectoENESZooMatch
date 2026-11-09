@@ -2,9 +2,13 @@
 
 /**
  * The inbox: invitations received first (soft cards), then one row per
- * conversation with the sprite, alias, track, stage in words, a "Nuevo"
- * marker (a pixel star plus the word, never colour alone) and "Te toca" when
- * the viewer can act. Polls calmly while visible, backing off when idle.
+ * conversation with the sprite, alias, track and a short stage. Above the
+ * list, two counts answer the only two questions a person has here: what
+ * arrived that they have not opened ("Sin leer") and what waits on them
+ * ("Te toca"). Each row repeats that in words — a pixel star plus "Nuevo",
+ * never colour alone, and "Su turno" when the guided round is the other
+ * side's move, with no clock on it. Polls calmly while visible, backing off
+ * when idle.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -17,8 +21,8 @@ import { EmptyState, ErrorState, LoadingState } from "@/ui/kit/states";
 import { isHatched } from "@/ui/shared/parse-identity";
 
 import { LOCKED, conversationApi, isTransientFailure } from "./chat-api";
-import { CHAT_COPY, CONVERSATION_COPY, INTEREST_COPY, stageLabel, trackLabel } from "./chat-copy";
-import type { InboxEntry } from "./chat-parse";
+import { CHAT_COPY, CONVERSATION_COPY, INTEREST_COPY, stageShort, trackLabel } from "./chat-copy";
+import { turnOf, type InboxEntry } from "./chat-parse";
 import { InvitationCard } from "./invitation-card";
 import { PeerSprite } from "./peer-sprite";
 import { conversationError } from "./use-conversation";
@@ -61,21 +65,33 @@ function useInbox(onLocked: () => void) {
 
 function InboxRow({ entry, onOpen }: { entry: InboxEntry; onOpen(id: string): void }) {
   const name = formatIdentity(entry.peer.identity);
+  const turn = turnOf(entry);
   return (
     <li>
-      <button type="button" className="zm-box zm-inbox__row" data-tone={entry.track} onClick={() => onOpen(entry.id)}>
+      <button type="button" className="zm-box zm-inbox__row" data-tone={entry.track} data-new={entry.unread || undefined} onClick={() => onOpen(entry.id)}>
         <PeerSprite identity={entry.peer.identity} size={SPRITE_SIZE} />
         <span className="zm-inbox__text">
           <span className="zm-inbox__alias">{name.title}</span>
-          <span className="zm-inbox__meta zm-num">{trackLabel(entry.track)} · {stageLabel(entry.stage, entry.completedRounds)}</span>
-        </span>
-        <span className="zm-inbox__flags">
-          {entry.unread ? <span className="zm-inbox__flag" data-kind="new"><Icon name="loading" filled /> {CONVERSATION_COPY.unread}</span> : null}
-          {entry.myTurn ? <span className="zm-inbox__flag" data-kind="turn">{CONVERSATION_COPY.myTurn}</span> : null}
+          <span className="zm-inbox__meta zm-inbox__line">
+            <span className="zm-inbox__state zm-num">{trackLabel(entry.track)} · {stageShort(entry.stage, entry.completedRounds)}</span>
+            {entry.unread ? <span className="zm-inbox__flag" data-kind="new"><Icon name="loading" filled /> {CONVERSATION_COPY.unread}</span> : null}
+            {turn === "mine" ? <span className="zm-inbox__flag" data-kind="turn">{CONVERSATION_COPY.myTurn}</span> : null}
+            {turn === "theirs" ? <span className="zm-inbox__flag" data-kind="wait">{CONVERSATION_COPY.theirTurn}</span> : null}
+          </span>
         </span>
       </button>
     </li>
   );
+}
+
+/** The two counts that answer "is there something new, and is it mine to do". */
+function tallyOf(rows: readonly InboxEntry[]): { kind: "new" | "turn"; label: string; count: number }[] {
+  const newRows = rows.filter((entry) => entry.unread).length;
+  const mineRows = rows.filter((entry) => turnOf(entry) === "mine").length;
+  return [
+    { kind: "new" as const, label: CONVERSATION_COPY.tallyNew, count: newRows },
+    { kind: "turn" as const, label: CONVERSATION_COPY.myTurn, count: mineRows },
+  ].filter((tally) => tally.count > 0);
 }
 
 export interface InboxProps {
@@ -91,6 +107,7 @@ export function Inbox({ onOpen, onLock, onLocked }: InboxProps) {
   const rows = state.kind === "ready" ? state.list.filter((entry) => isHatched(entry.peer.identity)) : [];
   const invites = state.kind === "ready" ? state.invitations.filter((inv) => isHatched(inv.peer.identity)) : [];
   const empty = state.kind === "ready" && rows.length === 0 && invites.length === 0;
+  const tallies = tallyOf(rows);
   return (
     <>
       {state.kind === "loading" ? <LoadingState title={CONVERSATION_COPY.loading} /> : null}
@@ -108,7 +125,19 @@ export function Inbox({ onOpen, onLock, onLocked }: InboxProps) {
       ) : null}
       {rows.length > 0 ? (
         <>
-          <h2 className="zm-chat__title">{CONVERSATION_COPY.inboxTitle}</h2>
+          <div className="zm-inbox__head">
+            <h2 className="zm-chat__title">{CONVERSATION_COPY.inboxTitle}</h2>
+            {tallies.length > 0 ? (
+              <ul className="zm-inbox__tallies">
+                {tallies.map((tally) => (
+                  <li key={tally.kind} className="zm-inbox__tally" data-kind={tally.kind}>
+                    {tally.kind === "new" ? <Icon name="loading" filled /> : null}
+                    {tally.label} · <span className="zm-num">{tally.count}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
           <ul className="zm-inbox">{rows.map((entry) => <InboxRow key={entry.id} entry={entry} onOpen={onOpen} />)}</ul>
         </>
       ) : null}
