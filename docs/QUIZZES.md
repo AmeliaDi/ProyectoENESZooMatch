@@ -11,6 +11,10 @@ que sirven para **romper el hielo** en las conversaciones:
 2. **Gaming** — plataformas, géneros, estilo de juego, juegos de mesa.
 3. **Picante (18+)** — coqueteo, ritmo, límites, curiosidad adulta (voluntario, con candado).
 
+> No confundir con los **tres quizzes del cuestionario obligatorio** (ADR-045): esos son el
+> test psicométrico repartido en bloques de máximo 35 reactivos para no cansar, y se envían
+> juntos al terminar el último. Estos tres son opcionales, no puntúan y no entran en el perfil.
+
 ### 1.1 Principios no negociables
 
 | # | Principio | Cómo se aplica |

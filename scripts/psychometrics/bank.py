@@ -25,9 +25,9 @@ from bank_model import FLAGS, ITEMS, ORIGINS, Item  # noqa: E402
 from bank_render import write_seed, write_test_md  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 MAX_TEXT = 140
-CORE_LIKERT = 55  # + 3 hard filters = 58 (ADR-044; era 57 + 3 = 60)
+CORE_LIKERT = 65  # + 3 hard filters = 68 (ADR-045 paga la deuda I5 del núcleo; era 55 + 3 = 58)
 
 MODULES = [
     ("nucleo", "Núcleo", "Las preguntas base para tu perfil y tus matches."),
@@ -70,12 +70,23 @@ CATEGORY_BY_PREFIX = {
 
 def order_core(items: list[Item]) -> list[Item]:
     """Alternates HEXACO (rotating factors) with other non-sensitive core items,
-    so no two consecutive items share a factor and no two reversed items touch."""
+    so no two consecutive items share a factor and no two reversed items touch.
+
+    The four streams keep each factor's two items several slots apart, which is
+    what lets `coreQuizSegments` (ADR-045) cut the questionnaire into quizzes by
+    construct family without losing the alternation inside any of them. The two
+    `act_compromiso_social` items therefore ride in the values stream: on their
+    own they would be the only values items left in the sensitive tail, and the
+    cut would place them side by side."""
     by_id = {i.id: i for i in items}
     hexaco = [by_id[f"{f}{k}"] for k in range(1, 5) for f in "HEXACO"]
-    streams = [[by_id[f"INT{k}"] for k in range(1, 7)], [by_id[f"MB{k}"] for k in range(1, 5)],
-               [by_id[f"EN{k}"] for k in range(1, 10)],
-               [by_id[k] for k in ["VAL1", "VAL2", "VAL3", "VAL4", "VAL7", "VAL8", "VAL14", "VAL15"]]]
+    streams = [
+        [by_id[f"INT{k}"] for k in range(1, 7)] + [by_id[f"INT{k}"] for k in range(13, 19)],
+        [by_id[f"MB{k}"] for k in range(1, 5)],
+        [by_id[f"EN{k}"] for k in range(1, 10)],
+        [by_id[k] for k in ["VAL1", "VAL2", "VAL3", "VAL4", "ACT4", "VAL7", "VAL8", "VAL14",
+                            "ACT6", "VAL15", "VAL16", "VAL17", "VAL18", "VAL19"]],
+    ]
     others: list[Item] = []
     while any(streams):
         for s in streams:
@@ -123,8 +134,9 @@ def validate(core: list[Item]) -> None:
     for f in ["hex_h", "hex_e", "hex_x", "hex_a", "hex_c", "hex_o"]:
         if not any(i.factor == f and i.key == -1 for i in core):
             errors.append(f"{f}: no reversed core item")
-    likert = [i for i in core if i.opciones is None]
-    for a, b in zip(likert, likert[1:]):
+    for a, b in zip(core, core[1:]):
+        if a.opciones is not None or b.opciones is not None:
+            continue
         if a.factor == b.factor or (a.key == -1 and b.key == -1):
             errors.append(f"order rule broken at {a.id}->{b.id}")
     if errors:

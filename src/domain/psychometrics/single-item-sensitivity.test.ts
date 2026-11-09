@@ -15,11 +15,13 @@ const REPS = 120;
 const THRESHOLD = MATCHING_CONFIG.tracks.romance.minimum_similarity_exclusive;
 
 /** Ítems que el modelo de medición conoce, agrupados por factor. */
-function itemsByFactor(): Map<string, string[]> {
+function itemsByFactor(source?: readonly string[]): Map<string, string[]> {
   const known = new Set(Object.keys(PSYCHOMETRIC_PARAMS.items));
+  const ids = source ? new Set(source) : null;
   const map = new Map<string, string[]>();
   for (const item of QUIZ_ITEMS) {
     if (!item.factor || !known.has(item.id)) continue;
+    if (ids && !ids.has(item.id)) continue;
     const list = map.get(item.factor) ?? [];
     list.push(item.id);
     map.set(item.factor, list);
@@ -78,37 +80,45 @@ function run(label: string, answered: string[], noisy: string[], model: ReturnTy
 describe("ruido de los factores de un solo item", () => {
   const model = buildMeasurementModel(PSYCHOMETRIC_PARAMS);
   const lower = priorFactor(PSYCHOMETRIC_PARAMS.covarianza_latente.matriz);
-  const byFactor = itemsByFactor();
-  const single = new Set([...byFactor].filter(([, ids]) => ids.length === 1).map(([f]) => f));
 
   /**
-   * Techo por camino de entrega, medido con sorteo fijo (ADR-044). El núcleo
-   * obligatorio venía de 0,30× la banda, 4/120 retests con ruido ≥ 1 banda y
-   * 5/120 cruces del umbral; con los segundos ítems de `meta_crianza`,
-   * `meta_carrera` y `val_presente` y los cinco ítems de peso 0 fuera del
-   * obligatorio queda 0,14×, 0 y 0. En el banco completo siguen cruzando el
-   * umbral 5/120: eso es la deuda de `int_*`/`soc_*` que paga B3.
+   * Techo por camino de entrega, medido con sorteo fijo. Antes de ADR-044 el
+   * núcleo obligatorio llegaba a 0,30× la banda, con 4/120 retests de ruido ≥ 1
+   * banda y 5/120 cruces del umbral. ADR-044 sacó los ítems de peso 0 y duplicó
+   * `meta_crianza`, `meta_carrera` y `val_presente`; ADR-045 duplicó los cuatro
+   * valores y los seis intereses que faltaban. Lo que queda de a un ítem en el
+   * obligatorio son los 13 del MBTI y el eneagrama — 0,65 % del puntaje, medidos
+   * aquí en 0,22× la banda, 1/120 retests sobre una banda y ningún cruce del
+   * umbral. En el banco completo el ruido por retest es 0,05× la banda y queda
+   * 1 cruce en 120, porque los 19 factores únicos se diluyen entre 194 ítems.
+   * `floor` es el piso del arnés: si el promedio cae de ahí, la prueba dejó de
+   * medir algo, no es que el instrumento haya mejorado.
    */
   const CEILINGS = {
-    nucleo: { ratio: 0.15, overBand: 0, flips: 0 },
-    "banco completo": { ratio: 0.25, overBand: 0, flips: 5 },
+    nucleo: { ratio: 0.25, overBand: 1, flips: 0, floor: 0.005 },
+    "banco completo": { ratio: 0.1, overBand: 0, flips: 1, floor: 0.001 },
   } as const;
 
   it("el ruido de los items unicos queda por debajo de su techo por camino", () => {
-    const factorOf = new Map(QUIZ_ITEMS.map((i) => [i.id, i.factor]));
     const cases = [
       ["nucleo", QUIZ_ITEMS.filter((i) => i.modulo === "nucleo")],
       ["banco completo", QUIZ_ITEMS],
     ] as const;
     for (const [label, items] of cases) {
       const answered = items.filter((i) => model.items.has(i.id)).map((i) => i.id);
+      // Un factor es "de un solo ítem" dentro de este camino: el banco puede
+      // tener más, pero quien solo hace el núcleo contesta una pregunta de él.
+      const single = new Set(
+        [...itemsByFactor(answered).entries()].filter(([, ids]) => ids.length === 1).map(([f]) => f),
+      );
+      const factorOf = new Map(items.map((i) => [i.id, i.factor]));
       const noisy = answered.filter((id) => single.has(factorOf.get(id) ?? ""));
       expect(noisy.length).toBeGreaterThan(0);
       const ceiling = CEILINGS[label as keyof typeof CEILINGS];
       const { mean, overBand, flips } = run(label, answered, noisy, model, lower);
       // Un factor de un solo item no puede sostener un discurso de compatibilidad
       // si su propio ruido de retest es una fraccion relevante de la banda util.
-      expect(mean, label).toBeGreaterThan(0.005); // el arnes sigue moviendo el puntaje
+      expect(mean, `${label}: el arnés sigue moviendo el puntaje`).toBeGreaterThan(ceiling.floor);
       expect(mean / BAND, `${label}: media/banda`).toBeLessThanOrEqual(ceiling.ratio);
       expect(overBand, label).toBeLessThanOrEqual(ceiling.overBand);
       expect(flips, label).toBeLessThanOrEqual(ceiling.flips);
@@ -118,26 +128,23 @@ describe("ruido de los factores de un solo item", () => {
 
 /**
  * Deuda fechada del criterio I5: factores que pesan más de 1 % del total y se
- * miden con un solo ítem. `rel_*` se paga en B7-REL (primero decide la evidencia
- * si la capa relacional sigue pesando 0,20); `int_*`/`soc_*` se paga en B3, donde
- * el segundo ítem entra junto con la división de los quizzes. La lista solo puede
- * achicarse: agregar un peso nuevo sobre un ítem único rompe esta prueba.
+ * miden con un solo ítem en todo el banco. `rel_*` se paga en B7-REL (primero
+ * decide la evidencia si la capa relacional sigue pesando 0,20). La deuda de
+ * `int_*`/`soc_*`/`val_*` quedó pagada en B3 con los segundos ítems de ADR-045,
+ * así que la lista de amistad es vacía: agregar un peso nuevo sobre un ítem
+ * único rompe esta prueba, y eso es lo que se quiere romper.
  */
 const SINGLE_ITEM_DEBT: Readonly<Record<string, readonly string[]>> = {
   romance: ["rel_autonomia", "rel_comunicacion", "rel_espacio", "rel_exclusividad", "rel_expresividad", "rel_frecuencia", "rel_metas"],
-  amistad: [
-    "int_actividad_fisica", "int_animales", "int_artistico", "int_comida", "int_convencional", "int_cultura",
-    "int_emprendedor", "int_fiesta", "int_investigador", "int_juegos", "int_realista", "int_vida_nocturna",
-    "soc_campus", "soc_dinero", "soc_familia", "soc_redes", "soc_rutina",
-  ],
+  amistad: [],
 };
 
 /**
  * Fracción del puntaje que viaja en factores de un solo ítem cuando el perfil
- * está completo. Se registra el techo actual (ADR-044): ~0,31 en romance y ~0,35
- * en amistad, medido sobre el banco entero.
+ * está completo. Se registra el techo actual (ADR-045), medido sobre el banco
+ * entero: antes de pagar la deuda eran ~0,31 en romance y ~0,35 en amistad.
  */
-const SINGLE_ITEM_MASS_CEILING: Readonly<Record<string, number>> = { romance: 0.313, amistad: 0.347 };
+const SINGLE_ITEM_MASS_CEILING: Readonly<Record<string, number>> = { romance: 0.219, amistad: 0.001 };
 
 describe("criterio I5: ningun factor pesado se mide con un solo item", () => {
   const byFactor = itemsByFactor();

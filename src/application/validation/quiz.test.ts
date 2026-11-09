@@ -14,8 +14,8 @@ import type { LikertAnswer, LikertValue, QuizSubmission } from "@/types/microtes
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-/** The core ships 58 items: 55 Likert + 3 hard-filter multi-selects (ADR-016, conteo de ADR-044). */
-const CORE_TOTAL = 58;
+/** The core ships 68 items: 65 Likert + 3 hard-filter multi-selects (ADR-045). */
+const CORE_TOTAL = 68;
 const ITEM_ID_PATTERN = /^[A-Z]{1,3}\d{1,2}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 /** Sensitive core Likert items that accept "prefiero no decir". */
@@ -71,8 +71,8 @@ function issuesOf(payload: unknown): string[] {
 // ─── Item id catalogs ─────────────────────────────────────────────────────────
 
 describe("item catalogs", () => {
-  it("has a 58-item core: 55 Likert + 3 hard filters", () => {
-    expect(CORE_LIKERT_ITEM_IDS).toHaveLength(55);
+  it("has a 68-item core: 65 Likert + 3 hard filters", () => {
+    expect(CORE_LIKERT_ITEM_IDS).toHaveLength(65);
     expect(CORE_LIKERT_ITEM_IDS.length + FILTER_ITEM_IDS.length).toBe(CORE_TOTAL);
   });
 

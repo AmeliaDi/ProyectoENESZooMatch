@@ -41,24 +41,36 @@ add("ACT8", AC, 3, "act_igualdad", "decisiones_pareja",
 # ─── Interests ────────────────────────────────────────────────────────────────
 
 add("INT7", I, 3, "int_convencional", None, "Me gusta llevar mis cuentas, agendas o colecciones en orden.", 1, PO)
+add("INT19", I, 3, "int_convencional", "lista", "Prefiero tener mis pendientes en una lista que improvisar.", 1, PO)
 add("INT8", I, 3, "int_juegos", None, "Los videojuegos o juegos de mesa son parte de mi tiempo libre.", 1, PO)
+add("INT20", I, 3, "int_juegos", "habito", "Cuando tengo rato libre, termino jugando algo.", 1, PO)
 add("INT9", I, 3, "int_cultura", None, "Me gusta ir a conciertos, festivales o eventos culturales.", 1, PO, "",
     {"cultural_musica_exploracion": 1})
+add("INT21", I, 3, "int_cultura", "descubrir", "Descubro música, cine o libros por mi cuenta.", 1, PO)
 add("INT10", I, 3, "int_animales", None, "Me encanta convivir con animales.", 1, PO)
+add("INT22", I, 3, "int_animales", "calma", "Estar cerca de animales me calma, aunque no sean míos.", 1, PO)
 add("INT11", I, 3, "int_comida", None, "Disfruto cocinar o descubrir lugares para comer.", 1, PO)
+add("INT23", I, 3, "int_comida", "compartir", "Compartir comida es mi forma de celebrar algo.", 1, PO)
 add("INT12", I, 3, "int_fiesta", None, "Prefiero un plan tranquilo en casa que salir de fiesta.", -1, PO, "",
     {"cultural_vida_universitaria": -1})
+add("INT24", I, 3, "int_fiesta", "salir", "Me gusta salir de fiesta con mis amigos.", 1, PO)
 add("HUM1", I, 3, "int_humor", None, "Uso el humor para acercarme a la gente y hacerla reír.", 1, PO, "",
     {"cultural_humor": 1})
 
 # ─── Lifestyle / socio-cultural ───────────────────────────────────────────────
 
 add("SOC1", S, 3, "soc_rutina", None, "Me gusta que mis días sigan una rutina parecida.", 1, PO)
+add("SOC7", S, 3, "soc_rutina", "horarios", "Organizo mi semana para tener horarios predecibles.", 1, PO)
 add("SOC2", S, 3, "soc_redes", None, "Comparto seguido en redes lo que hago.", 1, PO)
+add("SOC8", S, 3, "soc_redes", "atencion", "Reviso las redes varias veces al día.", 1, PO)
 add("SOC3", S, 3, "soc_dinero", None, "Llevo control de en qué gasto mi dinero.", 1, PO)
+add("SOC9", S, 3, "soc_dinero", "decision", "Antes de comprar algo caro lo pienso varios días.", 1, PO)
 add("SOC4", S, 3, "soc_familia", None, "Mi familia participa mucho en mis decisiones.", 1, PO, "SENS")
+add("SOC10", S, 3, "soc_familia", "consultar", "Para lo importante, primero consulto a mi familia.", 1, PO, "SENS")
 add("SOC5", S, 3, "soc_campus", None, "Me gusta pasar tiempo en el campus aunque no tenga clase.", 1, PO, "",
     {"cultural_vida_universitaria": 1})
+add("SOC11", S, 3, "soc_campus", "actividades", "Participo en actividades del campus: clubes, equipos, eventos.", 1, PO,
+    "", {"cultural_vida_universitaria": 1})
 add("SOC6", S, 3, "soc_politica", "valores_politicos",
     "Me importa que mi círculo cercano comparta mi forma de ver lo social.", 1, PO, "SENS")
 

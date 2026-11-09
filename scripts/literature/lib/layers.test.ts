@@ -74,9 +74,11 @@ describe("layer admission", () => {
     // La familia ACT no es un factor: de los 6 ACT que estaban en el núcleo, ACT1-3 miden
     // act_igualdad, ACT4/ACT6 miden act_compromiso_social y ACT5 mide rel_autonomia. Contar
     // por prefijo fue lo que dejó el registry en 54 cuando el banco entregaba 58 (ADR-044).
+    // Con ADR-045 son 16: los 12 de antes más VAL16-19, los segundos ítems de los
+    // cuatro valores que pesaban 0,13 viajando en un solo ítem.
     const valores = data.candidates.find((c) => c.id === "valores");
     if (!valores) throw new Error("sin ficha de valores");
-    expect(planDe(valores.plan.factores, counts)).toEqual({ nucleo: 12, opcional: 5, total: 17 });
+    expect(planDe(valores.plan.factores, counts)).toEqual({ nucleo: 16, opcional: 5, total: 21 });
     expect(() => planDe(["no_existe_el_factor"], counts)).toThrow(/factor desconocido en el banco/);
   });
 

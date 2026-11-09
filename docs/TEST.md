@@ -4,13 +4,13 @@
 > banco aprobado en `docs/ITEMS_PROPUESTA.md` (ADR-016). Escala Likert 1–5. `−` = inverso (6 − x).
 > Banderas: DS deseabilidad social, AMB ambigüedad, SENS sensible (omitible), 1I escala de un ítem.
 
-Núcleo: **58 ítems** (55 Likert + 3 filtros), ≈ 6.8 min a 7 s/ítem. Módulos opcionales: **118 ítems**.
+Núcleo: **68 ítems** (65 Likert + 3 filtros), ≈ 7.9 min a 7 s/ítem. Módulos opcionales: **129 ítems**.
 
 ## Núcleo (orden de presentación)
 
 | # | id | Capa | Factor / faceta | Texto | Pol. | Origen | Banderas |
 |---|---|---|---|---|---|---|---|
-| 1 | INT1 | 3 | int_realista | Disfruto el aire libre o hacer cosas con las manos. | + | original | AMB, 1I |
+| 1 | INT1 | 3 | int_realista | Disfruto el aire libre o hacer cosas con las manos. | + | original | AMB |
 | 2 | H1 | 1 | hex_h / sinceridad | No finjo ser más de lo que soy. | + | ipip_hexaco | DS |
 | 3 | MB1 | 4 | mbti_ei | Después de un día intenso, recargo energía estando a solas. | + | original |  |
 | 4 | E1 | 1 | hex_e / ansiedad | Me preocupo por cosas que al final no son importantes. | + | ipip_hexaco |  |
@@ -18,7 +18,7 @@ Núcleo: **58 ítems** (55 Likert + 3 filtros), ≈ 6.8 min a 7 s/ítem. Módulo
 | 6 | X1 | 1 | hex_x / autoestima_social | Estar con gente me hace sentir a gusto. | + | ipip_hexaco |  |
 | 7 | VAL1 | 3 | val_autotrascendencia | Me importa el bienestar de personas que ni conozco. | + | original | DS |
 | 8 | A1 | 1 | hex_a / perdon | Suelo perdonar y dejar las cosas atrás. | + | ipip_hexaco | DS |
-| 9 | INT2 | 3 | int_investigador | Paso tiempo investigando temas solo por curiosidad. | + | original | 1I |
+| 9 | INT2 | 3 | int_investigador | Paso tiempo investigando temas solo por curiosidad. | + | original |  |
 | 10 | C1 | 1 | hex_c / organizacion | Me gusta tener mis cosas en orden. | + | ipip_hexaco |  |
 | 11 | MB2 | 4 | mbti_sn | Me atraen más las posibilidades futuras que los detalles del presente. | + | original |  |
 | 12 | O1 | 1 | hex_o / apreciacion_estetica | Veo belleza en cosas que otras personas no notan. | + | ipip_hexaco |  |
@@ -26,7 +26,7 @@ Núcleo: **58 ítems** (55 Likert + 3 filtros), ≈ 6.8 min a 7 s/ítem. Módulo
 | 14 | H2 | 1 | hex_h / equidad | Haría trampa si eso me ayudara a salir adelante. | − | ipip_hexaco | DS |
 | 15 | VAL2 | 3 | val_autopromocion | Para mí es importante tener éxito y que se note. | + | original |  |
 | 16 | E2 | 1 | hex_e / temor | Disfruto hacer cosas que dan miedo. | − | ipip_hexaco |  |
-| 17 | INT3 | 3 | int_artistico | Dedico tiempo a crear: música, dibujo, escritura u otro arte. | + | original | 1I |
+| 17 | INT3 | 3 | int_artistico | Dedico tiempo a crear: música, dibujo, escritura u otro arte. | + | original |  |
 | 18 | X2 | 1 | hex_x / audacia_social | Prefiero quedarme en segundo plano. | − | ipip_hexaco |  |
 | 19 | MB3 | 4 | mbti_tf | Al decidir, pesa más cómo se sentirán las personas que la pura lógica. | + | original |  |
 | 20 | A2 | 1 | hex_a / gentileza | Juzgo rápido a las demás personas. | − | ipip_hexaco |  |
@@ -34,7 +34,7 @@ Núcleo: **58 ítems** (55 Likert + 3 filtros), ≈ 6.8 min a 7 s/ítem. Módulo
 | 22 | C2 | 1 | hex_c / diligencia | Hago solo lo mínimo para salir del paso. | − | ipip_hexaco |  |
 | 23 | VAL3 | 3 | val_apertura_cambio | Valoro elegir mi propio camino, aunque no sea el esperado. | + | original |  |
 | 24 | O2 | 1 | hex_o / curiosidad | Disfruto leer textos que me retan. | + | ipip_hexaco |  |
-| 25 | INT4 | 3 | int_emprendedor | Me emociona organizar proyectos o eventos. | + | original | 1I |
+| 25 | INT4 | 3 | int_emprendedor | Me emociona organizar proyectos o eventos. | + | original |  |
 | 26 | H3 | 1 | hex_h / evitacion_codicia | Me importa mucho tener estatus. | − | ipip_hexaco |  |
 | 27 | MB4 | 4 | mbti_jp | Prefiero dejar los planes abiertos y decidir sobre la marcha. | + | original |  |
 | 28 | E3 | 1 | hex_e / dependencia | Cuando paso por un mal momento, busco apoyo en alguien. | + | ipip_hexaco |  |
@@ -42,32 +42,42 @@ Núcleo: **58 ítems** (55 Likert + 3 filtros), ≈ 6.8 min a 7 s/ítem. Módulo
 | 30 | X3 | 1 | hex_x / sociabilidad | Hago amistades con facilidad. | + | ipip_hexaco |  |
 | 31 | VAL4 | 3 | val_conservacion | Me importa respetar las tradiciones de mi familia o comunidad. | + | original |  |
 | 32 | A3 | 1 | hex_a / flexibilidad | Recibo bien los consejos, aunque no los haya pedido. | + | ipip_hexaco |  |
-| 33 | INT5 | 3 | int_vida_nocturna | Soy más de planes de noche que de planes de día. | + | original | 1I |
+| 33 | INT5 | 3 | int_vida_nocturna | Soy más de planes de noche que de planes de día. | + | original |  |
 | 34 | C3 | 1 | hex_c / perfeccionismo | Pongo mucha atención a los detalles. | + | ipip_hexaco |  |
 | 35 | EN5 | 4 | ennea_5 / motivacion | Antes de actuar, necesito entender a fondo cómo funcionan las cosas. | + | original |  |
 | 36 | O3 | 1 | hex_o / creatividad | Me cuesta imaginar cosas nuevas. | − | ipip_hexaco |  |
-| 37 | VAL7 | 3 | meta_carrera / prioridad | En esta etapa, mi carrera profesional es mi prioridad. | + | original |  |
+| 37 | ACT4 | 3 | act_compromiso_social / diversidad | Me gusta convivir con gente de orígenes y formas de pensar distintas. | + | original | DS |
 | 38 | H4 | 1 | hex_h / modestia | No creo ser mejor que las demás personas. | + | ipip_hexaco | DS |
-| 39 | INT6 | 3 | int_actividad_fisica | El ejercicio o el deporte es parte de mi rutina. | + | original | 1I |
+| 39 | INT6 | 3 | int_actividad_fisica | El ejercicio o el deporte es parte de mi rutina. | + | original |  |
 | 40 | E4 | 1 | hex_e / sentimentalidad | Me conmueve mucho el sufrimiento de otras personas. | + | ipip_hexaco | DS |
 | 41 | EN6 | 4 | ennea_6 / motivacion | Me tranquiliza tener un plan B y saber con quién puedo contar. | + | original |  |
 | 42 | X4 | 1 | hex_x / vivacidad | Casi siempre tengo mucha energía. | + | ipip_hexaco |  |
-| 43 | VAL8 | 3 | val_presente / actitud | Disfrutar el momento me importa más que ahorrar para el futuro. | + | original |  |
+| 43 | VAL7 | 3 | meta_carrera / prioridad | En esta etapa, mi carrera profesional es mi prioridad. | + | original |  |
 | 44 | A4 | 1 | hex_a / paciencia | Me enojo con facilidad. | − | ipip_hexaco |  |
-| 45 | EN7 | 4 | ennea_7 / motivacion | Busco tener muchas opciones abiertas para no perderme nada. | + | original |  |
+| 45 | INT13 | 3 | int_realista / manual | Armar, reparar o construir algo me resulta entretenido. | + | original |  |
 | 46 | C4 | 1 | hex_c / prudencia | Tomo decisiones sin pensar en las consecuencias. | − | ipip_hexaco |  |
-| 47 | VAL14 | 3 | meta_carrera / movilidad | Cambiaría de ciudad o de país por una oportunidad que me importe profesionalmente. | + | original |  |
+| 47 | EN7 | 4 | ennea_7 / motivacion | Busco tener muchas opciones abiertas para no perderme nada. | + | original |  |
 | 48 | O4 | 1 | hex_o / no_convencionalidad | Suelo ir contra la corriente. | + | ipip_hexaco | AMB |
-| 49 | EN8 | 4 | ennea_8 / motivacion | Prefiero tener el control de mi vida que depender de alguien. | + | original |  |
-| 50 | VAL15 | 3 | val_presente / gasto | Prefiero gastar en experiencias de ahora que guardar para después. | + | original |  |
-| 51 | EN9 | 4 | ennea_9 / motivacion | Prefiero ceder un poco antes que romper la calma de un grupo. | + | original |  |
-| 52 | ACT4 | 3 | act_compromiso_social / diversidad | Me gusta convivir con gente de orígenes y formas de pensar distintas. | + | original | DS |
-| 53 | VAL6 | 3 | meta_crianza / deseo | Me gustaría criar hijxs algún día. | + | original | SENS |
-| 54 | ACT6 | 3 | act_compromiso_social / participacion | Me interesa participar en causas sociales o colectivas. | + | original |  |
-| 55 | VAL13 | 3 | meta_crianza / temporalidad | Me veo criando hijxs en los próximos años. | + | original | SENS |
-| 56 | FIL1 | 0 | filtro / interes_romantico | ¿Con quién te interesa conectar en lo romántico? (mujeres · hombres · personas no binarias · prefiero no decir) | sel. | original | SENS |
-| 57 | FIL2 | 0 | filtro / identidad_genero | ¿Cómo te identificas? (mujer · hombre · no binarie · género fluido · agénero · otra · prefiero no decir) | sel. | original | SENS |
-| 58 | FIL3 | 0 | filtro / tipo_vinculo | ¿Qué tipo de vínculo te interesa ahora? (monogamia · no_monogamia_etica · sin_definir · solo_amistad · prefiero no decir) | sel. | original | SENS |
+| 49 | VAL8 | 3 | val_presente / actitud | Disfrutar el momento me importa más que ahorrar para el futuro. | + | original |  |
+| 50 | INT14 | 3 | int_investigador / profundidad | Me quedo con un tema hasta entenderlo de verdad. | + | original |  |
+| 51 | EN8 | 4 | ennea_8 / motivacion | Prefiero tener el control de mi vida que depender de alguien. | + | original |  |
+| 52 | VAL14 | 3 | meta_carrera / movilidad | Cambiaría de ciudad o de país por una oportunidad que me importe profesionalmente. | + | original |  |
+| 53 | INT15 | 3 | int_artistico / consumo | La música, el arte o el diseño forman parte de mi día. | + | original |  |
+| 54 | EN9 | 4 | ennea_9 / motivacion | Prefiero ceder un poco antes que romper la calma de un grupo. | + | original |  |
+| 55 | ACT6 | 3 | act_compromiso_social / participacion | Me interesa participar en causas sociales o colectivas. | + | original |  |
+| 56 | INT16 | 3 | int_emprendedor / iniciativa | Me lanzo a organizar algo aunque nadie me lo pida. | + | original |  |
+| 57 | VAL15 | 3 | val_presente / gasto | Prefiero gastar en experiencias de ahora que guardar para después. | + | original |  |
+| 58 | INT17 | 3 | int_vida_nocturna / energia | Mi cabeza funciona mejor cuando ya es de noche. | + | original |  |
+| 59 | VAL16 | 3 | val_autotrascendencia / aportar | Aporto tiempo o dinero a causas colectivas aunque nadie lo note. | + | original | DS |
+| 60 | INT18 | 3 | int_actividad_fisica / movimiento | Si paso varios días sin moverme, me siento mal. | + | original |  |
+| 61 | VAL17 | 3 | val_autopromocion / reconocimiento | Me importa que mi trabajo sea reconocido, no nada más hecho. | + | original |  |
+| 62 | VAL18 | 3 | val_apertura_cambio / estimulacion | Me aburre hacer siempre lo mismo, aunque me vaya bien. | + | original |  |
+| 63 | VAL19 | 3 | val_conservacion / referencias | Me gusta mantener el orden y las formas que aprendí en casa. | + | original |  |
+| 64 | VAL6 | 3 | meta_crianza / deseo | Me gustaría criar hijxs algún día. | + | original | SENS |
+| 65 | FIL1 | 0 | filtro / interes_romantico | ¿Con quién te interesa conectar en lo romántico? (mujeres · hombres · personas no binarias · prefiero no decir) | sel. | original | SENS |
+| 66 | VAL13 | 3 | meta_crianza / temporalidad | Me veo criando hijxs en los próximos años. | + | original | SENS |
+| 67 | FIL2 | 0 | filtro / identidad_genero | ¿Cómo te identificas? (mujer · hombre · no binarie · género fluido · agénero · otra · prefiero no decir) | sel. | original | SENS |
+| 68 | FIL3 | 0 | filtro / tipo_vinculo | ¿Qué tipo de vínculo te interesa ahora? (monogamia · no_monogamia_etica · sin_definir · solo_amistad · prefiero no decir) | sel. | original | SENS |
 
 ## Módulo `hexaco_facetas`: Personalidad a detalle (24 ítems)
 
@@ -146,32 +156,43 @@ Cómo ves el trato entre personas y en pareja.
 | 4 | ACT7 | 3 | act_igualdad / expresion_genero | Cada persona puede expresar su género como quiera. | + | original | DS, SENS |
 | 5 | ACT8 | 3 | act_igualdad / decisiones_pareja | En una pareja, alguien debe llevar las decisiones importantes. | − | original | SENS |
 
-## Módulo `intereses`: Gustos y planes (7 ítems)
+## Módulo `intereses`: Gustos y planes (13 ítems)
 
 Pasatiempos, humor y formas de pasar el rato.
 
 | # | id | Capa | Factor / faceta | Texto | Pol. | Origen | Banderas |
 |---|---|---|---|---|---|---|---|
-| 1 | INT7 | 3 | int_convencional | Me gusta llevar mis cuentas, agendas o colecciones en orden. | + | original | 1I |
-| 2 | INT8 | 3 | int_juegos | Los videojuegos o juegos de mesa son parte de mi tiempo libre. | + | original | 1I |
-| 3 | INT9 | 3 | int_cultura | Me gusta ir a conciertos, festivales o eventos culturales. | + | original | 1I |
-| 4 | INT10 | 3 | int_animales | Me encanta convivir con animales. | + | original | 1I |
-| 5 | INT11 | 3 | int_comida | Disfruto cocinar o descubrir lugares para comer. | + | original | 1I |
-| 6 | INT12 | 3 | int_fiesta | Prefiero un plan tranquilo en casa que salir de fiesta. | − | original | 1I |
-| 7 | HUM1 | 3 | int_humor | Uso el humor para acercarme a la gente y hacerla reír. | + | original | 1I |
+| 1 | INT7 | 3 | int_convencional | Me gusta llevar mis cuentas, agendas o colecciones en orden. | + | original |  |
+| 2 | INT19 | 3 | int_convencional / lista | Prefiero tener mis pendientes en una lista que improvisar. | + | original |  |
+| 3 | INT8 | 3 | int_juegos | Los videojuegos o juegos de mesa son parte de mi tiempo libre. | + | original |  |
+| 4 | INT20 | 3 | int_juegos / habito | Cuando tengo rato libre, termino jugando algo. | + | original |  |
+| 5 | INT9 | 3 | int_cultura | Me gusta ir a conciertos, festivales o eventos culturales. | + | original |  |
+| 6 | INT21 | 3 | int_cultura / descubrir | Descubro música, cine o libros por mi cuenta. | + | original |  |
+| 7 | INT10 | 3 | int_animales | Me encanta convivir con animales. | + | original |  |
+| 8 | INT22 | 3 | int_animales / calma | Estar cerca de animales me calma, aunque no sean míos. | + | original |  |
+| 9 | INT11 | 3 | int_comida | Disfruto cocinar o descubrir lugares para comer. | + | original |  |
+| 10 | INT23 | 3 | int_comida / compartir | Compartir comida es mi forma de celebrar algo. | + | original |  |
+| 11 | INT12 | 3 | int_fiesta | Prefiero un plan tranquilo en casa que salir de fiesta. | − | original |  |
+| 12 | INT24 | 3 | int_fiesta / salir | Me gusta salir de fiesta con mis amigos. | + | original |  |
+| 13 | HUM1 | 3 | int_humor | Uso el humor para acercarme a la gente y hacerla reír. | + | original | 1I |
 
-## Módulo `estilo_vida`: Tu día a día (6 ítems)
+## Módulo `estilo_vida`: Tu día a día (11 ítems)
 
 Rutinas, dinero, familia, redes y temas sociales.
 
 | # | id | Capa | Factor / faceta | Texto | Pol. | Origen | Banderas |
 |---|---|---|---|---|---|---|---|
-| 1 | SOC1 | 3 | soc_rutina | Me gusta que mis días sigan una rutina parecida. | + | original | 1I |
-| 2 | SOC2 | 3 | soc_redes | Comparto seguido en redes lo que hago. | + | original | 1I |
-| 3 | SOC3 | 3 | soc_dinero | Llevo control de en qué gasto mi dinero. | + | original | 1I |
-| 4 | SOC4 | 3 | soc_familia | Mi familia participa mucho en mis decisiones. | + | original | SENS, 1I |
-| 5 | SOC5 | 3 | soc_campus | Me gusta pasar tiempo en el campus aunque no tenga clase. | + | original | 1I |
-| 6 | SOC6 | 3 | soc_politica / valores_politicos | Me importa que mi círculo cercano comparta mi forma de ver lo social. | + | original | SENS, 1I |
+| 1 | SOC1 | 3 | soc_rutina | Me gusta que mis días sigan una rutina parecida. | + | original |  |
+| 2 | SOC7 | 3 | soc_rutina / horarios | Organizo mi semana para tener horarios predecibles. | + | original |  |
+| 3 | SOC2 | 3 | soc_redes | Comparto seguido en redes lo que hago. | + | original |  |
+| 4 | SOC8 | 3 | soc_redes / atencion | Reviso las redes varias veces al día. | + | original |  |
+| 5 | SOC3 | 3 | soc_dinero | Llevo control de en qué gasto mi dinero. | + | original |  |
+| 6 | SOC9 | 3 | soc_dinero / decision | Antes de comprar algo caro lo pienso varios días. | + | original |  |
+| 7 | SOC4 | 3 | soc_familia | Mi familia participa mucho en mis decisiones. | + | original | SENS |
+| 8 | SOC10 | 3 | soc_familia / consultar | Para lo importante, primero consulto a mi familia. | + | original | SENS |
+| 9 | SOC5 | 3 | soc_campus | Me gusta pasar tiempo en el campus aunque no tenga clase. | + | original |  |
+| 10 | SOC11 | 3 | soc_campus / actividades | Participo en actividades del campus: clubes, equipos, eventos. | + | original |  |
+| 11 | SOC6 | 3 | soc_politica / valores_politicos | Me importa que mi círculo cercano comparta mi forma de ver lo social. | + | original | SENS, 1I |
 
 ## Módulo `relacional`: Cómo te vinculas (20 ítems)
 

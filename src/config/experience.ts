@@ -37,6 +37,8 @@ export const experienceSchema = z.strictObject({
     secondsPerItem: positiveInt,
     /** Every N answered items the progress line offers a short pause note. */
     breathEvery: positiveInt,
+    /** Ceiling of one sitting: the core is split into quizzes of at most this many questions (ADR-045). */
+    maxItemsPerQuiz: positiveInt,
     /** Option that deselects every other option of a multi-select item. */
     exclusiveOption: z.string().min(1),
     /** Categories shown last, after a short note about why they are asked. */

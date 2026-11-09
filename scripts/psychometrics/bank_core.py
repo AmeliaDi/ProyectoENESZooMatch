@@ -1,4 +1,4 @@
-"""Core block: 55 Likert + 3 hard filters (docs/ITEMS_PROPUESTA.md §1 + ADR-044).
+"""Core block: 65 Likert + 3 hard filters (docs/ITEMS_PROPUESTA.md §1 + ADR-045).
 
 Definition order here is NOT presentation order; bank.py derives the order
 (see `order_core`) and writes it explicitly into data/microtest.json.
@@ -7,6 +7,12 @@ ADR-044 saca del núcleo lo que ya no puntúa (val_espiritualidad, act_igualdad:
 listas expresas de dato sensible, peso 0 desde ADR-043) y lo que mide un factor
 cuya otra mitad vive en un módulo opcional (rel_autonomia: ACT5 + REL15). Preguntar
 en el obligatorio algo que no entra al puntaje solo cuesta respuestas.
+
+ADR-045 paga en el núcleo la deuda I5 que quedaba: cuatro factores de valores
+(autotrascendencia, autopromoción, apertura, conservación) cargaban 0,134 del
+romance y 0,142 de la amistad en un solo ítem, y los seis de intereses 0,122 de
+la amistad en uno cada uno. Cada uno recibe su segundo ítem aquí, no en el
+módulo opcional: lo que se topa es el perfil obligatorio.
 """
 
 from __future__ import annotations
@@ -59,9 +65,16 @@ add("O4", N, 1, "hex_o", "no_convencionalidad", "Suelo ir contra la corriente.",
 
 add("VAL1", N, 3, "val_autotrascendencia", None, "Me importa el bienestar de personas que ni conozco.", 1, PO,
     "DS", {"valores_empatia": 1})
+add("VAL16", N, 3, "val_autotrascendencia", "aportar",
+    "Aporto tiempo o dinero a causas colectivas aunque nadie lo note.", 1, PO, "DS", {"valores_empatia": 1})
 add("VAL2", N, 3, "val_autopromocion", None, "Para mí es importante tener éxito y que se note.", 1, PO)
+add("VAL17", N, 3, "val_autopromocion", "reconocimiento",
+    "Me importa que mi trabajo sea reconocido, no nada más hecho.", 1, PO)
 add("VAL3", N, 3, "val_apertura_cambio", None, "Valoro elegir mi propio camino, aunque no sea el esperado.", 1, PO)
+add("VAL18", N, 3, "val_apertura_cambio", "estimulacion", "Me aburre hacer siempre lo mismo, aunque me vaya bien.", 1, PO)
 add("VAL4", N, 3, "val_conservacion", None, "Me importa respetar las tradiciones de mi familia o comunidad.", 1, PO)
+add("VAL19", N, 3, "val_conservacion", "referencias",
+    "Me gusta mantener el orden y las formas que aprendí en casa.", 1, PO)
 add("VAL6", N, 3, "meta_crianza", "deseo", "Me gustaría criar hijxs algún día.", 1, PO, "SENS")
 add("VAL13", N, 3, "meta_crianza", "temporalidad", "Me veo criando hijxs en los próximos años.", 1, PO, "SENS")
 add("VAL7", N, 3, "meta_carrera", "prioridad", "En esta etapa, mi carrera profesional es mi prioridad.", 1, PO)
@@ -81,14 +94,20 @@ add("ACT6", N, 3, "act_compromiso_social", "participacion",
 # ─── Layer 3: interests and lifestyle ─────────────────────────────────────────
 
 add("INT1", N, 3, "int_realista", None, "Disfruto el aire libre o hacer cosas con las manos.", 1, PO, "AMB")
+add("INT13", N, 3, "int_realista", "manual", "Armar, reparar o construir algo me resulta entretenido.", 1, PO)
 add("INT2", N, 3, "int_investigador", None, "Paso tiempo investigando temas solo por curiosidad.", 1, PO)
+add("INT14", N, 3, "int_investigador", "profundidad", "Me quedo con un tema hasta entenderlo de verdad.", 1, PO)
 add("INT3", N, 3, "int_artistico", None, "Dedico tiempo a crear: música, dibujo, escritura u otro arte.", 1, PO, "",
     {"cultural_hobbies_creativos": 1})
+add("INT15", N, 3, "int_artistico", "consumo", "La música, el arte o el diseño forman parte de mi día.", 1, PO)
 add("INT4", N, 3, "int_emprendedor", None, "Me emociona organizar proyectos o eventos.", 1, PO, "",
     {"cultural_vida_universitaria": 1})
+add("INT16", N, 3, "int_emprendedor", "iniciativa", "Me lanzo a organizar algo aunque nadie me lo pida.", 1, PO)
 add("INT5", N, 3, "int_vida_nocturna", None, "Soy más de planes de noche que de planes de día.", 1, PO, "",
     {"cultural_vida_universitaria": 1})
+add("INT17", N, 3, "int_vida_nocturna", "energia", "Mi cabeza funciona mejor cuando ya es de noche.", 1, PO)
 add("INT6", N, 3, "int_actividad_fisica", None, "El ejercicio o el deporte es parte de mi rutina.", 1, PO)
+add("INT18", N, 3, "int_actividad_fisica", "movimiento", "Si paso varios días sin moverme, me siento mal.", 1, PO)
 
 # ─── Layer 4: MBTI axes (pole + = I, N, F, P) and Enneagram ───────────────────
 
@@ -108,4 +127,7 @@ ennea("EN8", N, 8, "motivacion", "Prefiero tener el control de mi vida que depen
 ennea("EN9", N, 9, "motivacion", "Prefiero ceder un poco antes que romper la calma de un grupo.")
 
 # Sensitive tail, explicit order (SENS Likert items may be skipped, ADR-016).
-CORE_TAIL = ["ACT4", "VAL6", "ACT6", "VAL13", "FIL1", "FIL2", "FIL3"]
+# FIL1 separates the two `meta_crianza` items: once the questionnaire is cut
+# into quizzes (ADR-045) they are the only Likert left in the last one, and
+# back-to-back questions about the same wish read as one repeated question.
+CORE_TAIL = ["VAL6", "FIL1", "VAL13", "FIL2", "FIL3"]

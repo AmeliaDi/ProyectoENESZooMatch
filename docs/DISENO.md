@@ -467,7 +467,7 @@ Razones:
 
 - Es la única dirección donde el modo día pedido ("carta celeste sobre papel
   cálido") es una consecuencia natural de la metáfora, no un añadido.
-- Tiene el mejor par de legibilidad para un test de 60 ítems en móvil.
+- Tiene el mejor par de legibilidad para un test largo en móvil (hoy: 68 ítems obligatorios en tres quizzes).
 - Sirve igual para la constelación y para el admin sobrio.
 - Su estructura (catálogo, coordenadas) refuerza el mensaje de "estadística
   honesta, no destino".

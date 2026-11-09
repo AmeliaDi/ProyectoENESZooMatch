@@ -22,7 +22,7 @@ UNAM.
 ```mermaid
 graph TD
   A[Matrícula] -->|HMAC, nunca en claro| B[Sesión anónima con alias fijo]
-  B --> C[Cuestionario: 60 ítems núcleo + filtros]
+  B --> C[Cuestionario: 68 ítems núcleo en 3 quizzes + filtros]
   C --> D[Perfil latente HEXACO por capas]
   D --> E[Identidad: animal MBTI + color Eneagrama]
   D --> F[Recálculo global de afinidades]
@@ -34,7 +34,7 @@ graph TD
 | Función | Qué es | Más detalle |
 |---|---|---|
 | **Modelo por capas** | Capa 0, filtros duros (orientación, identidad, tipo de relación). Capa 1, **HEXACO** como núcleo. Capa 2, Big Five como puente. Capa 3, valores, estilo relacional, apego y estilo de vida. Capa 4, **MBTI + Eneagrama** para la identidad visual, con peso mínimo en el puntaje | `docs/DECISION_MODELO_RASGOS.md`, `docs/MATCHING.md`, `docs/SCORING.md` |
-| **Cuestionario** | 60 ítems núcleo y módulos opcionales para afinar (facetas HEXACO, Big Five, valores, relacional, MBTI, Eneagrama, subtipo, intereses y estilo de vida; 173 ítems en total) | `docs/TEST.md`, `docs/MEDICION.md` |
+| **Cuestionario** | 68 ítems núcleo repartidos en tres quizzes de máximo 35 reactivos (24 / 30 / 14) y módulos opcionales para afinar (facetas HEXACO, Big Five, valores, relacional, MBTI, Eneagrama, subtipo, intereses y estilo de vida; 197 ítems en total) | `docs/TEST.md`, `docs/MEDICION.md` |
 | **Constelación** | Física propia en SVG: tu estrella al centro, porcentaje de afinidad sobre cada sprite y brillo dorado desde el 95 %. Arrastrar, zoom y guía rápida en móvil | `docs/FISICA.md`, `docs/DISENO.md` |
 | **Explicabilidad** | «Lo que más conecta», «tensión sana» y confianza, derivados de las contribuciones **reales** del puntaje | `docs/MATCHING.md` §4 |
 | **Perfil** | El tuyo completo (HEXACO en hexágono, ejes MBTI, Eneagrama con ala). De otras personas, solo bandas de lo que **eligieron** compartir | `docs/PANTALLAS.md`, ADR-030 |

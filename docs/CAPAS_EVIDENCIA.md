@@ -67,9 +67,9 @@ Nota: Selfhout 2010 ya estaba verificado en `EVIDENCIA.md` (EV-17).
 
 | Capa candidata | 1. Evidencia (estudios verificados) | 2. No redundante | 3. Licencia u originales | 4. Ítems núcleo + opcionales | 5. Sin dato sensible | Decisión |
 |---|---|---|---|---|---|---|
-| Valores personales y metas de vida (Schwartz) | sí (3) | sí | sí | 12 + 5 | sí | **admitida** |
+| Valores personales y metas de vida (Schwartz) | sí (3) | sí | sí | 16 + 5 | sí | **admitida** |
 | Actitudes sociales y perspectiva de género | **no** (1) | sí | sí | 0 + 5 | sí | **opcional_narrativa** |
-| Intereses, ocio y estilo de vida universitario | sí (2) | sí | sí | 6 + 12 | sí | **admitida** |
+| Intereses, ocio y estilo de vida universitario | sí (2) | sí | sí | 12 + 23 | sí | **admitida** |
 | Apego adulto (ansiedad y evitación) | **no** (0) | sí | sí | 0 + 4 | sí | **extra_peso_minimo** |
 | Estilos de conflicto y comunicación | **no** (0) | sí | sí | 0 + 4 | sí | **extra_peso_minimo** |
 | Estilo de vínculo: exclusividad, metas, espacio y autonomía | **no** (0) | sí | sí | 0 + 7 | sí | **opcional_narrativa** |
@@ -253,21 +253,22 @@ imprime `ADEUDOS DE LICENCIAMIENTO (1): relacional: peso 0.2 > licenciado 0` y e
   lugar donde la exclusividad ya funciona como veto legítimo. Ninguna de las tres es una decisión
   estadística: son decisiones de producto y se toman con la usuaria.
 
-## 4. Reparto entregado (banco v2.1.0: 58 ítems obligatorios, 6,77 min)
+## 4. Reparto entregado (banco v2.2.0: 68 ítems obligatorios, 7,93 min)
 
 Contado sobre `data/microtest.json`, no propuesto: `npm run data:layers` falla si este número se
-separa del banco (ADR-044).
+separa del banco (ADR-044). El obligatorio se entrega repartido en tres quizzes de 24 / 30 / 14
+reactivos, cortados por familia de puntuación y con lo sensible al final (ADR-045).
 
 | Bloque | Capa | Ítems | Origen | Papel en el puntaje |
 |---|---|---|---|---|
 | Filtros duros | 0 | 3 | Selección múltiple con "prefiero no decir" | Elegibilidad mutua (no es un puntaje) |
 | **HEXACO** (H, E, X, A, C, O × 4) | 1 | **24** | IPIP-HEXACO, dominio público, traducción propia; ≥ 1 inverso por factor | **Núcleo** — 0,376 del total romance |
-| Valores, metas y compromisos | 3 | 12 | Originales (PVQ y LFPDPPP como referencia de contenido) | 0,235 (`valores`) + 0,047 (`meta_crianza`, en `dealbreakers`) |
-| Intereses y afinidad cultural | 3 | 6 | Originales (inspiración RIASEC) | 0,094 en romance, 0,347 en amistad — un ítem por factor (deuda B3) |
+| Valores, metas y compromisos | 3 | 16 | Originales (PVQ y LFPDPPP como referencia de contenido) | 0,235 (`valores`) + 0,047 (`meta_crianza`, en `dealbreakers`) — dos ítems por factor desde ADR-045 |
+| Intereses y afinidad cultural | 3 | 12 | Originales (inspiración RIASEC) | 0,094 en romance, 0,347 en amistad — dos ítems por factor desde ADR-045 |
 | MBTI (4 ejes) + Eneagrama (9 tipos) | 4 | 13 | Originales | 0,0065 en total: identidad visual, no puntaje |
-| **Total núcleo** | | **58** | | 55 Likert × 7 s ≈ 6,77 min |
+| **Total núcleo** | | **68** | | 65 Likert × 7 s ≈ 7,93 min, en tres quizzes de ≤ 35 reactivos |
 
-**Módulos opcionales ("¿quieres afinar tu perfil?"): 118 ítems**
+**Módulos opcionales ("¿quieres afinar tu perfil?"): 129 ítems**
 
 | Módulo | Ítems | Qué aporta |
 |---|---|---|
@@ -275,8 +276,8 @@ separa del banco (ADR-044).
 | `puente_big_five` | 15 | Capa 2 explícita (peso 0; se deriva de HEXACO) |
 | `valores` | 5 | Segundo ítem por polo + `val_espiritualidad` |
 | `actitudes` | 5 | Perspectiva de género: lectura propia, peso 0 |
-| `intereses` | 7 | Afinar el mapa de actividades |
-| `estilo_vida` | 6 | Rutina, redes, dinero, familia, campus |
+| `intereses` | 13 | Afinar el mapa de actividades (los 6 factores del núcleo tienen segundo ítem aquí también) |
+| `estilo_vida` | 11 | Rutina, redes, dinero, familia, campus: dos ítems por factor desde ADR-045 |
 | `relacional` | 20 | Los 7 `rel_*`, los 4 `con_*`, `apego_ansiedad`/`apego_evitacion` (2 ítems cada uno) y los 5 lenguajes del amor |
 | `mbti` / `eneagrama` / `subtipo` | 12 / 18 / 6 | Avatar y narrativa |
 

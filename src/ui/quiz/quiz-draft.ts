@@ -17,6 +17,35 @@ export const CATEGORY_LABELS: Record<string, string> = {
   valores_relacionales: "Tus valores",
 };
 
+/**
+ * Name of each scoring family, used to title the quizzes the core is split
+ * into (ADR-045). Keys are the category ids of data/matching-config.json, plus
+ * the two groups the split adds: items no scoring category owns, and the
+ * sensitive tail that closes the questionnaire.
+ */
+export const GROUP_LABELS: Record<string, string> = {
+  personalidad: "Tu personalidad",
+  valores: "Tus valores",
+  dealbreakers: "Tus límites",
+  relacional: "Cómo te vinculas",
+  estilo: "Tus gustos y planes",
+  big_five: "El puente Big Five",
+  conflicto: "Cómo discutes",
+  apego: "Tu forma de apego",
+  afecto: "Cómo das cariño",
+  mbti: "Tu forma de pensar",
+  eneagrama: "Lo que te mueve",
+  otros: "Otras preguntas",
+  sensible: "Tu identidad y lo que buscas",
+};
+
+export function groupLabel(id: string): string {
+  const label = GROUP_LABELS[id];
+  if (label) return label;
+  const text = id.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

@@ -13,8 +13,8 @@ const HEXACO = ["hex_h", "hex_e", "hex_x", "hex_a", "hex_c", "hex_o"];
 const likert = QUIZ_ITEMS.filter((item) => item.tipo_respuesta === "likert_5");
 
 describe("item bank (ADR-016)", () => {
-  it("has a 58-item core of 55 Likert + 3 hard filters", () => {
-    expect(CORE_ITEMS).toHaveLength(58);
+  it("has a 68-item core of 65 Likert + 3 hard filters", () => {
+    expect(CORE_ITEMS).toHaveLength(68);
     expect(CORE_ITEMS.filter((item) => item.filtro_duro).map((item) => item.id)).toEqual(["FIL1", "FIL2", "FIL3"]);
     expect(QUIZ_MODULES.map((module) => module.id)).not.toContain("nucleo");
   });
@@ -39,9 +39,11 @@ describe("item bank (ADR-016)", () => {
   });
 
   it("keeps the core free of consecutive same-factor or consecutive reversed Likert items", () => {
-    const core = CORE_ITEMS.filter((item) => !item.filtro_duro);
-    core.slice(1).forEach((item, index) => {
-      const previous = core[index]!;
+    // A multi-select changes the response mode, so it breaks a run: what a
+    // person reads back to back is the rule, not the Likert subsequence.
+    CORE_ITEMS.slice(1).forEach((item, index) => {
+      const previous = CORE_ITEMS[index]!;
+      if (item.filtro_duro || previous.filtro_duro) return;
       expect(item.factor, `${previous.id}->${item.id}`).not.toBe(previous.factor);
       expect(item.polaridad === "negativa" && previous.polaridad === "negativa").toBe(false);
     });

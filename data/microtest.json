@@ -1,17 +1,17 @@
 {
   "metadatos": {
-    "version": "2.1.0",
+    "version": "2.2.0",
     "idioma": "es-MX",
-    "total_items": 176,
-    "items_nucleo": 58,
+    "total_items": 197,
+    "items_nucleo": 68,
     "items_por_modulo": {
-      "nucleo": 58,
+      "nucleo": 68,
       "hexaco_facetas": 24,
       "puente_big_five": 15,
       "valores": 5,
       "actitudes": 5,
-      "intereses": 7,
-      "estilo_vida": 6,
+      "intereses": 13,
+      "estilo_vida": 11,
       "relacional": 20,
       "mbti": 12,
       "eneagrama": 18,
@@ -234,8 +234,7 @@
       "factor": "int_realista",
       "origen": "original",
       "banderas": [
-        "AMB",
-        "1I"
+        "AMB"
       ]
     },
     {
@@ -405,9 +404,7 @@
       "capa": 3,
       "factor": "int_investigador",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "C1",
@@ -570,9 +567,7 @@
       "capa": 3,
       "factor": "int_artistico",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "X2",
@@ -733,9 +728,7 @@
       "capa": 3,
       "factor": "int_emprendedor",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "H3",
@@ -896,9 +889,7 @@
       "capa": 3,
       "factor": "int_vida_nocturna",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "C3",
@@ -962,23 +953,27 @@
       "banderas": []
     },
     {
-      "id": "VAL7",
+      "id": "ACT4",
       "categoria": "valores_relacionales",
-      "subcategoria": "prioridad",
-      "texto": "En esta etapa, mi carrera profesional es mi prioridad.",
+      "subcategoria": "diversidad",
+      "texto": "Me gusta convivir con gente de orígenes y formas de pensar distintas.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
-      "pesos": {},
+      "pesos": {
+        "valores_respeto_diversidad": 1
+      },
       "track_romance": true,
       "track_amistad": true,
       "filtro_duro": false,
       "fuente_id": "zoomatch-original",
       "modulo": "nucleo",
       "capa": 3,
-      "factor": "meta_carrera",
-      "faceta": "prioridad",
+      "factor": "act_compromiso_social",
+      "faceta": "diversidad",
       "origen": "original",
-      "banderas": []
+      "banderas": [
+        "DS"
+      ]
     },
     {
       "id": "H4",
@@ -1019,9 +1014,7 @@
       "capa": 3,
       "factor": "int_actividad_fisica",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
     },
     {
       "id": "E4",
@@ -1087,10 +1080,10 @@
       "banderas": []
     },
     {
-      "id": "VAL8",
+      "id": "VAL7",
       "categoria": "valores_relacionales",
-      "subcategoria": "actitud",
-      "texto": "Disfrutar el momento me importa más que ahorrar para el futuro.",
+      "subcategoria": "prioridad",
+      "texto": "En esta etapa, mi carrera profesional es mi prioridad.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
       "pesos": {},
@@ -1100,8 +1093,8 @@
       "fuente_id": "zoomatch-original",
       "modulo": "nucleo",
       "capa": 3,
-      "factor": "val_presente",
-      "faceta": "actitud",
+      "factor": "meta_carrera",
+      "faceta": "prioridad",
       "origen": "original",
       "banderas": []
     },
@@ -1127,10 +1120,10 @@
       "banderas": []
     },
     {
-      "id": "EN7",
-      "categoria": "personalidad_mbti",
-      "subcategoria": "motivacion",
-      "texto": "Busco tener muchas opciones abiertas para no perderme nada.",
+      "id": "INT13",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "manual",
+      "texto": "Armar, reparar o construir algo me resulta entretenido.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
       "pesos": {},
@@ -1139,9 +1132,9 @@
       "filtro_duro": false,
       "fuente_id": "zoomatch-original",
       "modulo": "nucleo",
-      "capa": 4,
-      "factor": "ennea_7",
-      "faceta": "motivacion",
+      "capa": 3,
+      "factor": "int_realista",
+      "faceta": "manual",
       "origen": "original",
       "banderas": []
     },
@@ -1167,10 +1160,10 @@
       "banderas": []
     },
     {
-      "id": "VAL14",
-      "categoria": "valores_relacionales",
-      "subcategoria": "movilidad",
-      "texto": "Cambiaría de ciudad o de país por una oportunidad que me importe profesionalmente.",
+      "id": "EN7",
+      "categoria": "personalidad_mbti",
+      "subcategoria": "motivacion",
+      "texto": "Busco tener muchas opciones abiertas para no perderme nada.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
       "pesos": {},
@@ -1179,9 +1172,9 @@
       "filtro_duro": false,
       "fuente_id": "zoomatch-original",
       "modulo": "nucleo",
-      "capa": 3,
-      "factor": "meta_carrera",
-      "faceta": "movilidad",
+      "capa": 4,
+      "factor": "ennea_7",
+      "faceta": "motivacion",
       "origen": "original",
       "banderas": []
     },
@@ -1209,6 +1202,44 @@
       ]
     },
     {
+      "id": "VAL8",
+      "categoria": "valores_relacionales",
+      "subcategoria": "actitud",
+      "texto": "Disfrutar el momento me importa más que ahorrar para el futuro.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "val_presente",
+      "faceta": "actitud",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "INT14",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "profundidad",
+      "texto": "Me quedo con un tema hasta entenderlo de verdad.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "int_investigador",
+      "faceta": "profundidad",
+      "origen": "original",
+      "banderas": []
+    },
+    {
       "id": "EN8",
       "categoria": "personalidad_mbti",
       "subcategoria": "motivacion",
@@ -1228,10 +1259,10 @@
       "banderas": []
     },
     {
-      "id": "VAL15",
+      "id": "VAL14",
       "categoria": "valores_relacionales",
-      "subcategoria": "gasto",
-      "texto": "Prefiero gastar en experiencias de ahora que guardar para después.",
+      "subcategoria": "movilidad",
+      "texto": "Cambiaría de ciudad o de país por una oportunidad que me importe profesionalmente.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
       "pesos": {},
@@ -1241,8 +1272,27 @@
       "fuente_id": "zoomatch-original",
       "modulo": "nucleo",
       "capa": 3,
-      "factor": "val_presente",
-      "faceta": "gasto",
+      "factor": "meta_carrera",
+      "faceta": "movilidad",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "INT15",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "consumo",
+      "texto": "La música, el arte o el diseño forman parte de mi día.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "int_artistico",
+      "faceta": "consumo",
       "origen": "original",
       "banderas": []
     },
@@ -1266,50 +1316,6 @@
       "banderas": []
     },
     {
-      "id": "ACT4",
-      "categoria": "valores_relacionales",
-      "subcategoria": "diversidad",
-      "texto": "Me gusta convivir con gente de orígenes y formas de pensar distintas.",
-      "tipo_respuesta": "likert_5",
-      "polaridad": "positiva",
-      "pesos": {
-        "valores_respeto_diversidad": 1
-      },
-      "track_romance": true,
-      "track_amistad": true,
-      "filtro_duro": false,
-      "fuente_id": "zoomatch-original",
-      "modulo": "nucleo",
-      "capa": 3,
-      "factor": "act_compromiso_social",
-      "faceta": "diversidad",
-      "origen": "original",
-      "banderas": [
-        "DS"
-      ]
-    },
-    {
-      "id": "VAL6",
-      "categoria": "valores_relacionales",
-      "subcategoria": "deseo",
-      "texto": "Me gustaría criar hijxs algún día.",
-      "tipo_respuesta": "likert_5",
-      "polaridad": "positiva",
-      "pesos": {},
-      "track_romance": true,
-      "track_amistad": true,
-      "filtro_duro": false,
-      "fuente_id": "zoomatch-original",
-      "modulo": "nucleo",
-      "capa": 3,
-      "factor": "meta_crianza",
-      "faceta": "deseo",
-      "origen": "original",
-      "banderas": [
-        "SENS"
-      ]
-    },
-    {
       "id": "ACT6",
       "categoria": "valores_relacionales",
       "subcategoria": "participacion",
@@ -1329,10 +1335,166 @@
       "banderas": []
     },
     {
-      "id": "VAL13",
+      "id": "INT16",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "iniciativa",
+      "texto": "Me lanzo a organizar algo aunque nadie me lo pida.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "int_emprendedor",
+      "faceta": "iniciativa",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "VAL15",
       "categoria": "valores_relacionales",
-      "subcategoria": "temporalidad",
-      "texto": "Me veo criando hijxs en los próximos años.",
+      "subcategoria": "gasto",
+      "texto": "Prefiero gastar en experiencias de ahora que guardar para después.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "val_presente",
+      "faceta": "gasto",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "INT17",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "energia",
+      "texto": "Mi cabeza funciona mejor cuando ya es de noche.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "int_vida_nocturna",
+      "faceta": "energia",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "VAL16",
+      "categoria": "valores_relacionales",
+      "subcategoria": "aportar",
+      "texto": "Aporto tiempo o dinero a causas colectivas aunque nadie lo note.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {
+        "valores_empatia": 1
+      },
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "val_autotrascendencia",
+      "faceta": "aportar",
+      "origen": "original",
+      "banderas": [
+        "DS"
+      ]
+    },
+    {
+      "id": "INT18",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "movimiento",
+      "texto": "Si paso varios días sin moverme, me siento mal.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "int_actividad_fisica",
+      "faceta": "movimiento",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "VAL17",
+      "categoria": "valores_relacionales",
+      "subcategoria": "reconocimiento",
+      "texto": "Me importa que mi trabajo sea reconocido, no nada más hecho.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "val_autopromocion",
+      "faceta": "reconocimiento",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "VAL18",
+      "categoria": "valores_relacionales",
+      "subcategoria": "estimulacion",
+      "texto": "Me aburre hacer siempre lo mismo, aunque me vaya bien.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "val_apertura_cambio",
+      "faceta": "estimulacion",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "VAL19",
+      "categoria": "valores_relacionales",
+      "subcategoria": "referencias",
+      "texto": "Me gusta mantener el orden y las formas que aprendí en casa.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "val_conservacion",
+      "faceta": "referencias",
+      "origen": "original",
+      "banderas": []
+    },
+    {
+      "id": "VAL6",
+      "categoria": "valores_relacionales",
+      "subcategoria": "deseo",
+      "texto": "Me gustaría criar hijxs algún día.",
       "tipo_respuesta": "likert_5",
       "polaridad": "positiva",
       "pesos": {},
@@ -1343,7 +1505,7 @@
       "modulo": "nucleo",
       "capa": 3,
       "factor": "meta_crianza",
-      "faceta": "temporalidad",
+      "faceta": "deseo",
       "origen": "original",
       "banderas": [
         "SENS"
@@ -1372,6 +1534,27 @@
       "capa": 0,
       "factor": "filtro",
       "faceta": "interes_romantico",
+      "origen": "original",
+      "banderas": [
+        "SENS"
+      ]
+    },
+    {
+      "id": "VAL13",
+      "categoria": "valores_relacionales",
+      "subcategoria": "temporalidad",
+      "texto": "Me veo criando hijxs en los próximos años.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "nucleo",
+      "capa": 3,
+      "factor": "meta_crianza",
+      "faceta": "temporalidad",
       "origen": "original",
       "banderas": [
         "SENS"
@@ -2411,9 +2594,26 @@
       "capa": 3,
       "factor": "int_convencional",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "INT19",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "lista",
+      "texto": "Prefiero tener mis pendientes en una lista que improvisar.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "intereses",
+      "capa": 3,
+      "factor": "int_convencional",
+      "faceta": "lista",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "INT8",
@@ -2431,9 +2631,26 @@
       "capa": 3,
       "factor": "int_juegos",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "INT20",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "habito",
+      "texto": "Cuando tengo rato libre, termino jugando algo.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "intereses",
+      "capa": 3,
+      "factor": "int_juegos",
+      "faceta": "habito",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "INT9",
@@ -2453,9 +2670,26 @@
       "capa": 3,
       "factor": "int_cultura",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "INT21",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "descubrir",
+      "texto": "Descubro música, cine o libros por mi cuenta.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "intereses",
+      "capa": 3,
+      "factor": "int_cultura",
+      "faceta": "descubrir",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "INT10",
@@ -2473,9 +2707,26 @@
       "capa": 3,
       "factor": "int_animales",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "INT22",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "calma",
+      "texto": "Estar cerca de animales me calma, aunque no sean míos.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "intereses",
+      "capa": 3,
+      "factor": "int_animales",
+      "faceta": "calma",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "INT11",
@@ -2493,9 +2744,26 @@
       "capa": 3,
       "factor": "int_comida",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "INT23",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "compartir",
+      "texto": "Compartir comida es mi forma de celebrar algo.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "intereses",
+      "capa": 3,
+      "factor": "int_comida",
+      "faceta": "compartir",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "INT12",
@@ -2515,9 +2783,26 @@
       "capa": 3,
       "factor": "int_fiesta",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "INT24",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "salir",
+      "texto": "Me gusta salir de fiesta con mis amigos.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "intereses",
+      "capa": 3,
+      "factor": "int_fiesta",
+      "faceta": "salir",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "HUM1",
@@ -2557,9 +2842,26 @@
       "capa": 3,
       "factor": "soc_rutina",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "SOC7",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "horarios",
+      "texto": "Organizo mi semana para tener horarios predecibles.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "estilo_vida",
+      "capa": 3,
+      "factor": "soc_rutina",
+      "faceta": "horarios",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "SOC2",
@@ -2577,9 +2879,26 @@
       "capa": 3,
       "factor": "soc_redes",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "SOC8",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "atencion",
+      "texto": "Reviso las redes varias veces al día.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "estilo_vida",
+      "capa": 3,
+      "factor": "soc_redes",
+      "faceta": "atencion",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "SOC3",
@@ -2597,9 +2916,26 @@
       "capa": 3,
       "factor": "soc_dinero",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "SOC9",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "decision",
+      "texto": "Antes de comprar algo caro lo pienso varios días.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "estilo_vida",
+      "capa": 3,
+      "factor": "soc_dinero",
+      "faceta": "decision",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "SOC4",
@@ -2618,8 +2954,28 @@
       "factor": "soc_familia",
       "origen": "original",
       "banderas": [
-        "SENS",
-        "1I"
+        "SENS"
+      ]
+    },
+    {
+      "id": "SOC10",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "consultar",
+      "texto": "Para lo importante, primero consulto a mi familia.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {},
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "estilo_vida",
+      "capa": 3,
+      "factor": "soc_familia",
+      "faceta": "consultar",
+      "origen": "original",
+      "banderas": [
+        "SENS"
       ]
     },
     {
@@ -2640,9 +2996,28 @@
       "capa": 3,
       "factor": "soc_campus",
       "origen": "original",
-      "banderas": [
-        "1I"
-      ]
+      "banderas": []
+    },
+    {
+      "id": "SOC11",
+      "categoria": "afinidad_cultural",
+      "subcategoria": "actividades",
+      "texto": "Participo en actividades del campus: clubes, equipos, eventos.",
+      "tipo_respuesta": "likert_5",
+      "polaridad": "positiva",
+      "pesos": {
+        "cultural_vida_universitaria": 1
+      },
+      "track_romance": true,
+      "track_amistad": true,
+      "filtro_duro": false,
+      "fuente_id": "zoomatch-original",
+      "modulo": "estilo_vida",
+      "capa": 3,
+      "factor": "soc_campus",
+      "faceta": "actividades",
+      "origen": "original",
+      "banderas": []
     },
     {
       "id": "SOC6",

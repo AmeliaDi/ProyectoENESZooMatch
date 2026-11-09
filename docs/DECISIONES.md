@@ -1540,3 +1540,82 @@ enumeradas, y el banco ya las marcaba (`banderas: ["SENS"]`) mientras el config 
   UI.
 
 
+
+## ADR-045 · El cuestionario obligatorio se parte en quizzes y la deuda I5 del núcleo se paga con ítems
+
+**Contexto.** Dos presiones se cruzaron en la misma tarea.
+
+1. **La usuaria pidió que nadie termine cansado:** el cuestionario se divide en quizzes de
+   **35-40 reactivos como máximo** (público adulto, pero una sentada larga cuesta abandonos).
+2. **ADR-044 dejó deuda dentro del camino obligatorio.** Cuatro factores de `valores`
+   (`val_autotrascendencia`, `val_autopromocion`, `val_apertura_cambio`, `val_conservacion`)
+   viajaban en **un solo ítem** con peso 0,0336 en romance y 0,0354 en amistad, y seis factores
+   de `intereses` lo mismo en amistad (0,0204 cada uno). El arnés de retest lo medía: 0,30× de la
+   banda útil en el núcleo, con cruces del umbral. I5 decía «eso es ruido»; el arnés decía cuánto.
+
+Había un tercer hecho que obligó a decidir el *cómo*: el núcleo no se puede acortar por el lado
+del MBTI y el eneagrama. `derived.ts` convierte los cuatro ejes en una silueta de cuatro letras
+aunque no se pregunten (`theta ?? 0`), y un eneagrama sin respuestas sale uniforme → entropía 1
+→ `ambiguous` → el hatch dice «En exploración». Sacarlos del obligatorio no abarata el test:
+rompe el reveal y el avatar.
+
+**Decisión.**
+
+- **Pagar la deuda con ítems, no bajando el peso.** El kernel gaussiano esperado vale
+  `r/√(r²+s²)·exp(−½μ²/(r²+s²))`: con un solo ítem el `se` es grande, así que el factor **no
+  inventa señal, se diluye** hacia la similitud poblacional. Cortar el peso habría sido tirar
+  información para que el número quede bonito; agregar el segundo ítem es lo que devuelve
+  discriminación. Entran **VAL16-19** (los cuatro valores, redactados desde la misma faceta:
+  aportar, reconocimiento, estimulación, referencias) e **INT13-18** (los seis intereses del
+  núcleo: manual, profundidad, artístico, emprendedor, nocturno, actividad). Banco **v2.2.0**:
+  176 → **197 ítems**, núcleo **58 → 68** (65 Likert + 3 filtros), 7,93 min a 7 s/ítem.
+- **La división se deriva, no se escribe a mano.** `coreQuizSegments()`
+  (`src/ui/quiz/quiz-flow.ts`) agrupa los ítems del núcleo por la **categoría de puntuación que
+  dono su factor** (orden de declaración de `matching-config.json`), empuja al final lo sensible
+  —categorías sensibles, banderas `SENS` y filtros duros— y embala vorazmente con el tope
+  `experience.quiz.maxItemsPerQuiz` = **35**. Entregado: **24 / 30 / 14** → tres quizzes de
+  ~2,8 / ~3,5 / ~1,6 min («Tu personalidad», «Tus valores y tus gustos», «Tu identidad y lo que
+  buscas»). Nadie escribió una lista de quizzes: cambiar el config o el banco cambia el reparto.
+  Mientras una familia quepa bajo el tope, **ningún factor cruza de quiz** (I9: cortar por factor,
+  no por posición); si una familia supera el tope, manda el tope y la familia se parte por
+  posición. Con el config actual no ocurre.
+- **El reparto obligó a reescribir la rotación del banco.** Al cortar por familia, `ACT4` y `ACT6`
+  (mismo factor) quedaron pegadas en el quiz 2 y `VAL6`/`VAL13` (crianza) en el quiz 3: la
+  alternancia que construye `order_core()` solo protege la secuencia completa, no cada corte.
+  `ACT4`/`ACT6` viajan ahora **dentro de la corriente de valores** y **`FIL1` separa las dos
+  preguntas de crianza**. Dos reglas se reescribieron para que esto no vuelva a ser invisible:
+  `validate()` compara ítems **adyacentes de verdad** (un filtro cuenta como separador porque
+  cambia el modo de respuesta), y `presentationOrder()` mueve al final «lo sensible» = categoría
+  sensible **o ítem salteable**; antes miraba solo la categoría, que es justo lo que volvía a
+  pegar `VAL6` con `VAL13`. El trinquete vive en `quiz-flow.test.ts`, que exige cobertura exacta,
+  tope, familia última, espaciado dentro de cada quiz y que un tope de 20 dé más quizzes con las
+  mismas invariantes.
+- **Un envío, sin cambios de contrato.** La división es flujo: se responde quiz a quiz, el draft
+  sigue en `localStorage` y `submit()` se dispara **una sola vez** al terminar el último. No toqué
+  la ruta, la validación ni la RPC. La pantalla puente entre quizzes es donde va el mensaje de
+  fatiga («llevas X de Y», cuánto falta, aviso de que viene lo sensible) y de ahí se puede pausar.
+- **El presupuesto de la ficha de capas pasa a contar minutos.** `layer-criteria.json`
+  `coreTargetItems` **60 → 68** con el razonamiento en el archivo: el tope que le importa a la
+  persona es ≤ 9 min por sentada (medido 7,93) y ≤ 35 reactivos por quiz; el conteo de ítems era
+  un sustituto del tiempo, y ADR-014 ya lo decía.
+
+**Consecuencias.**
+
+- **I5 cerrado casi del todo.** Masa que viaja en factores de un ítem: romance **0,313 → 0,218**,
+  amistad **0,347 → 0,000**. Deuda declarada restante: los 7 `rel_*` de romance (se decide en
+  **B7-REL**, no aquí) y, por debajo del 1 % que exige la regla, 4 `con_*` y 5 `afecto_*`. En el
+  obligatorio quedan de a un ítem los 4 ejes MBTI y los 9 eneagrama: **13 preguntas, 0,65 % del
+  puntaje**, y su ruido de retest medido es 0,22× la banda, 1/120 retests sobre una banda y **0**
+  cruces del umbral. El techo del núcleo sube de 0,15 a 0,25 con esos números delante, no por
+  costumbre: el arnés ahora cuenta los únicos de un ítem *dentro del camino* (antes contaba los
+  del banco entero y el núcleo parecía más limpio de lo que era).
+- **Regenerado y trazado:** `data/microtest.json`, `docs/TEST.md`, `supabase/seed.sql §3`,
+  `data/psychometric-params.json`, `docs/MEDICION.md` (DIF dominó 192 s de los 194,5 s),
+  `data/matching-config.json` (umbrales recalculados), `docs/CAPAS_EVIDENCIA.md` §2 y §4. Hashes
+  nuevos en `docs/TRAZABILIDAD.md` (matching-config `6758c94262edd74b`, psychometric-params
+  `a31ed99658426302`) y fila **T-25** para el reparto.
+- **Lo que no resuelve.** Los perfiles que ya respondieron el núcleo de 58 siguen con respuestas
+  a un banco que ya no les pregunta igual en el mismo orden: nada en la base fuerza re-responder,
+  y eso es **B9** (sello `params_version`, re-toma mínima y el aviso «se actualizó la
+  matemática»). El desajuste de nodos de cuadratura (**B4**) y la licencia de `relacional` 0,20
+  (**B7-REL**) siguen abiertos.
