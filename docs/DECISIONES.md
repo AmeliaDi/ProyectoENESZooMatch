@@ -2407,3 +2407,72 @@ demasiado para ti ahora» y llevar a otra parte, no soltar un quiz largo con la 
   reorientado,
   `quiz.retake_none` en `errors.ts` → 409 en `responses.ts`, `loadAnswers`/`loadParamsVersion` en
   `ports.ts` con su doble en memoria, y `docs/TRAZABILIDAD.md` con la fila **T-31**.
+
+## ADR-055 · El aviso de los quizzes: la población sin sello existe, se le dice qué cambió y se la invita sin disimulo
+
+**Contexto.** **B10** (tarea #24) empezó midiendo en vez de recordando, porque la pregunta era
+*¿se agregó algún quiz que haya que actualizar?* Las respuestas, sobre git y sobre los JSON:
+
+- **No se agregó ningún quiz de rompehielos.** `data/quizzes/` tiene un solo commit (anterior a B1)
+  y sigue en 12 quizzes de 8 reactivos en tres familias (`gustos`, `gaming`, `picante`), con
+  `picante` detrás del consentimiento +18 y de una bandera de entorno. No había nada que actualizar ahí.
+- **Lo que cambió es el obligatorio, y en dos ejes.** El banco pasó de 176 a 197 reactivos desde
+  `2.1.0`: **21 nuevos**, de los cuales **10 caen en el núcleo** (`INT13`–`INT18`, familia `estilo`;
+  `VAL16`–`VAL19`, familia `valores`) y 11 en módulos opcionales (`intereses`, `estilo_vida`).
+  **Ninguno es de `intimidad_afecto`**: esa familia estaba en 19 y sigue en 19. El segundo eje es la
+  forma: el núcleo se reparte en tres quizzes de **24, 30 y 14** reactivos (tope 35, ADR-045) con la
+  cola sensible al final, y `2.3.0` sumó opciones de identidad aditivas y reescrituras para que se
+  puedan leer en voz alta.
+- **Y nadie se enteraba.** `noticeFor` (ADR-052) pide `stamped && !current`, y el día del despliegue
+  las **168** personas con test completo tenían `params_version IS NULL`: pre-sello. Para el aviso de
+  matemática esa población no existe. ADR-054 cerró su propio hueco mandando `unstamped` a `/perfil`
+  «con una explicación», pero la explicación nunca se escribió: llegaban a su carta y no veían nada.
+
+**Decisión.**
+
+- **Un aviso propio para el estado pre-sello**: `src/ui/profile/quiz-changes-notice.tsx`, entre el
+  héroe y las virtudes (no al pie, que es donde ya vive «¿Quieres afinar tu perfil?»). Sale **solo**
+  con `measurement.stamped === false`; con sello y versión pendiente invita `MathUpdateNotice`, así
+  que no hay dos botones de re-contesto en la misma carta. Los dos dominios son disjuntos por
+  construcción y cada aviso lo prueba por su lado.
+- **El CTA es el cuestionario completo (`/cuestionario`) y la copia lo dice.** La regla 1 no es solo
+  una regla de cálculo: sin sello se desconoce el banco con el que esa persona respondió, no hay dos
+  instantáneas que comparar y **no existe** un plan mínimo para ella. Lo que sí existe es el test
+  nuevo. Queda prohibido llamarlo «mini test» o prometer «solo los reactivos nuevos»; el pie del
+  aviso aclara que «serían los tres quizzes otra vez», que es la verdad incómoda del botón.
+- **Ningún número escrito a mano.** Los tamaños salen de `coreQuizSegments(...)` sobre `CORE_ITEMS`
+  (la misma llamada que hace `public-quiz.tsx`), las familias crecidas se nombran con `groupLabel` —
+  el mismo rótulo que la persona ve en la cabecera del quiz— y la firma es
+  `${SEGMENTS.length}-quizzes-${QUIZ_VERSION}`. Cambia el corte o el banco, cambia la firma, y el
+  aviso vuelve a salir una vez.
+- **El aviso no miente con la matemática.** Una primera versión decía «tus números se recalcularon
+  con la matemática nueva»: falso justo para quien lo ve, porque `latent_profile` se escribe al enviar
+  y ninguna migración lo reescribió, así que un perfil pre-sello sigue mostrando la θ de su época. Se
+  afirma lo contrario y es lo útil — «tu perfil se sigue calculando con lo que ya contestaste» — , o
+  sea: ignorar el aviso no rompe nada.
+- **Se recuerda por firma, no por fecha** (`zm-quiz-changes-seen`), igual que el cierre por `seal` de
+  ADR-052: «Ya lo vi» es permanente hasta el próximo cambio de banco. Es llave por dispositivo, no por
+  perfil, mismo compromiso que los avisos de sonido y de tema.
+
+**Consecuencias.**
+
+- La audiencia de hoy son las 168 filas pre-sello medidas el 2026-11-09 sobre la base llena. Quien
+  entra por primera vez **nunca** ve el aviso: nace sellado.
+- Pedir 68 reactivos a quien ya dio 58 está por encima del `RETAKE_CAP = 25` con el que ADR-054
+  rechazó los planes de 29 y 38. No es una contradicción: aquellos eran *re-tomas* — volver sobre lo
+  contestado — y aquí la alternativa mecanizada no existe; lo que protege a la persona sigue siendo
+  que el aviso es opcional y lo dice en la propia pantalla, no en un ADR.
+- El costo de mantener viva la copia es `quiz-changes-notice.test.ts` (20 casos): cuatro de decisión
+  y el resto ancla cada línea contra el banco con el fixture de los 21 ids medidos en git. Verificado
+  en rojo: cambiar `estilo` por otra familia en `GREW_IN` rompe «only promises added questions in
+  families that really grew». La copia entra además al barrido global de `src/ui/screens.test.ts`.
+- Queda explícitamente **sin hacer**, no tapado: (a) mientras los bancos `2.1.0`/`2.2.0` no sean
+  artefactos de runtime, no hay forma de preguntarle a un perfil pre-sello solo lo que le falta —
+  eso pide publicar un plan por sello como en ADR-054 y es decisión de producto; (b) el aviso no
+  distingue a quien contestó 24 de quien contestó 68, porque `completed_modules` registra módulos,
+  no conteos de ítems del núcleo; (c) no sale push ni correo con estos cambios: quien entra lo ve una
+  vez, y ese es el alcance deliberado del aviso.
+- Artefactos: `src/ui/profile/quiz-changes-notice.tsx` con su prueba, su registro en
+  `profile-view.tsx` y en el barrido de copias de `screens.test.ts`, y `docs/PANTALLAS.md` (carta,
+  «Aviso de los quizzes»). Sin migración, sin RPC nueva, sin columna nueva.
+

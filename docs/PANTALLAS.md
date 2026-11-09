@@ -194,8 +194,18 @@ flowchart TD
   línea de recálculo que sale una sola vez por firma y nunca a quien llega por primera vez;
   si cambió la *medición*, «Actualizamos la matemática» con «Volver a responder»
   (`/afinar/retomar`, 8d) y «Ahora no» (el cierre se recuerda por sello, no por fecha).
-  Un perfil anterior al sello solo recibe la variante de una línea: nadie re-contesta lo
-  que sigue siendo válido y nadie sale del pool.
+  Un perfil anterior al sello no recibe ninguna de las dos: ahí no hay banco conocido que
+  comparar, así que la re-toma mínima está prohibida por la regla 1 de ADR-052.
+- **Aviso de los quizzes** (`src/ui/profile/quiz-changes-notice.tsx`, B10/ADR-055), entre el
+  héroe y las virtudes, y solo para ese perfil anterior al sello. Enumera lo que sí cambió
+  (el corte en tres quizzes con sus tamaños, las familias donde hubo reactivos nuevos, la
+  identidad aditiva y la lectura en voz alta, y que identidad e intimidad van al final) e
+  invita a `/cuestionario` con «Volver a responder» y «Ya lo vi». Todo lo que se lee sale del
+  banco vigente, nunca de un número escrito a mano: `quiz-changes-notice.test` rompe si el
+  aviso promete algo que el cuestionario ya no hace. Se cierra por firma
+  (`3-quizzes-2.3.0`), así que cambia el corte o el banco y el aviso vuelve a salir una vez.
+  Es opcional y lo dice dos veces: serían los tres quizzes otra vez, y mientras tanto el perfil se
+  sigue calculando con lo que esa persona contestó.
 - **Estados:** carga («Desplegando tu carta…»); sin sesión → entrada; sin test
   → cuestionario; error → reintentar.
 - **Anti-plantilla:** marcos de atlas con coordenadas AR, pistas de celdas en

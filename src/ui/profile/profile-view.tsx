@@ -27,6 +27,7 @@ import { RefineInvite } from "@/ui/refine/refine-invite";
 
 import { parseProfile } from "./parse-profile";
 import { MathUpdateNotice } from "./math-update-notice";
+import { QuizChangesNotice } from "./quiz-changes-notice";
 import { ProfileSections } from "./profile-sections";
 import { EnneagramPlate, ReadingGuide } from "./reading-guide";
 
@@ -234,6 +235,7 @@ export function ProfileView() {
     <AtlasShell plate={PLATE} actions={<Actions />}>
       <main className="zm-card">
         <Hero profile={profile} />
+        <QuizChangesNotice measurement={profile.measurement} />
         <Virtues profile={profile} />
         <Affinities profile={profile} />
         <MathUpdateNotice measurement={profile.measurement} />

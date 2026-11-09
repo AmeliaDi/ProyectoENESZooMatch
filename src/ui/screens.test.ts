@@ -42,6 +42,7 @@ import { LOST_COPY } from "./shared/lost-view";
 import { ONBOARDING_PLATES } from "./entry/onboarding";
 import { revealOrder } from "./quiz/reveal-order";
 import { REFINE_COPY } from "./refine/refine-invite";
+import { QUIZ_CHANGES_COPY } from "./profile/quiz-changes-notice";
 import { EXPLANATION_COPY_UI } from "./result/explanation-blocks";
 import { FEW_PEOPLE_COPY, RESULT_FINE_COPY } from "./result/result-view";
 import { EVIDENCE_SUMMARY } from "@/config/evidence-summary";
@@ -111,6 +112,7 @@ describe("copy", () => {
     ...Object.values(STATUS_COPY),
     ...Object.values(STATUS_OPTION_COPY).flatMap((o) => [o.label, o.hint]),
     ...Object.values(BADGE_SECTION_COPY),
+    ...Object.values(QUIZ_CHANGES_COPY),
   ];
 
   it("has no forbidden words or emojis", () => {
