@@ -151,6 +151,12 @@ export interface ProfileRepository {
   findOwn(userId: string): Promise<Result<OwnProfile | null, StorageError>>;
   /** Own stored answers (server-only: used to merge a refinement module). */
   loadAnswers(userId: string): Promise<Result<StoredAnswer[], StorageError>>;
+  /**
+   * The `params_version` seal of this person: the bank and model their stored
+   * θ was measured with. `null` means "before the stamp", which is a different
+   * case from an unknown bank — only the second one could ever have a plan.
+   */
+  loadParamsVersion(userId: string): Promise<Result<string | null, StorageError>>;
   /** Best-effort: missing counterparts simply produce no explanation. */
   findCounterparts(userIds: readonly string[]): Promise<CounterpartProfile[]>;
 }

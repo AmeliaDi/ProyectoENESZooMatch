@@ -373,6 +373,14 @@ export function supabaseProfileRepository(admin: SupabaseClient): ProfileReposit
       return ok(res.data ? toOwnProfile(res.data as Record<string, unknown>) : null);
     },
 
+    async loadParamsVersion(userId) {
+      const res = await attempt(() =>
+        admin.from(TABLE.profiles).select("params_version").eq("user_id", userId).maybeSingle(),
+      );
+      if (!res || res.error) return failed;
+      return ok((res.data as { params_version?: string | null } | null)?.params_version ?? null);
+    },
+
     async loadAnswers(userId) {
       const res = await attempt(() =>
         admin.from(TABLE.responses).select("item_id, likert_value, selected_options").eq("user_id", userId),

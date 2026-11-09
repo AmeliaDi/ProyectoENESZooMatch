@@ -192,9 +192,10 @@ flowchart TD
 - **Aviso de matemática** (`src/ui/profile/math-update-notice.tsx`, B9/ADR-052), encima de
   «¿Quieres afinar tu perfil?». Dos casos que no se mezclan: si cambió el *puntaje*, una
   línea de recálculo que sale una sola vez por firma y nunca a quien llega por primera vez;
-  si cambió la *medición*, «Actualizamos la matemática» con «Afinar mi perfil» y «Ahora no»
-  (el cierre se recuerda por sello, no por fecha). Un perfil anterior al sello solo recibe la
-  variante de una línea: nadie re-contesta lo que sigue siendo válido y nadie sale del pool.
+  si cambió la *medición*, «Actualizamos la matemática» con «Volver a responder»
+  (`/afinar/retomar`, 8d) y «Ahora no» (el cierre se recuerda por sello, no por fecha).
+  Un perfil anterior al sello solo recibe la variante de una línea: nadie re-contesta lo
+  que sigue siendo válido y nadie sale del pool.
 - **Estados:** carga («Desplegando tu carta…»); sin sesión → entrada; sin test
   → cuestionario; error → reintentar.
 - **Anti-plantilla:** marcos de atlas con coordenadas AR, pistas de celdas en
@@ -221,6 +222,43 @@ flowchart TD
 - **Al ocultar la página** (`pagehide`), `sendBeacon` cierra el candado.
 - **Enlaces:** línea fina del resultado y Ajustes → Chats (cambiar PIN, olvidé mi
   PIN, actividad reciente e intentos fallidos).
+
+## 8d. Volver a responder (`/afinar/retomar`, `src/ui/retake/retake-page.tsx`)
+
+- **Objetivo:** re-contestar solo lo que cambió de verdad. Es la re-toma mínima
+  (B9.2, ADR-054), no el test: hoy son 8 preguntas, no 197.
+- **Cómo se llega:** desde el aviso «Actualizamos la matemática» de la carta, cuyo
+  botón dice ahora «Volver a responder». También se puede entrar directo, y por
+  eso la pantalla explica su motivo cuando no hay plan: nunca es un callejón.
+- **Qué se pregunta lo decide el servidor** (`GET /api/quiz/retake`) con el sello
+  de esa persona: solo los ítems del plan que ya estaba contestando. Un ítem que
+  nunca respondió no aparece — eso sería estrenar, no retomar — y un bloque
+  entero desaparece si nadie contestó sus ítems.
+- **Controles:** Likert de gemas como en el test; «Prefiero no decir» solo en los
+  ítems sensibles, y en los filtros de selección múltiple la opción neutra ya
+  viene dentro de la lista, con el icono de privacidad. Saltar una pregunta íntima
+  retira su respuesta vieja en lugar de conservarla a medias.
+- **La nota de apertura** (primera pantalla) dice qué cambió, cuántas preguntas se
+  retiraron y cuáles son íntimas. Los enunciados llegan escritos del banco: la
+  pantalla no arma frases con piezas, y los bloques no reciben títulos inventados.
+- **Pausa y reanudación:** el borrador vive en localStorage bajo el prefijo del
+  afinado (`${EXPERIENCE.refine.draftKey}:retoma`), así que el barrido de
+  dispositivo compartido (ADR-023) lo cubre; al reanudar se filtran los ítems que
+  el plan ya no pregunta.
+- **Estados** (Lámina 07 · retomar, `AtlasShell`):
+  - carga: «Preparando tus preguntas…»;
+  - sin sesión: enlace a la entrada, el avance queda en el dispositivo;
+  - plan: una pregunta por pantalla con `ConstellationProgress`;
+  - `current` / `unstamped`: «Tu perfil ya está al día» / «No tienes nada que
+    repetir» → `/perfil`;
+  - `unknown` / `capped`: «Aún no hay re-toma para ti» / «La actualización pide
+    demasiadas preguntas» con el número real de preguntas → `/afinar`;
+  - 409 al enviar: «Ya no hay preguntas pendientes» (el perfil quedó al día en
+    otro momento);
+  - éxito: `/perfil`, con la marca de recálculo pendiente si aplica.
+- **Qué evita lo genérico:** ningún texto promete matches ni mejora de resultados;
+  el plural es «preguntas», nunca «examen»; y la salida corta («Pausar») es un
+  enlace a la carta, no un botón destructivo.
 
 ## 9. Admin (`/admin`, `/admin/login`)
 

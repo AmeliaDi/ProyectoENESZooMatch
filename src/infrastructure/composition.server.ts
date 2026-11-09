@@ -17,9 +17,10 @@ import type { AdminRepository, NotificationRepository, PinHasher, Scheduler } fr
 import type { RecomputeDeps } from "@/application/recompute-matches";
 import { recomputeMatches } from "@/application/recompute-matches";
 import type { RefineDeps } from "@/application/refine-profile";
+import type { RetakeDeps } from "@/application/retake-profile";
 import type { SubmitQuizDeps } from "@/application/submit-quiz";
 import type { QuizContext } from "@/application/quiz/ports";
-import { RETENTION_CONFIG } from "@/config";
+import { QUIZ_VERSION, RETAKE_PLANS, RETENTION_CONFIG } from "@/config";
 import { err, ok, type Clock, type Result } from "@/domain/shared";
 
 import { supabaseAdminConsoleRepository } from "./admin/console-repository";
@@ -84,6 +85,33 @@ export async function refineContext(): Promise<Result<{ userId: string; deps: Re
       scheduler: systemScheduler,
       latentScorer: serverLatentScorer,
       secret: env.MATRICULA_HMAC_SECRET,
+    },
+  });
+}
+
+/**
+ * A re-take is the same write as the full test with fewer new answers: the plan
+ * comes from `data/retake-plans.json`, published by the harness, never computed
+ * here (ADR-054).
+ */
+export async function retakeContext(): Promise<Result<{ userId: string; deps: RetakeDeps }, Failure>> {
+  const auth = await authenticated();
+  if (!auth.ok) return auth;
+  const admin = createAdminClient();
+  if (!admin) return err("service.unavailable");
+  const env = getServerEnv();
+  if (!env) return err("service.unavailable");
+  return ok({
+    userId: auth.value.userId,
+    deps: {
+      profiles: supabaseProfileRepository(admin),
+      matches: supabaseMatchRepository(admin),
+      notifications: supabaseNotificationRepository(admin, auth.value.session),
+      scheduler: systemScheduler,
+      latentScorer: serverLatentScorer,
+      secret: env.MATRICULA_HMAC_SECRET,
+      plans: RETAKE_PLANS,
+      bankVersion: QUIZ_VERSION,
     },
   });
 }

@@ -27,6 +27,7 @@ export { PHYSICS, physicsSchema } from "./physics";
 export type { PhysicsConfig } from "./physics";
 export { RETENTION_CONFIG, retentionConfigSchema } from "./retention";
 export type { RetentionConfig } from "./retention";
+export { RETAKE_PLANS, retakeRegistrySchema } from "./retake-plans";
 export { SOUND, SOUND_CATEGORIES, SOUND_EVENTS, soundDurationMs, soundSchema } from "./sound";
 export type { SoundCategory, SoundConfig, SoundEventId, SoundRecipe, SoundVoice } from "./sound";
 export {

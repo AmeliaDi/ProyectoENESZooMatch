@@ -2278,3 +2278,106 @@ llamaban «inclusión» y que habían que separarse:
   `docs/PREREGISTRO.md`, `data/avatar-config.json`, `data/arquetipos.json` y
   `scripts/generar_catalogo.py` (`{otrx}` → `{otra_persona}`), y `docs/TRAZABILIDAD.md` con la fila
   **T-30** y los hashes `a05955c0ec1213e1` / `995b0be7b1efb87a`.
+
+## ADR-054 · La re-toma mínima existe: un plan publicado, elegido por sello, que solo vuelve sobre lo que ya se contestó
+
+**Contexto.** **B9.2** (tarea #16) cierra el hueco que **ADR-052** dejó abierto a propósito. Ese ADR
+puso dos cosas en su lugar: un sello que dice con qué matemática se midió cada fila
+(`profiles.params_version`) y un aviso que dice si una θ guardada sigue vigente. Con eso ya se podía
+saber *a quién* re-preguntar y *cuánto* cambió su medición, pero no había ninguna pantalla que lo
+tratara: el aviso invitaba a «afinar el perfil», y afinar **no es lo mismo que retomar**. Afinar
+módulos estrena preguntas que esa persona nunca respondió; retomar vuelve sobre enunciados que ya
+contestó bajo una frase que ahora dice otra cosa. El costo percibido, el consentimiento y la
+matemática del merge son distintos en cada caso, y mezclarlos produce el peor resultado posible: un
+examen de 197 preguntas a quien cambió la redacción de 6.
+
+Dos impedimentos prácticos, no de diseño:
+
+- **El plan no se puede calcular en runtime.** `minimalRetake` compara dos instantáneas completas del
+  banco, y el banco anterior (`2.2.0`) no vive en la app: vive en el historial de git. Preguntarle a
+  la base de datos el plan de cada visita habría significado tener el generador psicométrico en el
+  servidor de la aplicación.
+- **Un plan es del banco, pero la re-toma es de la persona.** Dentro del mismo plan `2.2.0 → 2.3.0`,
+  alguien que llegó solo por el obligatorio nunca vio `LAM2`, `APE1` ni `APE2` (son del módulo
+  `relacional`). Re-preguntarle eso no es retomar: es estrenar una pregunta con el pretexto de un
+  cambio de versión.
+
+Y el presupuesto importa en las dos direcciones. `RETAKE_CAP = 25` preguntas; los planes publicados
+`2.1.0 → 2.3.0` y `2.0.0 → 2.3.0` piden **29 y 38**. Un flujo honesto tenía que poder decir «esto es
+demasiado para ti ahora» y llevar a otra parte, no soltar un quiz largo con la conciencia tranquila.
+
+**Decisión.**
+
+- **El plan es un artefacto versionado, no un cálculo.** `data/retake-plans.json` (registro
+  `retake-plans-1`) lo genera `node scripts/matching/retake-plans.mjs --write` comparando el banco del
+  árbol con cada versión que sigue en git, y lo lee `src/config/retake-plans.ts` bajo Zod. La app no
+  infiere nada: lee la tabla. Lo delicado es el orden de failure: el esquema **rechaza en carga** un
+  plan cuyo `to` no sea `QUIZ_VERSION`, un `reask` con un ítem que ya no está en el banco, un bloque
+  cuyos ítems no estén en `reask`, y un `overCap` que no coincida con `reask.length > 25`. Así,
+  cambiar `data/microtest.json` sin volver a correr el arnés revienta el despliegue — que es el
+  momento correcto para enterarse — en lugar de preguntar ítems inexistentes en producción.
+- **Se entra por sello, nunca por decisión de la persona.** `lookupRetake(registry, stored, current)`
+  (`src/domain/psychometrics/retake-registry.ts`) responde uno de cuatro estados, y los cuatro se
+  tratan distinto en la pantalla: `plan` (hay preguntas), `current` (su banco ya es el vigente),
+  `unstamped` (llegó antes del sello: la regla 1 de ADR-052 prohíbe invitarlo a re-contestar algo que
+  sigue siendo válido) y `unknown` (banco viejo sin plan publicado: ofrecerle preguntas sería
+  inventárselas). `isAskable` es la compuerta adicional para `overCap`, `reask` vacío o ítems que ya
+  no existen.
+- **Regla 1 — solo se re-pregunta lo guardado.** `pendingOf(plan, stored)` toma la intersección del
+  `reask` con las respuestas archivadas, en el orden de los bloques. Si la intersección es vacía el
+  estado es `current`: no hay nada que decirle a esa persona, ni un aviso, ni un botón.
+- **Regla 2 — el merge es sustitución con rechazo, no acumulación.** `mergeRetake` conserva intacto
+  todo lo que no toca el plan y encima pone las respuestas nuevas. Devuelve `null` (→
+  `request.invalid`) si el envío nombra un ítem fuera del plan, repite un ítem, deja **media familia
+  de factor** sin cubrir en un ítem no sensible, o mezcla controles (un Likert respondiendo un
+  filtro). Un ítem **sensible** que se prefiere no volver a contestar **retira** su respuesta vieja en
+  lugar de conservarla: media familia nueva junto a media vieja sale peor medida que la familia vieja
+  entera (I9), y saltarse una pregunta íntima nunca puede obligar a declarar nada.
+- **Regla 3 — se escribe por la misma ruta del test.** `retakeProfile` termina en `submitQuiz`, así
+  que el sello, el recálculo de pares, los avisos y la regla de «nadie sale del pool» no pueden
+  quedar atrás en un camino lateral. La verificación de eso es una aserción, no una promesa: tras la
+  re-toma la fila sigue en `pool()`.
+- **La pantalla no decide el plan.** `/afinar/retomar` (Lámina 07 · retomar) pide `GET /api/quiz/retake`
+  y muestra lo que el servidor dijo, una pregunta por pantalla, con los bloques como unidad de
+  validación pero en orden plano: 3 de los 4 factores del plan vigente no tienen una etiqueta legible
+  para el público y no se les inventó una. El wire shape vive en `src/contracts/retake.ts` porque
+  ningún archivo de `src/ui/**` importa `@/application`.
+- **El borrador obedece a ADR-023.** `RETAKE_DRAFT_KEY = ${EXPERIENCE.refine.draftKey}:retoma`, y
+  `parseRetakeDraft` descarta lo que ya no está en el plan: si el plan cambió o el envío quedó a
+  medias, lo que ya no se pregunta no regresa a la pantalla ni se cuela en el envío. Que la llave
+  esté bajo el prefijo del borrador de afinado está fijado por prueba, porque es lo que hace que el
+  barrido de dispositivo compartido la cubra.
+- **Ningún estado es callejón sin salida.** Cada no-plan recibe su explicación y su salida:
+  `unknown`/`capped` apuntan a `/afinar` (donde sí hay módulos que estrenar) y `current`/`unstamped`
+  a `/perfil`. Y el aviso T2/T3 cambió de destino: «Afinar mi perfil» → `/afinar` pasó a
+  **«Volver a responder» → `/afinar/retomar`**, que es lo que el aviso estaba prometiendo.
+
+**Consecuencias.**
+
+- Hoy, quien se midió con `2.2.0` ve **8 preguntas** (`VAL6`, `FIL1`, `VAL13`, `FIL2`, `FIL3`, `APE1`,
+  `APE2`, `LAM2`) y 189 ítems suyos se recalculan sin volver a preguntarse; quien se midió con
+  `2.1.0` o `2.0.0` **no recibe quiz**: recibe la explicación y el camino de módulos. La decisión de
+  si 29 o 38 preguntas vale la pena queda explícitamente tomada por el presupuesto, no delegada a un
+  botón.
+- El costo de esta honestidad es un artefacto más que mantener: `data/retake-plans.json` se
+  desincroniza en cuanto alguien toca el banco. No se disimuló: hay **dos** guardas redundantes a
+  propósito (Zod en carga y `src/config/retake-plans.test.ts`, que fija el plan publicado ítem por
+  ítem) y el mensaje del esquema dice el comando exacto que hay que correr.
+- `retired` es información para el aviso, no para el motor: la lista nombra ítems que **ya no están**
+  en el banco, así que el esquema valida los que se re-preguntan y deja libres los retirados. La
+  pantalla los cuenta («También retiramos N preguntas que ya no usamos») y nada más.
+- No hay migración nueva: el flujo reusa `params_version` y `submit_quiz_result` de ADR-052. Lo único
+  nuevo que cruza el alambre es la vista de cinco estados de `src/contracts/retake.ts`.
+- Queda explícitamente **sin hacer**, no tapado: (a) un `overCap` nunca ofrece «haz solo la mitad»,
+  porque partir una familia de factor es justo lo que la regla 2 rechaza; (b) el plan no sabe si la
+  persona está activa, así que un perfil sellado pero abandonado recibe el aviso igual; (c) subir o
+  bajar `RETAKE_CAP` es un cambio de producto que afecta a cuánta gente se le pide algo — queda en
+  manos de la usuaria, no en un commit de afinación.
+- Artefactos: `data/retake-plans.json`, `scripts/matching/retake-plans.{ts,mjs}`,
+  `src/domain/psychometrics/retake-registry.ts` (+ 7 casos), `src/config/retake-plans.ts` (+ 12),
+  `src/application/retake-profile.ts` (+ 21), `src/contracts/retake.ts`,
+  `src/app/api/quiz/retake/route.ts` (+ 8), `src/ui/retake/{retake-flow.ts,retake-quiz.tsx,retake-page.tsx}`
+  (+ 18), `src/app/afinar/retomar/page.tsx`, `src/ui/profile/math-update-notice.tsx` con su CTA
+  reorientado,
+  `quiz.retake_none` en `errors.ts` → 409 en `responses.ts`, `loadAnswers`/`loadParamsVersion` en
+  `ports.ts` con su doble en memoria, y `docs/TRAZABILIDAD.md` con la fila **T-31**.

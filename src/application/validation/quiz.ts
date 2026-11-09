@@ -67,6 +67,24 @@ function checkRequired(seen: Set<string>, required: string[], ctx: Ctx): void {
   }
 }
 
+/**
+ * Hard filters must reference real options of their own item. This blocks
+ * arbitrary strings from reaching the matching pool.
+ */
+function checkFilterOptions(filters: ReadonlyArray<{ itemId: string; selected: readonly string[] }>, ctx: Ctx): void {
+  for (const answer of filters) {
+    const allowed = new Set(itemById.get(answer.itemId)?.opciones ?? []);
+    for (const selected of answer.selected) {
+      if (!allowed.has(selected)) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Invalid option "${selected}" for item ${answer.itemId}`,
+        });
+      }
+    }
+  }
+}
+
 export const quizSubmissionSchema = z
   .object({
     likert: z.array(likertAnswerSchema).max(LIKERT_ITEM_IDS.length),
@@ -79,20 +97,7 @@ export const quizSubmissionSchema = z
     checkRequired(likert, REQUIRED_LIKERT_ITEM_IDS, ctx);
     const filters = checkIds(data.filters.map((answer) => answer.itemId), "seleccion_multiple", ctx);
     checkRequired(filters, FILTER_ITEM_IDS, ctx);
-
-    // Hard filters must reference real options of their own item. This blocks
-    // arbitrary strings from reaching the matching pool.
-    for (const answer of data.filters) {
-      const allowed = new Set(itemById.get(answer.itemId)?.opciones ?? []);
-      for (const selected of answer.selected) {
-        if (!allowed.has(selected)) {
-          ctx.addIssue({
-            code: "custom",
-            message: `Invalid option "${selected}" for item ${answer.itemId}`,
-          });
-        }
-      }
-    }
+    checkFilterOptions(data.filters, ctx);
   });
 
 const OPTIONAL_MODULE_IDS = QUIZ_MODULE_IDS.filter((id) => id !== "nucleo") as [QuizModuleId, ...QuizModuleId[]];
@@ -115,6 +120,23 @@ export const refineSubmissionSchema = z
       (item) => item.modulo === data.module && item.tipo_respuesta === "likert_5" && !isSkippableItem(item),
     ).map((item) => item.id);
     checkRequired(seen, required, ctx);
+  });
+
+/**
+ * Re-toma mínima. The shape is validated here; which items this person is
+ * allowed to answer is the plan, and only `mergeRetake` knows it — it reads the
+ * published plan together with the stored answers.
+ */
+export const retakeSubmissionSchema = z
+  .strictObject({
+    likert: z.array(likertAnswerSchema).max(LIKERT_ITEM_IDS.length),
+    filters: z.array(filterAnswerSchema).max(FILTER_ITEM_IDS.length),
+  })
+  .superRefine((data, ctx) => {
+    const likert = checkIds(data.likert.map((a) => a.itemId), "likert_5", ctx);
+    const filters = checkIds(data.filters.map((a) => a.itemId), "seleccion_multiple", ctx);
+    checkFilterOptions(data.filters, ctx);
+    if (likert.size + filters.size === 0) ctx.addIssue({ code: "custom", message: "Empty retake submission" });
   });
 
 export const privacyUpdateSchema = z.union([

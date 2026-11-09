@@ -34,6 +34,11 @@ Scripts reproducibles:
 
 **39/39 OK** (las mismas 39 en local).
 
+**Tras ADR-054** la lista de `qa-api.mjs` subió a 41 comprobaciones: `GET /afinar/retomar`
+(la pantalla de re-toma, 200) y `GET /api/quiz/retake` sin sesión (401). **No se han
+corrido todavía**: necesitan un `BASE` con Supabase, y el script entra, testa y borra una
+matrícula falsa, así que quedan para la próxima corrida completa.
+
 > No hay padrón de matrículas: cualquier matrícula de exactamente 9 dígitos
 > puede registrarse. Desde ADR-026 la matrícula es la única credencial (sin
 > clave personal) y el guardia de Postgres limita intentos por dirección.

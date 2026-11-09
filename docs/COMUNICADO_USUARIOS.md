@@ -36,11 +36,13 @@ El texto está en `src/ui/profile/math-update-notice.tsx` y es el mismo que ve l
 
 > Tus cálculos se actualizaron con la nueva versión. No tienes que hacer nada.
 
-**T2/T3 — cambió la medición** (un enunciado, una escala, la covarianza latente o el método). Ahí sí existe una afinación pendiente, y es opcional: el perfil sigue en el pool aunque nadie la haga.
+**T2/T3 — cambió la medición** (un enunciado, una escala, la covarianza latente o el método). Ahí sí existe una re-toma pendiente, y es opcional: el perfil sigue en el pool aunque nadie la haga.
 
 > **Actualizamos la matemática**
 > Algunas preguntas cambiaron de redacción o de escala, así que puedes volver a responderlas. Tu perfil se sigue calculando con lo que ya contestaste.
-> [Afinar mi perfil] · [Ahora no]
+> [Volver a responder] · [Ahora no]
+
+El botón lleva a `/afinar/retomar`, la re-toma mínima (ADR-054): ahí aparecen solo las preguntas que esa persona ya había contestado y que cambiaron — en la 2.3.0 son 8, no las 197 del cuestionario—. Si su banco todavía no tiene plan publicado o el plan pasa del presupuesto de 25 preguntas, la pantalla lo dice y ofrece afinar un módulo, en lugar de soltar una lista larga.
 
 Reglas que sostienen ambos textos: no se vuelve a preguntar lo que sigue siendo válido, ningún perfil se excluye del pool por no afinar, y a quien llega por primera vez no le aparece ninguno de los dos avisos.
 

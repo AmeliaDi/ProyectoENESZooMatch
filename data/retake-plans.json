@@ -1,0 +1,492 @@
+{
+  "version": "retake-plans-1",
+  "plans": [
+    {
+      "from": "2.2.0",
+      "to": "2.3.0",
+      "level": "T2",
+      "blocks": [
+        {
+          "factor": "afecto_tiempo",
+          "items": [
+            "LAM2"
+          ]
+        },
+        {
+          "factor": "apego_ansiedad",
+          "items": [
+            "APE1",
+            "APE2"
+          ]
+        },
+        {
+          "factor": "filtro",
+          "items": [
+            "FIL1",
+            "FIL2",
+            "FIL3"
+          ]
+        },
+        {
+          "factor": "meta_crianza",
+          "items": [
+            "VAL6",
+            "VAL13"
+          ]
+        }
+      ],
+      "reask": [
+        "VAL6",
+        "FIL1",
+        "VAL13",
+        "FIL2",
+        "FIL3",
+        "APE1",
+        "APE2",
+        "LAM2"
+      ],
+      "retired": [],
+      "reasons": [
+        "0 ítems nuevos, 6 reescritos, 0 retirados"
+      ],
+      "overCap": false
+    },
+    {
+      "from": "2.1.0",
+      "to": "2.3.0",
+      "level": "T2",
+      "blocks": [
+        {
+          "factor": "afecto_tiempo",
+          "items": [
+            "LAM2"
+          ]
+        },
+        {
+          "factor": "apego_ansiedad",
+          "items": [
+            "APE1",
+            "APE2"
+          ]
+        },
+        {
+          "factor": "filtro",
+          "items": [
+            "FIL1",
+            "FIL2",
+            "FIL3"
+          ]
+        },
+        {
+          "factor": "int_actividad_fisica",
+          "items": [
+            "INT18"
+          ]
+        },
+        {
+          "factor": "int_animales",
+          "items": [
+            "INT22"
+          ]
+        },
+        {
+          "factor": "int_artistico",
+          "items": [
+            "INT15"
+          ]
+        },
+        {
+          "factor": "int_comida",
+          "items": [
+            "INT23"
+          ]
+        },
+        {
+          "factor": "int_convencional",
+          "items": [
+            "INT19"
+          ]
+        },
+        {
+          "factor": "int_cultura",
+          "items": [
+            "INT21"
+          ]
+        },
+        {
+          "factor": "int_emprendedor",
+          "items": [
+            "INT16"
+          ]
+        },
+        {
+          "factor": "int_fiesta",
+          "items": [
+            "INT24"
+          ]
+        },
+        {
+          "factor": "int_investigador",
+          "items": [
+            "INT14"
+          ]
+        },
+        {
+          "factor": "int_juegos",
+          "items": [
+            "INT20"
+          ]
+        },
+        {
+          "factor": "int_realista",
+          "items": [
+            "INT13"
+          ]
+        },
+        {
+          "factor": "int_vida_nocturna",
+          "items": [
+            "INT17"
+          ]
+        },
+        {
+          "factor": "meta_crianza",
+          "items": [
+            "VAL6",
+            "VAL13"
+          ]
+        },
+        {
+          "factor": "soc_campus",
+          "items": [
+            "SOC11"
+          ]
+        },
+        {
+          "factor": "soc_dinero",
+          "items": [
+            "SOC9"
+          ]
+        },
+        {
+          "factor": "soc_familia",
+          "items": [
+            "SOC10"
+          ]
+        },
+        {
+          "factor": "soc_redes",
+          "items": [
+            "SOC8"
+          ]
+        },
+        {
+          "factor": "soc_rutina",
+          "items": [
+            "SOC7"
+          ]
+        },
+        {
+          "factor": "val_apertura_cambio",
+          "items": [
+            "VAL18"
+          ]
+        },
+        {
+          "factor": "val_autopromocion",
+          "items": [
+            "VAL17"
+          ]
+        },
+        {
+          "factor": "val_autotrascendencia",
+          "items": [
+            "VAL16"
+          ]
+        },
+        {
+          "factor": "val_conservacion",
+          "items": [
+            "VAL19"
+          ]
+        }
+      ],
+      "reask": [
+        "INT13",
+        "INT14",
+        "INT15",
+        "INT16",
+        "INT17",
+        "VAL16",
+        "INT18",
+        "VAL17",
+        "VAL18",
+        "VAL19",
+        "VAL6",
+        "FIL1",
+        "VAL13",
+        "FIL2",
+        "FIL3",
+        "INT19",
+        "INT20",
+        "INT21",
+        "INT22",
+        "INT23",
+        "INT24",
+        "SOC7",
+        "SOC8",
+        "SOC9",
+        "SOC10",
+        "SOC11",
+        "APE1",
+        "APE2",
+        "LAM2"
+      ],
+      "retired": [],
+      "reasons": [
+        "21 ítems nuevos, 6 reescritos, 0 retirados"
+      ],
+      "overCap": true
+    },
+    {
+      "from": "2.0.0",
+      "to": "2.3.0",
+      "level": "T2",
+      "blocks": [
+        {
+          "factor": "act_igualdad",
+          "items": [
+            "ACT1",
+            "ACT2",
+            "ACT3",
+            "ACT7",
+            "ACT8"
+          ]
+        },
+        {
+          "factor": "afecto_tiempo",
+          "items": [
+            "LAM2"
+          ]
+        },
+        {
+          "factor": "apego_ansiedad",
+          "items": [
+            "APE1",
+            "APE2"
+          ]
+        },
+        {
+          "factor": "filtro",
+          "items": [
+            "FIL1",
+            "FIL2",
+            "FIL3"
+          ]
+        },
+        {
+          "factor": "int_actividad_fisica",
+          "items": [
+            "INT18"
+          ]
+        },
+        {
+          "factor": "int_animales",
+          "items": [
+            "INT22"
+          ]
+        },
+        {
+          "factor": "int_artistico",
+          "items": [
+            "INT15"
+          ]
+        },
+        {
+          "factor": "int_comida",
+          "items": [
+            "INT23"
+          ]
+        },
+        {
+          "factor": "int_convencional",
+          "items": [
+            "INT19"
+          ]
+        },
+        {
+          "factor": "int_cultura",
+          "items": [
+            "INT21"
+          ]
+        },
+        {
+          "factor": "int_emprendedor",
+          "items": [
+            "INT16"
+          ]
+        },
+        {
+          "factor": "int_fiesta",
+          "items": [
+            "INT24"
+          ]
+        },
+        {
+          "factor": "int_investigador",
+          "items": [
+            "INT14"
+          ]
+        },
+        {
+          "factor": "int_juegos",
+          "items": [
+            "INT20"
+          ]
+        },
+        {
+          "factor": "int_realista",
+          "items": [
+            "INT13"
+          ]
+        },
+        {
+          "factor": "int_vida_nocturna",
+          "items": [
+            "INT17"
+          ]
+        },
+        {
+          "factor": "meta_carrera",
+          "items": [
+            "VAL14"
+          ]
+        },
+        {
+          "factor": "meta_crianza",
+          "items": [
+            "VAL6",
+            "VAL13"
+          ]
+        },
+        {
+          "factor": "rel_autonomia",
+          "items": [
+            "ACT5"
+          ]
+        },
+        {
+          "factor": "soc_campus",
+          "items": [
+            "SOC11"
+          ]
+        },
+        {
+          "factor": "soc_dinero",
+          "items": [
+            "SOC9"
+          ]
+        },
+        {
+          "factor": "soc_familia",
+          "items": [
+            "SOC10"
+          ]
+        },
+        {
+          "factor": "soc_redes",
+          "items": [
+            "SOC8"
+          ]
+        },
+        {
+          "factor": "soc_rutina",
+          "items": [
+            "SOC7"
+          ]
+        },
+        {
+          "factor": "val_apertura_cambio",
+          "items": [
+            "VAL18"
+          ]
+        },
+        {
+          "factor": "val_autopromocion",
+          "items": [
+            "VAL17"
+          ]
+        },
+        {
+          "factor": "val_autotrascendencia",
+          "items": [
+            "VAL16"
+          ]
+        },
+        {
+          "factor": "val_conservacion",
+          "items": [
+            "VAL19"
+          ]
+        },
+        {
+          "factor": "val_espiritualidad",
+          "items": [
+            "VAL5"
+          ]
+        },
+        {
+          "factor": "val_presente",
+          "items": [
+            "VAL15"
+          ]
+        }
+      ],
+      "reask": [
+        "INT13",
+        "INT14",
+        "VAL14",
+        "INT15",
+        "INT16",
+        "VAL15",
+        "INT17",
+        "VAL16",
+        "INT18",
+        "VAL17",
+        "VAL18",
+        "VAL19",
+        "VAL6",
+        "FIL1",
+        "VAL13",
+        "FIL2",
+        "FIL3",
+        "VAL5",
+        "ACT1",
+        "ACT2",
+        "ACT3",
+        "ACT7",
+        "ACT8",
+        "INT19",
+        "INT20",
+        "INT21",
+        "INT22",
+        "INT23",
+        "INT24",
+        "SOC7",
+        "SOC8",
+        "SOC9",
+        "SOC10",
+        "SOC11",
+        "APE1",
+        "APE2",
+        "LAM2",
+        "ACT5"
+      ],
+      "retired": [],
+      "reasons": [
+        "24 ítems nuevos, 10 reescritos, 0 retirados"
+      ],
+      "overCap": true
+    }
+  ]
+}

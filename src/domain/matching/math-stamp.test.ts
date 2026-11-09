@@ -10,7 +10,7 @@ import { PSYCHOMETRIC_PARAMS } from "@/config/psychometric-params";
 import { QUIZ_ITEMS } from "@/config/quiz";
 
 import type { MeasurementStampInput, StampItem, StampParams } from "./math-stamp";
-import { firmOf, isCurrentStamp, measurementFirm, paramsVersionOf, scoringFirm } from "./math-stamp";
+import { bankVersionOf, firmOf, isCurrentStamp, measurementFirm, paramsVersionOf, scoringFirm } from "./math-stamp";
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -98,5 +98,20 @@ describe("sello de la matemática", () => {
 
   it("las dos mitades del sello son distintas: un hash no cubre la otra pregunta", () => {
     expect(scoringFirm(MATCHING_CONFIG)).not.toBe(measurementFirm(input()));
+  });
+});
+
+describe("bankVersionOf", () => {
+  const seal = paramsVersionOf(input(), { params: PSYCHOMETRIC_PARAMS.version, bank: "2.1.0" });
+
+  it("lee el banco de origen del sello escrito por `submit_quiz_result`", () => {
+    expect(bankVersionOf(seal)).toBe("2.1.0");
+  });
+
+  it("no devuelve banco sin una firma válida: `null` es «sin plan» en los tres casos", () => {
+    expect(bankVersionOf(null)).toBeNull();
+    expect(bankVersionOf("2.1.0+2.1.0")).toBeNull();
+    expect(bankVersionOf("2.1.0+2.1.0+zzzzzzzzzzzz")).toBeNull();
+    expect(bankVersionOf(`${PSYCHOMETRIC_PARAMS.version}+2.1.0+extra+${"0".repeat(12)}`)).toBeNull();
   });
 });

@@ -132,3 +132,16 @@ export function firmOf(stamp: string | null | undefined): string | null {
   const last = stamp.split("+").pop() ?? "";
   return /^[0-9a-f]{12}$/.test(last) ? last : null;
 }
+
+/**
+ * La versión del banco con la que se midió esta fila (`params+banco+firma`).
+ * `null` en dos casos distintos y ambos significan «no planes de re-toma»:
+ * un perfil anterior al sello, o un sello escrito con otro formato. Es la única
+ * llave que tiene el registro de planes: sin banco de origen no hay diff que
+ * calcular, y adivinarlo re-preguntaría de más.
+ */
+export function bankVersionOf(stamp: string | null | undefined): string | null {
+  if (!stamp || !firmOf(stamp)) return null;
+  const parts = stamp.split("+");
+  return parts.length === 3 && parts[1] ? parts[1] : null;
+}

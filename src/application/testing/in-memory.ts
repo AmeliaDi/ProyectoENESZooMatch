@@ -64,6 +64,8 @@ export class MemoryStore {
   readonly chatEvents: Array<ChatSecurityEvent & { userId: string }> = [];
   /** Matrícula per account (the real adapter compares HMAC digests). */
   readonly matriculas = new Map<string, string>();
+  /** `profiles.params_version`: the seal a stored θ was measured with. */
+  readonly paramsVersions = new Map<string, string>();
 
   /** Only hatched and not paused people take part in matching. */
   pool(): PoolProfile[] {
@@ -226,6 +228,7 @@ export function memoryProfiles(store: MemoryStore): ProfileRepository {
         completedModules: record.completedModules,
       });
     },
+    loadParamsVersion: async (userId) => ok(store.paramsVersions.get(userId) ?? null),
     loadAnswers: async (userId) => ok([...(store.results.get(userId)?.answers ?? [])]),
     findCounterparts: async (ids) => {
       const gone = (id: string) => store.softDeleted.has(id);

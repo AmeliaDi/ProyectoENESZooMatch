@@ -25,7 +25,7 @@ async function enter(m, cookie) {
   return { status: r.status, cookie: live.join("; "), setCookie: r.headers.getSetCookie() };
 }
 
-for (const p of ["/", "/cuestionario", "/resultado", "/perfil", "/ajustes", "/afinar?modulo=intereses", "/evidencia", "/admin/login"]) {
+for (const p of ["/", "/cuestionario", "/resultado", "/perfil", "/ajustes", "/afinar?modulo=intereses", "/afinar/retomar", "/evidencia", "/admin/login"]) {
   const r = await fetch(BASE + p, { redirect: "manual" });
   row(`GET ${p}`, r.status, r.status === 200 || r.status === 307);
 }
@@ -35,7 +35,7 @@ for (const p of ["/dev/avatars", "/dev/ui", "/dev/physics"]) {
   const r = await fetch(BASE + p);
   row(`GET ${p} (${BASE.includes("localhost") ? "dev" : "prod"})`, r.status, BASE.includes("localhost") ? r.status === 200 : r.status === 404);
 }
-for (const [p, m] of [["/api/profile", "GET"], ["/api/result", "GET"], ["/api/privacy", "GET"], ["/api/notifications", "GET"], ["/api/admin/metrics", "GET"]]) {
+for (const [p, m] of [["/api/profile", "GET"], ["/api/result", "GET"], ["/api/privacy", "GET"], ["/api/notifications", "GET"], ["/api/quiz/retake", "GET"], ["/api/admin/metrics", "GET"]]) {
   const r = await fetch(BASE + p, { method: m });
   row(`${m} ${p} sin sesión`, r.status, r.status === 401 || r.status === 403);
 }

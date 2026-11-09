@@ -14,6 +14,7 @@ export type AppError =
   | "service.misconfigured"
   | "service.internal"
   | "quiz.not_completed"
+  | "quiz.retake_none"
   | "storage.failed"
   | "match.pool_unstable"
   | AdminError

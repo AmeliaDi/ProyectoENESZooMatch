@@ -4,7 +4,9 @@
  * Aviso de la nueva matemática (B9, ADR-052). T1 cambió solo el puntaje: se
  * recalcula en silencio y avisa con una línea, recordada por firma para que
  * nadie la vea dos veces ni la vea al llegar. T2/T3 cambió la medición: ahí sí
- * hay una afinación pendiente, opcional, y el perfil sigue en el pool sin ella.
+ * hay preguntas pendientes, opcionales, y la invitación lleva a la re-toma
+ * mínima (`/afinar/retomar`), que explica su motivo cuando no hay plan. El
+ * perfil sigue en el pool sin ella.
  */
 import Link from "next/link";
 import { useEffect, useSyncExternalStore } from "react";
@@ -23,7 +25,7 @@ export const MATH_NOTICE_COPY = {
   refineTitle: "Actualizamos la matemática",
   refineBody:
     "Algunas preguntas cambiaron de redacción o de escala, así que puedes volver a responderlas. Tu perfil se sigue calculando con lo que ya contestaste.",
-  refineCta: "Afinar mi perfil",
+  refineCta: "Volver a responder",
   dismiss: "Ahora no",
 } as const;
 
@@ -91,7 +93,7 @@ export function MathUpdateNotice({ measurement }: { measurement: ProfileDto["mea
     <Frame title={MATH_NOTICE_COPY.refineTitle}>
       <p className="zm-detail__muted">{MATH_NOTICE_COPY.refineBody}</p>
       <div className="zm-math__actions">
-        <Link href="/afinar" className="zm-box zm-btn zm-btn--primary">
+        <Link href="/afinar/retomar" className="zm-box zm-btn zm-btn--primary">
           {MATH_NOTICE_COPY.refineCta}
         </Link>
         <Button variant="ghost" onClick={() => write(DISMISS_KEY, measurement.seal)}>
