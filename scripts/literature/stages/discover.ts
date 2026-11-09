@@ -19,6 +19,7 @@ import {
 } from "../clients/open-apis.ts";
 import type { CrawlerConfig } from "../lib/config.ts";
 import { markTask, taskDone, type LiteratureDb } from "../lib/db.ts";
+import { keepDoi, loadRegistry } from "../lib/handles.ts";
 import type { HttpClient } from "../lib/http.ts";
 import { emptyRecord, extractDois, mergeRecord, recordIdForDoi, type LiteratureRecord } from "../lib/records.ts";
 import type { Seeds } from "../lib/seeds.ts";
@@ -29,6 +30,12 @@ const NAMED_MIN_SCORE = 0.6;
 
 export interface DiscoveryLog {
   readonly named: Array<{ label: string; status: string; title: string | null; doi: string | null; score: number }>;
+  /**
+   * Rows the handle registry said do not exist (I1, ADR-049). They are dropped
+   * before enriching, so a fabricated DOI costs five API calls to nobody and
+   * never reaches the database, the review queue or the export.
+   */
+  readonly sinHandle: Array<{ id: string; doi: string; origen: string }>;
 }
 
 async function enrich(http: HttpClient, config: CrawlerConfig, record: LiteratureRecord): Promise<LiteratureRecord> {
@@ -67,7 +74,8 @@ export async function discover(
     add(mergeRecord(emptyRecord(recordIdForDoi(doi), "EVIDENCIA.md", "article"), { doi }, "seed"));
   }
 
-  const log: DiscoveryLog = { named: [] };
+  const log: DiscoveryLog = { named: [], sinHandle: [] };
+  const registry = loadRegistry(config.paths.doiChecks);
   for (const study of seeds.namedStudies) {
     const hits = await openalexSearch(http, config, study.query, 8);
     const match = pickNamedMatch(study.query, study.year, study.author, hits, NAMED_MIN_SCORE);
@@ -90,6 +98,10 @@ export async function discover(
 
   const records: LiteratureRecord[] = [];
   for (const record of [...byId.values()].sort((a, b) => a.id.localeCompare(b.id))) {
+    if (!keepDoi(record.doi, registry)) {
+      log.sinHandle.push({ id: record.id, doi: record.doi ?? "", origen: record.seedOrigin });
+      continue;
+    }
     const key = `enrich:${record.id}`;
     const enriched = await enrich(http, config, record);
     upsertRecord(db, enriched);

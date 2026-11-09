@@ -84,6 +84,20 @@ Nota: Selfhout 2010 ya estaba verificado en `EVIDENCIA.md` (EV-17).
 > traducción propia. No se copia el HEXACO-PI-R. El formato es el del
 > Mini-IPIP6 (EV-103): 4 ítems por factor, 24 en total.
 
+**Gate de citas (ADR-049):** cada DOI que aparece en `EVIDENCIA.md` o en una
+ficha se resuelve contra `https://doi.org/api/handles/<doi>` y su veredicto se
+guarda en `data/literature/doi-checks.json` (97 comprobados: **90 resuelven, 7
+no**). Los 7 que no son los que la auditoría cazó como inventados: los cinco de
+la capa de género (fila 16 de la tabla de hallazgos de
+`DEEP_RESEARCH_CONSTRUCTOS_DE_EMPAREJAMIENTO.md`), el DOI falso de Knee 1998 y
+el de Weidmann 2023. El artefacto lo produce
+`node --no-warnings scripts/literature/handles.mts` (0 créditos, sin Firecrawl)
+y lo leen dos cosas: el crawler, que **descarta la fila antes de enriquecerla**
+si el handle responde 404, y `handles.test.ts`, que falla si alguna cita que
+licencia una función de puntaje no resuelve. Un 403, un 429 o un timeout se
+registran como `sin_comprobar` y **no** borran evidencia: solo 404/410 dicen
+"este handle no existe".
+
 ## 2. Tabla de decisión (salida de `npm run data:layers`)
 
 | Capa candidata | 1. Evidencia (estudios verificados) | 2. No redundante | 3. Licencia u originales | 4. Ítems núcleo + opcionales | 5. Datos sensibles (LFPDPPP art. 9) | Decisión |

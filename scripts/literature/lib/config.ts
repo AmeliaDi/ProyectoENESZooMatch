@@ -18,6 +18,8 @@ export const crawlerConfigSchema = z.object({
     report: z.string().min(1),
     evidenceDoc: z.string().min(1),
     seeds: z.string().min(1),
+    /** Resolution verdict per cited DOI, produced by `scripts/literature/handles.mts` (ADR-049). */
+    doiChecks: z.string().min(1),
   }),
   budget: z
     .object({ globalCredits: positiveInt, perRunCredits: positiveInt })

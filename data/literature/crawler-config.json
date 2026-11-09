@@ -10,7 +10,8 @@
     "recordsExport": "data/literature/records.csv",
     "report": "data/literature/pilot-report.json",
     "evidenceDoc": "docs/EVIDENCIA.md",
-    "seeds": "data/literature/seeds.json"
+    "seeds": "data/literature/seeds.json",
+    "doiChecks": "data/literature/doi-checks.json"
   },
   "budget": {
     "_etiqueta": "supuesto_diseno: la usuaria tiene ~1000 créditos (ADR-014)",
@@ -26,6 +27,7 @@
   "rateLimits": {
     "_comentario": "Intervalo mínimo entre peticiones por fuente, en ms. Firecrawl gratis: 10/min en scrape y search.",
     "crossref": 250,
+    "doi.org": 300,
     "openalex": 250,
     "unpaywall": 250,
     "europepmc": 250,

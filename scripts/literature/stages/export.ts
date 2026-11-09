@@ -7,6 +7,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import type { CrawlerConfig } from "../lib/config.ts";
 import { parseCsv, toCsv, type CsvCell } from "../lib/csv.ts";
 import type { LiteratureDb } from "../lib/db.ts";
+import { keepDoi, loadRegistry } from "../lib/handles.ts";
 
 export const REVIEW_HEADER = [
   "item_id", "kind", "record_id", "source_url", "field", "value_pass_a", "value_pass_b", "agreement",
@@ -63,16 +64,20 @@ function reviewRows(db: LiteratureDb): CsvCell[][] {
   return rows;
 }
 
-export function exportOutputs(db: LiteratureDb, config: CrawlerConfig): { reviewRows: number; records: number } {
+export function exportOutputs(db: LiteratureDb, config: CrawlerConfig): { reviewRows: number; records: number; recordsSinHandle: number } {
   const path = config.paths.reviewQueue;
   const previous = existsSync(path) ? parseCsv(readFileSync(path, "utf8")) : [];
   const rows = mergeHumanColumns(previous, reviewRows(db));
   writeFileSync(path, toCsv(REVIEW_HEADER, rows));
 
-  const records = db.prepare(
+  const found = db.prepare(
     "SELECT id, doi, title, authors, year, venue, record_type, seed_origin, topic, is_oa, oa_license, pmcid, citations, sources, verification FROM records ORDER BY id",
   ).all() as Row[];
+  // The registry is the last word even for rows stored before ADR-049: a DOI
+  // that answers 404 today does not get to stay in the export yesterday won.
+  const registry = loadRegistry(config.paths.doiChecks);
+  const records = found.filter((r) => keepDoi(typeof r["doi"] === "string" ? r["doi"] : null, registry));
   const header = ["id", "doi", "title", "authors", "year", "venue", "record_type", "seed_origin", "topic", "is_oa", "oa_license", "pmcid", "citations", "sources", "verificacion"];
   writeFileSync(config.paths.recordsExport, toCsv(header, records.map((r) => header.map((h) => r[h === "verificacion" ? "verification" : h] as CsvCell))));
-  return { reviewRows: rows.length, records: records.length };
+  return { reviewRows: rows.length, records: records.length, recordsSinHandle: found.length - records.length };
 }

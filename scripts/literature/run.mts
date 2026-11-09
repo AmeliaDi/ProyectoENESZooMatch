@@ -55,6 +55,9 @@ console.log(`Créditos registrados antes: ${spentBefore} / tope global ${config.
 const creditsBefore = await firecrawl.remainingCredits();
 const { records, log } = await discover(http, db, config, seeds, runId);
 console.log(`Descubrimiento: ${records.length} registros (APIs abiertas, 0 créditos)`);
+if (log.sinHandle.length > 0) {
+  console.log(`Handle inexistente (doi-checks.json): ${log.sinHandle.length} semillas descartadas — ${log.sinHandle.map((d) => d.doi).join(", ")}`);
+}
 
 const stage = skipFirecrawl
   ? { calls: [], stoppedBy: "omitido (--skip-firecrawl)" }
@@ -75,6 +78,7 @@ const report = {
   recordsByOrigin: countBy(records.map((r) => r.seedOrigin.split(":")[0] ?? r.seedOrigin)),
   recordsOpenAccess: records.filter((r) => r.isOa).length,
   namedStudies: log.named,
+  citasSinHandle: log.sinHandle,
   firecrawlCalls: stage.calls,
   creditsEstimatedOrSpent: spent,
   creditsRemainingBefore: creditsBefore,

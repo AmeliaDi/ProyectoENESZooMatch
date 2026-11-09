@@ -1825,3 +1825,61 @@ problemas:
   contra `banderas: ["SENS"]` habría movido a `actitudes_sociales_genero`, cuyo ACT1 no lleva la
   bandera, sin ganar nada legal — la categoría ya está fuera del puntaje. B6.2/B6.3 (el gate de
   handles/DOI en el crawler) es la otra mitad de B6 y no depende de esta decisión.
+
+## ADR-049 · Ninguna cita entra al repo sin pasar por el registro de handles
+
+**Contexto.** La fila 16 de la tabla de hallazgos de `DEEP_RESEARCH_CONSTRUCTOS_DE_EMPAREJAMIENTO.md`
+documentó cinco DOI que no existen: `10.1177/0192513X20985862`, `10.1007/s11199-019-01118-1`,
+`10.1177/2158244015581265`, `10.1007/s11199-020-01217-5` y `10.1007/s10964-024-01964-9` devolvían
+`HTTP 404` en `doi.org/api/handles` y Crossref no los encuentra. Los generó un pase de verificación
+anterior y se citaron como evidencia sobre parejas. El hallazgo **I1** pedía «antes de escribir
+`doi` en una ficha, resolver `https://doi.org/api/handles/<doi>` y descartar la fila si devuelve 404»,
+pero la petición se quedó en nota: nadie volvía a hacer la consulta y ningún test podía fallar por
+ella. Dos huecos concretos:
+
+1. **Las fichas licencian pesos con citas.** `data/literature/layer-candidates.json` cita 27 DOI que
+   justifican admitir una capa y darle peso; el verifier de capas (ADR-048) revisaba la estructura del
+   JSON, no que el handle existiera.
+2. **El crawler no distinguía «no existe» de «no contestó».** `mergeRecord` anota el nombre de la
+   fuente aunque el parche llegue vacío, así que la columna `sources` nunca fue prueba de resolución; y
+   una fila con DOI inventado se enriquecía igual (cinco llamadas a APIs abiertas) y terminaba en
+   `records.csv` y en la cola de revisión.
+
+**Decisión.**
+
+- **Un artefacto en lugar de una promesa:** `data/literature/doi-checks.json` guarda por DOI su
+  `estado` (`resuelve` / `no_resuelve` / `sin_comprobar`), el `http` que lo produjo, cuándo se consultó
+  y por qué vía. Las claves están normalizadas (`normalizeDoi`), así que `https://doi.org/10.1177/X` y
+  `10.1177/x` son la misma entrada.
+- **`handleState(status)` solo acepta 404 y 410 como ausencia.** Un 0 (timeout), 403, 429 o 5xx es
+  `sin_comprobar`, y `mergeChecks` no permite que un `sin_comprobar` pise un veredicto previo: una
+  corrida bloqueada por rate-limit no puede lavar la evidencia que ya estaba comprobada. `keepDoi`
+  falla abierto — sin veredicto, la fila se queda.
+- **El gate corre en dos puntos del pipeline.** `stages/discover.ts` descarta antes de enriquecer (un
+  DOI muerto ya no cuesta cinco llamadas) y anota la fila en `log.sinHandle`, que sale en el reporte;
+  `stages/export.ts` refiltra al exportar, para que un handle que muere hoy saque la fila aunque se
+  haya almacenado ayer.
+- **`scripts/literature/handles.mts`** resuelve los DOI de `EVIDENCIA.md` y de las fichas
+  (`--cards` limita a las fichas; `--doi <doi>` repitable consulta los que uno quiera, que es como se
+  registraron los siete muertos). Con su propio límite de tasa (300 ms por llamada, 0 créditos de
+  Firecrawl), sale con código 1 si alguna cita que licencia una función de puntaje no resuelve o nunca
+  se comprobó.
+- **Hoy: 97 DOI comprobados, 90 resuelven, 7 no.** Los siete son los cinco inventados de la capa de
+  género más los dos DOI falsos que la misma auditoría cazó: `10.1037/0022-3514.74.2.401` (Knee 1998) y
+  `10.1016/j.jrp.2023.104442` (Weidmann 2023).
+
+**Consecuencias.**
+
+- **I1 deja de ser una nota y pasa a ser un test.** `handles.test.ts` fija que ninguna cita de ficha
+  queda sin veredicto, que los siete DOI inventados nunca reaparecen como `resuelve` y que ningún
+  handle muerto sobrevive en `records.csv`.
+- **La puerta se prueba sin red:** todo el criterio vive en funciones puras (`lib/handles.ts`); la única
+  llamada real está en `clients/doi-org.ts` y la hace el CLI. Un test no puede ponerse rojo porque
+  doi.org esté caído.
+- El pipeline reporta lo que descarta, así que una ficha con cita falsa se ve en la corrida en lugar de
+  desaparecer en silencio.
+- **Lo que no resuelve:** un handle que resuelve prueba que el DOI **existe**, no que el artículo diga
+  lo que la ficha afirma. Eso sigue en la pasada humana (`verificacion: pendiente_humana`) y en el
+  criterio 2 de admisión. Y el gate solo mira citas con DOI: una afirmación sin identificador no lo
+  activa. `records.csv` data de antes del gate y no se regenera hasta la próxima corrida real; el test
+  verifica que ninguna de sus 131 filas cae en los siete handles muertos.
