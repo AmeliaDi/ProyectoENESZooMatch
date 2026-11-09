@@ -1,14 +1,24 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
   NO_MATCH_MESSAGE,
+  NOTIFICATION_COPY,
+  fillCopy,
   generateNotificationCopy,
   generateWelcomeMessage,
   nameFrozenMessage,
   type NotificationContext,
 } from "@/domain/messages/notification-copy";
 import { EGG_DISPLAY_NAME, formatIdentity } from "@/domain/identity/format-identity";
+import { OUTCOME_CLAIMS } from "@/testing/copy-guard";
 import type { NotificationType } from "@/types/microtest";
+
+/** Where `notify_matches` lives; the copy in there has to be this copy. */
+const NOTIFY_MIGRATION = "20261122000000_notification_copy_estimated_affinity.sql";
+const NOTIFY_SQL = readFileSync(resolve(process.cwd(), "supabase/migrations", NOTIFY_MIGRATION), "utf8");
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -89,16 +99,17 @@ const ALL_COPY: Array<{ type: NotificationType; title: string; body: string }> =
     ].map((ctx) => ({ type, ...generateNotificationCopy(type, ctx) })),
   ),
   { type: "welcome", ...generateWelcomeMessage(USER_NAME) },
-  { type: "no_match", body: NO_MATCH_MESSAGE, title: "Tu momento llegará" },
+  { type: "no_match", body: NO_MATCH_MESSAGE, title: NOTIFICATION_COPY.title_no_match },
 ];
 
 // ─── No-match message ─────────────────────────────────────────────────────────
 
 describe("NO_MATCH_MESSAGE", () => {
-  it("keeps the exact product literal", () => {
+  it("keeps the product literal without promising that someone will arrive", () => {
     expect(NO_MATCH_MESSAGE).toBe(
-      "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor <3",
+      "aun no aparece nadie arriba del filtro pero tranquilx, solo es un proyecto de estadistica, no de amor <3",
     );
+    expect(NO_MATCH_MESSAGE).toBe(NOTIFICATION_COPY.no_match);
   });
 
   it("reassures with inclusive language", () => {
@@ -127,24 +138,25 @@ describe("NO_MATCH_MESSAGE", () => {
 // ─── Romance match copy ───────────────────────────────────────────────────────
 
 describe("generateNotificationCopy — match_romance", () => {
-  it("celebrates a single match with the universe metaphor", () => {
+  it("reports the estimated affinity instead of a conspiring universe", () => {
     const copy = generateNotificationCopy("match_romance", context());
 
-    expect(copy.title).toContain("universo");
+    expect(copy.title).toBe(NOTIFICATION_COPY.title_romance);
     expect(copy.body).toContain(USER_NAME);
-    expect(copy.body).toContain("ser extraordinario");
+    expect(copy.body).toContain("afinidad estimada");
   });
 
   it("names the matched identity when the match details are known", () => {
     const copy = generateNotificationCopy("match_romance", context());
 
     expect(copy.body).toContain(MATCH_NAME);
+    expect(copy.body).toBe(fillCopy(NOTIFICATION_COPY.romance_one, { nombre: USER_NAME, match: MATCH_NAME }));
   });
 
-  it("falls back to a single-match message without details", () => {
+  it("falls back to the unnamed message when the match details are missing", () => {
     const copy = generateNotificationCopy("match_romance", context({ matches: undefined }));
 
-    expect(copy.title).toContain("universo");
+    expect(copy.title).toBe(NOTIFICATION_COPY.title_romance);
     expect(copy.body).toContain(USER_NAME);
     expect(copy.body).not.toContain(MATCH_NAME);
     expect(copy.body.length).toBeGreaterThan(0);
@@ -157,8 +169,8 @@ describe("generateNotificationCopy — match_romance", () => {
     );
 
     expect(copy.body).toContain("3");
-    expect(copy.body).toContain("seres");
-    expect(copy.body).not.toContain("un ser extraordinario");
+    expect(copy.body).toContain("personas del campus");
+    expect(copy.body).not.toContain(MATCH_NAME);
     expect(copy.body).toMatch(NEUTRAL_X_PATTERN);
   });
 
@@ -170,7 +182,7 @@ describe("generateNotificationCopy — match_romance", () => {
       ).body;
 
       expect(body).toContain(String(count));
-      expect(body).toContain("seres");
+      expect(body).toContain("personas del campus");
     }
   });
 
@@ -179,7 +191,7 @@ describe("generateNotificationCopy — match_romance", () => {
     const withoutTrack = generateNotificationCopy("match_romance", context({ track: undefined }));
 
     expect(withTrack).toEqual(withoutTrack);
-    expect(withTrack.title).toContain("universo");
+    expect(withTrack.title).toBe(NOTIFICATION_COPY.title_romance);
   });
 
   it("is deterministic for the same context", () => {
@@ -201,11 +213,11 @@ describe("generateNotificationCopy — match_amistad", () => {
     expect(copy.body).toContain("amistad");
   });
 
-  it("never uses romance wording in the friendship track", () => {
+  it("never uses the romance wording in the friendship track", () => {
     const copy = generateNotificationCopy("match_amistad", context());
 
-    expect(copy.title).not.toContain("universo");
-    expect(copy.body).not.toContain("ser extraordinario");
+    expect(copy.title).not.toBe(NOTIFICATION_COPY.title_romance);
+    expect(copy.body).not.toContain("quedó arriba del filtro");
   });
 
   it("states the count when there are two or more matches", () => {
@@ -217,6 +229,7 @@ describe("generateNotificationCopy — match_amistad", () => {
 
       expect(copy.body).toContain(String(count));
       expect(copy.body).toContain("amistades");
+      expect(copy.title).toBe(NOTIFICATION_COPY.title_amistad_many);
     }
   });
 
@@ -236,7 +249,7 @@ describe("generateNotificationCopy — no_match", () => {
     const copy = generateNotificationCopy("no_match", context({ matchCount: 0, matches: [] }));
 
     expect(copy.body).toBe(NO_MATCH_MESSAGE);
-    expect(copy.title.length).toBeGreaterThan(0);
+    expect(copy.title).toBe(NOTIFICATION_COPY.title_no_match);
     expect(copy.title).not.toBe(copy.body);
   });
 
@@ -265,12 +278,12 @@ describe("generateNotificationCopy — welcome", () => {
 });
 
 describe("generateWelcomeMessage", () => {
-  it("names the identity once and promises it will not move", () => {
+  it("names the identity once and says the name is fixed", () => {
     const message = generateWelcomeMessage(MATCH_NAME);
 
     expect(message.title).toContain("brilla");
     expect(message.body).toContain(MATCH_NAME);
-    expect(message.body).toContain("fijo para siempre");
+    expect(message.body).toContain("queda fijo");
     expect(Object.keys(message).sort()).toEqual(["body", "title"]);
   });
 
@@ -324,6 +337,53 @@ describe("notification copy never rebuilds an identity", () => {
   });
 });
 
+// ─── One copy route: the database says exactly this ───────────────────────────
+
+describe("notify_matches repeats these templates", () => {
+  /** The SQL only knows the viewer's own name, so it uses the unnamed variants. */
+  const SENTENCES = [
+    NOTIFICATION_COPY.title_romance,
+    NOTIFICATION_COPY.title_amistad_one,
+    NOTIFICATION_COPY.title_amistad_many,
+    NOTIFICATION_COPY.title_no_match,
+    NOTIFICATION_COPY.romance_one_hidden,
+    NOTIFICATION_COPY.romance_many,
+    NOTIFICATION_COPY.amistad_one_hidden,
+    NOTIFICATION_COPY.amistad_many,
+    NOTIFICATION_COPY.no_match,
+    NOTIFICATION_COPY.welcome,
+    NOTIFICATION_COPY.identity,
+  ];
+
+  it("keeps every notification sentence identical in both languages", () => {
+    for (const sentence of SENTENCES) {
+      expect(NOTIFY_SQL, `missing from ${NOTIFY_MIGRATION}: ${sentence.slice(0, 48)}`).toContain(sentence);
+    }
+  });
+
+  it("fills the slots the generator fills", () => {
+    expect(NOTIFY_SQL).toContain("'{nombre}'");
+    expect(NOTIFY_SQL).toContain("'{n}'");
+    for (const key of ["romance_many", "amistad_many", "welcome", "identity"] as const) {
+      for (const slot of NOTIFICATION_COPY[key].match(/\{\w+\}/g) ?? []) {
+        expect(NOTIFY_SQL, `${key} uses ${slot}`).toContain(slot);
+      }
+    }
+  });
+
+  it("replaces the destiny wording the previous version shipped", () => {
+    const previous = readFileSync(
+      resolve(process.cwd(), "supabase/migrations", "20261116000000_identity_drop_legacy.sql"),
+      "utf8",
+    );
+    expect(previous).toContain("El universo conspiró a tu favor");
+    // Only the function body is new copy: the header quotes the old sentences
+    // to explain the change, and the rewrite below names them to find them.
+    const [, functionBody] = NOTIFY_SQL.split("CREATE OR REPLACE FUNCTION public.notify_matches");
+    expect(functionBody?.split("-- ─── Los avisos sin leer")[0] ?? "").not.toMatch(OUTCOME_CLAIMS);
+  });
+});
+
 // ─── Whole-suite copy guarantees ──────────────────────────────────────────────
 
 describe("all notification copy", () => {
@@ -349,6 +409,15 @@ describe("all notification copy", () => {
     }
   });
 
+  it("promises no relational outcome, in the templates or on screen", () => {
+    for (const [key, text] of Object.entries(NOTIFICATION_COPY)) {
+      expect(text, `${key} promises an outcome`).not.toMatch(OUTCOME_CLAIMS);
+    }
+    for (const { type, title, body } of ALL_COPY) {
+      expect(`${title} ${body}`, type).not.toMatch(OUTCOME_CLAIMS);
+    }
+  });
+
   it("always produces a non-empty title and body", () => {
     for (const { title, body } of ALL_COPY) {
       expect(title.trim().length).toBeGreaterThan(0);
@@ -361,5 +430,12 @@ describe("all notification copy", () => {
 
     expect(body).not.toContain("0.86");
     expect(body).not.toContain("86");
+  });
+});
+
+describe("fillCopy", () => {
+  it("fills the known slots and leaves anything else alone", () => {
+    expect(fillCopy("a {nombre} b {n} c", { nombre: "x", n: 3 })).toBe("a x b 3 c");
+    expect(fillCopy("sin {slot} fijo", { nombre: "x" })).toBe("sin {slot} fijo");
   });
 });

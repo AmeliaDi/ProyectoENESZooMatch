@@ -87,11 +87,11 @@ const COGNITIVE_PAIR_COPY: Record<string, string> = {
 const DOMINANT_DYNAMICS: Record<string, string> = {
   "Fe|Fe": "Dúo de cuidado: ambes leen el clima emocional y crean un espacio donde pedir apoyo se siente natural.",
   "Fi|Fi": "Dúo auténtico: se reconocen en la honestidad emocional y respetan los tiempos del mundo interior.",
-  "Ne|Ne": "Dúo de posibilidades: una idea enciende otra y la conversación siempre encuentra un camino nuevo.",
+  "Ne|Ne": "Dúo de posibilidades: una idea enciende otra y en la conversación aparecen rumbos que antes no estaban.",
   "Ni|Ni": "Dúo visionario: comparten miradas profundas y disfrutan dar sentido a lo que otres pasan por alto.",
   "Se|Se": "Dúo del presente: conectan haciendo, explorando y convirtiendo los planes sencillos en recuerdos vivos.",
-  "Si|Si": "Dúo de confianza: la constancia y los pequeños rituales construyen una relación predecible y tierna.",
-  "Te|Te": "Dúo de impulso: se entienden al poner metas claras y celebrar lo que logran construir juntes.",
+  "Si|Si": "Dúo de confianza: la constancia y los pequeños rituales dan continuidad y ternura a lo cotidiano.",
+  "Te|Te": "Dúo de impulso: ambas leen las metas con claridad y celebran lo construido.",
   "Ti|Ti": "Dúo curioso: disfrutan analizar sin prisa y respetan la necesidad de pensar antes de responder.",
   "Fe|Fi": "Mentor-Soñador: la guía empática de une ayuda a otre a confiar en su mundo interior; la ternura circula sin exigir que sean iguales.",
   "Fe|Ni": "Guía-Visionarie: el cuidado de une da aire a la visión de otre y las conversaciones encuentran un rumbo compasivo.",
@@ -142,7 +142,7 @@ export function buildMbtiCompatibility(
   if (pairs.length > 0) {
     funcionesComplementarias = describeCognitivePairs(pairs);
   } else if (shared.length > 0) {
-    funcionesComplementarias = `Comparten ${shared.join(" y ")}: ${FUNCTION_HUMAN_LABELS[shared[0]!]}; ese terreno común facilita entenderse con naturalidad.`;
+    funcionesComplementarias = `Comparten ${shared.join(" y ")}: ${FUNCTION_HUMAN_LABELS[shared[0]!]}; ese terreno común da un punto de partida para entenderse.`;
   } else {
     funcionesComplementarias =
       "Sus funciones principales siguen rutas distintas; la afinidad puede crecer al traducir esos estilos con curiosidad.";
@@ -151,7 +151,7 @@ export function buildMbtiCompatibility(
   const dominantKey = cognitivePairKey(userFunctions[0]!, matchFunctions[0]!);
   const dinamicaNatural =
     DOMINANT_DYNAMICS[dominantKey] ??
-    `Dinámica ${userFunctions[0]}-${matchFunctions[0]}: combinan ${FUNCTION_HUMAN_LABELS[userFunctions[0]!]} con ${FUNCTION_HUMAN_LABELS[matchFunctions[0]!]}; escucharse las vuelve apoyo mutuo.`;
+    `Dinámica ${userFunctions[0]}-${matchFunctions[0]}: combinan ${FUNCTION_HUMAN_LABELS[userFunctions[0]!]} con ${FUNCTION_HUMAN_LABELS[matchFunctions[0]!]}; escucharse puede volverse apoyo mutuo.`;
 
   return { tipo1, tipo2, funcionesComplementarias, dinamicaNatural };
 }

@@ -24,6 +24,8 @@ const IDENTITY_DROP_MIGRATION = "20261116000000_identity_drop_legacy.sql";
 const IDENTITY_DROP_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, IDENTITY_DROP_MIGRATION), "utf8"));
 const SOFT_DELETE_MIGRATION = "20261117000000_filter_soft_deleted_matches.sql";
 const SOFT_DELETE_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, SOFT_DELETE_MIGRATION), "utf8"));
+const NOTIFY_COPY_MIGRATION = "20261122000000_notification_copy_estimated_affinity.sql";
+const NOTIFY_COPY_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, NOTIFY_COPY_MIGRATION), "utf8"));
 
 /** Every `CREATE FUNCTION public.x(...)` body, keyed by name, across migrations. */
 function publicFunctionsOf(sql: string): [string, string][] {
@@ -33,6 +35,7 @@ const PUBLIC_FUNCTIONS = new Map([
   ...publicFunctionsOf(lf(SQL)),
   ...publicFunctionsOf(IDENTITY_SQL),
   ...publicFunctionsOf(SOFT_DELETE_SQL),
+  ...publicFunctionsOf(NOTIFY_COPY_SQL),
 ]);
 
 const CHAT_MIGRATION = "20261102000000_chat_pin.sql";
@@ -92,6 +95,7 @@ describe("base migration", () => {
       SOFT_DELETE_MIGRATION,
       QUIZZES_MIGRATION,
       OBSERVATORY_MIGRATION,
+      NOTIFY_COPY_MIGRATION,
     ]);
   });
 
@@ -635,7 +639,7 @@ describe("identity single source migration", () => {
     expect(matches).toContain("p.estado_identidad = 'eclosionado'");
 
     const notify = PUBLIC_FUNCTIONS.get("notify_matches") ?? "";
-    expect(notify).toContain("COALESCE(p.alias_completo, p.alias)");
+    expect(notify).toContain("SELECT p.alias_completo, p.estado_identidad");
     expect(notify).not.toContain("p.alias_animal || ' ' || p.alias_color");
     // A notification never announces a match for somebody still in the egg.
     expect(notify).toContain("v_estado = 'huevo'");
@@ -787,13 +791,11 @@ describe("identity single source migration", () => {
         .split("\n")
         .map((line) => line.split("--")[0])
         .join("\n");
-      if (name === "notify_matches") {
-        // The one deliberate fallback, and it disappears in step 2.
-        expect(code).toContain("COALESCE(p.alias_completo, p.alias)");
-        continue;
-      }
       expect(code, name).not.toMatch(/\w\.alias(?![A-Za-z0-9_])/);
     }
+    // Step 1 carried the one deliberate fallback; step 2 removed it, and every
+    // function still in the map is the post-drop version.
+    expect(IDENTITY_SQL).toContain("COALESCE(p.alias_completo, p.alias)");
   });
 
   it("adds the identity notice as one typed event per person", () => {

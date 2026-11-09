@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { EXPERIENCE } from "@/config";
 import { experienceSchema } from "@/config/experience";
+import { FORBIDDEN_COPY, OUTCOME_CLAIMS } from "@/testing/copy-guard";
 
 import { COACH_COPY, COACH_DESKTOP_TIPS, COACH_LINKS, COACH_STEP_COPY, coachAnnouncement } from "./coach-copy";
 import {
@@ -166,7 +167,6 @@ describe("coachmarks: geometry", () => {
 });
 
 describe("coachmarks: copy", () => {
-  const FORBIDDEN = /perfect[oa]|destino|garantizad[oa]|alma[s]? gemela|100 ?% compatible|para siempre|media naranja/i;
   const EMOJI = /\p{Extended_Pictographic}/u;
   const all = [
     ...Object.values(COACH_COPY),
@@ -176,7 +176,8 @@ describe("coachmarks: copy", () => {
 
   it("has no forbidden words or emojis, and short titles", () => {
     for (const text of all) {
-      expect(text, text).not.toMatch(FORBIDDEN);
+      expect(text, text).not.toMatch(FORBIDDEN_COPY);
+      expect(text, text).not.toMatch(OUTCOME_CLAIMS);
       expect(text, text).not.toMatch(EMOJI);
     }
     for (const step of Object.values(COACH_STEP_COPY)) expect(step.title.split(/\s+/).length).toBeLessThanOrEqual(5);

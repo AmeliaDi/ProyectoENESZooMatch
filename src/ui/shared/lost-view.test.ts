@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { CATALOG_ANIMALS, CATALOG_COLORS, EXPERIENCE } from "@/config";
 
+import { FORBIDDEN_COPY, OUTCOME_CLAIMS } from "@/testing/copy-guard";
+
 import { LOST_COPY, easterEggAwake } from "./lost-view";
 
-const FORBIDDEN = /perfect[oa]|destino|garantizad[oa]|alma[s]? gemela|100 ?% compatible|para siempre|media naranja/i;
 const EMOJI = /\p{Extended_Pictographic}/u;
 
 describe("lost view", () => {
@@ -21,7 +22,8 @@ describe("lost view", () => {
 
   it("follows the copy guide", () => {
     for (const text of Object.values(LOST_COPY)) {
-      expect(text, text).not.toMatch(FORBIDDEN);
+      expect(text, text).not.toMatch(FORBIDDEN_COPY);
+      expect(text, text).not.toMatch(OUTCOME_CLAIMS);
       expect(text, text).not.toMatch(EMOJI);
     }
   });

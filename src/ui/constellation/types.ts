@@ -367,12 +367,12 @@ export const CONSTELLATION_COPY = {
   emptyRomance:
     "Aún no aparece una afinidad romántica en este cielo. Las constelaciones se siguen acomodando y tu vibra sigue siendo única.",
   emptyAmistad:
-    "Todavía no llega esa amistad con la que harías click, pero el cielo sigue creciendo.",
+    "Todavía no hay una amistad arriba del filtro en este cielo, pero el cielo sigue creciendo.",
   closeSheet: "Cerrar detalle",
   sheetEyebrowRomance: "Conexión romántica",
   sheetEyebrowAmistad: "Conexión de amistad",
   sheetChemistryTitle: "Química entre ustedes",
-  sheetWhyTitle: "Por qué funciona",
+  sheetWhyTitle: "Cómo encajan",
   sheetDailyTitle: "En el día a día",
   sheetCareTitle: "Punto de atención",
   sheetAffinityTitle: "Dónde se encuentran",
@@ -381,7 +381,7 @@ export const CONSTELLATION_COPY = {
   sheetEnneagram: "Eneagrama",
   sheetCognitive: "Funciones",
   sheetAttachment: "Apego",
-  sheetCompatibility: "Compatibilidad psicométrica",
+  sheetCompatibility: "Afinidad estimada",
   sheetBadgesTitle: "Lo que más les une",
   sheetMbti: "MBTI",
   sheetMbtiTitle: "Cómo se piensan",

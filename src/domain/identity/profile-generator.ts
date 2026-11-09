@@ -169,7 +169,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "escuchas con todo el ser y eso es un regalo rarísimo",
     "tu ternura transforma los días grises de las personas",
     "tienes una generosidad que nace de lo más profundo de tu esencia",
-    "tu compasión natural hace que el mundo sea un lugar más habitable",
+    "tu compasión natural mantiene el mundo un poco más habitable",
     "cuidas de lxs demás con una delicadeza que conmueve",
     "tu corazón enorme es tu característica más hermosa",
     "donde hay dolor, tú llegas con calma y presencia genuina",
@@ -212,9 +212,9 @@ const PHRASE_BANK: Record<string, string[]> = {
   // ── Cultural: Vida universitaria ──
   cultural_vida_universitaria: [
     "vives la universidad con una pasión que la convierte en tu hogar",
-    "tu energía en el campus hace que cada día sea una aventura",
+    "vives el campus con una energía que disfruta cada día como si fuera el primero",
     "aprovechas cada rincón de la vida universitaria con entusiasmo",
-    "eres de quienes hacen que la comunidad estudiantil florezca",
+    "eres de quienes le ponen ganas a la comunidad estudiantil para que florezca",
     "tu presencia activa en el campus inspira a otrxs a participar",
   ],
   // ── Cultural: Humor ──
@@ -230,7 +230,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "tus palabras tienen el poder de construir y sostener a quienes amas",
     "expresas tu cariño con una honestidad verbal que desarma",
     "sabes decir exactamente lo que el corazón de la otra persona necesita escuchar",
-    "tu lenguaje de amor es verbal y eso hace que nunca quede duda de lo que sientes",
+    "tu lenguaje de amor es verbal: dices lo que sientes en vez de insinuarlo",
     "afirmas a lxs demás con una generosidad que transforma relaciones",
   ],
   // ── Intimidad: Tiempo de calidad ──
@@ -238,7 +238,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "cuando estás presente, estás presente de verdad, y eso es oro puro",
     "tu tiempo es el regalo más valioso que das y se nota en cada momento compartido",
     "sabes crear espacios de conexión genuina donde el tiempo se detiene",
-    "tu presencia plena hace que la otra persona se sienta lo más importante del mundo",
+    "cuando estás presente, le das a la otra persona toda tu atención",
     "valoras la calidad sobre la cantidad y eso define tus relaciones más hermosas",
   ],
   // ── Intimidad: Regalos y detalles ──
@@ -295,7 +295,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "tu empatía es un superpoder: puedes leer el corazón de quienes te rodean",
     "te pones en los zapatos del otrx con una facilidad que conmueve",
     "tu capacidad de comprender el dolor ajeno te convierte en un refugio",
-    "la empatía que irradias hace que las personas se sientan vistas y validadas",
+    "miras y nombras lo que otras personas sienten, sin apurarlas",
   ],
   // ── Valores: Confianza ──
   valores_confianza: [
@@ -311,7 +311,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "tu forma de resolver desacuerdos es un arte: escuchas, validas, construyes",
     "donde hay conflicto, tú traes la calma y la perspectiva que se necesita",
     "no huyes de las conversaciones difíciles y eso te hace una pareja increible",
-    "tu gestión del conflicto es prueba de que el amor se construye, no se encuentra perfecto",
+    "tu gestión del conflicto es prueba de que el amor se construye, no se hereda hecho",
   ],
   // ── Valores: Igualdad de género ──
   valores_igualdad_genero: [
@@ -327,7 +327,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "tu sentido de responsabilidad compartida es la base de relaciones equitativas",
     "no cargas todo solx ni esperas que otrx lo haga: el equipo es tu forma de amar",
     "la corresponsabilidad que practicas demuestra una madurez emocional admirable",
-    "tu disposición a compartir el peso hace que las relaciones contigo sean justas y libres",
+    "compartes el peso sin llevar la contabilidad: así se ven tus relaciones",
   ],
   // ── Valores: Respeto por la diversidad ──
   valores_respeto_diversidad: [
@@ -335,7 +335,7 @@ const PHRASE_BANK: Record<string, string[]> = {
     "tu respeto por la diversidad no es tolerancia pasiva: es celebración activa",
     "donde otrxs ven diferencias, tú ves riqueza y posibilidades de aprender",
     "tu apertura hacia todas las formas de ser es un regalo para la comunidad",
-    "abrazas la diversidad con una naturalidad que hace que todxs se sientan bienvenidxs",
+    "abrazas la diversidad sin condiciones: nadie tiene que explicarse para estar bien",
   ],
   // ── Identidad: Exclusividad ──
   identidad_exclusividad: [
@@ -382,7 +382,7 @@ const COLOR_TEMPERATURE_MODIFIERS: Record<string, string[]> = {
   calido: [
     "Una calidez rara y preciosa te envuelve: eres fuego suave que no quema, sino que abraza.",
     "Tu energía cálida irradia una pasión tranquila que reconforta a quien se acerca.",
-    "Llevas el calor del sol en tu forma de ser, y eso hace que la gente quiera quedarse.",
+    "Llevas el calor del sol en tu forma de ser; a tu lado se está tranquilo.",
   ],
   frio: [
     "Hay en ti una profundidad serena, como aguas quietas que guardan universos enteros.",
@@ -404,7 +404,7 @@ const COMMUNITY_PHRASES: string[] = [
   "Quienes te conozcan aquí encontrarán en ti algo que no sabían que necesitaban.",
   "Tu presencia en este hábitat universitario enriquece a todxs quienes te rodean.",
   "Eres exactamente el tipo de ser que esta comunidad necesita: auténticx, valiente, luminoso.",
-  "Tu existencia aquí no es casualidad: es una aportación única al tejido de esta comunidad.",
+  "Tu existencia aquí aporta algo único al tejido de esta comunidad.",
   "Las personas que te encuentren en el campus se llevarán un pedazo de tu luz.",
   "Este hábitat te recibe con los brazos abiertos porque seres como tú lo hacen vibrar.",
 ];

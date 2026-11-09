@@ -237,10 +237,15 @@ sigue sin pantalla: catálogos, cuestionario y umbrales (se editan en `data/*.js
 
   | Tipo | Cuándo aparece | Ejemplo de título |
   |---|---|---|
-  | `welcome` (bienvenida) | La primera vez que el estudiante completa su cuestionario | *"Tu perfil ya brilla en el hábitat 🌟"* |
-  | `match_romance` | Cuando hay coincidencias en la pista romance | *"El universo conspiró a tu favor 💫"* |
-  | `match_amistad` | Cuando hay coincidencias en la pista amistad | *"Tu vibra resonó con alguien ✨"* |
-  | `no_match` | Cuando no hay coincidencias por encima del umbral | *"Tu momento llegará 🌱"* |
+  | `welcome` (bienvenida) | La primera vez que el estudiante completa su cuestionario | *"Tu perfil ya brilla en el hábitat"* |
+  | `match_romance` | Cuando hay coincidencias en la pista romance | *"Tu energía resonó en el hábitat"* |
+  | `match_amistad` | Cuando hay coincidencias en la pista amistad | *"Tu vibra resonó con alguien"* (una persona) / *"Tu vibra resonó con el campus"* (varias) |
+  | `no_match` | Cuando no hay coincidencias por encima del umbral | *"Aún no hay resonancias en el hábitat"* |
+
+  El cuerpo del aviso habla de **afinidad estimada** y de lo que falta por
+  platicar; nunca promete que la relación vaya a formarse. Los redacta
+  `src/domain/messages/notification-copy.ts` y `public.notify_matches` copia los
+  mismos literales, así que cambiar uno sin el otro rompe un test.
 
 - **¿El administrador crea/envía notificaciones?** **No.** Las notificaciones son **generadas por
   el sistema** de forma automática. No hay pantalla para redactar, enviar, editar ni eliminar

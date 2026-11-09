@@ -16,7 +16,7 @@ export const COACH_STEP_COPY: Readonly<Record<CoachStepId, { title: string; body
   },
   tap: {
     title: "Toca un animal",
-    body: "Abre su ficha para ver por qué conectan, área por área.",
+    body: "Abre su ficha para ver la afinidad estimada, área por área.",
   },
   tracks: {
     title: "Romance o Amistad",
@@ -26,7 +26,7 @@ export const COACH_STEP_COPY: Readonly<Record<CoachStepId, { title: string; body
 
 export const COACH_DESKTOP_TIPS: readonly string[] = [
   "Arrastra las estrellas: las de más afinidad se acercan.",
-  "Haz clic en un animal para ver por qué conectan.",
+  "Haz clic en un animal para ver la afinidad estimada de cada área.",
   "Rueda del ratón, pellizco o los botones + y − para el zoom.",
   "Romance o Amistad: cambia de cielo con las pestañas.",
 ];

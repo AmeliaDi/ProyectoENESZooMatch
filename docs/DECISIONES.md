@@ -1686,3 +1686,75 @@ rompe el reveal y el avatar.
   versión para re-responder lo mínimo (**B9**). Esta ADR sí toca a los perfiles existentes: sus
   similitudes de ventana se recalculan al volar el pool, así que entra en el mismo aviso de
   «se actualizó la matemática».
+
+## ADR-047 · Un solo cuerpo de aviso en TS, copiado literal en SQL, y tres listas de copy
+
+**Contexto.** La auditoría de explicabilidad (**B5**) encontró dos problemas distintos que se
+solapaban.
+
+1. **Dos rutas de copy.** Las frases de notificación vivían en `src/domain/messages/`
+   `notification-copy.ts` *y* dentro de `public.notify_matches`. La segunda es la que corre: el
+   `InMemory` y el repositorio de Supabase mandan el RPC, así que lo que el estudiante leía era
+   el literal embebido en SQL, invisible para cualquier test de dominio. Peor: las dos rutas ya
+   no coincidían (la de SQL decía «química increíble» donde la de TS decía «vibra»).
+2. **Frases que prometen un desenlace.** «El universo conspiró a tu favor», «Tu momento
+   llegará», «Aún no llega ese ser especial», «así que vas a brillar en el hábitat», «por qué
+   conectan», «un lazo que fluye de forma única», «se complementan de forma hermosa». Ninguna
+   es reconstruible desde el vector de respuestas: el motor estima similitud entre dos perfiles,
+   no sabe si algo va a empezar ni si va a durar.
+3. **Cinco regex casi iguales.** `perfect[oa]|destino|garantizad[oa]|…` estaba copiado en cinco
+   archivos de test, cada uno con variantes distintas, y ninguna de las cinco leía las
+   superficies donde realmente se generateaba el texto (`profile-generator.ts`,
+   `mbti-dynamics.ts`, `quizzes.ts`, `constellation/types.ts`, `data/arquetipos.json`,
+   `data/explanation-copy.json`). Es decir: el guard existía y aun así se filtraron decenas de
+   frases, porque no miraba donde se escribían.
+
+**Decisión.**
+
+- **Una tabla de plantillas con huecos.** `NOTIFICATION_COPY` guarda literales con `{nombre}`,
+  `{match}` y `{n}`; `fillCopy()` los rellena. No hay una segunda redacción en TS.
+- **SQL copia los mismos literales** y `notification-copy.test.ts` lo verifica: lee la migración
+  `20261122000000_notification_copy_estimated_affinity.sql` y exige que cada frase de la tabla
+  aparezca como texto en `public.notify_matches`. Si alguien cambia una palabra en un lado, el
+  test revienta del otro. El relleno en SQL es `replace(replace('<plantilla>','{nombre}',
+  v_identity),'{n}',v_romance::text)`, con el mismo orden de sustitución que `fillCopy`.
+- **Los avisos sin leer se reescriben**, no se borran. La misma migración actualiza los rows con
+  `read = false` cuyo título/cuerpo todavía coincide con el copy viejo (los literales antigos
+  quedan como guardas de comparació; por eso el archivo los menciona). Borrarlos sería tirar el
+  aviso de alguien que aún no entra; reescribirlos deja que lean la versión honesta. Los leídos
+  son historia: no se tocan.
+- **Tres listas, porque hay tres errores distintos** (`src/testing/copy-guard.ts`):
+  `FORBIDDEN_COPY` (palabras que el producto decidió no usar), `OUTCOME_CLAIMS` (frases que
+  afirman qué va a pasar entre dos personas) y `CAUSAL_EFFECT` («tu rasgo hace que el otro
+  sienta X»). La primera y la segunda corren sobre todas las superficies de producto; la
+  tercera solo sobre la narrativa que llega a la pantalla, que es `plantillas_narrativas.cuidado`
+  (`profile-generator.ts:488-489`): `vinculo` y `esencia` se validan pero no se muestran, así
+  que no tiene sentido regenerar `data/arquetipos.json` con `scripts/generar_catalogo.py` y
+  poner en riesgo la estabilidad de identidades por texto que nadie lee.
+- **La voz de quien responde no está prohibida.** Los ítems de `data/microtest.json` y los
+  anclajes de `data/quizzes/*.json` se revisan solo contra `OUTCOME_CLAIMS`, nunca contra la
+  lista de palabras: «quiero hacerlo todo perfecto» es medición, no marketing. Por el mismo
+  motivo `destino`, `probabilidad` e insultos siguen siendo extras locales de los tests que los
+  necesitan (la pregunta de viajes, los descargos de estadística «esto no es una probabilidad»,
+  la nota de procedencia de avatares).
+
+**Consecuencias.**
+
+- Lo que un estudiante ve hoy: «Tu energía de X quedó arriba del filtro junto a Y. La afinidad
+  estimada es alta; lo que puedan hacer con eso se ve platicando.» El motivo sigue siendo
+  reconstruible desde el puntaje real del par, y la parte que no se puede saber se devuelve a la
+  conversación.
+- El copy de resultado, constelación, coachmarks, explicaciones y perfil propio se alineó con la
+  misma regla (≈20 frases reescritas; en la ficha de la constelación, `sheetWhyTitle` dice
+  «Cómo encajan» y `sheetCompatibility` «Afinidad estimada», en lugar de «Por qué funciona» y
+  «Compatibilidad psicométrica»).
+- El `InMemory` ya no puede inventar títulos: los importa de `NOTIFICATION_COPY`, así que la
+  prueba local y la producción describen el mismo aviso.
+- Las cinco regex duplicadas se fueron; quedó una lista compartida más los extras locales que
+  son más estrictos a propósito. `schema.test.ts` ahora incluye la migración nueva en su mapa de
+  funciones, así que `notify_matches` se verifica contra la versión vigente y no contra la de
+  noviembre.
+- **Lo que no resuelve:** el texto de `notify_matches` se reescribió, pero el umbral que decide
+  quién aparece sigue siendo el mismo; eso es **B8**. Y los avisos ya leídos conservan la frase
+  vieja a propósito — si se decide que eso también debe corregirse, es un cambio de datos con
+  sello de tiempo, no una migración idempotente.

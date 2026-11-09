@@ -18,6 +18,12 @@ amiga que sabe estadística: cálida, sin exagerar y sin mentir.
   estimada", "podrían", "vale la pena explorar".
 - **Palabras prohibidas:** *perfecto/a*, *destino*, *garantizado/a*, *alma
   gemela*, *100 % compatible*, *para siempre*, *media naranja*.
+- **Ninguna frase puede prometer un desenlace.** El motor estima afinidad entre
+  dos vectores de respuestas; no sabe si la relación va a empezar, a durar o a
+  funcionar. Están fuera, por ejemplo: "por qué conectan", "vínculos que
+  duren", "química increíble", "el universo conspiró", "tu momento llegará",
+  "fijo para siempre". Escribe lo que ya se midió (puntos en común) y devuelve
+  lo demás a la conversación: "lo que pueda pasar se ve platicando".
 - Sin urgencia falsa: nada de "¡date prisa!", "solo hoy", cuentas regresivas
   ni rachas.
 - No reveles respuestas crudas ni datos sensibles de nadie (orientación,
@@ -51,7 +57,7 @@ amiga que sabe estadística: cálida, sin exagerar y sin mentir.
 | Lugar | Texto |
 |---|---|
 | Carga | "Encendiendo estrellas…" |
-| Vacío (sin match) | "Aún no llega ese ser especial a la base de datos, pero tranquilx, tu vibra es única y esto es solo un proyecto de estadística, no una medida de tu inmenso valor <3" |
+| Vacío (sin match) | "aun no aparece nadie arriba del filtro pero tranquilx, solo es un proyecto de estadistica, no de amor <3" |
 | Vacío (pocas personas) | "Todavía somos pocxs en el cielo. Cuando entre más gente, tu constelación puede crecer." |
 | Error de red | Título: "Se nubló la conexión" · Cuerpo: "No pudimos cargar tu constelación. Intenta de nuevo en un momento." |
 | Error de matrícula | "Escribe tu matrícula completa: 9 números, sin letras ni guiones." |
@@ -60,12 +66,15 @@ amiga que sabe estadística: cálida, sin exagerar y sin mentir.
 | Afinidad | "87 % de afinidad estimada" + confianza "alta" o "media" |
 | Tooltip de afinidad | "Afinidad estimada, no destino." |
 | Cerrar | "Cerrar" · Descartar aviso: "Descartar aviso" |
-| Bienvenida | "Tu perfil de {animal} {color} ya está brillando en el hábitat. Cuando alguien compatible entre, el universo te lo hará saber." |
+| Bienvenida | "Tu esencia de {nombre} ya está registrada y tu nombre queda fijo: ya no cambia. Cuando alguien compatible entre al hábitat, te lo avisamos." |
 | Borrar datos | Confirmación: "Esto borra tu perfil y tus respuestas. No se puede deshacer." · Botón: "Borrar mis datos" |
 
 ## 6. Lista de revisión rápida
 
-1. ¿Promete algo que el modelo no calcula? Reescríbelo.
+1. ¿Promete algo que el modelo no calcula? Reescríbelo. En particular: ninguna
+   frase puede afirmar qué pasará entre dos personas. El motor estima afinidad
+   entre dos vectores de respuestas; no sabe si algo va a empezar, a durar o a
+   funcionar.
 2. ¿Tiene alguna palabra prohibida o crea urgencia? Quítala.
 3. ¿Presupone el género de alguien? Neutralízalo.
 4. ¿Sobra una frase? Bórrala.

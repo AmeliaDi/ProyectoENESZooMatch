@@ -4,6 +4,7 @@ import type { MatchEntryDto, ResultDto } from "@/contracts/result";
 import { formatIdentity } from "@/domain/identity/format-identity";
 import { explainPair } from "@/domain/explainability";
 import { MATCHING_CONFIG, pairScore } from "@/domain/matching";
+import { NO_MATCH_MESSAGE as DOMAIN_NO_MATCH_MESSAGE } from "@/domain/messages/notification-copy";
 import { parseIdentity } from "@/ui/shared/parse-identity";
 
 import { NO_MATCH_MESSAGE, normalizeBadges, parsePublicResult } from "./parse-result";
@@ -129,8 +130,12 @@ function without(payload: Record<string, unknown>, key: string): Record<string, 
 describe("NO_MATCH_MESSAGE", () => {
   it("keeps the exact product literal", () => {
     expect(NO_MATCH_MESSAGE).toBe(
-      "aun no llega ese ser especial pero tranquilx solo es un proyecto de estadistica, no de amor \u003c3",
+      "aun no aparece nadie arriba del filtro pero tranquilx, solo es un proyecto de estadistica, no de amor \u003c3",
     );
+  });
+
+  it("comes from the domain, not from a second copy in the UI", () => {
+    expect(DOMAIN_NO_MATCH_MESSAGE).toBe(NO_MATCH_MESSAGE);
   });
 
   it("reassures with inclusive language", () => {

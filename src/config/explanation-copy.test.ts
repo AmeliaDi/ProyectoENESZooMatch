@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { FORBIDDEN_COPY, OUTCOME_CLAIMS } from "@/testing/copy-guard";
 import { MATCH_CATEGORY_IDS } from "@/types/matching-config";
 
 import { EXPLANATION_COPY } from "./explanation-copy";
 
-const FORBIDDEN = /perfect[oa]|destino|garantizad[oa]|alma[s]? gemela|media naranja|para siempre|probabilidad|deshonest|mentiros|tramposx?|\bcodicios/i;
+/** This file shows numbers next to the sentences, so statistics words are banned here. */
+const LOCAL = /\bdestino\b|probabilidad|deshonest|mentiros|tramposx?|\bcodicios/i;
 const EMOJI = /\p{Extended_Pictographic}/u;
 const PLACEHOLDER = /\{(\w+)\}/g;
 const MAX_LENGTH = 200;
@@ -32,7 +34,9 @@ describe("explanation copy linter", () => {
 
   it("has no forbidden or labelling words, no emojis, and stays short", () => {
     for (const [path, text] of all) {
-      expect(text, path).not.toMatch(FORBIDDEN);
+      expect(text, path).not.toMatch(FORBIDDEN_COPY);
+      expect(text, path).not.toMatch(OUTCOME_CLAIMS);
+      expect(text, path).not.toMatch(LOCAL);
       expect(text, path).not.toMatch(EMOJI);
       expect(text.length, path).toBeLessThan(MAX_LENGTH);
     }

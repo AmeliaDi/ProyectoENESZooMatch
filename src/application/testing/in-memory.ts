@@ -5,6 +5,7 @@
  */
 import { CATALOG_ANIMALS, CATALOG_COLORS } from "@/config";
 import { normalizeMatchPairs, type GlobalMatch } from "@/domain/matching";
+import { NOTIFICATION_COPY } from "@/domain/messages/notification-copy";
 import { clearAttempts } from "@/domain/chat";
 import { enneagramCodeOf, type HatchedIdentity } from "@/domain/identity/hatch-identity";
 import { err, ok } from "@/domain/shared";
@@ -329,7 +330,12 @@ export function memoryNotifications(store: MemoryStore): NotificationRepository 
           userId,
           id: `n${store.notifications.length}`,
           type,
-          title: track === "romance" ? "El universo conspiró a tu favor" : "Tu vibra resonó con alguien",
+          title:
+            track === "romance"
+              ? NOTIFICATION_COPY.title_romance
+              : peers.length > 1
+                ? NOTIFICATION_COPY.title_amistad_many
+                : NOTIFICATION_COPY.title_amistad_one,
           body: `Matches (${peers.length})`,
           metadata: { match_count: peers.length, track, match_set_hash: sig },
           read: false,
@@ -351,7 +357,7 @@ export function memoryNotifications(store: MemoryStore): NotificationRepository 
             userId,
             id: `n${store.notifications.length}`,
             type: "no_match",
-            title: "Tu momento llegará",
+            title: NOTIFICATION_COPY.title_no_match,
             body: "Sin matches por ahora",
             metadata: {},
             read: false,

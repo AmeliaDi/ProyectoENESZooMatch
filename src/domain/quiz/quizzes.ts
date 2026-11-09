@@ -111,7 +111,7 @@ function derivarPreguntaDeCoincidencia(item: QuizItem, valor: string): string | 
     plataforma: (v) => `Ambas juegan en ${v.toLowerCase()}. ¿Tienen algún juego que no puedan soltar?`,
     genero: (v) => `Les gustan los juegos de ${v.toLowerCase()}. ¿Cuál ha sido su favorito últimamente?`,
     coop_vs_comp: (v) => `Ambas prefieren jugar ${v.toLowerCase()}. ¿Tienen algún juego favorito para eso?`,
-    ritmo_cita: (v) => `Vi que ambas prefieren un ritmo ${v.toLowerCase()} en las citas. ¿Qué hace que una cita sea perfecta para ti?`,
+    ritmo_cita: (v) => `Vi que ambas prefieren un ritmo ${v.toLowerCase()} en las citas. ¿Qué hace que una cita se sienta cómoda para ti?`,
     lenguaje_afecto: (v) => `Ambas valoran ${v.toLowerCase()} como lenguaje de afecto. ¿Cómo te gusta recibirlo?`,
   };
 

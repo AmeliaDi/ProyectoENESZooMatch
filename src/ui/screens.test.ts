@@ -48,9 +48,9 @@ import { EVIDENCE_SUMMARY } from "@/config/evidence-summary";
 import { litStars } from "./result/why-bars";
 import { CHAT_EVENT_LABELS } from "./settings/chat-security-section";
 import { STATUS_COPY, STATUS_OPTION_COPY } from "@/domain/status/status-types";
+import { FORBIDDEN_COPY, OUTCOME_CLAIMS } from "@/testing/copy-guard";
 import { BADGE_SECTION_COPY } from "@/domain/badges/badge-catalog";
 
-const FORBIDDEN = /perfect[oa]|destino|garantizad[oa]|alma[s]? gemela|100 ?% compatible|para siempre|media naranja/i;
 const EMOJI = /\p{Extended_Pictographic}/u;
 
 function files(dir: string, out: string[] = []): string[] {
@@ -115,7 +115,8 @@ describe("copy", () => {
 
   it("has no forbidden words or emojis", () => {
     for (const text of copy) {
-      expect(text, text).not.toMatch(FORBIDDEN);
+      expect(text, text).not.toMatch(FORBIDDEN_COPY);
+      expect(text, text).not.toMatch(OUTCOME_CLAIMS);
       expect(text, text).not.toMatch(EMOJI);
     }
   });
