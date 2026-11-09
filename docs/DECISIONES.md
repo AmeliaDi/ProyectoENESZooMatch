@@ -1611,11 +1611,78 @@ rompe el reveal y el avatar.
   del banco entero y el núcleo parecía más limpio de lo que era).
 - **Regenerado y trazado:** `data/microtest.json`, `docs/TEST.md`, `supabase/seed.sql §3`,
   `data/psychometric-params.json`, `docs/MEDICION.md` (DIF dominó 192 s de los 194,5 s),
-  `data/matching-config.json` (umbrales recalculados), `docs/CAPAS_EVIDENCIA.md` §2 y §4. Hashes
-  nuevos en `docs/TRAZABILIDAD.md` (matching-config `6758c94262edd74b`, psychometric-params
-  `a31ed99658426302`) y fila **T-25** para el reparto.
+  `data/matching-config.json` (umbrales recalculados), `docs/CAPAS_EVIDENCIA.md` §2 y §4. Fila
+  **T-25** para el reparto y hashes actualizados en `docs/TRAZABILIDAD.md`, que es donde viven
+  (esta ADR no los copia: los hashes se mueven otra vez en ADR-046).
 - **Lo que no resuelve.** Los perfiles que ya respondieron el núcleo de 58 siguen con respuestas
   a un banco que ya no les pregunta igual en el mismo orden: nada en la base fuerza re-responder,
   y eso es **B9** (sello `params_version`, re-toma mínima y el aviso «se actualizó la
-  matemática»). El desajuste de nodos de cuadratura (**B4**) y la licencia de `relacional` 0,20
-  (**B7-REL**) siguen abiertos.
+  matemática»). Sigue abierta la licencia de `relacional` 0,20 (**B7-REL**). El desajuste de
+  nodos de cuadratura (**B4**) se cerró después, en **ADR-046**, que además cambia cómo se
+  calcula la ventana que usa `relacional`.
+
+## ADR-046 · La esperanza de la ventana de tolerancia se calcula en closed form; se retira el knob de nodos
+
+**Contexto.** El auditoría encontró tres afirmaciones que no cuadraban.
+
+1. `data/matching-config.json` declaraba `scoring.quadrature_nodes = 41` con la fuente
+   «precisión numérica de la **verificación EAP** (error < 1e-6 en momentos normales)». En el
+   código no hay verificación EAP ninguna (`grep -rn EAP src` da 0 resultados): T-02 llama
+   «EAP/Laplace» a lo que `latent.ts` hace como MAP + Laplace, y el único lugar donde algo se
+   integra numéricamente es la ventana de tolerancia.
+2. Ese único lugar (`src/domain/matching/layers.ts`) usaba **21** nodos hardcodeados. Es decir:
+   el número declarado no era el número que corría.
+3. Ninguno de los dos alcanzaba el error prometido. Medido contra una integración de Simpson
+   fina (40 000 puntos, las tres ventanas configuradas: tol 0,75/escala 0,6; tol 0,5/0,8;
+   tol 0,75/0,8), el error máximo de la regla de Gauss–Hermite es
+
+   | sd de la brecha | 21 nodos | 41 nodos |
+   |---|---|---|
+   | 0,56 (se ≈ 0,4, perfil contestado) | 6,6e-4 | 2,7e-4 |
+   | 0,63 (se ≈ 0,45) | 1,1e-3 | 4,1e-4 |
+   | 0,85 | 3,0e-3 | 1,1e-3 |
+   | 1,41 (factor sin medir, `se ?? 1`) | **1,4e-2** | 2,3e-3 |
+
+   La razón es estructural: `g(δ) = exp(−½(max(0, |δ| − tol)/escala)²)` tiene un **kink** en
+   |δ| = tol. Gauss–Hermite es exacta para polinomios y esta función no se parece a uno; subir
+   el knob a 41 habría hecho el config más honesto pero seguiría 3–4 órdenes lejos del 1e-6
+   declarado, y costaría el doble de `exp()` por par y por factor.
+
+**Decisión.** No elegir entre 21 y 41: **calcular la esperanza exactamente** y borrar el knob.
+
+- La recta se parte en tres piezas. Dentro de la ventana `g = 1`, así que aporta su masa
+  `Φ((tol−μ)/s) − Φ((−tol−μ)/s)`. Cada lado es una integral de una gaussiana contra una
+  densidad normal sobre una semirrecta, que es cerrada:
+
+  `∫_{c}^{∞} e^{−(δ−t)²/2a²} φ_s(δ−μ) dδ = (a/h)·e^{−(t−μ)²/2h²}·Φ((m−c)/√v)`, con
+  `h² = a²+s²`, `√v = a·s/h`, `m = (t·s² + μ·a²)/h²` (y `Φ((c−m)/√v)` para la cola izquierda).
+
+  La verificación que hace creíble la fórmula es que en el caso degenerado tol = 0 recupera
+  la identidad conocida `E[e^{−δ²/2a²}] = (a/h)e^{−μ²/2h²}` (prueba dedicada, 6 cifras, que es
+  lo que vale la precisión documentada de `normalCdf`).
+- **Se retira `scoring.quadrature_nodes`** del config, del schema (`src/config/matching.ts`) y
+  del tipo (`src/types/matching-config.ts`). Era la tercera constante decorativa del bloque
+  `scoring` que no leía nadie; las otras dos (`mbti_ambiguity_se`,
+  `enneagram_ambiguity_entropy`) sí se consumen.
+- `gaussHermiteNormal` **se queda** en `src/domain/math`, pero cambia de papel: pasa de ser la
+  ruta de producción a ser el **oráculo** que fija la fórmula nueva en `layers.test.ts`, junto
+  con Simpson, el límite de ventana ancha (`scale → ∞` ⇒ 1), el límite dura
+  (`scale` chico ⇒ masa de la ventana, error O(escala)) y el caso `sd = 0` ⇒ la compuerta.
+
+**Consecuencias.**
+
+- El puntaje de las cuatro categorías de ventana (`dealbreakers`, `relacional`, `conflicto`,
+  `apego`) deja de depender de una constante numérica: es determinista analítico, como el
+  kernel. En el rango realista el cambio es de ~1e-3; en los pares con un factor sin medir
+  (donde antes más se equivocaba) es de hasta 1,4e-2 **en la dirección correcta**.
+- Recalibrado con `npm run data:matching` (600 perfiles, 179 700 pares, 121 s): romance
+  umbral **0,577 → 0,5769** y techo **0,6313 → 0,6316**; amistad umbral **0,4699** (igual) y
+  techo **0,5742 → 0,5716**. Cambia el hash de trazabilidad de `data/matching-config.json` a
+  `a7a5561ab19754ba` y se anota la regla como **T-26**.
+- Un campo menos que defender en `docs/TRAZABILIDAD.md`: la auditoría de licencias y etiquetas
+  (`supuesto_diseno` / `estimado_sintetico`) ya no tiene que explicar una precisión que el
+  código no cumplía.
+- **Lo que no resuelve:** el peso 0,20 de `relacional` sin licencia (**B7-REL**) y el sello de
+  versión para re-responder lo mínimo (**B9**). Esta ADR sí toca a los perfiles existentes: sus
+  similitudes de ventana se recalculan al volar el pool, así que entra en el mismo aviso de
+  «se actualizó la matemática».

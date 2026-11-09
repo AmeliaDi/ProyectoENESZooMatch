@@ -2,7 +2,6 @@
   "version": "2.1",
   "nota": "Modelo por capas (docs/MATCHING.md). Cada constante: {valor, etiqueta, fuente}. Sin validez predictiva demostrada: los pesos son priors débiles o supuestos de diseño. 2.1 (B1): sin pisos (floors) en ninguna capa; fuera del puntaje act_igualdad, val_espiritualidad y soc_politica.",
   "scoring": {
-    "quadrature_nodes": { "valor": 41, "etiqueta": "supuesto_diseno", "fuente": "Precisión numérica de la verificación EAP (error < 1e-6 en momentos normales)" },
     "mbti_ambiguity_se": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Eje ambiguo si |θ| < 1·SE posterior (ADR-017)" },
     "enneagram_ambiguity_entropy": { "valor": 0.85, "etiqueta": "supuesto_diseno", "fuente": "Entropía normalizada H/log 9 sobre la que no se fuerza un tipo (ADR-017)" }
   },
@@ -129,9 +128,9 @@
     "romance": {
       "etiqueta": "supuesto_diseno",
       "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07).",
-      "minimum_similarity_exclusive": { "valor": 0.577, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.97 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
+      "minimum_similarity_exclusive": { "valor": 0.5769, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.97 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
       "null_alpha": { "valor": 0.03, "etiqueta": "supuesto_diseno", "fuente": "Tasa de falso match por par bajo la nula; bajada de 0.05 a 0.03 para un romance más exigente (ADR-022)" },
-      "reference_high": { "valor": 0.6313, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
+      "reference_high": { "valor": 0.6316, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
       "max_matches": { "valor": 3, "etiqueta": "supuesto_diseno", "fuente": "Top-K por persona" },
       "hard_filters": ["orientacion_sexual", "identidad_genero", "tipo_relacion_busca"],
       "beta": { "valor": 6, "etiqueta": "supuesto_diseno", "fuente": "Estrictez del soft-min (comparativa en docs/MATCHING.md)" },
@@ -144,7 +143,7 @@
       "fuente": "Amistad: más estilo e intereses, sin filtros duros ni dealbreakers de pareja",
       "minimum_similarity_exclusive": { "valor": 0.4699, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.85 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)" },
       "null_alpha": { "valor": 0.15, "etiqueta": "supuesto_diseno", "fuente": "Amistad menos estricta que romance" },
-      "reference_high": { "valor": 0.5742, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
+      "reference_high": { "valor": 0.5716, "etiqueta": "estimado_sintetico", "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)" },
       "max_matches": { "valor": 5, "etiqueta": "supuesto_diseno", "fuente": "Top-K por persona" },
       "hard_filters": [],
       "beta": { "valor": 4, "etiqueta": "supuesto_diseno", "fuente": "Menos estricta que romance" },

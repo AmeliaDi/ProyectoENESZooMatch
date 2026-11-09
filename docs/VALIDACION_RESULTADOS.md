@@ -3,31 +3,31 @@
 > Archivo generado por `npm run data:validate`. No editar a mano. Criterios en `docs/PREREGISTRO.md`.
 > **Datos sintéticos: validan el código y la sensibilidad, no el mundo real.**
 
-- Semilla 1515870810; 600 perfiles; 268 con banco completo.
-- Hash SHA-256 (16 hex, LF) de entradas: `matching-config` 2d0c61300e6d2460, `psychometric-params` d25ff00d96fc3820, `self-reading` 347f4a593471fe97.
+- Semilla 1515870810; 600 perfiles; 264 con banco completo.
+- Hash SHA-256 (16 hex, LF) de entradas: `matching-config` a7a5561ab19754ba, `psychometric-params` a31ed99658426302, `self-reading` 3c021cda2e0b33fa.
 
 ## H1 · Modelo contra línea base (AUC, bootstrap pareado por persona, B = 200)
 
 | Track | Hipótesis generadora | AUC modelo | AUC línea base | ΔAUC [IC 95 %] | p | p Holm | Veredicto |
 |---|---|---|---|---|---|---|---|
-| romance | similitud (primaria) | 0.763 | 0.618 | 0.144 [0.122, 0.167] | 0.005 | 0.020 | **cumple** |
-| romance | ventana (H1s) | 0.641 | 0.596 | 0.046 [0.018, 0.072] | 0.005 | — | **cumple** |
-| romance | complementariedad_x (H1s) | 0.626 | 0.589 | 0.037 [0.009, 0.061] | 0.005 | — | **cumple** |
-| amistad | similitud (primaria) | 0.798 | 0.645 | 0.153 [0.136, 0.173] | 0.005 | 0.020 | **cumple** |
-| amistad | ventana (H1s) | 0.791 | 0.606 | 0.185 [0.167, 0.205] | 0.005 | — | **cumple** |
-| amistad | complementariedad_x (H1s) | 0.763 | 0.597 | 0.166 [0.145, 0.184] | 0.005 | — | **cumple** |
+| romance | similitud (primaria) | 0.786 | 0.614 | 0.172 [0.144, 0.199] | 0.005 | 0.020 | **cumple** |
+| romance | ventana (H1s) | 0.782 | 0.594 | 0.188 [0.166, 0.214] | 0.005 | — | **cumple** |
+| romance | complementariedad_x (H1s) | 0.747 | 0.581 | 0.166 [0.139, 0.192] | 0.005 | — | **cumple** |
+| amistad | similitud (primaria) | 0.812 | 0.693 | 0.120 [0.106, 0.137] | 0.005 | 0.020 | **cumple** |
+| amistad | ventana (H1s) | 0.779 | 0.639 | 0.140 [0.124, 0.156] | 0.005 | — | **cumple** |
+| amistad | complementariedad_x (H1s) | 0.743 | 0.623 | 0.120 [0.105, 0.137] | 0.005 | — | **cumple** |
 
 ## H2 · Equidad por subpoblación (cobertura con IC de Wilson al 95 %)
 
 | Track | Subpoblación | N | Cobertura | IC 95 % | Veredicto |
 |---|---|---|---|---|---|
-| romance | mujer_hombres | 75 | 73.3 % | [62.4 %, 82.0 %] | **cumple** |
-| romance | hombre_mujeres | 75 | 78.7 % | [68.1 %, 86.4 %] | **cumple** |
-| romance | mujer_mujeres | 75 | 80.0 % | [69.6 %, 87.5 %] | **cumple** |
-| romance | hombre_hombres | 75 | 62.7 % | [51.4 %, 72.7 %] | **cumple** |
-| romance | nobinarie_todes | 75 | 72.0 % | [61.0 %, 80.9 %] | **cumple** |
+| romance | mujer_hombres | 75 | 66.7 % | [55.4 %, 76.3 %] | **cumple** |
+| romance | hombre_mujeres | 75 | 76.0 % | [65.2 %, 84.2 %] | **cumple** |
+| romance | mujer_mujeres | 75 | 74.7 % | [63.8 %, 83.1 %] | **cumple** |
+| romance | hombre_hombres | 75 | 58.7 % | [47.4 %, 69.1 %] | **no cumple** |
+| romance | nobinarie_todes | 75 | 57.3 % | [46.1 %, 67.9 %] | **no cumple** |
 | romance | bi_mujer | 75 | 84.0 % | [74.1 %, 90.6 %] | **cumple** |
-| romance | solo_nucleo | 75 | 81.3 % | [71.1 %, 88.5 %] | **cumple** |
+| romance | solo_nucleo | 75 | 89.3 % | [80.3 %, 94.5 %] | **cumple** |
 | romance | prefiere_no_decir | 75 | 0.0 % | [0.0 %, 4.9 %] | excluida por diseño (§4) |
 | amistad | mujer_hombres | 75 | 100.0 % | [95.1 %, 100.0 %] | **cumple** |
 | amistad | hombre_mujeres | 75 | 100.0 % | [95.1 %, 100.0 %] | **cumple** |
@@ -36,155 +36,157 @@
 | amistad | nobinarie_todes | 75 | 100.0 % | [95.1 %, 100.0 %] | **cumple** |
 | amistad | bi_mujer | 75 | 100.0 % | [95.1 %, 100.0 %] | **cumple** |
 | amistad | solo_nucleo | 75 | 100.0 % | [95.1 %, 100.0 %] | **cumple** |
-| amistad | prefiere_no_decir | 75 | 100.0 % | [95.1 %, 100.0 %] | **cumple** |
+| amistad | prefiere_no_decir | 75 | 98.7 % | [92.8 %, 99.8 %] | **cumple** |
 
 ## H3 · Estabilidad ante ruido (±1 Likert en 10 % de los ítems)
 
 | Track | Spearman de puntajes | H3 | Jaccard del top-K | H3s |
 |---|---|---|---|---|
-| romance | 0.936 | **cumple** | 0.535 | **cumple** |
-| amistad | 0.964 | **cumple** | 0.493 | **no cumple** |
+| romance | 0.963 | **cumple** | 0.534 | **cumple** |
+| amistad | 0.966 | **cumple** | 0.502 | **cumple** |
 
-## H4 · Solo núcleo contra banco completo (268 personas con banco completo)
+## H4 · Solo núcleo contra banco completo (264 personas con banco completo)
 
 AUC del modelo con el perfil vuelto a puntuar **solo con el núcleo** contra la línea base calculada con el banco completo; etiqueta «similitud».
 
 | Track | Pares | AUC solo núcleo | AUC línea base | ΔAUC [IC 95 %] | p Holm | H4 | ρ(núcleo, completo) | H4c |
 |---|---|---|---|---|---|---|---|---|
-| romance | 3608 | 0.741 | 0.614 | 0.127 [0.081, 0.174] | 0.020 | **cumple** | 0.877 | **cumple** |
-| amistad | 35778 | 0.784 | 0.670 | 0.114 [0.090, 0.138] | 0.020 | **cumple** | 0.785 | **no cumple** |
+| romance | 3866 | 0.748 | 0.652 | 0.097 [0.052, 0.134] | 0.020 | **cumple** | 0.783 | **no cumple** |
+| amistad | 34716 | 0.778 | 0.731 | 0.047 [0.027, 0.067] | 0.020 | **cumple** | 0.796 | **no cumple** |
 
-### H4b · Los módulos ausentes amplían la incertidumbre: 62/62 factores con módulo opcional → **cumple**
+### H4b · Los módulos ausentes amplían la incertidumbre: 64/64 factores con módulo opcional → **cumple**
 
 | Factor | EE medio (banco completo) | EE medio (solo núcleo) | Razón |
 |---|---|---|---|
-| act_igualdad | 0.477 | 0.537 | 1.124 |
-| afecto_contacto | 0.744 | 1.000 | 1.345 |
-| afecto_detalles | 0.737 | 1.000 | 1.357 |
-| afecto_palabras | 0.745 | 1.000 | 1.342 |
-| afecto_servicio | 0.748 | 1.000 | 1.336 |
-| afecto_tiempo | 0.744 | 1.000 | 1.343 |
-| apego_ansiedad | 0.674 | 0.936 | 1.388 |
-| apego_evitacion | 0.713 | 0.971 | 1.362 |
-| bf_a | 0.591 | 0.871 | 1.475 |
-| bf_c | 0.522 | 0.716 | 1.372 |
-| bf_e | 0.431 | 0.683 | 1.585 |
-| bf_n | 0.568 | 0.874 | 1.538 |
-| bf_o | 0.518 | 0.738 | 1.425 |
-| con_acuerdo | 0.742 | 1.000 | 1.347 |
-| con_inmediatez | 0.738 | 1.000 | 1.354 |
-| con_pausa | 0.740 | 1.000 | 1.351 |
-| con_reparacion | 0.749 | 1.000 | 1.334 |
-| ennea_1 | 0.558 | 0.811 | 1.454 |
-| ennea_2 | 0.582 | 0.752 | 1.292 |
-| ennea_3 | 0.585 | 0.763 | 1.304 |
-| ennea_4 | 0.650 | 0.833 | 1.282 |
-| ennea_5 | 0.592 | 0.701 | 1.183 |
-| ennea_6 | 0.624 | 0.736 | 1.179 |
-| ennea_7 | 0.539 | 0.671 | 1.245 |
-| ennea_8 | 0.517 | 0.712 | 1.378 |
-| ennea_9 | 0.580 | 0.856 | 1.475 |
-| hex_a | 0.435 | 0.581 | 1.336 |
-| hex_c | 0.369 | 0.521 | 1.413 |
-| hex_e | 0.388 | 0.521 | 1.342 |
-| hex_h | 0.397 | 0.532 | 1.339 |
-| hex_o | 0.374 | 0.508 | 1.357 |
-| hex_x | 0.340 | 0.496 | 1.462 |
-| int_animales | 0.739 | 1.000 | 1.354 |
-| int_comida | 0.737 | 1.000 | 1.357 |
-| int_convencional | 0.745 | 1.000 | 1.341 |
-| int_cultura | 0.748 | 1.000 | 1.337 |
-| int_fiesta | 0.743 | 1.000 | 1.346 |
-| int_humor | 0.751 | 1.000 | 1.332 |
-| int_juegos | 0.736 | 1.000 | 1.358 |
-| mbti_ei | 0.493 | 0.693 | 1.407 |
-| mbti_jp | 0.530 | 0.745 | 1.407 |
-| mbti_sn | 0.486 | 0.662 | 1.363 |
-| mbti_tf | 0.566 | 0.811 | 1.433 |
-| rel_comunicacion | 0.753 | 1.000 | 1.328 |
-| rel_espacio | 0.741 | 1.000 | 1.350 |
-| rel_exclusividad | 0.745 | 1.000 | 1.342 |
-| rel_expresividad | 0.737 | 1.000 | 1.357 |
-| rel_frecuencia | 0.746 | 1.000 | 1.341 |
-| rel_metas | 0.749 | 1.000 | 1.334 |
-| soc_campus | 0.741 | 1.000 | 1.350 |
-| soc_dinero | 0.743 | 1.000 | 1.346 |
-| soc_familia | 0.741 | 1.000 | 1.350 |
-| soc_politica | 0.748 | 1.000 | 1.336 |
-| soc_redes | 0.744 | 1.000 | 1.343 |
-| soc_rutina | 0.739 | 1.000 | 1.353 |
-| sub_so | 0.717 | 1.000 | 1.395 |
-| sub_sp | 0.741 | 1.000 | 1.349 |
-| sub_sx | 0.694 | 1.000 | 1.440 |
-| val_apertura_cambio | 0.643 | 0.758 | 1.180 |
-| val_autopromocion | 0.665 | 0.763 | 1.147 |
-| val_autotrascendencia | 0.619 | 0.720 | 1.162 |
-| val_conservacion | 0.648 | 0.766 | 1.182 |
+| act_igualdad | 0.480 | 0.952 | 1.985 |
+| afecto_contacto | 0.743 | 1.000 | 1.347 |
+| afecto_detalles | 0.775 | 1.000 | 1.291 |
+| afecto_palabras | 0.750 | 1.000 | 1.333 |
+| afecto_servicio | 0.747 | 1.000 | 1.339 |
+| afecto_tiempo | 0.746 | 1.000 | 1.340 |
+| apego_ansiedad | 0.616 | 0.936 | 1.519 |
+| apego_evitacion | 0.733 | 0.972 | 1.327 |
+| bf_a | 0.596 | 0.871 | 1.462 |
+| bf_c | 0.471 | 0.719 | 1.525 |
+| bf_e | 0.471 | 0.694 | 1.472 |
+| bf_n | 0.609 | 0.875 | 1.436 |
+| bf_o | 0.501 | 0.741 | 1.479 |
+| con_acuerdo | 0.745 | 1.000 | 1.342 |
+| con_inmediatez | 0.755 | 1.000 | 1.324 |
+| con_pausa | 0.747 | 1.000 | 1.339 |
+| con_reparacion | 0.742 | 1.000 | 1.348 |
+| ennea_1 | 0.644 | 0.789 | 1.225 |
+| ennea_2 | 0.550 | 0.755 | 1.371 |
+| ennea_3 | 0.607 | 0.732 | 1.206 |
+| ennea_4 | 0.644 | 0.842 | 1.307 |
+| ennea_5 | 0.505 | 0.709 | 1.404 |
+| ennea_6 | 0.567 | 0.701 | 1.238 |
+| ennea_7 | 0.541 | 0.696 | 1.286 |
+| ennea_8 | 0.558 | 0.699 | 1.254 |
+| ennea_9 | 0.609 | 0.752 | 1.236 |
+| hex_a | 0.425 | 0.584 | 1.373 |
+| hex_c | 0.374 | 0.528 | 1.414 |
+| hex_e | 0.413 | 0.526 | 1.272 |
+| hex_h | 0.414 | 0.529 | 1.278 |
+| hex_o | 0.381 | 0.510 | 1.337 |
+| hex_x | 0.349 | 0.514 | 1.471 |
+| int_animales | 0.683 | 1.000 | 1.464 |
+| int_comida | 0.766 | 1.000 | 1.306 |
+| int_convencional | 0.683 | 1.000 | 1.465 |
+| int_cultura | 0.638 | 1.000 | 1.568 |
+| int_fiesta | 0.719 | 1.000 | 1.392 |
+| int_humor | 0.747 | 1.000 | 1.338 |
+| int_juegos | 0.748 | 1.000 | 1.337 |
+| mbti_ei | 0.487 | 0.700 | 1.437 |
+| mbti_jp | 0.550 | 0.755 | 1.373 |
+| mbti_sn | 0.488 | 0.682 | 1.396 |
+| mbti_tf | 0.584 | 0.810 | 1.387 |
+| rel_autonomia | 0.751 | 1.000 | 1.331 |
+| rel_comunicacion | 0.755 | 1.000 | 1.324 |
+| rel_espacio | 0.745 | 1.000 | 1.343 |
+| rel_exclusividad | 0.748 | 1.000 | 1.336 |
+| rel_expresividad | 0.744 | 1.000 | 1.344 |
+| rel_frecuencia | 0.746 | 1.000 | 1.340 |
+| rel_metas | 0.745 | 1.000 | 1.343 |
+| soc_campus | 0.704 | 1.000 | 1.420 |
+| soc_dinero | 0.583 | 1.000 | 1.717 |
+| soc_familia | 0.603 | 1.000 | 1.659 |
+| soc_politica | 0.742 | 1.000 | 1.347 |
+| soc_redes | 0.685 | 1.000 | 1.461 |
+| soc_rutina | 0.661 | 1.000 | 1.513 |
+| sub_so | 0.679 | 1.000 | 1.473 |
+| sub_sp | 0.634 | 1.000 | 1.577 |
+| sub_sx | 0.689 | 1.000 | 1.451 |
+| val_apertura_cambio | 0.516 | 0.577 | 1.118 |
+| val_autopromocion | 0.602 | 0.675 | 1.122 |
+| val_autotrascendencia | 0.587 | 0.658 | 1.121 |
+| val_conservacion | 0.630 | 0.684 | 1.086 |
+| val_espiritualidad | 0.745 | 1.000 | 1.343 |
 
 ## H5 · Validación cruzada anidada y agrupada por persona (5 × 4 pliegues, β ajustado adentro)
 
 | Track | Etiqueta | Pliegue | β elegido | AUC β ajustado | AUC β config | AUC línea base |
 |---|---|---|---|---|---|---|
-| romance | similitud | 1 | 4 | 0.809 | 0.809 | 0.636 |
-| romance | similitud | 2 | 4 | 0.724 | 0.723 | 0.636 |
-| romance | similitud | 3 | 6 | 0.744 | 0.744 | 0.604 |
-| romance | similitud | 4 | 6 | 0.744 | 0.744 | 0.618 |
-| romance | similitud | 5 | 4 | 0.801 | 0.802 | 0.615 |
-| romance | ventana | 1 | 4 | 0.639 | 0.638 | 0.529 |
-| romance | ventana | 2 | 2 | 0.634 | 0.628 | 0.641 |
-| romance | ventana | 3 | 4 | 0.598 | 0.597 | 0.597 |
-| romance | ventana | 4 | 4 | 0.669 | 0.667 | 0.676 |
-| romance | ventana | 5 | 2 | 0.592 | 0.595 | 0.523 |
-| amistad | similitud | 1 | 4 | 0.780 | 0.780 | 0.628 |
-| amistad | similitud | 2 | 4 | 0.795 | 0.795 | 0.675 |
-| amistad | similitud | 3 | 4 | 0.803 | 0.803 | 0.607 |
-| amistad | similitud | 4 | 4 | 0.798 | 0.798 | 0.632 |
-| amistad | similitud | 5 | 4 | 0.804 | 0.804 | 0.670 |
-| amistad | ventana | 1 | 0 | 0.785 | 0.782 | 0.620 |
-| amistad | ventana | 2 | 2 | 0.796 | 0.794 | 0.627 |
-| amistad | ventana | 3 | 0 | 0.794 | 0.790 | 0.597 |
-| amistad | ventana | 4 | 0 | 0.807 | 0.803 | 0.580 |
-| amistad | ventana | 5 | 0 | 0.795 | 0.797 | 0.623 |
+| romance | similitud | 1 | 6 | 0.774 | 0.774 | 0.631 |
+| romance | similitud | 2 | 4 | 0.849 | 0.847 | 0.708 |
+| romance | similitud | 3 | 6 | 0.805 | 0.805 | 0.548 |
+| romance | similitud | 4 | 10 | 0.740 | 0.733 | 0.622 |
+| romance | similitud | 5 | 10 | 0.802 | 0.808 | 0.593 |
+| romance | ventana | 1 | 0 | 0.779 | 0.784 | 0.600 |
+| romance | ventana | 2 | 2 | 0.795 | 0.785 | 0.576 |
+| romance | ventana | 3 | 2 | 0.789 | 0.783 | 0.626 |
+| romance | ventana | 4 | 0 | 0.779 | 0.780 | 0.650 |
+| romance | ventana | 5 | 0 | 0.766 | 0.759 | 0.537 |
+| amistad | similitud | 1 | 2 | 0.840 | 0.840 | 0.701 |
+| amistad | similitud | 2 | 4 | 0.778 | 0.778 | 0.690 |
+| amistad | similitud | 3 | 4 | 0.826 | 0.826 | 0.714 |
+| amistad | similitud | 4 | 2 | 0.800 | 0.800 | 0.676 |
+| amistad | similitud | 5 | 4 | 0.805 | 0.805 | 0.659 |
+| amistad | ventana | 1 | 0 | 0.787 | 0.782 | 0.638 |
+| amistad | ventana | 2 | 0 | 0.801 | 0.794 | 0.659 |
+| amistad | ventana | 3 | 0 | 0.793 | 0.787 | 0.616 |
+| amistad | ventana | 4 | 0 | 0.766 | 0.761 | 0.646 |
+| amistad | ventana | 5 | 0 | 0.756 | 0.749 | 0.624 |
 
 | Track | Etiqueta | (a) supera a la línea base en 5/5 | (b) media \|AUC ajustado − AUC config\| | (b) |
 |---|---|---|---|---|
-| romance | similitud | **cumple** | 0.000 | **cumple** |
-| romance | ventana | **no cumple** | 0.003 | **cumple** |
+| romance | similitud | **cumple** | 0.003 | **cumple** |
+| romance | ventana | **cumple** | 0.006 | **cumple** |
 | amistad | similitud | **cumple** | 0.000 | **cumple** |
-| amistad | ventana | **cumple** | 0.003 | **cumple** |
+| amistad | ventana | **cumple** | 0.006 | **cumple** |
 
 ## H6 · Calibración (Platt ajustado en entrenamiento, evaluado fuera de pliegue)
 
 | Track | Etiqueta | Brier | Brier tasa base | Skill (H6a) | ECE 10 bins (H6b) | ρ deciles (H6c) |
 |---|---|---|---|---|---|---|
-| romance | similitud | 0.080 | 0.088 | 0.089 **cumple** | 0.019 **cumple** | 0.988 **cumple** |
-| romance | ventana | 0.091 | 0.093 | 0.019 **cumple** | 0.032 **cumple** | 0.515 **no cumple** |
-| amistad | similitud | 0.079 | 0.089 | 0.109 **cumple** | 0.002 **cumple** | 1.000 **cumple** |
-| amistad | ventana | 0.079 | 0.089 | 0.110 **cumple** | 0.004 **cumple** | 1.000 **cumple** |
+| romance | similitud | 0.080 | 0.090 | 0.113 **cumple** | 0.009 **cumple** | 1.000 **cumple** |
+| romance | ventana | 0.081 | 0.090 | 0.097 **cumple** | 0.009 **cumple** | 0.988 **cumple** |
+| amistad | similitud | 0.077 | 0.089 | 0.134 **cumple** | 0.005 **cumple** | 1.000 **cumple** |
+| amistad | ventana | 0.082 | 0.091 | 0.101 **cumple** | 0.003 **cumple** | 1.000 **cumple** |
 
 Curva de fiabilidad (romance, similitud; bins de igual frecuencia):
 
 | Bin | Probabilidad media predicha | Tasa observada | n |
 |---|---|---|---|
-| 1 | 0.007 | 0.012 | 573 |
-| 2 | 0.015 | 0.028 | 573 |
-| 3 | 0.025 | 0.040 | 573 |
-| 4 | 0.042 | 0.051 | 574 |
-| 5 | 0.064 | 0.045 | 573 |
-| 6 | 0.091 | 0.065 | 573 |
-| 7 | 0.125 | 0.098 | 574 |
-| 8 | 0.159 | 0.133 | 573 |
-| 9 | 0.200 | 0.188 | 573 |
-| 10 | 0.268 | 0.307 | 574 |
+| 1 | 0.003 | 0.002 | 551 |
+| 2 | 0.012 | 0.009 | 552 |
+| 3 | 0.022 | 0.016 | 552 |
+| 4 | 0.037 | 0.042 | 552 |
+| 5 | 0.056 | 0.045 | 552 |
+| 6 | 0.079 | 0.078 | 551 |
+| 7 | 0.108 | 0.127 | 552 |
+| 8 | 0.147 | 0.143 | 552 |
+| 9 | 0.202 | 0.232 | 552 |
+| 10 | 0.321 | 0.306 | 552 |
 
 ## H6b · Confianza «alta» contra «media» entre los matches publicados (etiqueta «similitud»)
 
 | Track | Regla | n alta | n media | Match verdadero (alta) | Match verdadero (media) | Veredicto |
 |---|---|---|---|---|---|---|
-| romance | solo margen (referencia preregistrada) | 461 | 203 | 41.4 % | 34.5 % | **cumple** |
-| romance | producción: margen + piso + incertidumbre | 271 | 393 | 43.5 % | 36.4 % | **cumple** |
-| amistad | solo margen (referencia preregistrada) | 2335 | 86 | 42.4 % | 17.4 % | **cumple** |
-| amistad | producción: margen + piso + incertidumbre | 1900 | 521 | 42.2 % | 39.0 % | **cumple** |
+| romance | solo margen (referencia preregistrada) | 431 | 220 | 43.4 % | 44.5 % | **no cumple** |
+| romance | producción: margen + piso + incertidumbre | 297 | 354 | 45.1 % | 42.7 % | **cumple** |
+| amistad | solo margen (referencia preregistrada) | 2386 | 133 | 49.2 % | 33.8 % | **cumple** |
+| amistad | producción: margen + piso + incertidumbre | 1987 | 532 | 51.5 % | 36.8 % | **cumple** |
 
 ## H7 · Ablación por capa (exploratoria; BH q = 0.10)
 
@@ -192,35 +194,35 @@ Curva de fiabilidad (romance, similitud; bins de igual frecuencia):
 
 | Track | Sin… | ΔAUC similitud [IC 95 %] | q BH | ΔAUC ventana | Lectura |
 |---|---|---|---|---|---|
-| romance | capa 4: MBTI | 0.000 [-0.000, 0.000] | 0.150 | 0.000 | equivalente a 0 (solo extra) |
-| romance | capa 4: Eneagrama | 0.000 [0.000, 0.000] | 0.040 | 0.000 | equivalente a 0 (solo extra) |
-| romance | capa 4: MBTI + Eneagrama | 0.000 [-0.000, 0.000] | 0.087 | 0.000 | equivalente a 0 (solo extra) |
+| romance | capa 4: MBTI | -0.000 [-0.000, 0.000] | 0.757 | 0.000 | equivalente a 0 (solo extra) |
+| romance | capa 4: Eneagrama | 0.000 [-0.000, 0.000] | 0.432 | 0.000 | equivalente a 0 (solo extra) |
+| romance | capa 4: MBTI + Eneagrama | -0.000 [-0.000, 0.000] | 0.730 | 0.000 | equivalente a 0 (solo extra) |
 | romance | capa 2: Big Five (peso 0) | — | — | — | no entra en este track |
-| romance | apego | 0.000 [-0.000, 0.000] | 0.303 | 0.000 | equivalente a 0 (solo extra) |
-| romance | conflicto | 0.000 [-0.000, 0.000] | 0.087 | -0.000 | equivalente a 0 (solo extra) |
-| romance | afecto | 0.000 [-0.000, 0.000] | 0.073 | 0.000 | equivalente a 0 (solo extra) |
-| romance | intereses (int_*) | 0.001 [-0.000, 0.001] | 0.154 | -0.000 | equivalente a 0 (solo extra) |
-| romance | estilo de vida (soc_*) | -0.000 [-0.000, 0.000] | 0.608 | 0.000 | equivalente a 0 (solo extra) |
-| romance | metas de vida (meta_*) | -0.011 [-0.021, -0.001] | 1.000 | -0.062 | no concluyente |
-| romance | actitudes de género (act_igualdad) | 0.014 [0.003, 0.023] | 0.040 | -0.084 | aporta |
-| romance | compromiso social (act_compromiso_social) | 0.002 [0.001, 0.003] | 0.027 | -0.000 | equivalente a 0 (solo extra) |
-| romance | espiritualidad (val_espiritualidad) | -0.006 [-0.017, 0.004] | 0.937 | -0.066 | no concluyente |
-| romance | valores Schwartz (val_*) | 0.004 [0.001, 0.007] | 0.027 | 0.014 | aporta |
-| romance | metas de relación (rel_*) | -0.001 [-0.001, -0.001] | 1.000 | -0.003 | equivalente a 0 (solo extra) |
-| amistad | capa 4: MBTI | 0.000 [0.000, 0.000] | 0.027 | 0.000 | equivalente a 0 (solo extra) |
-| amistad | capa 4: Eneagrama | 0.000 [0.000, 0.000] | 0.027 | 0.000 | equivalente a 0 (solo extra) |
-| amistad | capa 4: MBTI + Eneagrama | 0.000 [0.000, 0.000] | 0.040 | 0.000 | equivalente a 0 (solo extra) |
+| romance | apego | 0.000 [-0.000, 0.000] | 0.518 | 0.000 | equivalente a 0 (solo extra) |
+| romance | conflicto | -0.000 [-0.000, 0.000] | 0.891 | -0.000 | equivalente a 0 (solo extra) |
+| romance | afecto | 0.000 [-0.000, 0.000] | 0.665 | 0.000 | equivalente a 0 (solo extra) |
+| romance | intereses (int_*) | 0.004 [0.002, 0.006] | 0.022 | -0.001 | aporta |
+| romance | estilo de vida (soc_*) | -0.000 [-0.001, 0.001] | 0.713 | 0.002 | equivalente a 0 (solo extra) |
+| romance | metas de vida (meta_*) | 0.005 [0.002, 0.009] | 0.022 | -0.007 | aporta |
+| romance | actitudes de género (act_igualdad) | — | — | — | no entra en este track |
+| romance | compromiso social (act_compromiso_social) | 0.005 [0.002, 0.007] | 0.022 | -0.004 | aporta |
+| romance | espiritualidad (val_espiritualidad) | — | — | — | no entra en este track |
+| romance | valores Schwartz (val_*) | 0.031 [0.022, 0.040] | 0.022 | 0.062 | aporta |
+| romance | metas de relación (rel_*) | 0.000 [0.000, 0.001] | 0.022 | -0.000 | equivalente a 0 (solo extra) |
+| amistad | capa 4: MBTI | -0.000 [-0.000, 0.000] | 0.869 | 0.000 | equivalente a 0 (solo extra) |
+| amistad | capa 4: Eneagrama | 0.000 [-0.000, 0.000] | 0.479 | 0.000 | equivalente a 0 (solo extra) |
+| amistad | capa 4: MBTI + Eneagrama | -0.000 [-0.000, 0.000] | 0.891 | 0.000 | equivalente a 0 (solo extra) |
 | amistad | capa 2: Big Five (peso 0) | — | — | — | no entra en este track |
 | amistad | apego | — | — | — | no entra en este track |
 | amistad | conflicto | — | — | — | no entra en este track |
 | amistad | afecto | — | — | — | no entra en este track |
-| amistad | intereses (int_*) | 0.010 [0.005, 0.014] | 0.027 | 0.001 | aporta |
-| amistad | estilo de vida (soc_*) | 0.002 [-0.000, 0.004] | 0.084 | 0.005 | equivalente a 0 (solo extra) |
-| amistad | metas de vida (meta_*) | 0.002 [0.001, 0.003] | 0.027 | -0.003 | equivalente a 0 (solo extra) |
+| amistad | intereses (int_*) | 0.018 [0.015, 0.022] | 0.022 | -0.001 | aporta |
+| amistad | estilo de vida (soc_*) | 0.002 [0.001, 0.004] | 0.022 | 0.007 | equivalente a 0 (solo extra) |
+| amistad | metas de vida (meta_*) | 0.001 [-0.000, 0.003] | 0.198 | -0.006 | equivalente a 0 (solo extra) |
 | amistad | actitudes de género (act_igualdad) | — | — | — | no entra en este track |
-| amistad | compromiso social (act_compromiso_social) | 0.004 [0.002, 0.006] | 0.027 | -0.001 | aporta |
+| amistad | compromiso social (act_compromiso_social) | 0.003 [0.001, 0.005] | 0.022 | -0.004 | equivalente a 0 (solo extra) |
 | amistad | espiritualidad (val_espiritualidad) | — | — | — | no entra en este track |
-| amistad | valores Schwartz (val_*) | 0.015 [0.011, 0.019] | 0.027 | 0.039 | aporta |
+| amistad | valores Schwartz (val_*) | 0.026 [0.019, 0.032] | 0.022 | 0.055 | aporta |
 | amistad | metas de relación (rel_*) | — | — | — | no entra en este track |
 
 Nota: con la etiqueta «similitud» (circular) quitar cualquier categoría con peso tiende a bajar el AUC por construcción; la columna «ventana» es la lectura independiente.

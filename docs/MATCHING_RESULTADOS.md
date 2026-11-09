@@ -3,34 +3,34 @@
 > Archivo generado por `npm run data:matching`. No editar a mano.
 > Datos **sintéticos**: validan el código y la sensibilidad del modelo, no el mundo real.
 
-- Semilla: 1515870810; perfiles: 600; hash de entradas (config + parámetros): `f2eca7dc053b6190`.
-- Calidad de respuesta: 95.5 % con calidad 1; media 0.977; 22 perfiles con calidad < 0.8.
+- Semilla: 1515870810; perfiles: 600; hash de entradas (config + parámetros): `cfe29665c8f94948`.
+- Calidad de respuesta: 95.5 % con calidad 1; media 0.976; 23 perfiles con calidad < 0.8.
 
 ## Track: romance
 
-Pares elegibles: 27700. Umbral = cuantil 0.97 de la nula: **0.5770**. Pares reales sobre el umbral: 3.6 %. Matches publicados (top-K): 655; cobertura de personas: **64.2 %**. Puntaje máximo observado: 0.710; techo de referencia (cuantil 0.999): 0.6313.
+Pares elegibles: 27700. Umbral = cuantil 0.97 de la nula: **0.5769**. Pares reales sobre el umbral: 3.7 %. Matches publicados (top-K): 651; cobertura de personas: **63.3 %**. Puntaje máximo observado: 0.689; techo de referencia (cuantil 0.999): 0.6316.
 
 ### Distribución de similitudes (real vs nula por permutación)
 
 | Cuantil | Real | Nula |
 |---|---|---|
-| 0 | 0.128 | 0.154 |
-| 0.05 | 0.250 | 0.263 |
-| 0.25 | 0.376 | 0.381 |
-| 0.5 | 0.452 | 0.448 |
+| 0 | 0.144 | 0.149 |
+| 0.05 | 0.250 | 0.262 |
+| 0.25 | 0.377 | 0.380 |
+| 0.5 | 0.452 | 0.447 |
 | 0.75 | 0.508 | 0.503 |
-| 0.95 | 0.569 | 0.564 |
-| 1 | 0.710 | 0.665 |
+| 0.95 | 0.570 | 0.565 |
+| 1 | 0.689 | 0.668 |
 
 ### Cobertura por umbral
 
 | Cuantil nulo | Umbral | Pares sobre umbral | Cobertura |
 |---|---|---|---|
-| 0.8 | 0.515 | 22.4 % | 86.8 % |
-| 0.85 | 0.528 | 17.2 % | 85.0 % |
-| 0.9 | 0.544 | 11.7 % | 81.3 % |
-| 0.95 | 0.564 | 6.1 % | 71.3 % |
-| 0.99 | 0.597 | 1.4 % | 44.3 % |
+| 0.8 | 0.515 | 22.3 % | 86.8 % |
+| 0.85 | 0.529 | 17.1 % | 85.3 % |
+| 0.9 | 0.544 | 11.5 % | 81.2 % |
+| 0.95 | 0.565 | 6.0 % | 72.2 % |
+| 0.99 | 0.598 | 1.2 % | 44.7 % |
 
 ### Soft-min (β) contra media aritmética (β = 0)
 
@@ -38,12 +38,12 @@ Cada β se recalibra contra su propia nula. Área más débil = mínima similitu
 
 | β | Umbral recalibrado | Cobertura | Área más débil P10 | Área más débil mediana | ρ vs β de config |
 |---|---|---|---|---|---|
-| 0 (media aritmética) | 0.617 | 64.2 % | 0.342 | 0.411 | 0.976 |
-| 2 | 0.602 | 63.8 % | 0.356 | 0.414 | 0.991 |
-| 4 | 0.589 | 64.5 % | 0.368 | 0.418 | 0.998 |
-| 6 | 0.577 | 64.2 % | 0.380 | 0.422 | 1.000 |
-| 10 | 0.556 | 64.5 % | 0.394 | 0.431 | 0.995 |
-| 20 | 0.523 | 65.0 % | 0.417 | 0.443 | 0.969 |
+| 0 (media aritmética) | 0.617 | 62.2 % | 0.343 | 0.409 | 0.977 |
+| 2 | 0.602 | 63.2 % | 0.357 | 0.414 | 0.991 |
+| 4 | 0.589 | 63.0 % | 0.367 | 0.422 | 0.998 |
+| 6 | 0.577 | 63.3 % | 0.381 | 0.425 | 1.000 |
+| 10 | 0.556 | 64.5 % | 0.396 | 0.432 | 0.995 |
+| 20 | 0.524 | 63.2 % | 0.420 | 0.444 | 0.970 |
 
 ### Recuperación de la forma generadora (AUC, IC 95 % bootstrap por persona)
 
@@ -51,37 +51,37 @@ Etiqueta positiva = 10 % superior de pares según la hipótesis generadora evalu
 
 | Hipótesis | Modelo por capas | Línea base (coseno descriptivo) |
 |---|---|---|
-| similitud | 0.785 [0.768, 0.803] | 0.615 [0.591, 0.651] |
-| ventana | 0.782 [0.764, 0.796] | 0.598 [0.576, 0.620] |
-| complementariedad_x | 0.746 [0.727, 0.767] | 0.585 [0.561, 0.611] |
+| similitud | 0.786 [0.769, 0.806] | 0.614 [0.590, 0.649] |
+| ventana | 0.782 [0.767, 0.797] | 0.594 [0.571, 0.616] |
+| complementariedad_x | 0.747 [0.729, 0.766] | 0.581 [0.560, 0.607] |
 
 ### Ablación
 
 | Variante | ρ con modelo completo | Jaccard de matches | Cobertura | AUC (similitud) |
 |---|---|---|---|---|
-| sin MBTI | 1.000 | 0.977 | 64.0 % | 0.785 |
-| sin Eneagrama | 1.000 | 0.998 | 64.2 % | 0.785 |
-| sin capa 4 (MBTI + Eneagrama) | 1.000 | 0.976 | 64.0 % | 0.785 |
-| sin extras (conflicto, apego, afecto) | 1.000 | 0.968 | 64.0 % | 0.785 |
-| sin Big Five (peso 0) | 1.000 | 1.000 | 64.2 % | 0.785 |
-| sin personalidad | 0.476 | 0.137 | 68.5 % | 0.690 |
-| sin valores | 0.923 | 0.252 | 60.8 % | 0.754 |
-| sin dealbreakers | 0.996 | 0.812 | 64.7 % | 0.780 |
-| sin relacional | 1.000 | 0.927 | 65.3 % | 0.785 |
-| sin estilo | 0.996 | 0.643 | 63.8 % | 0.782 |
+| sin MBTI | 1.000 | 0.971 | 63.2 % | 0.786 |
+| sin Eneagrama | 1.000 | 0.998 | 63.3 % | 0.786 |
+| sin capa 4 (MBTI + Eneagrama) | 1.000 | 0.971 | 63.2 % | 0.786 |
+| sin extras (conflicto, apego, afecto) | 1.000 | 0.947 | 63.5 % | 0.786 |
+| sin Big Five (peso 0) | 1.000 | 1.000 | 63.3 % | 0.786 |
+| sin personalidad | 0.478 | 0.133 | 69.2 % | 0.691 |
+| sin valores | 0.925 | 0.253 | 60.8 % | 0.755 |
+| sin dealbreakers | 0.997 | 0.775 | 64.3 % | 0.781 |
+| sin relacional | 1.000 | 0.915 | 64.5 % | 0.786 |
+| sin estilo | 0.996 | 0.602 | 62.8 % | 0.783 |
 
-Fracción media del puntaje explicada (contribuciones exactas): capa 4 (MBTI + Eneagrama, peso 0.010) 1.17 %; extras (conflicto, apego, afecto, peso 0.050) 9.26 %. La fracción supera al peso porque las ventanas de tolerancia dan similitudes altas mientras el núcleo estricto queda más bajo; como los extras varían poco entre pares, apenas cambian el orden (ver ablación).
+Fracción media del puntaje explicada (contribuciones exactas): capa 4 (MBTI + Eneagrama, peso 0.010) 1.17 %; extras (conflicto, apego, afecto, peso 0.050) 9.24 %. La fracción supera al peso porque las ventanas de tolerancia dan similitudes altas mientras el núcleo estricto queda más bajo; como los extras varían poco entre pares, apenas cambian el orden (ver ablación).
 
 ### Estabilidad ante ruido (±1 Likert en 10 % de los ítems)
 
-Spearman de puntajes: **0.964**; Jaccard de los matches publicados: **0.552**.
+Spearman de puntajes: **0.963**; Jaccard de los matches publicados: **0.534**.
 
 ### Sensibilidad de pesos (Morris, μ* = efecto medio absoluto sobre el orden de pares)
 
 | Categoría | μ* | σ |
 |---|---|---|
-| personalidad | 0.040 | 0.042 |
-| valores | 0.032 | 0.037 |
+| personalidad | 0.039 | 0.041 |
+| valores | 0.031 | 0.037 |
 | estilo | 0.003 | 0.004 |
 | dealbreakers | 0.002 | 0.003 |
 | relacional | 0.000 | 0.000 |
@@ -90,40 +90,40 @@ Spearman de puntajes: **0.964**; Jaccard de los matches publicados: **0.552**.
 
 | Subpoblación | N | Parejas elegibles (media) | Cobertura |
 |---|---|---|---|
-| mujer_hombres | 75 | 54.2 | 64.0 % |
-| hombre_mujeres | 75 | 94.5 | 74.7 % |
-| mujer_mujeres | 75 | 96.6 | 80.0 % |
-| hombre_hombres | 75 | 59.6 | 57.3 % |
-| nobinarie_todes | 75 | 83.0 | 58.7 % |
-| bi_mujer | 75 | 147.2 | 89.3 % |
+| mujer_hombres | 75 | 54.2 | 66.7 % |
+| hombre_mujeres | 75 | 94.5 | 76.0 % |
+| mujer_mujeres | 75 | 96.6 | 74.7 % |
+| hombre_hombres | 75 | 59.6 | 58.7 % |
+| nobinarie_todes | 75 | 83.0 | 57.3 % |
+| bi_mujer | 75 | 147.2 | 84.0 % |
 | solo_nucleo | 75 | 203.6 | 89.3 % |
 | prefiere_no_decir | 75 | 0.0 | 0.0 % |
 
 ## Track: amistad
 
-Pares elegibles: 179700. Umbral = cuantil 0.85 de la nula: **0.4699**. Pares reales sobre el umbral: 15.4 %. Matches publicados (top-K): 2516; cobertura de personas: **99.8 %**. Puntaje máximo observado: 0.652; techo de referencia (cuantil 0.999): 0.5742.
+Pares elegibles: 179700. Umbral = cuantil 0.85 de la nula: **0.4699**. Pares reales sobre el umbral: 15.4 %. Matches publicados (top-K): 2519; cobertura de personas: **99.8 %**. Puntaje máximo observado: 0.639; techo de referencia (cuantil 0.999): 0.5716.
 
 ### Distribución de similitudes (real vs nula por permutación)
 
 | Cuantil | Real | Nula |
 |---|---|---|
-| 0 | 0.098 | 0.139 |
-| 0.05 | 0.227 | 0.248 |
+| 0 | 0.111 | 0.143 |
+| 0.05 | 0.226 | 0.248 |
 | 0.25 | 0.334 | 0.344 |
 | 0.5 | 0.397 | 0.402 |
-| 0.75 | 0.448 | 0.448 |
+| 0.75 | 0.448 | 0.449 |
 | 0.95 | 0.504 | 0.502 |
-| 1 | 0.652 | 0.590 |
+| 1 | 0.639 | 0.589 |
 
 ### Cobertura por umbral
 
 | Cuantil nulo | Umbral | Pares sobre umbral | Cobertura |
 |---|---|---|---|
-| 0.8 | 0.459 | 20.1 % | 100.0 % |
+| 0.8 | 0.459 | 20.0 % | 100.0 % |
 | 0.85 | 0.470 | 15.4 % | 99.8 % |
-| 0.9 | 0.483 | 10.6 % | 99.3 % |
-| 0.95 | 0.502 | 5.5 % | 97.8 % |
-| 0.99 | 0.532 | 1.4 % | 81.8 % |
+| 0.9 | 0.483 | 10.6 % | 99.7 % |
+| 0.95 | 0.502 | 5.5 % | 97.2 % |
+| 0.99 | 0.533 | 1.3 % | 80.3 % |
 
 ### Soft-min (β) contra media aritmética (β = 0)
 
@@ -131,12 +131,12 @@ Cada β se recalibra contra su propia nula. Área más débil = mínima similitu
 
 | β | Umbral recalibrado | Cobertura | Área más débil P10 | Área más débil mediana | ρ vs β de config |
 |---|---|---|---|---|---|
-| 0 (media aritmética) | 0.486 | 99.8 % | 0.369 | 0.427 | 0.987 |
-| 2 | 0.477 | 99.8 % | 0.390 | 0.437 | 0.997 |
-| 4 | 0.470 | 99.8 % | 0.402 | 0.444 | 1.000 |
+| 0 (media aritmética) | 0.486 | 99.8 % | 0.369 | 0.426 | 0.987 |
+| 2 | 0.478 | 99.8 % | 0.391 | 0.437 | 0.997 |
+| 4 | 0.470 | 99.8 % | 0.402 | 0.443 | 1.000 |
 | 6 | 0.464 | 99.8 % | 0.411 | 0.448 | 0.998 |
-| 10 | 0.454 | 99.8 % | 0.421 | 0.455 | 0.986 |
-| 20 | 0.439 | 99.7 % | 0.432 | 0.462 | 0.957 |
+| 10 | 0.454 | 100.0 % | 0.420 | 0.454 | 0.986 |
+| 20 | 0.439 | 100.0 % | 0.431 | 0.461 | 0.957 |
 
 ### Recuperación de la forma generadora (AUC, IC 95 % bootstrap por persona)
 
@@ -144,35 +144,35 @@ Etiqueta positiva = 10 % superior de pares según la hipótesis generadora evalu
 
 | Hipótesis | Modelo por capas | Línea base (coseno descriptivo) |
 |---|---|---|
-| similitud | 0.813 [0.801, 0.826] | 0.696 [0.681, 0.711] |
-| ventana | 0.780 [0.766, 0.791] | 0.643 [0.624, 0.661] |
-| complementariedad_x | 0.744 [0.728, 0.758] | 0.628 [0.610, 0.640] |
+| similitud | 0.812 [0.801, 0.827] | 0.693 [0.678, 0.709] |
+| ventana | 0.779 [0.764, 0.790] | 0.639 [0.620, 0.656] |
+| complementariedad_x | 0.743 [0.727, 0.757] | 0.623 [0.606, 0.636] |
 
 ### Ablación
 
 | Variante | ρ con modelo completo | Jaccard de matches | Cobertura | AUC (similitud) |
 |---|---|---|---|---|
-| sin MBTI | 1.000 | 0.963 | 99.8 % | 0.813 |
-| sin Eneagrama | 1.000 | 0.997 | 99.8 % | 0.813 |
-| sin capa 4 (MBTI + Eneagrama) | 1.000 | 0.964 | 99.8 % | 0.813 |
-| sin extras (conflicto, apego, afecto) | 1.000 | 1.000 | 99.8 % | 0.813 |
-| sin Big Five (peso 0) | 1.000 | 1.000 | 99.8 % | 0.813 |
-| sin personalidad | 0.496 | 0.140 | 99.7 % | 0.702 |
-| sin valores | 0.941 | 0.317 | 99.7 % | 0.788 |
-| sin estilo | 0.970 | 0.311 | 99.8 % | 0.798 |
+| sin MBTI | 1.000 | 0.974 | 99.8 % | 0.812 |
+| sin Eneagrama | 1.000 | 0.996 | 99.8 % | 0.812 |
+| sin capa 4 (MBTI + Eneagrama) | 1.000 | 0.973 | 99.8 % | 0.812 |
+| sin extras (conflicto, apego, afecto) | 1.000 | 1.000 | 99.8 % | 0.812 |
+| sin Big Five (peso 0) | 1.000 | 1.000 | 99.8 % | 0.812 |
+| sin personalidad | 0.499 | 0.138 | 100.0 % | 0.700 |
+| sin valores | 0.942 | 0.315 | 99.7 % | 0.788 |
+| sin estilo | 0.970 | 0.322 | 100.0 % | 0.797 |
 
 Fracción media del puntaje explicada (contribuciones exactas): capa 4 (MBTI + Eneagrama, peso 0.010) 1.32 %; extras (conflicto, apego, afecto, peso 0.000) 0.00 %. La fracción supera al peso porque las ventanas de tolerancia dan similitudes altas mientras el núcleo estricto queda más bajo; como los extras varían poco entre pares, apenas cambian el orden (ver ablación).
 
 ### Estabilidad ante ruido (±1 Likert en 10 % de los ítems)
 
-Spearman de puntajes: **0.966**; Jaccard de los matches publicados: **0.524**.
+Spearman de puntajes: **0.966**; Jaccard de los matches publicados: **0.502**.
 
 ### Sensibilidad de pesos (Morris, μ* = efecto medio absoluto sobre el orden de pares)
 
 | Categoría | μ* | σ |
 |---|---|---|
-| personalidad | 0.041 | 0.049 |
-| valores | 0.033 | 0.042 |
+| personalidad | 0.040 | 0.047 |
+| valores | 0.032 | 0.040 |
 | estilo | 0.014 | 0.018 |
 
 ### Equidad por subpoblación

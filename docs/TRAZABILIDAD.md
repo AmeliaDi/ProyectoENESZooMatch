@@ -14,7 +14,7 @@ si cambian pesos, umbrales o parámetros.
 
 | Archivo | Hash registrado |
 |---|---|
-| data/matching-config.json | `6758c94262edd74b` |
+| data/matching-config.json | `a7a5561ab19754ba` |
 | data/psychometric-params.json | `a31ed99658426302` |
 | data/self-reading.json | `3c021cda2e0b33fa` |
 
@@ -46,7 +46,8 @@ si cambian pesos, umbrales o parámetros.
 | T-22 | Sin pisos no compensatorios y factores de categorías sensibles enumeradas fuera del puntaje | EV-105, EV-58, ADR-043 | supuesto_diseno | floors = {} ; factors ∩ {val_espiritualidad, soc_politica, act_igualdad} = ∅ | `src/config/matching.ts` | `src/config/config.test.ts` |
 | T-23 | El plan de ítems y el licenciamiento del peso se derivan del banco: la ficha ya no puede declarar su propio conteo ni pesar sin capa admitida | ADR-044 | supuesto_diseno | items(capas) = Σ_{f ∈ plan.factores} items_banco(f); gap ⟺ peso_max(categoría) > Σ licencia | `scripts/literature/lib/layers.ts` | `scripts/literature/lib/layers.test.ts` |
 | T-24 | Un factor de un solo ítem no sostiene peso: deuda fechada y techo de masa por pista (I5) | ADR-044 | supuesto_diseno | w_eff(f) = τ_c·(w_f/Σ_c w) > 0,01 ⟹ n_f ≥ 2 | `src/domain/matching/pair-score.ts` | `src/domain/psychometrics/single-item-sensitivity.test.ts` |
-| T-25 | El obligatorio se parte en quizzes derivados del config: tope por quiz, lo sensible al final y ningún factor cruza el corte mientras su familia quepa | ADR-045 | supuesto_diseno | |quiz_k| ≤ maxItemsPerQuiz; factor f ⊂ quiz único ⟺ |familia(f)| ≤ tope | `src/ui/quiz/quiz-flow.ts` | `src/ui/quiz/quiz-flow.test.ts` |
+| T-25 | El obligatorio se parte en quizzes derivados del config: tope por quiz, lo sensible al final y ningún factor cruza el corte mientras su familia quepa | ADR-045 | supuesto_diseno | \|quiz_k\| ≤ maxItemsPerQuiz; factor f ⊂ quiz único ⟺ \|familia(f)\| ≤ tope | `src/ui/quiz/quiz-flow.ts` | `src/ui/quiz/quiz-flow.test.ts` |
+| T-26 | La esperanza de la ventana de tolerancia es cerrada (masa + dos colas gaussiana×gaussiana), no una regla de nodos; el knob `quadrature_nodes` se retira | ADR-046 | supuesto_diseno | \|E[g] − Simpson\| < 1e-6 en las ventanas configuradas; tol = 0 ⇒ (a/h)e^{−μ²/2h²} | `src/domain/matching/layers.ts` | `src/domain/matching/layers.test.ts` |
 
 ## Resultados que respaldan la matriz
 

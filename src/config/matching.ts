@@ -157,7 +157,6 @@ export const matchingConfigSchema = z
     version: z.string().min(1),
     nota: z.string().min(1),
     scoring: z.strictObject({
-      quadrature_nodes: annotated(z.number().int().min(5).max(101)),
       mbti_ambiguity_se: annotated(positive),
       enneagram_ambiguity_entropy: annotated(unit),
     }),

@@ -8,7 +8,7 @@
  *  - an uninformative profile collapses to the population-average similarity,
  *    never to a falsely high one.
  */
-import { gaussHermiteNormal, softmax } from "@/domain/math";
+import { normalCdf, softmax } from "@/domain/math";
 import type {
   CategoryConfig,
   DeadzoneCategory,
@@ -62,18 +62,44 @@ export function kernelFactorLogs(cfg: KernelCategory, a: LatentProfile, b: Laten
   });
 }
 
-const DEADZONE_NODES = 21;
-
-/** g(δ) = exp(−½ (max(0, |δ| − tol) / scale)²), expectation by Gauss–Hermite. */
+/**
+ * E[g(δ)] with δ ~ N(μ, s²) and g(δ) = exp(−½ (max(0, |δ| − tol)/scale)²).
+ *
+ * The line splits into three pieces — the window |δ| ≤ tol, where g is 1, and
+ * the two sides, where g is a Gaussian centred on the window edge. Each side is
+ * therefore an integral of a Gaussian against a normal density over a half
+ * line, which is exact in closed form:
+ *
+ *   ∫_{c}^{∞} e^{−(δ−t)²/2a²} φ_s(δ−μ) dδ = (a/h)·e^{−(t−μ)²/2h²}·Φ((m−c)/√v)
+ *   h² = a² + s²,  √v = a·s/h,  m = (t·s² + μ·a²)/h²
+ *
+ * (and Φ((c−m)/√v) for a left tail). This replaces a Gauss–Hermite rule that
+ * had to be dropped: the kink at |δ| = tol makes the integrand non-analytic, so
+ * the rule converged slowly — 1.4e-2 of error at 21 nodes and 2.5e-3 at 41 when
+ * s² = 2, worse than the granularity the score is read at. `gaussHermiteNormal`
+ * survives as the oracle that pins this formula in the test.
+ */
 function expectedWindow(mu: number, variance: number, tolerance: number, scale: number): number {
-  const { nodes, weights } = gaussHermiteNormal(DEADZONE_NODES);
-  const sd = Math.sqrt(variance);
-  let sum = 0;
-  nodes.forEach((x, k) => {
-    const excess = Math.max(0, Math.abs(mu + sd * x) - tolerance) / scale;
-    sum += weights[k]! * Math.exp(-0.5 * excess * excess);
-  });
-  return Math.min(1, Math.max(0, sum));
+  const gate = (delta: number) => {
+    const excess = Math.max(0, Math.abs(delta) - tolerance) / scale;
+    return Math.exp(-0.5 * excess * excess);
+  };
+  const s = Math.sqrt(Math.max(0, variance));
+  // A point mass leaves nothing to integrate (the schema keeps scale > 0).
+  if (s === 0) return gate(mu);
+  const a2 = scale * scale;
+  const s2 = s * s;
+  const h2 = a2 + s2;
+  const h = Math.sqrt(h2);
+  const sqrtV = (scale * s) / h;
+  const tilt = (edge: number) => (edge * s2 + mu * a2) / h2;
+  const side = (edge: number, direction: 1 | -1) => {
+    const mean = tilt(edge);
+    const cut = direction === 1 ? (mean - edge) / sqrtV : (edge - mean) / sqrtV;
+    return (scale / h) * Math.exp(-((edge - mu) ** 2) / (2 * h2)) * normalCdf(cut);
+  };
+  const inside = normalCdf((tolerance - mu) / s) - normalCdf((-tolerance - mu) / s);
+  return Math.min(1, Math.max(0, inside + side(tolerance, 1) + side(-tolerance, -1)));
 }
 
 /** Tolerance window per factor, combined by product (strict) or weighted geometric mean. */

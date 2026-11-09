@@ -98,7 +98,7 @@ export interface QualityConfig {
 
 export interface MatchingConfig {
   version: string;
-  scoring: { quadrature_nodes: number; mbti_ambiguity_se: number; enneagram_ambiguity_entropy: number };
+  scoring: { mbti_ambiguity_se: number; enneagram_ambiguity_entropy: number };
   quality: QualityConfig;
   categories: Record<MatchCategoryId, CategoryConfig>;
   tail_groups: {

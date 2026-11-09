@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { MATCHING_CONFIG } from "@/config";
-import { gaussian } from "@/domain/math";
+import { gaussian, gaussHermiteNormal, normalCdf } from "@/domain/math";
 import { mulberry32, type Random } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
 import { MATCH_CATEGORY_IDS } from "@/types/matching-config";
 
-import { categorySimilarity } from "./layers";
+import { categorySimilarity, deadzoneSimilarity } from "./layers";
 import { pairScore } from "./pair-score";
 
 const CATS = MATCHING_CONFIG.categories;
@@ -81,6 +81,115 @@ describe("category similarities", () => {
     const high = categorySimilarity(CATS.personalidad, at(1.5), at(0.5));
     const low = categorySimilarity(CATS.personalidad, at(-0.5), at(-1.5));
     expect(low).toBeLessThan(high);
+  });
+});
+
+describe("expected window of a deadzone factor", () => {
+  /** A one-factor `product` category returns E[g(δ)] itself. */
+  const windowOf = (mu: number, se: number, tolerance: number, scale: number) =>
+    deadzoneSimilarity(
+      { kind: "deadzone", factors: { w: 1 }, tolerance: { w: tolerance }, scale, combine: "product" },
+      { theta: { w: mu / 2 }, se: { w: se }, quality: 1, answered: 1 },
+      { theta: { w: -mu / 2 }, se: { w: se }, quality: 1, answered: 1 },
+    );
+
+  /** The rule the closed form replaced. */
+  const windowByQuadrature = (mu: number, se: number, tolerance: number, scale: number, nodes: number) => {
+    const rule = gaussHermiteNormal(nodes);
+    const sd = Math.sqrt(2 * se * se);
+    let sum = 0;
+    rule.nodes.forEach((x, k) => {
+      const excess = Math.max(0, Math.abs(mu + sd * x) - tolerance) / scale;
+      sum += rule.weights[k]! * Math.exp(-0.5 * excess * excess);
+    });
+    return sum;
+  };
+
+  /** Independent oracle: composite Simpson over ±14 posterior sd. */
+  const windowBySimpson = (mu: number, se: number, tolerance: number, scale: number) => {
+    const sd = se * Math.SQRT2;
+    const density = (delta: number) => {
+      const excess = Math.max(0, Math.abs(delta) - tolerance) / scale;
+      return Math.exp(-0.5 * excess * excess - 0.5 * ((delta - mu) / sd) ** 2) / (sd * Math.sqrt(2 * Math.PI));
+    };
+    const step = (28 * sd) / 20000;
+    let sum = density(mu - 14 * sd) + density(mu + 14 * sd);
+    for (let i = 1; i < 20000; i++) sum += (i % 2 === 1 ? 4 : 2) * density(mu - 14 * sd + i * step);
+    return (sum * step) / 3;
+  };
+
+  const WINDOWS = [
+    [0.75, 0.6],
+    [0.5, 0.8],
+    [0.75, 0.8],
+  ] as const;
+  const SOS = [0.2, 0.3, 0.4, 0.5, 0.7, 1];
+  const MUS = [-3, -1.5, -0.9, -0.4, 0, 0.4, 0.9, 1.5, 3];
+
+  it("matches an independent numerical integration", () => {
+    let worst = 0;
+    for (const [tolerance, scale] of WINDOWS) {
+      for (const se of SOS) {
+        for (const mu of MUS) {
+          worst = Math.max(worst, Math.abs(windowOf(mu, se, tolerance, scale) - windowBySimpson(mu, se, tolerance, scale)));
+        }
+      }
+    }
+    expect(worst).toBeLessThan(1e-6);
+  });
+
+  it("is exact where the 21-node rule it replaced was not", () => {
+    let exact = 0;
+    let old = 0;
+    for (const [tolerance, scale] of WINDOWS) {
+      for (const se of SOS) {
+        for (const mu of MUS) {
+          const reference = windowBySimpson(mu, se, tolerance, scale);
+          exact = Math.max(exact, Math.abs(windowOf(mu, se, tolerance, scale) - reference));
+          old = Math.max(old, Math.abs(windowByQuadrature(mu, se, tolerance, scale, 21) - reference));
+        }
+      }
+    }
+    // The kink at |δ| = tol makes Gauss–Hermite converge slowly: at se = 1 —
+    // an unmeasured factor — 21 nodes were off by a hundredth, a tenth of the
+    // band the score is read at.
+    expect(exact).toBeLessThan(1e-6);
+    expect(old).toBeGreaterThan(5e-3);
+  });
+
+  it("reduces to the Gaussian-times-Gaussian integral when the window is a point", () => {
+    for (const se of SOS) {
+      for (const mu of MUS) {
+        const scale = 0.8;
+        const h = Math.sqrt(scale * scale + 2 * se * se);
+        // `normalCdf` keeps ~1e-7 fractional error (its erfc fit), hence 6 digits.
+        expect(windowOf(mu, se, 0, scale)).toBeCloseTo((scale / h) * Math.exp((-mu * mu) / (2 * h * h)), 6);
+      }
+    }
+  });
+
+  it("is the gate itself when there is no uncertainty, and a hard cut when there is no window", () => {
+    for (const mu of MUS) {
+      expect(windowOf(mu, 0, 0.75, 0.6)).toBeCloseTo(Math.exp(-0.5 * (Math.max(0, Math.abs(mu) - 0.75) / 0.6) ** 2), 12);
+    }
+    // tolerance 0 with a sure gap of exactly 0 is the only pair that scores 1.
+    expect(windowOf(0, 0, 0, 0.8)).toBeCloseTo(1, 12);
+    expect(windowOf(0.4, 0.2, 0.75, 0.8)).toBeLessThan(1);
+    expect(windowOf(0, 0.2, 0.75, 0.8)).toBeGreaterThan(0.999);
+  });
+
+  it("opens to 1 as the window widens and closes to the window mass as it shrinks", () => {
+    const mass = (mu: number, se: number, tolerance: number) => {
+      const sd = se * Math.SQRT2;
+      return normalCdf((tolerance - mu) / sd) - normalCdf((-tolerance - mu) / sd);
+    };
+    for (const se of [0.2, 0.4, 1]) {
+      for (const mu of [0, 0.5, 1.5]) {
+        expect(windowOf(mu, se, 0.75, 1e6)).toBeGreaterThan(0.999999);
+        // The narrowing limit is the window mass, and the tails are worth O(scale).
+        expect(Math.abs(windowOf(mu, se, 0.75, 1e-3) - mass(mu, se, 0.75))).toBeLessThan(2e-3);
+      }
+    }
   });
 });
 

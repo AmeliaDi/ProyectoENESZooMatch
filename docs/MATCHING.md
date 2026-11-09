@@ -62,7 +62,7 @@ producir un match falsamente alto.
 |---|---|---|
 | Núcleo gaussiano (tipo Mahalanobis diagonal) | ∏_f r/√(r²+s²) · exp(−½ μ²/(r²+s²)), con r² = h²/w_f y h = c√d | personalidad (HEXACO), valores, estilo, big_five, mbti |
 | Asimetría en H-H | μ ← μ · (1 + η · max(0, −min(θₐ, θ_b))), η = 0.5 | personalidad: brechas en H-H baja penalizan más |
-| Ventana de tolerancia | g(δ) = exp(−½ (max(0, \|δ\| − tol) / escala)²), con su esperanza por Gauss–Hermite (21 nodos) | dealbreakers (producto; desde ADR-043 solo `meta_crianza`), relacional, conflicto, apego y afecto (media geométrica) |
+| Ventana de tolerancia | g(δ) = exp(−½ (max(0, \|δ\| − tol) / escala)²); su esperanza es cerrada: masa de la ventana + dos integrales gaussiana×gaussiana sobre semirrecta (ADR-046) | dealbreakers (producto; desde ADR-043 solo `meta_crianza`), relacional, conflicto, apego y afecto (media geométrica) |
 | Solapamiento de distribuciones | Coeficiente de Bhattacharyya Σ√(p·q) de los softmax, contraído hacia `neutral` por (1 − Hₐ)(1 − H_b) | eneagrama |
 
 Propiedades probadas (`layers.test.ts` y `matching.test.ts`):
