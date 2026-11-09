@@ -37,7 +37,7 @@ Scripts reproducibles:
 **Tras ADR-054** la lista de `qa-api.mjs` subió a 41 comprobaciones: `GET /afinar/retomar`
 (la pantalla de re-toma, 200) y `GET /api/quiz/retake` sin sesión (401).
 
-**Corrida 2026-11-29** con `BASE=http://localhost:3124` sobre `next start` del árbol de
+**Corrida 2026-11-09** con `BASE=http://localhost:3124` sobre `next start` del árbol de
 trabajo y la base de producción ya migrada y re-sembrada: **las 41 del trayecto no-chat
 pasan**, incluidas las dos nuevas y `quiz completo` 200 con `matches 3/5`. Lo que quedó
 marcado como FALLA en esa corrida no es el trayecto de emparejamiento:

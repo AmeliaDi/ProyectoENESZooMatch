@@ -160,7 +160,7 @@ END;
 $$;
 -- ─── Los avisos sin leer que aún llevan el marcador «-x» ─────────────────────
 
--- Dos formas vivas, no una. La auditoría del esquema en producción (2026-11-29)
+-- Dos formas vivas, no una. La auditoría del esquema en producción (2026-11-09)
 -- encontró 62 avisos `match_romance` sin leer cerrando con «resonó con cada unx
 -- de ellxs.», que es copia de una versión anterior del motor: el `replace` de
 -- «es alta con cada unx;» no la tocaba y se quedaban con la palabra partida.
