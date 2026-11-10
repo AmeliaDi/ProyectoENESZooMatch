@@ -12,8 +12,8 @@
 -- MOMENTO DE ACTIVAR un motor (`data/rollout-gates.json` → `conservacion.max_perdida`,
 -- `src/domain/matching/rollout.ts`), pero el camino ordinario no pasa por ahí:
 -- `replace_matches` abre con `DELETE FROM public.matches WHERE true`
--- (`20261108000000_fase1_idempotency_and_soft_delete.sql:52`) e `invalidate_matches`
--- borra todo lo de una persona (`:1588` en la base, `20261107000000_admin_panel.sql:152`)
+-- (`20261108000000_fase1_idempotency_and_soft_delete.sql:52`) y `admin_reset_quiz`
+-- borra todo lo de una persona (`20261116000000_identity_drop_legacy.sql:250`)
 -- sin insertar nada a cambio. Ninguna de las dos protege las parejas con
 -- conversación abierta, y como ninguna FK apunta a `matches` (DB_ESQUEMA.md §
 -- «Conservación de conversaciones»), la conversación sobrevive a su par.

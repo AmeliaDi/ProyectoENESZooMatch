@@ -77,9 +77,16 @@ mínimo 0.80. El motor de producción sigue siendo `capas`.
    conjunto, no con la muestra sembrada del 20 %. Medido en producción el
    2026-11-10: 122 pares protegidos (88 amistad / 34 romance), 58 con mensajes,
    digest `bb5d73b21bc77494072e2ffd5cac1173`.
-5. Antes de activar, cerrar M-13: el recálculo ordinario no protege las parejas
-   con conversación abierta, así que el número de pares protegidos reales puede
-   seguir bajando entre la corrida de la compuerta y la activación.
+5. Antes de activar, aplicar M-13. El mecanismo ya está escrito y probado
+   (`supabase/maintenance/pending/20261127000000_conservar_conversaciones.sql`,
+   ADR-061, 15 aserciones en `supabase/tests/05_conservacion.sql`): `replace_matches`
+   conserva las parejas con conversación abierta dentro de la propia escritura.
+   Lo que falta es aplicarlo, porque mientras siga en `pending/` el recálculo
+   ordinario no protege nada y el número de pares protegidos reales puede seguir
+   bajando entre la corrida de la compuerta y la activación. Nota de dirección: la
+   compuerta `conservacion` mide la salida cruda del candidato
+   (`conservationLoss`, `src/domain/matching/rollout.ts:43`), así que aplicar la
+   migración no la vuelve verde por sí sola — vuelve cierto lo que protege.
 
 **Rollback:** un solo comando, documentado en `docs/COMPARATIVA_MODELOS.md`.
 
@@ -284,30 +291,85 @@ más se verifican.
 
 ## M-13 · Que el recálculo ordinario no rompa conversaciones abiertas
 
-**Estado: abierto, DB-19 (alta).** Medido en producción el 2026-11-10: 71
-conversaciones cuyo par ya no está en `matches` (41 con mensajes escritos), y 5
-de esas conversaciones se abrieron **después** del último recálculo registrado
-en `admin_audit` (2026-11-08 22:49 UTC). No es un residuo histórico: sigue
+**Estado: mecanismo preparado, probado y sin aplicar.** Medido en producción el
+2026-11-10: 71 conversaciones cuyo par ya no está en `matches` (41 con mensajes
+escritos), y 5 de esas conversaciones se abrieron **después** del último recálculo
+registrado en `admin_audit` (2026-11-08 22:49 UTC). No es un residuo histórico: sigue
 pasando.
 
-La pieza que falta ya existe y está probada: `conserveProtected(next,
-protectedPairs)` (`src/domain/matching/rollout.ts:56`, con
-`src/domain/matching/rollout.test.ts:79-110`) vuelve a publicar toda pareja con
-conversación abierta que el nuevo cálculo no produzca, con la similitud ya
-almacenada, y es idempotente. Lo que no existe es la conexión:
-`recomputeMatches` carga el pool, calcula y llama `replaceAll` sin leer nunca
-las parejas protegidas (`src/application/recompute-matches.ts:36-51`), y abajo
-`replace_matches` abre con `DELETE FROM public.matches WHERE true`
-(`20261108000000_fase1_idempotency_and_soft_delete.sql:52`). Cualquier acción de
-consola que mueva el pool dispara ese recálculo (`src/application/admin/users.ts:104-106`).
+El camino que proponía este documento —leer las parejas protegidas dentro de
+`recomputeMatches` y pasarlas por `conserveProtected`— quedó descartado al medir quién
+llama a qué: `recomputeMatches` corre en cada envío de quiz
+(`src/application/submit-quiz.ts:209`), así que esas lecturas serían de una a cinco
+peticiones HTTP **por submission** (`matches` y `conversations` no tienen FK entre sí y
+PostgREST no puede empotrar la consulta). La protección se movió a la escritura misma:
+`supabase/maintenance/pending/20261127000000_conservar_conversaciones.sql` reescribe
+`replace_matches` para publicar `payload del motor ∪ {parejas con conversación abierta
+que el motor no produce}`, restituyendo similitud, badges y `computed_at` del renglón
+previo. Con eso se cierran **todos** los caminos a la vez, incluidos los que no pasan
+por la aplicación, y cuesta cero viajes de red. Está desarrollado en ADR-061.
 
-**Desbloqueo:** decisión de producto, porque cambia el conjunto publicado de
-parejas. El camino propuesto es leer las parejas protegidas dentro de
-`recomputeMatches` y pasarlas por `conserveProtected` antes de `replaceAll`, con
-su prueba de regresión correspondiente, y después un recálculo real en
-producción con respaldo previo (`docs/RESPALDOS.md` §1). Al cerrar, los dos
-renglones de `supabase/maintenance/readonly-audit/04_conservacion.sql` vuelven a
-esperar `'0'` y la compuerta `conservacion` deja de ser la única defensa.
+Prueba: `supabase/tests/05_conservacion.sql`, 15 aserciones, que aplica la migración
+pendiente dentro de su propia transacción (`-- @aplicar`, `withPending` en
+`scripts/db/test.mjs`) y se la lleva al hacer `ROLLBACK`. El rojo está medido, no
+afirmado: con la directiva desactivada `npm run db:test` reporta `8 fallos, plan 15`;
+con ella activa, 15/15. Verde de la suite completa: 105 aserciones en 5 archivos.
+
+**Desbloqueo (lo que sigue siendo humano):**
+
+1. Aplicar la migración: mover el archivo de `pending/` a `supabase/migrations/`, correr
+   `npm run db:schema` para refrescar la línea base y después
+   `node scripts/db-apply.mjs --migration supabase/migrations/20261127000000_conservar_conversaciones.sql`.
+   Antes, respaldo cifrado (`docs/RESPALDOS.md` §1).
+2. Un recálculo real en producción. Al cerrar, los dos renglones de
+   `supabase/maintenance/readonly-audit/04_conservacion.sql` vuelven a esperar `'0'` en
+   las corridas **posteriores**, y la compuerta `conservacion` deja de ser la única defensa.
+3. Lo que esta migración NO arregla: los 71 pares ya huérfanos no tienen un score
+   almacenado que restituir. Reconstruir esas tarjetas (o dar por muerta esa relación)
+   es una decisión aparte, y sigue abierta aquí.
+
+---
+
+## M-14 · Montar la cuadrícula de insignias antes de hablar de insignias nuevas
+
+**Estado: hallazgo medido, sin superficie.** `docs/MOVIL.md:146` dice «las insignias
+se muestran en una cuadricula en la pagina de perfil». Medido en este árbol, esa
+frase es una promesa y no un hecho:
+
+- `BadgeGrid` (`src/ui/badges/badge-grid.tsx:30`) no lo importa nadie fuera de su
+  propio archivo; `src/app/perfil/page.tsx:8` renderiza `<ProfileView />` y
+  `ProfileDto` (`src/contracts/profile.ts:40-59`) no tiene campo de insignias.
+- `checkBadgeUnlock` (`src/domain/badges/badge-types.ts:75`) solo se llama desde
+  `src/domain/badges/badge-types.test.ts`. Ningún camino productivo evalúa condiciones.
+- No hay tabla de logros: la única columna `badges` de la base es
+  `public.matches.badges` (`supabase/migrations/00000000000000_base.sql:166`), que son
+  los chips de compatibilidad del match, otro concepto. `desbloqueadoEn`
+  (`src/domain/badges/badge-types.ts:49`) no tiene dónde vivir.
+- `BadgeProgress.activeDays` (`src/domain/badges/badge-types.ts:99`) no se computa en
+  ninguna parte; no hay columna de actividad diaria.
+
+Por eso se pudo re-enfocar `semana_activa` sin borrarle un logro a nadie (ADR-062):
+no había estado que borrar. Y por eso las dos cosas que siguen **no** se hacen
+agregando renglones al catálogo:
+
+1. **Insignias de quizzes (Fase 2, sin ranking).** Harían falta la condición
+   `{ tipo: "quizzes_completados" }` en `BadgeCondition`, un contador de quizzes
+   completados por categoría y un `BadgeId` por set. Todo eso es código muerto hasta
+   que exista la superficie del punto 2. El estándar de copy ya está escrito y es
+   duro: nombre ≤ 3 palabras, frase ≤ 80 caracteres, sin rankear ni juzgar
+   (`docs/QUIZZES.md` §5.3).
+2. **Montar la cuadrícula.** Decisión de producto: una sección nueva en el perfil.
+   La vía barata es **derivada, no persistida** —contar desde
+   `quiz_responses.answered_at`, `conversation_rounds.created_at` y
+   `conversations.seen_a/seen_b` en vez de crear tabla de logros—, así que no escribe
+   datos de personas y no necesita migración. La vía persistida (tabla
+   `profile_badges` con `desbloqueado_en`) es la única que permite «desbloqueado el
+   12 de octubre» y es la que exige una decisión humana.
+
+**Desbloqueo:** decidir (a) si la sección va en el perfil y con qué copia, y (b) si
+el estado es derivado o persistido. Con esas dos respuestas, el trabajo de código es
+pequeño: un read path, el prop en `ProfileDto`, el montaje de `BadgeGrid` y las
+pruebas de copy que ya existen.
 
 ---
 

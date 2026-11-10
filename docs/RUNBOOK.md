@@ -57,7 +57,7 @@ npm run db:restore-drill# ¿el respaldo sigue siendo restaurable? (base desechab
 | El panel de administración tarda segundos | `npm run db:perf` → `get_admin_dashboard` | 1427 ms de mediana local: `private.live_pairs()` se invoca 24 veces dentro de la misma lectura (DB-07) | presupuesto vigente 4348 ms; la optimización (CTE común por track) está pendiente y es de producto |
 | El aviso «-x» no desaparece del marcador | `npm run db:audit` → `06_notificaciones.sql` | la purga del contador no cubría la forma que vive en la base | ya corregido (`7bf8981`); si revive, es una forma nueva y va a `docs/QA_DB.md` |
 | Dos mensajes aparecen en orden incorrecto | `src/infrastructure/chat/conversation-repository.ts:184` | el poll ordena solo por `created_at` y el `id` es UUID (DB-14) | confirmado como riesgo, sin corrección: hace falta una columna de secuencia |
-| Un chat abierto quedó sin tarjeta de match | `npm run db:audit` → `04_conservacion.sql`; renglones `conversaciones sin par vigente en matches` (71) y `conversaciones abiertas desde el ultimo recálculo sin par vigente` (5) | el recálculo ordinario no protege las conversaciones: `recomputeMatches` llama `replaceAll` sin pasar por `conserveProtected` (DB-19) | no es un arreglo de umbral: es el paso M-13. Hasta cerrarlo, la conversación sobrevive pero el par visible no |
+| Un chat abierto quedó sin tarjeta de match | `npm run db:audit` → `04_conservacion.sql`; renglones `conversaciones sin par vigente en matches` (71) y `conversaciones abiertas desde el ultimo recálculo sin par vigente` (5) | el recálculo ordinario no protege las conversaciones: `recomputeMatches` llama `replaceAll` y la `replace_matches` vigente borra sin mirar atrás (DB-19) | no es un arreglo de umbral: es el paso M-13. El mecanismo ya está escrito y probado en `supabase/maintenance/pending/20261127000000_conservar_conversaciones.sql` (prueba: `supabase/tests/05_conservacion.sql`); falta que una persona la aplique. Hasta entonces la conversación sobrevive y el par visible no |
 | `db:drift` falla | diff impreso contra `supabase/schema-snapshot.json` | una migración aplicó algo no documentado, o la plataforma cambió un objeto | regenerar el snapshot con `npm run db:schema` **solo si** el cambio es intención nuestra; si no, es el drift el que tiene razón |
 | `db:restore-drill` falla en las guardas del sobre | `.qa/db-restore-drill.json` → `sobre.guardas` | el respaldo se truncó o el destino tiene otro esquema | eso es el control funcionando; revisar `respaldo.sha256` contra el artefacto |
 | `db:restore-drill` falla en el control negativo | `controlNegativo.danios` vs `detectadas` | el verificador de digestos dejó de morder | no declarar el respaldo como restaurable hasta arreglar el verificador |
@@ -94,8 +94,13 @@ Sin la variable resuelve el motor vigente (`DEFAULT_ENGINE`).
 
 Revertir no borra los avisos ya enviados: lo que se revierte es el cálculo, no la
 comunicación. Por eso la activación se hace con las compuertas verdes y no «para
-ver qué pasa». Antes de activar hay que cerrar M-13: hoy `recomputeMatches` no
-llama a `conserveProtected` y puede dejar conversaciones sin par (DB-19).
+ver qué pasa». Antes de activar hay que aplicar M-13: el recálculo ordinario no
+protege las conversaciones mientras la migración
+`supabase/maintenance/pending/20261127000000_conservar_conversaciones.sql` siga sin
+aplicarse, porque `recomputeMatches` no llama a `conserveProtected` y puede dejar
+conversaciones sin par (DB-19). La compuerta `conservacion` mide la salida cruda del
+candidato, así que aplicar la migración no la vuelve verde: lo que vuelve cierto es
+lo que protege.
 
 El modo sombra (`npm run matching:shadow`) no escribe: calcula el candidato, lo
 compara contra el motor en producción y deja el resultado en `.qa/rollout.json`

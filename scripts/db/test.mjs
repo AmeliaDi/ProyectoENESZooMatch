@@ -11,7 +11,7 @@
  *
  * Forma parte de `npm run check` y de `npm run verify:all`.
  */
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -20,6 +20,8 @@ import { migrationFiles, migrationPath, openLocal, readSql, SEED_FILE } from "./
 
 const TESTS_DIR = "supabase/tests";
 const SHIM = "scripts/db/pgtap-shim.sql";
+/** Scratch de `supabase test db`: .qa/ está gitignored y `testFiles()` no lo mira. */
+const GENERATED_DIR = ".qa/sql";
 
 function testFiles() {
   const dir = resolve(root, TESTS_DIR);
@@ -49,6 +51,32 @@ function lint(name, sql) {
 
 /** Cuenta aserciones reales: cada SELECT de función pgTAP es una. */
 const ASSERTION = /\bSELECT\s+(?:public\.)?(ok|is|isnt|has_table|has_column|col_is_pk|has_function|has_index|has_trigger|is_empty|lives_ok|throws_ok|results_eq)\s*\(/gi;
+
+/**
+ * Directiva `-- @aplicar: <ruta>`.
+ *
+ * Hay pruebas que necesitan una migración QUE TODAVÍA NO está en
+ * `supabase/migrations/`: vive en `supabase/maintenance/pending/` porque
+ * aplicarla es decisión humana (M-13) y porque `db:migrate-test` exige que el
+ * repo replique producción sin diferencias. Esas pruebas aplican el DDL dentro
+ * de su propia transacción y el `ROLLBACK` final se lo lleva, así que el verde
+ * no depende de que la migración ya esté aplicada —y si la prueba falla, falla
+ * por el mecanismo, no por el orden de aplicación.
+ */
+const PENDING_DIRECTIVE = /^--\s*@aplicar:\s*(\S+)\s*$/im;
+
+/** El DDL de una migración, sin su wrapper transaccional: la transacción es la de la prueba. */
+function ddlOnly(sql) {
+  return sql.replace(/^\s*BEGIN\s*;/im, "").replace(/^\s*COMMIT\s*;/gim, "");
+}
+
+/** `pending` es la ruta declarada, o null; `body` es el SQL listo para ejecutar. */
+function withPending(sql) {
+  const declared = PENDING_DIRECTIVE.exec(sql)?.[1] ?? null;
+  if (!declared) return { pending: null, body: sql };
+  const ddl = ddlOnly(readSql(declared));
+  return { pending: declared, body: sql.replace(/^BEGIN\s*;/m, (m) => `${m}\n${ddl}\n`) };
+}
 
 async function readResults(db) {
   const rows = (await db.query("SELECT seq, ok, description, diagnostics FROM pgtap.results ORDER BY seq")).rows;
@@ -88,7 +116,8 @@ async function runOnPglite(files) {
       const sql = readSql(`${TESTS_DIR}/${name}`);
       // El ROLLBACK final lo emite el runner DESPUÉS de leer los resultados:
       // dentro de la transacción, un ROLLBACK se llevaría también las aserciones.
-      const body = sql.replace(/\bROLLBACK\s*;\s*$/i, "");
+      const prepared = withPending(sql.replace(/\bROLLBACK\s*;\s*$/i, ""));
+      const body = prepared.body;
       const declared = [...body.matchAll(ASSERTION)].length;
       const started = Date.now();
       try {
@@ -99,6 +128,7 @@ async function runOnPglite(files) {
           ok: result.failures.length === 0 && result.ran === result.plan && result.ran === declared,
           elapsedMs: Date.now() - started,
           declared,
+          pending: prepared.pending,
           ...result,
         });
       } catch (error) {
@@ -115,7 +145,20 @@ async function runOnPglite(files) {
 
 function runOnSupabaseCli(files) {
   const cli = which("supabase");
-  const run = spawnSync(cli, ["test", "db", ...files.map((name) => `${TESTS_DIR}/${name}`)], { cwd: root, encoding: "utf8", stdio: "pipe" });
+  // Con pgTAP de verdad no hay runner propio que inyecte el DDL, así que la
+  // migración pendiente se materializa en `.qa/sql/` (gitignored): el archivo
+  // que recibe el CLI ya trae el `CREATE OR REPLACE` adentro, en la misma
+  // transacción que su ROLLBACK.
+  const paths = files.map((name) => {
+    const sql = readSql(`${TESTS_DIR}/${name}`);
+    const prepared = withPending(sql);
+    if (!prepared.pending) return `${TESTS_DIR}/${name}`;
+    mkdirSync(resolve(root, GENERATED_DIR), { recursive: true });
+    const generated = `${GENERATED_DIR}/${name}`;
+    writeFileSync(resolve(root, generated), prepared.body, "utf8");
+    return generated;
+  });
+  const run = spawnSync(cli, ["test", "db", ...paths], { cwd: root, encoding: "utf8", stdio: "pipe" });
   const output = `${run.stdout ?? ""}${run.stderr ?? ""}`;
   const failedAssertions = [...output.matchAll(/^not ok\s+(\d+)\s*-\s*(.*)$/gm)].map((m) => ({ seq: Number(m[1]), description: m[2] }));
   return {
