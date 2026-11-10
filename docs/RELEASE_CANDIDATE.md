@@ -77,7 +77,7 @@
 | Puerta | Resultado | Detalle |
 |---|---|---|
 | `npm run check` | ✓ | secrets + lint + typecheck + pruebas + `db:test`: 1 852 pruebas pasando, 0 errores de `eslint` (20 avisos `no-unused-vars`, los mismos de antes), `db:test` 105/105 (ver §4) |
-| `npm run verify:invariants` | ✓ | 14/14 invariantes, 383 pruebas |
+| `npm run verify:invariants` | ✓ | 14/14 invariantes, 385 pruebas |
 | `npm run verify:rollout` | ✓ | 9 compuertas, decisión NO ACTIVAR, `inputHash` vigente |
 | `npm run verify:all` | ✓ | diez pasos, `failed: []` y `omitted: []` (ver §4) |
 
@@ -89,7 +89,13 @@ hora exacta. Después de la tanda de insignias se volvieron a correr `check` e
 `invariants` a las 13:53:44Z (`.qa/db-test.json` es de esa segunda corrida) y los
 números de esos dos pasos son los de la reinspección; `data:validate`, `db:drift`,
 `db:audit` y los demás siguen con los de las 09:40:41Z, sobre un árbol que no tocó
-ni parámetros psicométricos ni esquema.
+ni parámetros psicométricos ni esquema. Tercera reinspección, ya sobre el árbol
+pusheado (`3e23214`): `npm run check` con `db:test` a las 14:36:39Z y
+`verify:invariants` a las 14:39:19Z, ambos verdes, y `1 852` / `385` son los
+números de esa corrida. El salto de 383 a 385 no es teoría: con
+`scripts/qa/qa-envelope.mjs` fuera del árbol `verify:invariants` vuelve a dar
+`383/383`, porque `scripts/verify/synthetic-isolation.test.ts` emite dos casos por
+archivo de `scripts/`.
 
 **`npm run verify:all` → `ok: true`, `failed: []`, `omitted: []`:**
 
@@ -109,7 +115,7 @@ ni parámetros psicométricos ni esquema.
 **Dentro de `check`** (`secrets:check` → `lint` → `typecheck` → `test` → `db:test`):
 
 - `vitest run`: `Test Files 155 passed | 4 skipped (159)`,
-  `Tests 1850 passed | 23 skipped (1873)`.
+  `Tests 1852 passed | 23 skipped (1875)`.
 - `eslint .`: `✖ 20 problems (0 errors, 20 warnings)`. Cero errores: los 20
   avisos son todos `no-unused-vars` y ninguno bloquea. El único
   `eslint-disable` del árbol está en `ConstellationCanvas.tsx` desde `eced72a`,
@@ -140,7 +146,9 @@ por archivo recorrido y ahora cubre también `scripts/qa/qa-envelope.mjs`.
 
 - `data:validate`: 237 pruebas en 19 archivos + la validación de datos.
 - `verify:invariants`: 382 pruebas en 23 archivos, I1–I10 y S1–S4, más las
-  pruebas de los propios invariantes.
+  pruebas de los propios invariantes. Es el número de la corrida de las
+  09:40:41Z, la que va dentro de `verify:all`; la reinspección suelta de las
+  14:39:19Z da **385** sobre el árbol con `qa-envelope.mjs` ya dentro.
 - `verify:rollout`: 9 compuertas, decisión NO ACTIVAR (sigue `capas`); fallan
   `correlacion_rangos` y `conservacion`, y `conservacion` es la que está atada a
   M-13. Ojo con la dirección de esa atadura: la compuerta mide la salida **cruda**

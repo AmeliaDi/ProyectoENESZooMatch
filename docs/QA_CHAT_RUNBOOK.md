@@ -141,7 +141,9 @@ Cada fallo indica la metrica, el umbral y el valor observado.
 
 **Causa:** El deploy es demasiado lento o el matching no esta funcionando.
 **Solucion:**
-1. Verificar que el deploy esta respondiendo: `curl $BASE/api/health`
+1. Verificar que el deploy esta respondiendo: `curl -s -o /dev/null -w '%{http_code}\n' $BASE/chats`
+   (este repo no expone `/api/health`; la pagina de chats es la sonda de vida mas barata
+   que no escribe nada)
 2. Aumentar el timeout temporalmente: `QA_CANARY_TIMEOUT=60 npm run qa:chat:canary`
 3. Revisar logs de Supabase para ver si las queries de matching estan lentas.
 

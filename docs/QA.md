@@ -285,10 +285,12 @@ RLS estricto (sin políticas para clientes, solo `service_role`). Idempotente co
 - Verificar que las coincidencias aparecen en el chat cuando ambas personas optaron por compartir.
 - Revisar el aviso de privacidad antes de habilitar Picante en producción.
 
-## 4.9 QA express del deploy (2026-11-10, `5efe4a0`, ADR-040)
+## 4.9 QA express del deploy (2026-11-10, `5efe4a0` y `3e23214`, ADR-040)
 
 Corrida contra la producción: `BASE=https://zooenes.vercel.app node scripts/qa/qa-api.mjs`.
-La tabla completa queda en `.qa/qa-api-prod-20261110c.md`.
+La tabla completa queda en `.qa/qa-api-prod-20261110c.md` (14:18:39Z, sobre el deploy
+`5efe4a0`) y se repitió después del push en `.qa/qa-api-prod-20261110d.md`
+(14:31:46Z, sobre `3e23214`): 101 renglones, 0 `FALLA` en las dos.
 
 | Comprobación | Resultado |
 |---|---|
@@ -301,7 +303,8 @@ La tabla completa queda en `.qa/qa-api-prod-20261110c.md`.
 | Contrato de error | «PIN incorrecto: error genérico» ahora muestra `403 chat.pin_invalid` (leía `code`; el campo se llama `codigo`) y el cuerpo sigue sin llevar el PIN intentado |
 | Base después de la corrida | `node --no-warnings scripts/purge-garbage.mts --dry-run`: ninguna fila sintética de hoy (el candidato sintético más nuevo es del 2026-11-09 16:17 UTC) y 0 huérfanos en `auth`, `quiz_responses`, `matches`, `notifications` ni `conversations` |
 | Hallazgo colateral | `purge-garbage.mts` estaba roto contra el esquema vigente: seleccionaba `p.alias`, la columna que eliminó la Fase 5 de ADR-038, así que el `--dry-run` moría en `42703`. Se quita de la consulta y de la interfaz; el reporte nunca la usaba |
-| Conteo de pruebas que toca | `scripts/verify/synthetic-isolation.test.ts` recorre `scripts/` y emite casos por archivo: con `qa-envelope.mjs` son 36, sin él 34. De ahí sale el +2 de 1 850 a 1 852 en `npm run check` |
+| Hallazgo en el runbook de chat | `docs/QA_CHAT_RUNBOOK.md` mandaba a verificar el deploy con `curl $BASE/api/health`, y este repo nunca tuvo esa ruta: medido contra producción, `GET /api/health` → **404** mientras `GET /chats` → **200**. La sonda pasa a `/chats`, que es de solo lectura. Sobrevivió porque ninguna prueba sujeta que una ruta citada dentro de un documento exista |
+| Conteo de pruebas que toca | `scripts/verify/synthetic-isolation.test.ts` recorre `scripts/` y emite casos por archivo: con `qa-envelope.mjs` son 36, sin él 34. De ahí sale el +2 de 1 850 a 1 852 en `npm run check`, y el mismo +2 mueve `verify:invariants` de 383 a 385 pruebas |
 | Costo real de correrlo en producción | las dos matrículas falsas `426144891`/`426144892` entran, eclosionan, chatean y se borran por cascada, pero el *churn* del *top-k* deja avisos `match_amistad`/`match_romance` en personas reales (M-01) |
 
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
