@@ -181,6 +181,24 @@
 .zm-convo__past[open] > summary { margin-bottom: calc(var(--zm-px) * 4); }
 .zm-convo__leave { justify-content: flex-end; padding-top: calc(var(--zm-px) * 4); border-top: var(--zm-px) dashed var(--zm-grid); }
 
+/* A 390 px screen only has to hold the three icons: the sentences are the
+   accessible name, not the layout. Desktop keeps them visible. */
+@media (max-width: 640px) {
+  .zm-convo__bar {
+    justify-content: flex-end;
+    gap: calc(var(--zm-px) * 2);
+  }
+  .zm-convo__bar > :first-child { margin-inline-end: auto; }
+  .zm-convo__bar .zm-btn__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 /* ─── Rounds: frame cards in sequence ─── */
 .zm-rounds { display: grid; gap: calc(var(--zm-px) * 8); margin: 0; padding: 0; list-style: none; }
 .zm-round { display: grid; gap: calc(var(--zm-px) * 5); padding: calc(var(--zm-px) * 10) calc(var(--zm-px) * 8); }

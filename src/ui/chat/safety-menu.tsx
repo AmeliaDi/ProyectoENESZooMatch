@@ -78,7 +78,9 @@ export function SafetyMenu({ convo, actions, onGone }: SafetyMenuProps) {
 
   return (
     <>
-      <Button variant="secondary" icon="privacy" onClick={() => { setMessage(null); setOpen(true); }}>{SAFETY_COPY.menu}</Button>
+      <Button variant="secondary" icon="list" onClick={() => { setMessage(null); setOpen(true); }}>
+        <span className="zm-btn__label">{SAFETY_COPY.menu}</span>
+      </Button>
       <Dialog open={open} onClose={() => { setOpen(false); setConfirm(null); }} title={confirm ? TITLE[confirm] : SAFETY_COPY.menu} kind="sheet">
         {confirm ? (
           <div className="zm-chat__form">

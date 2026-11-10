@@ -223,6 +223,30 @@ describe("chat lock copy", () => {
   });
 });
 
+describe("conversation bar on a phone", () => {
+  const view = readFileSync(resolve("src/ui/chat/conversation-view.tsx"), "utf8");
+  const safety = readFileSync(resolve("src/ui/chat/safety-menu.tsx"), "utf8");
+  const css = readFileSync(resolve("src/app/chat.css"), "utf8");
+
+  it("collapses the three labels to icons without taking their words away", () => {
+    for (const source of [view, safety]) expect(source, "la etiqueta debe quedar en el DOM").toContain('className="zm-btn__label"');
+    const rule = css.indexOf(".zm-convo__bar .zm-btn__label");
+    expect(rule).toBeGreaterThan(-1);
+    const block = css.lastIndexOf("@media (max-width: 640px)", rule);
+    expect(block).toBeGreaterThan(-1);
+    expect(css.slice(block, rule)).not.toMatch(/^\}/m);
+    expect(css.slice(rule, rule + 400)).toMatch(/clip-path:\s*inset\(50%\)/);
+  });
+
+  it("never leaves two identical icons where the labels used to be", () => {
+    expect(ICON_NAMES).toContain("list");
+    expect(safety).toContain('icon="list"');
+    expect(safety).not.toContain('icon="privacy"');
+    expect(view).toContain('icon="back"');
+    expect(view).toContain('icon="privacy"');
+  });
+});
+
 describe("pure helpers", () => {
   it("maps every domain category to a real icon and unknown keys to a fallback", () => {
     for (const key of ["personalidad", "afinidad_cultural", "intimidad_afecto", "valores_relacionales", "identidad"]) {

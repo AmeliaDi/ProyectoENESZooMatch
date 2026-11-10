@@ -83,9 +83,13 @@ export function ConversationView({ id, onBack, onLock, onLocked }: ConversationV
   return (
     <div ref={rootRef} className="zm-convo">
       <div className="zm-chat__actions zm-convo__bar">
-        <Button variant="ghost" icon="back" onClick={onBack}>{CONVERSATION_COPY.back}</Button>
+        <Button variant="ghost" icon="back" onClick={onBack}>
+          <span className="zm-btn__label">{CONVERSATION_COPY.back}</span>
+        </Button>
         {state.kind === "ready" ? <SafetyMenu convo={state.convo} actions={actions} onGone={onBack} /> : null}
-        <Button variant="secondary" icon="privacy" onClick={onLock}>{CHAT_COPY.lock}</Button>
+        <Button variant="secondary" icon="privacy" onClick={onLock}>
+          <span className="zm-btn__label">{CHAT_COPY.lock}</span>
+        </Button>
       </div>
       {state.kind === "loading" ? <LoadingState title={CONVERSATION_COPY.loadingOne} /> : null}
       {state.kind === "gone" ? <EmptyState title={CONVERSATION_COPY.goneTitle} body={CONVERSATION_COPY.goneBody} /> : null}

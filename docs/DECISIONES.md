@@ -2539,9 +2539,11 @@ tocar nada, sobre `next start` propio en 390 × 844 con DPR 3 y CDP:
 - **Dos cosas quedan explícitamente sin hacer**, no tapadas: (a) la barra de la conversación abierta
   (`.zm-convo__bar`, tres botones con etiqueta larga) es el siguiente candidato obvio de espacio en
   móvil y no se tocó porque vive en `conversation-view.tsx` y `free-chat.tsx`, que están con trabajo sin
-  commit de otra persona; (b) las alturas medidas son de un fixture de seis conversaciones con todas las
-  combinaciones de marca, no de datos reales: sirve para comparar antes/después en el mismo DOM, no para
-  afirmar cuánto mide la bandeja de una persona concreta.
+  commit de otra persona; **(esa (a) ya está hecha: ADR-064 la cerró en 148 → 44 px medidos, así que la
+  reserva de este renglón solo aplica a lo que entonces quedaba pendiente)**; (b) las alturas medidas son
+  de un fixture de seis conversaciones con todas las combinaciones de marca, no de datos reales: sirve
+  para comparar antes/después en el mismo DOM, no para afirmar cuánto mide la bandeja de una persona
+  concreta.
 - **Puertas:** `npx tsc --noEmit` limpio, `npx vitest run` en 138 archivos (4 saltados) con **1574
   pruebas pasando** (23 saltadas), `eslint` limpio sobre `src/ui/chat` y `src/ui/screens.test.ts`, y
   `npm run build` en verde. `src/ui/chat/chat-parse.test.ts` agrega `describe("turnOf")` (mío con
@@ -3102,3 +3104,77 @@ incluyó Picante ni ningún quiz `resultado_personal`. No se agregó un cuarto
 candidato a la tanda: la coincidencia **reemplaza** una de las tres, no se suma.
 No se envió el valor contestado a ninguna capa, y no se dejó que el cliente
 eligiera a la otra persona.
+
+## ADR-064 · La barra de la conversación se colapsa a iconos en el teléfono: las frases se van al nombre accesible, no se borran
+
+**Contexto.** ADR-056 liberó espacio en `/chats` y cerró con una lista honesta de lo que **no** tocó:
+«la barra de la conversación abierta (`.zm-convo__bar`, tres botones con etiqueta larga) es el
+siguiente candidato obvio de espacio en móvil». Medido aquel día en 390 × 844, esa barra era la
+última fila de la pantalla y ocupaba **148 px de alto en tres renglones**, porque las tres frases
+(«Volver a tus conversaciones», «Opciones de seguridad», «Cerrar el candado») no caben de dos en dos
+en los 346 px disponibles. La restricción no es de gusto: el blanco táctil mínimo es 44 px
+(`--zm-touch`, `src/app/atlas.css:214`) y ningún botón puede bajar de ahí, así que la única palanca
+que quedaba era el texto. Y el texto no se puede eliminar a secas: esas tres cadenas son el nombre
+accesible del control, y una conversación sin etiquetas legibles en voz alta deja de ser operable con
+lector de pantalla.
+
+**Decisión.**
+
+- **Se colapsa el texto, no se lo quita.** Cada botón envuelve su frase en
+  `<span className="zm-btn__label">` (`src/ui/chat/conversation-view.tsx:87` y `:91`,
+  `src/ui/chat/safety-menu.tsx:82`) y una regla dentro de `@media (max-width: 640px)`
+  (`src/app/chat.css:186-199`) la saca del flujo con el mismo patrón que `.zm-sr-only`:
+  `position: absolute`, 1 × 1 px, `overflow: hidden`, `clip-path: inset(50%)`, `white-space: nowrap`.
+  La cadena sigue en el DOM y sigue siendo el nombre accesible que calcula el navegador, así que los
+  tres botones se leen igual antes y después; lo único que dejan de ocupar es ancho.
+- **Ni `aria-label` ni `useMediaQuery`.** Las dos alternativas estaban a mano y las dos son peores.
+  `aria-label` duplicaría la fuente de verdad dentro del JSX: la frase ya vive en `chat-copy.ts`, y
+  escribirla otra vez en el componente deja dos cadenas que pueden divergir sin que nada las avise
+  (para evitarlo habría que sacar el texto del `children`, o sea quitarle al botón su contenido). Un
+  estado de consulta (`matchMedia` + `useState`) convertiría en dependiente de JavaScript algo que hoy
+  es CSS puro: con lector de pantalla fino pero con JS desactivado la etiqueta desaparecería. El
+  criterio: **la frase es el nombre del botón y el icono es su forma**; en móvil se quita lo que ocupa
+  lugar, no el nombre.
+- **El icono de seguridad pasa de `privacy` a `list`.** Oculto el texto, la barra mostraba **dos
+  candados seguidos**: cerrar el candado y «Opciones de seguridad» usaban el mismo glifo, y sin
+  etiqueta no hay forma de saber cuál es cuál. `privacy` se queda el candado porque esa sí es la acción
+  literal de cerrarlo; `settings` estaba descartado porque el encabezado de la carcasa ya lo usa para
+  «Ajustes de tu candado» (mismo ADR-056); entra `list` —tres renglones— que es lo que abre un menú.
+- **`Volver` se queda a la izquierda con `margin-inline-end: auto`** (`src/app/chat.css:191`), no con
+  `justify-content: space-between` sobre tres hijos: `safety-menu.tsx` solo se monta cuando
+  `state.kind === "ready"`, así que en carga y error la barra tiene **dos** botones y con
+  `space-between` el del candado se iría al centro. Con la regla actual el primer hijo empuja y el
+  resto se agrupa a la derecha, con o sin menú.
+- **Medido, no estimado.** CDP sobre Edge headless en 390 × 844 con DPR 3 y la hoja de estilos real
+  del proyecto; el fixture se armó con `renderToStaticMarkup` de los `Button` verdaderos y las cadenas
+  reales de `chat-copy.ts`, inyectado dentro de la cadena de selectores de `/chats`. La barra pasa de
+  **346 × 148 px en 3 renglones a 346 × 44 px en 1 renglón**: −104 px, −70,3 %. Los botones pasan de
+  287 / 237 / 207 × 44 px a **56 × 44 px** cada uno, o sea siguen por encima del blanco táctil.
+  `overflowX` en 0 y cero textos recortados. En escritorio (1280 × 900) la barra mide **672 × 96 px en
+  2 renglones, con las tres frases visibles antes y después**, que es la prueba de que la regla es
+  móvil y no un rediseño. Los mismos números salieron por dos caminos independientes —el servidor de
+  desarrollo vivo, y luego CSS compilado con `@tailwindcss/cli` más los woff2 reales en un harness
+  local—, lo que descarta que la diferencia viniera de una hoja de estilos sin compilar.
+- **La guarda existe porque el fallo fácil es silencioso.** `src/ui/screens.test.ts:226-246`
+  (`describe("conversation bar on a phone")`) comprueba dos cosas que un refactor rompe sin mover un
+  píxel: que las frases sigan en el DOM con la clase, y que la regla de ocultar **viva dentro del
+  bloque móvil** —localiza la regla y exige que no haya un `}` de cierre entre el `@media` y ella—.
+  Rojo medido: sacando la regla del `@media` la suite falla 1 de 22 exactamente en
+  `screens.test.ts:237`; verde 22/22. Un CSS que ocultara la etiqueta también en escritorio se vería
+  bien en la pantalla de quien prueba y dejaría los botones sin nombre visible para todo lo demás.
+
+**Consecuencias.** En móvil la conversación recupera 104 px de alto y a cambio pide confiar en tres
+glifos, así que la distinguibilidad de los iconos deja de ser gusto y pasa a ser una propiedad con
+prueba: volver a poner dos `privacy` lado a lado ahora rompe `screens.test.ts`, no solo una estética.
+Aparece una convención nueva en `src/ui/chat`: un botón que quiera colapsarse envuelve su etiqueta en
+`zm-btn__label`; si no la envuelve simplemente no colapsa, que es el fallo benigno (queda legible) y
+no el maligno (queda mudo). La barra de `free-chat.tsx` no se tocó: sus controles son texto fantasma
+dentro del flujo del mensaje, no una fila de barra, y colapsarlos sería quitarles el único contenido.
+
+**Lo que NO se hizo.** Ninguna migración, ningún RPC, ninguna ruta, ningún cambio de datos. No se
+modificó `src/ui/kit/button.tsx` ni se añadió un envoltorio global en el kit: la envoltura se puso en
+los tres sitios de llamada para que el blast radius fuera esta barra y no todas las pantallas. No se
+tocó el sheet de «Opciones de seguridad» ni sus botones «Mejor no» / «Sí, continuar», que viven en el
+diálogo. No se agregó `aria-label` a ningún botón. Las alturas son de un fixture con las combinaciones
+de estado, no de datos reales: sirven para comparar antes/después sobre el mismo DOM. Y no se tocó el
+servidor de desarrollo de otra persona en `:3000`; la sonda corrió en un puerto aparte.

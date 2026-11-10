@@ -245,6 +245,12 @@ flowchart TD
   `[88, 108, 56, 56, 88, 56]` (563 → 452 px). La cabecera de la bandeja crece 28 px
   al meter los recuentos, y aún así el total baja. El blanco táctil mínimo sigue en
   44 px, no hay desborde horizontal y ningún texto sale recortado.
+- **Espacio en móvil de la barra de la conversación** (mismo 390 × 844, DPR 3, CDP sobre la hoja
+  de estilos real, ADR-064): de **148 px a 44 px** de alto (−104 px, −70,3 %) y de 3 filas a 1. Los
+  tres botones pasan de 287/237/207 × 44 px a **56 × 44 px** cada uno, la etiqueta se va al nombre
+  accesible —los tres siguen leyéndose «Volver a tus conversaciones», «Opciones de seguridad» y
+  «Cerrar el candado»— y en escritorio la barra no cambia: 672 × 96 px, 2 filas, antes y después.
+  Cero desborde horizontal y cero textos recortados.
 - **Al ocultar la página** (`pagehide`), `sendBeacon` cierra el candado.
 - **Enlaces:** un engrane en la cabecera de la pantalla lleva a
   `/ajustes#chats` (cambiar PIN, olvidé mi PIN, actividad reciente e intentos

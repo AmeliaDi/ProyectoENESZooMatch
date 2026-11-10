@@ -609,7 +609,10 @@ Códigos nuevos: `chat.adult_required` (403), `chat.cooldown` (409), `chat.too_m
   del `myTurn` y `stage` que manda el servidor (`turnOf`), no se inventa nada: en `free` y
   `paused` no hay turno que nombrar y la fila queda sin marca.
 - **Conversación:**
-  1. barra con «Volver», «Opciones de seguridad» y «Cerrar el candado»;
+  1. barra con «Volver», «Opciones de seguridad» y «Cerrar el candado». En pantalla de ≤ 640 px
+     las tres etiquetas se van al nombre accesible y queda el icono: la barra mide 44 px de alto en
+     vez de 148 (ADR-064). El botón de seguridad usa el icono `list`, no el candado, porque con la
+     etiqueta oculta dos candados seguidos no se distinguen;
   2. cabecera con el sprite de 48 px y la pista;
   3. la guía de primera vez (4 líneas, se puede saltar);
   4. **«Gustos en común»**, plegado por defecto: una línea con el número de coincidencias y, al
