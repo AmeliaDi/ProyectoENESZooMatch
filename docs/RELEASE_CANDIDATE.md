@@ -87,8 +87,9 @@ Transcrita de la salida, no de memoria. Corrida 2026-11-10 a las 09:40:41Z
 sobre este árbol de trabajo; `.qa/verify-all.json` guarda `generatedAt` con la
 hora exacta. Después de la tanda de insignias se volvieron a correr `check` e
 `invariants` a las 13:53:44Z (`.qa/db-test.json` es de esa segunda corrida) y los
-números de abajo son los de esa reinspección; `verify:all` en su conjunto sigue
-con el sello de las 09:40:41Z.
+números de esos dos pasos son los de la reinspección; `data:validate`, `db:drift`,
+`db:audit` y los demás siguen con los de las 09:40:41Z, sobre un árbol que no tocó
+ni parámetros psicométricos ni esquema.
 
 **`npm run verify:all` → `ok: true`, `failed: []`, `omitted: []`:**
 

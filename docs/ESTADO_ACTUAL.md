@@ -15,7 +15,8 @@ describen el código.
 | Comprobación | Hoy |
 |---|---|
 | Pruebas | 1 850 pasando y 23 saltadas, en 159 archivos (4 archivos saltados), con `npm run check` — medido 2026-11-10 |
-| Lint, typecheck, secretos y build | 0 errores de lint y 20 avisos. `npm run check` corre secretos → lint → typecheck → pruebas → `db:test`, y sus cinco pasos están en verde; `npm run build` compila y sirve la tabla de rutas — todo medido 2026-11-10 |
+| Lint, typecheck y secretos | 0 errores de lint y 20 avisos. `npm run check` corre secretos → lint → typecheck → pruebas → `db:test`, y sus cinco pasos están en verde — medido 2026-11-10 |
+| Build | `npm run build` compila y sirve la tabla de rutas, pero se midió sobre el árbol **anterior** a la tanda de insignias: el servidor de desarrollo de la usuaria tiene `:3000` y escribe `.next`, así que no se volvió a correr. Lo que sí cubre esta tanda es `tsc --noEmit` y las pruebas de la hoja compilada (`src/ui/shared/mobile-css.test.ts`, `src/ui/screens.test.ts`) |
 | SQL | `npm run db:test` 105/105 — medido 2026-11-10 |
 | Núcleo psicométrico | HEXACO como núcleo con puente Big Five, MBTI continuo y Eneagrama (Fases 3–5, ADR-016, `docs/DECISION_MODELO_RASGOS.md`). El cuestionario obligatorio se parte en bloques de máximo 35 reactivos y se envían juntos al cerrar el último (ADR-045) |
 | Motor en producción | Sigue siendo `capas`. El candidato `coseno` se midió en sombra y **falla dos de las nueve compuertas**: ρ de rangos 0.2724 (pide ≥ 0.80) y 578 matches con conversación abierta que se perderían (piden 0). ADR-057, `docs/COMPARATIVA_MODELOS.md`, `.qa/rollout.json` |
