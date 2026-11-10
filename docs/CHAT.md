@@ -577,12 +577,17 @@ Códigos nuevos: `chat.adult_required` (403), `chat.cooldown` (409), `chat.too_m
   1. barra con «Volver», «Opciones de seguridad» y «Cerrar el candado»;
   2. cabecera con el sprite de 48 px y la pista;
   3. la guía de primera vez (4 líneas, se puede saltar);
-  4. las rondas en tarjetas de marco: pregunta, «Tu respuesta» (o composer con «Pasar») y «Su
+  4. **«Gustos en común»**, plegado por defecto: una línea con el número de coincidencias y, al
+     abrirlo, las frases en lenguaje natural y las preguntas para romper el hielo que salen de los
+     quizzes que ambas partes compartieron. Nunca respuestas crudas, nunca un «no», nunca Picante
+     (`docs/QUIZZES.md` §13.8 y §13.9). Viaja el id de la conversación, no el de la otra persona:
+     el contrato de este archivo no reparte `user_id` al cliente;
+  5. las rondas en tarjetas de marco: pregunta, «Tu respuesta» (o composer con «Pasar») y «Su
      respuesta» (sellada, revelada con reacciones, o «Prefirió pasar esta pregunta»);
-  5. **«Te toca elegir la pregunta»**, con 3 tarjetas que llevan el icono de su categoría,
+  6. **«Te toca elegir la pregunta»**, con 3 tarjetas que llevan el icono de su categoría,
      «Otras tres» y, en chat libre, «O escribe tu propia pregunta»;
-  6. la invitación al chat libre;
-  7. el chat libre: burbujas en la fuente de lectura con el sprite como avatar, «Tú» marcado
+  7. la invitación al chat libre;
+  8. el chat libre: burbujas en la fuente de lectura con el sprite como avatar, «Tú» marcado
      también con texto, `role="log"` y `aria-live="polite"`.
 - **Composer:** textarea, «Agregar emoji», contador «X/300» con dígitos tabulares y «Enviar».
   Atajo Ctrl/⌘ + Enter.

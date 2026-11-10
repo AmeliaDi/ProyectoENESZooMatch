@@ -3,12 +3,12 @@
 > Archivo generado por `npm run data:matching`. No editar a mano.
 > Datos **sintéticos**: validan el código y la sensibilidad del modelo, no el mundo real.
 
-- Semilla: 1515870810; perfiles: 600; hash de entradas (config + parámetros): `168050b7a90289c6`.
+- Semilla: 1515870810; perfiles: 600; hash de entradas (config + parámetros): `17478c2d0d19609d`.
 - Calidad de respuesta: 95.5 % con calidad 1; media 0.976; 23 perfiles con calidad < 0.8.
 
 ## Track: romance
 
-Pares elegibles: 27700. Umbral = cuantil 0.97 de la nula: **0.5547**. Pares reales sobre el umbral: 3.7 %. Matches publicados (top-K): 657; cobertura de personas: **64.5 %**. Puntaje máximo observado: 0.673; techo de referencia (cuantil 0.999): 0.6163.
+Pares elegibles: 27700. Umbral = cuantil 0.97 de la nula: **0.5547**. Pares reales sobre el umbral: 3.7 %. Matches publicados (top-K): 657; cobertura de personas: **64.5 %** (73.7 % sobre el pool que el track atiende por diseño). Puntaje máximo observado: 0.673; techo de referencia (cuantil 0.999): 0.6163.
 
 ### Distribución de similitudes (real vs nula por permutación)
 
@@ -88,20 +88,32 @@ Spearman de puntajes: **0.963**; Jaccard de los matches publicados: **0.514**.
 
 ### Equidad por subpoblación
 
-| Subpoblación | N | Parejas elegibles (media) | Cobertura |
-|---|---|---|---|
-| mujer_hombres | 75 | 54.2 | 68.0 % |
-| hombre_mujeres | 75 | 94.5 | 77.3 % |
-| mujer_mujeres | 75 | 96.6 | 76.0 % |
-| hombre_hombres | 75 | 59.6 | 62.7 % |
-| nobinarie_todes | 75 | 83.0 | 57.3 % |
-| bi_mujer | 75 | 147.2 | 85.3 % |
-| solo_nucleo | 75 | 203.6 | 89.3 % |
-| prefiere_no_decir | 75 | 0.0 | 0.0 % |
+«Opt-out» = personas cuya propia declaración las saca de romance («prefiero no decir» en orientación o tipo de relación, ADR-016). Su cobertura de romance es 0 por consentimiento, no por un defecto del pipeline; la columna «Cobertura (pool)» las excluye del denominador y es la que alimenta la compuerta de equidad. En amistad nadie queda fuera por diseño.
+
+| Subpoblación | N | Opt-out | Parejas elegibles (media) | Cobertura | Cobertura (pool) |
+|---|---|---|---|---|---|
+| mujer_hombres | 75 | 0 | 54.2 | 68.0 % | 68.0 % |
+| hombre_mujeres | 75 | 0 | 94.5 | 77.3 % | 77.3 % |
+| mujer_mujeres | 75 | 0 | 96.6 | 76.0 % | 76.0 % |
+| hombre_hombres | 75 | 0 | 59.6 | 62.7 % | 62.7 % |
+| nobinarie_todes | 75 | 0 | 83.0 | 57.3 % | 57.3 % |
+| bi_mujer | 75 | 0 | 147.2 | 85.3 % | 85.3 % |
+| solo_nucleo | 75 | 0 | 203.6 | 89.3 % | 89.3 % |
+| prefiere_no_decir | 75 | 75 | 0.0 | 0.0 % | — (fuera por diseño) |
+
+Cobertura mínima (pool) / mediana: **0.754** (la compuerta de rollout exige ≥ 0.70).
+
+### Desigualdad de exposición
+
+Cada aparición cuenta una vez por persona y por match publicado (los dos extremos del par). No es un puntaje de deseabilidad: mide si el reparto de visibilidad se concentra en pocas personas.
+
+| Gini | Máxima proporción por persona | Personas con 0 matches | Matches por persona (media) | P90 |
+|---|---|---|---|---|
+| 0.588 | 2.13 % | 213 de 600 | 2.19 | 5.0 |
 
 ## Track: amistad
 
-Pares elegibles: 179700. Umbral = cuantil 0.85 de la nula: **0.4699**. Pares reales sobre el umbral: 15.4 %. Matches publicados (top-K): 2519; cobertura de personas: **99.8 %**. Puntaje máximo observado: 0.639; techo de referencia (cuantil 0.999): 0.5716.
+Pares elegibles: 179700. Umbral = cuantil 0.85 de la nula: **0.4699**. Pares reales sobre el umbral: 15.4 %. Matches publicados (top-K): 2519; cobertura de personas: **99.8 %** (99.8 % sobre el pool que el track atiende por diseño). Puntaje máximo observado: 0.639; techo de referencia (cuantil 0.999): 0.5716.
 
 ### Distribución de similitudes (real vs nula por permutación)
 
@@ -177,13 +189,25 @@ Spearman de puntajes: **0.966**; Jaccard de los matches publicados: **0.502**.
 
 ### Equidad por subpoblación
 
-| Subpoblación | N | Parejas elegibles (media) | Cobertura |
-|---|---|---|---|
-| mujer_hombres | 75 | 599.0 | 100.0 % |
-| hombre_mujeres | 75 | 599.0 | 100.0 % |
-| mujer_mujeres | 75 | 599.0 | 100.0 % |
-| hombre_hombres | 75 | 599.0 | 100.0 % |
-| nobinarie_todes | 75 | 599.0 | 100.0 % |
-| bi_mujer | 75 | 599.0 | 100.0 % |
-| solo_nucleo | 75 | 599.0 | 100.0 % |
-| prefiere_no_decir | 75 | 599.0 | 98.7 % |
+«Opt-out» = personas cuya propia declaración las saca de romance («prefiero no decir» en orientación o tipo de relación, ADR-016). Su cobertura de romance es 0 por consentimiento, no por un defecto del pipeline; la columna «Cobertura (pool)» las excluye del denominador y es la que alimenta la compuerta de equidad. En amistad nadie queda fuera por diseño.
+
+| Subpoblación | N | Opt-out | Parejas elegibles (media) | Cobertura | Cobertura (pool) |
+|---|---|---|---|---|---|
+| mujer_hombres | 75 | 0 | 599.0 | 100.0 % | 100.0 % |
+| hombre_mujeres | 75 | 0 | 599.0 | 100.0 % | 100.0 % |
+| mujer_mujeres | 75 | 0 | 599.0 | 100.0 % | 100.0 % |
+| hombre_hombres | 75 | 0 | 599.0 | 100.0 % | 100.0 % |
+| nobinarie_todes | 75 | 0 | 599.0 | 100.0 % | 100.0 % |
+| bi_mujer | 75 | 0 | 599.0 | 100.0 % | 100.0 % |
+| solo_nucleo | 75 | 0 | 599.0 | 100.0 % | 100.0 % |
+| prefiere_no_decir | 75 | 0 | 599.0 | 98.7 % | 98.7 % |
+
+Cobertura mínima (pool) / mediana: **0.987** (la compuerta de rollout exige ≥ 0.70).
+
+### Desigualdad de exposición
+
+Cada aparición cuenta una vez por persona y por match publicado (los dos extremos del par). No es un puntaje de deseabilidad: mide si el reparto de visibilidad se concentra en pocas personas.
+
+| Gini | Máxima proporción por persona | Personas con 0 matches | Matches por persona (media) | P90 |
+|---|---|---|---|---|
+| 0.313 | 2.36 % | 1 de 600 | 8.40 | 12.0 |

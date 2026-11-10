@@ -8,7 +8,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
-import { findQuiz, QUIZ_CATALOGUE, CATEGORY_META } from "@/config/quiz-catalogue";
+import { findQuiz, CATEGORY_META } from "@/config/quiz-catalogue";
+import { OPT_OUT_LABEL } from "@/config/quizzes";
+import { valorGuardable } from "@/domain/quiz/quizzes";
 import { emitSound } from "@/ui/feedback/feedback";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
@@ -16,6 +18,7 @@ import { ChoiceGroup } from "@/ui/kit/choice";
 import { Icon } from "@/ui/kit/icon";
 import { ConstellationProgress } from "@/ui/kit/progress";
 import { ErrorState, LoadingState } from "@/ui/kit/states";
+import { toggleOption } from "@/ui/quiz/quiz-flow";
 import { ExitButton } from "@/ui/shared/exit-button";
 
 import { PicanteConsentGate } from "./picante-consent";
@@ -67,7 +70,7 @@ export function QuizFlowView({ quizId, requireConsent }: { quizId: string; requi
   const promptId = useId();
 
   const quiz = useMemo(() => findQuiz(quizId), [quizId]);
-  const category = quiz ? (quiz.categoria as "gustos" | "gaming" | "picante") : null;
+  const category = quiz?.categoria ?? null;
   const meta = category ? CATEGORY_META[category] : null;
 
   const [stage, setStage] = useState<Stage>("loading");
@@ -115,16 +118,15 @@ export function QuizFlowView({ quizId, requireConsent }: { quizId: string; requi
     if (stage === "quiz") headingRef.current?.focus();
   }, [index, stage]);
 
-  const toggleOption = useCallback((itemId: string, value: string, multiple: boolean) => {
+  /**
+   * En los ítems de selección múltiple, «Prefiero no decir» es excluyente: se
+   * limpia lo demás al marcarlo y se limpia a sí mismo al marcar otra cosa.
+   */
+  const toggleRespuesta = useCallback((itemId: string, value: string, multiple: boolean) => {
     setDraft((prev) => {
       const current = prev.answers[itemId] ?? [];
-      if (multiple) {
-        const next = current.includes(value)
-          ? current.filter((v) => v !== value)
-          : [...current, value];
-        return { ...prev, answers: { ...prev.answers, [itemId]: next } };
-      }
-      return { ...prev, answers: { ...prev.answers, [itemId]: [value] } };
+      const next = multiple ? toggleOption(current, value, OPT_OUT_LABEL) : [value];
+      return { ...prev, answers: { ...prev.answers, [itemId]: next } };
     });
   }, []);
 
@@ -139,10 +141,12 @@ export function QuizFlowView({ quizId, requireConsent }: { quizId: string; requi
     setSubmitting(true);
     setError(null);
 
-    const answers = quiz.items.map((item) => ({
-      item_id: item.item_id,
-      valor: draft.answers[item.item_id]?.[0] ?? "prefiero_no_decir",
-    }));
+    // Un ítem sin respuesta no se guarda como «prefiero no decir»: esa decisión
+    // es de la persona, no un relleno del formulario.
+    const answers = quiz.items.flatMap((item) => {
+      const valor = valorGuardable(item, draft.answers[item.item_id] ?? []);
+      return valor === null ? [] : [{ item_id: item.item_id, valor }];
+    });
 
     try {
       const res = await fetch("/api/quizzes", {
@@ -261,7 +265,7 @@ export function QuizFlowView({ quizId, requireConsent }: { quizId: string; requi
             labelledBy={promptId}
             options={item.opciones.map((opt) => ({ value: opt, label: opt }))}
             selected={currentAnswers}
-            onToggle={(value) => toggleOption(item.item_id, value, item.multiple)}
+            onToggle={(value) => toggleRespuesta(item.item_id, value, item.multiple)}
             multiple={item.multiple}
             size="card"
           />

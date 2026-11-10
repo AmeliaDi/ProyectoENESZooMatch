@@ -1,4 +1,4 @@
-import { MATCHING_CONFIG, computeAllMatches, type GlobalMatch } from "@/domain/matching";
+import { ENGINES, DEFAULT_ENGINE, MATCHING_CONFIG, type GlobalMatch, type MatchingEngine } from "@/domain/matching";
 import { err, ok, type Result } from "@/domain/shared";
 
 import type { AppError } from "./errors";
@@ -21,6 +21,8 @@ export interface RecomputeDeps {
   profiles: Pick<ProfileRepository, "loadCompletedPool">;
   matches: Pick<MatchRepository, "poolVersion" | "replaceAll">;
   scheduler: Scheduler;
+  /** Injected from `MATCHING_ENGINE` at the composition root; absent means the live engine. */
+  engine?: MatchingEngine;
 }
 
 /**
@@ -37,7 +39,7 @@ export async function recomputeMatches(
     const pool = await deps.profiles.loadCompletedPool();
     if (!pool.ok) return pool;
 
-    const pairs = computeAllMatches(pool.value, MATCHING_CONFIG);
+    const pairs = (deps.engine ?? ENGINES[DEFAULT_ENGINE]).compute(pool.value, MATCHING_CONFIG);
     const replaced = await deps.matches.replaceAll(pairs, version.value);
     if (!replaced.ok) return replaced;
     if (replaced.value === "replaced") return ok(pairs);

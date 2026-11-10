@@ -4,8 +4,8 @@
 import { createHash } from "node:crypto";
 
 import { MATCHING_CONFIG } from "@/config";
-import { aggregatePair } from "@/domain/matching";
-import { quantile, spearman } from "@/domain/math";
+import { aggregatePair, romanceOptOut } from "@/domain/matching";
+import { gini, quantile, spearman } from "@/domain/math";
 import { mulberry32 } from "@/domain/shared";
 import type { MatchCategoryId, TrackConfig } from "@/types/matching-config";
 import type { MatchTrack } from "@/types/microtest";
@@ -13,7 +13,7 @@ import type { MatchTrack } from "@/types/microtest";
 import { ablate, eligible, jaccard, nullSims, nullThreshold, select, totals, type Pair } from "./analysis";
 import { HYPOTHESES, aucWithBootstrap, baselineScores, morris, topShare } from "./metrics";
 import { SUBPOPULATIONS, type Person } from "./population";
-import type { TrackReport } from "./report";
+import type { Exposure, TrackReport } from "./report";
 
 const BETAS = [0, 2, 4, 6, 10, 20] as const;
 const BOOTSTRAP_REPS = 100;
@@ -25,6 +25,32 @@ export const REFERENCE_QUANTILE = 0.999;
 
 export const seedFor = (stage: string) =>
   (MATCHING_CONFIG.calibration.seed ^ createHash("sha256").update(stage).digest().readUInt32LE(0)) >>> 0;
+
+/** Exposure comes from `select().byPerson`: both endpoints of each published pair. */
+export function exposureOf(byPerson: readonly number[]): Exposure {
+  const total = byPerson.reduce((s, v) => s + v, 0);
+  return {
+    gini: gini(byPerson),
+    maxShare: total === 0 ? 0 : byPerson.reduce((m, v) => Math.max(m, v), 0) / total,
+    zeroMatches: byPerson.filter((c) => c === 0).length,
+    meanMatches: total / Math.max(1, byPerson.length),
+    p90: quantile(byPerson, 0.9),
+  };
+}
+
+/**
+ * Worst subpopulation coverage divided by the median one (1 = no gap), measured
+ * over the pool the track is DESIGNED to serve: someone who declared "prefiero
+ * no decir" opted out of romance (ADR-016), so their zero is a consented
+ * exclusion, not a pipeline artefact. Groups with no eligible member are
+ * skipped. Fails closed at 0 when the median group has no coverage.
+ */
+export function equityFloor(equity: ReadonlyArray<{ n: number; optedOut: number; poolCoverage: number }>): number {
+  const coverages = equity.filter((e) => e.n - e.optedOut > 0).map((e) => e.poolCoverage);
+  const median = quantile(coverages, 0.5);
+  if (!(median > 0)) return 0;
+  return coverages.reduce((m, c) => Math.min(m, c), Number.POSITIVE_INFINITY) / median;
+}
 
 /** Weakest core area of each published match, summarized by its P10 and median. */
 function weakestArea(pairs: readonly Pair[], chosen: ReadonlySet<number>, track: TrackConfig) {
@@ -98,22 +124,31 @@ export function analyseTrack(name: MatchTrack, people: readonly Person[], all: r
   const equity = SUBPOPULATIONS.map(({ id }) => {
     const members = people.flatMap((p, k) => (p.group === id ? [k] : []));
     const options = members.map((k) => pairs.filter((p) => p.i === k || p.j === k).length);
+    const optedOut = members.filter((k) => name === "romance" && romanceOptOut(people[k]!.filters)).length;
+    const eligibleN = members.length - optedOut;
+    const matched = members.filter((k) => chosen.byPerson[k]! > 0).length;
     return {
       group: id,
       n: members.length,
+      optedOut,
       eligiblePartners: options.reduce((s, v) => s + v, 0) / Math.max(1, members.length),
-      coverage: members.filter((k) => chosen.byPerson[k]! > 0).length / Math.max(1, members.length),
+      coverage: matched / Math.max(1, members.length),
+      poolCoverage: eligibleN === 0 ? 0 : matched / eligibleN,
     };
   });
+  const designedPool = people.filter((p) => name === "amistad" || !romanceOptOut(p.filters)).length;
+  const matchedPeople = chosen.byPerson.filter((c) => c > 0).length;
 
   const stride = Math.max(1, Math.floor(pairs.length / MORRIS_PAIRS));
   return {
     track: name,
     alpha: cfg.null_alpha,
+    people: people.length,
     pairs: pairs.length,
     threshold,
     above: scores.filter((s) => s > threshold).length / scores.length,
     coverage: chosen.coverage,
+    poolCoverage: designedPool === 0 ? 0 : matchedPeople / designedPool,
     matches: chosen.selected.size,
     quantiles: [0, 0.05, 0.25, 0.5, 0.75, 0.95, 1].map((q) => ({ q, real: quantile(scores, q), null: quantile(nullTotals, q) })),
     coverageCurve: [0.8, 0.85, 0.9, 0.95, 0.99].map((q) => {
@@ -125,6 +160,8 @@ export function analyseTrack(name: MatchTrack, people: readonly Person[], all: r
     ablation,
     stability: { rho: spearman(noisyScores, scores), jaccard: jaccard(noisySel.selected, chosen.selected) },
     equity,
+    exposure: exposureOf(chosen.byPerson),
+    equityFloor: equityFloor(equity),
     morris: morris(pairs.filter((_, k) => k % stride === 0), cfg, MORRIS_TRAJECTORIES, mulberry32(seedFor(`morris:${name}`))),
     identityShare: contributionShare(pairs, cfg, IDENTITY),
     extrasShare: contributionShare(pairs, cfg, EXTRAS),

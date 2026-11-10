@@ -31,6 +31,8 @@ const PARAMS_STAMP_MIGRATION = "20261123000000_params_version_stamp_on_profiles.
 const PARAMS_STAMP_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, PARAMS_STAMP_MIGRATION), "utf8"));
 const NOTIFY_ACCESSIBLE_MIGRATION = "20261124000000_notification_copy_accesible.sql";
 const NOTIFY_ACCESSIBLE_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, NOTIFY_ACCESSIBLE_MIGRATION), "utf8"));
+const RPC_PUBLIC_MIGRATION = "20261125000000_rpc_public_y_permisos.sql";
+const RPC_PUBLIC_SQL = lf(readFileSync(resolve(MIGRATIONS_DIR, RPC_PUBLIC_MIGRATION), "utf8"));
 
 /** Every `CREATE FUNCTION public.x(...)` body, keyed by name, across migrations. */
 function publicFunctionsOf(sql: string): [string, string][] {
@@ -106,7 +108,32 @@ describe("base migration", () => {
       NOTIFY_COPY_MIGRATION,
       PARAMS_STAMP_MIGRATION,
       NOTIFY_ACCESSIBLE_MIGRATION,
+      RPC_PUBLIC_MIGRATION,
     ]);
+  });
+
+  it("moves the quiz RPCs into public and opens them to service_role (M-12)", () => {
+    for (const name of [
+      "quiz_save_answer",
+      "quiz_delete_answers",
+      "quiz_mark_completed",
+      "quiz_set_sharing",
+      "quiz_picante_save_consent",
+      "quiz_picante_get_consent",
+    ]) {
+      expect(RPC_PUBLIC_SQL, `falta ${name} en la migración`).toContain(`'${name}'`);
+    }
+    // El movido va guardado por existencia: nunca falla contra producción, donde ya están en public.
+    expect(RPC_PUBLIC_SQL).toContain("ALTER FUNCTION private.%I(%s) SET SCHEMA public");
+    expect(RPC_PUBLIC_SQL).toMatch(/IF EXISTS \([\s\S]*?'public' AND p\.proname = v_name/);
+    // PostgREST solo ve `public`; sin el grant, service_role recibe 42501.
+    expect(RPC_PUBLIC_SQL).toContain("GRANT EXECUTE ON FUNCTION %s TO service_role");
+    expect(RPC_PUBLIC_SQL).toContain("REVOKE ALL ON FUNCTION %s FROM PUBLIC, anon");
+    expect(RPC_PUBLIC_SQL).toMatch(/^-- ?Idempotente/m);
+    expect(RPC_PUBLIC_SQL).toMatch(/^BEGIN;$/m);
+    expect(RPC_PUBLIC_SQL.trimEnd()).toMatch(/\nCOMMIT;$/);
+    // No toca filas: es DDL y ACL.
+    expect(RPC_PUBLIC_SQL).not.toMatch(/\b(INSERT INTO|UPDATE \w|DELETE FROM|TRUNCATE|DROP TABLE)\b/);
   });
 
   it("keeps shared layers in sync with the TypeScript ids and idempotent (ADR-030)", () => {
@@ -144,6 +171,46 @@ describe("base migration", () => {
     for (const rpc of QUIZZES_RPCS) {
       expect(QUIZZES_SQL).toContain(`CREATE OR REPLACE FUNCTION ${rpc}`);
     }
+  });
+
+  it("keeps the quiz tables unreachable for anon and authenticated", () => {
+    // docs/QUIZZES.md §8.1: «nadie lee respuestas ajenas». Aquí no hay base en CI,
+    // así que se revisa el texto del DDL: sin privilegios y con RLS activo.
+    for (const table of QUIZZES_TABLES) {
+      expect(QUIZZES_SQL, table).toContain(`REVOKE ALL ON ${table} FROM anon, authenticated;`);
+      expect(QUIZZES_SQL, table).toContain(`GRANT ALL ON ${table} TO service_role;`);
+      expect(QUIZZES_SQL, table).toContain(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY;`);
+      expect(QUIZZES_SQL, table).not.toMatch(new RegExp(`CREATE POLICY \\w+ ON (public\\.)?${table}`));
+    }
+  });
+
+  it("gates the coincidence RPC on sharing, match and romance", () => {
+    const rpc = lf(QUIZZES_SQL.match(/CREATE OR REPLACE FUNCTION quiz_coincidencias\([\s\S]*?\$\$;/)![0]);
+    for (const persona of ["p_yo", "p_otra_persona"]) {
+      expect(rpc).toContain(`WHERE persona_id = ${persona}`);
+      expect(rpc).toContain(`WHERE user_id = ${persona} AND track_romance = true`);
+    }
+    expect(rpc.match(/nivel_visibilidad = 'compartir_coincidencias_con_matches'/g)).toHaveLength(2);
+    expect(rpc).toContain("FROM public.matches");
+    expect(rpc).toContain("AND a.valor = b.valor");
+    expect(rpc).toContain("AND a.valor NOT IN ('no', 'prefiero_no_decir')");
+    expect(rpc).not.toMatch(/RETURN QUERY\s+SELECT a\.item_id, a\.valor\s+FROM public\.quiz_answers a\s+WHERE a\.persona_id/);
+  });
+
+  it("leaves the capitalized «No» to the application layer", () => {
+    // El filtro SQL es con minúsculas y los ítems de acuerdo guardan «No», así que la
+    // compuerta de verdad está en `obtenerCoincidencias` → `esOptOut`. Si alguien
+    // cambia el SQL para comparar en minúsculas, este test lo dice; si lo borra, truena.
+    expect(QUIZZES_SQL).toContain("NOT IN ('no', 'prefiero_no_decir')");
+    const actions = readFileSync(resolve(process.cwd(), "src/application/quiz/actions.ts"), "utf8");
+    expect(actions).toContain("coincidencias.filter((c) => !esOptOut(c.valor))");
+  });
+
+  it("only ever returns coincidences, never a single answer", () => {
+    const rpc = lf(QUIZZES_SQL.match(/CREATE OR REPLACE FUNCTION quiz_coincidencias\([\s\S]*?\$\$;/)![0]);
+    expect(rpc).toContain("RETURNS TABLE (item_id TEXT, valor TEXT)");
+    expect(rpc).not.toContain("persona_id, item_id");
+    expect(rpc).not.toContain("SELECT *");
   });
 
   it("matches the TypeScript vector lengths", () => {

@@ -1,0 +1,5897 @@
+{
+  "generatedAt": "2026-11-10T03:53:46.476Z",
+  "source": "live-readonly",
+  "catalog": {
+    "unavailable": {
+      "cronJobs": "HTTP 400: {\"message\":\"Failed to run sql query: ERROR:  42P01: relation \\\"cron.job\\\" does not exist\\nLINE 1: select jobid, schedule, command, nodename, database, username, active from cron.job order by"
+    },
+    "schemas": [
+      {
+        "name": "private",
+        "acl": "postgres=UC/postgres",
+        "api_usage": "anon=- authenticated=- service_role=-"
+      },
+      {
+        "name": "public",
+        "acl": "postgres=UC/postgres | anon=U/postgres | authenticated=U/postgres | service_role=UC/postgres",
+        "api_usage": "anon=U authenticated=U service_role=U"
+      }
+    ],
+    "tables": [
+      {
+        "schema": "private",
+        "name": "access_guard",
+        "rls_enabled": false,
+        "rls_forced": false
+      },
+      {
+        "schema": "private",
+        "name": "pool_state",
+        "rls_enabled": false,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "admin_audit",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "admin_counters",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "admin_credentials",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "chat_blocks",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "chat_closures",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "chat_feedback_daily",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "chat_interests",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "chat_pins",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "chat_report_audit",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "chat_reports",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "chat_security_events",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "conversation_answers",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "conversation_messages",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "conversation_reactions",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "conversation_rounds",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "conversations",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "matches",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "notifications",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "profiles",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "quiz_answers",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "quiz_attempts",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_consent",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "quiz_responses",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "quiz_sharing",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "rls_enabled": true,
+        "rls_forced": false
+      }
+    ],
+    "columns": [
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "kind",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "subject",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "window_started_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 3
+      },
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "hits",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 4
+      },
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "locked_until",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 5
+      },
+      {
+        "schema": "private",
+        "table_name": "pool_state",
+        "name": "singleton",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "true",
+        "ordinal_position": 1
+      },
+      {
+        "schema": "private",
+        "table_name": "pool_state",
+        "name": "revision",
+        "data_type": "bigint",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()",
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "admin_id",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "admin_alias",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "action",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "target_user",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "target_alias",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "detail",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": "'{}'::jsonb",
+        "ordinal_position": 7
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 8
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_counters",
+        "name": "key",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_counters",
+        "name": "value",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_counters",
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_counters",
+        "name": "updated_by",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "user_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "pin_hash",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "salt",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "kdf_params",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "failed_attempts",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "pause_step",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "locked_until",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 7
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 8
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "changed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 9
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "revision",
+        "data_type": "bigint",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 10
+      },
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "id",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "nombre_fuente",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "diminutivo_es",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "categoria_fauna",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "personality_affinity",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": "'{}'::jsonb",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_blocks",
+        "name": "blocker",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_blocks",
+        "name": "blocked",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_blocks",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "user_a",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "user_b",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "track",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "closed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_feedback_daily",
+        "name": "day",
+        "data_type": "date",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_feedback_daily",
+        "name": "track",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_feedback_daily",
+        "name": "liked",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_feedback_daily",
+        "name": "not_liked",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "from_user",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "to_user",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "track",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "declined_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "user_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "pin_hash",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "salt",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "kdf_params",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "changed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "failed_attempts",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 7
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "pause_step",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 8
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "long_pauses",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 9
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "locked_until",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 10
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "recent_failures",
+        "data_type": "integer",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 11
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "last_failed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 12
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "recovery_requested_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 13
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "revision",
+        "data_type": "bigint",
+        "is_nullable": "NO",
+        "column_default": "0",
+        "ordinal_position": 14
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()",
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "report_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "admin_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "action",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()",
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "reporter",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "reported",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "track",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "reason",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "snapshot",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": "'[]'::jsonb",
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "status",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": "'abierto'::text",
+        "ordinal_position": 7
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 8
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "reviewed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 9
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_security_events",
+        "name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()",
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_security_events",
+        "name": "user_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_security_events",
+        "name": "kind",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_security_events",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "id",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "nombre",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "hex",
+        "data_type": "character",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "textura",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "temperatura",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "author",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "round",
+        "data_type": "smallint",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "body",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "passed",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()",
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "author",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "body",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "client_key",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "conversation_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "idx",
+        "data_type": "smallint",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "author",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "emoji",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "idx",
+        "data_type": "smallint",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "asker",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "prompt_id",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "custom_text",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "feedback_a",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "feedback_b",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 7
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 8
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()",
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "track",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "user_a",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "user_b",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "free_ready_a",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "free_ready_b",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "seen_a",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 7
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "seen_b",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 8
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "last_actor",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 9
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 10
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 11
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "paused_by",
+        "data_type": "uuid",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 12
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "muted_a",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 13
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "muted_b",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 14
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "user_a",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "user_b",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "track",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "similarity",
+        "data_type": "double precision",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "badges",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": "'[]'::jsonb",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "computed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": "gen_random_uuid()",
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "user_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "type",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "title",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "body",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "metadata",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": "'{}'::jsonb",
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "read",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 7
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 8
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "user_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "matricula_hash",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "animal_id",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "color_id",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "avatar_mark",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "show_avatar_detail",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 7
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "narrative",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 8
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "orientacion_sexual",
+        "data_type": "ARRAY",
+        "is_nullable": "NO",
+        "column_default": "'{}'::text[]",
+        "ordinal_position": 9
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "identidad_genero",
+        "data_type": "ARRAY",
+        "is_nullable": "NO",
+        "column_default": "'{}'::text[]",
+        "ordinal_position": 10
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "tipo_relacion_busca",
+        "data_type": "ARRAY",
+        "is_nullable": "NO",
+        "column_default": "'{}'::text[]",
+        "ordinal_position": 11
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "romance_vector",
+        "data_type": "ARRAY",
+        "is_nullable": "NO",
+        "column_default": "'{}'::double precision[]",
+        "ordinal_position": 12
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "amistad_vector",
+        "data_type": "ARRAY",
+        "is_nullable": "NO",
+        "column_default": "'{}'::double precision[]",
+        "ordinal_position": 13
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "dimension_scores",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": "'{}'::jsonb",
+        "ordinal_position": 14
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "latent_profile",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": "'{}'::jsonb",
+        "ordinal_position": 15
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "mbti_code",
+        "data_type": "character",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 16
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "inclusive_mode",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": "'neutro_universal'::text",
+        "ordinal_position": 17
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "quiz_completed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 18
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "paused_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 19
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 20
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 21
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "completed_modules",
+        "data_type": "ARRAY",
+        "is_nullable": "NO",
+        "column_default": "'{}'::text[]",
+        "ordinal_position": 22
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "shared_layers",
+        "data_type": "ARRAY",
+        "is_nullable": "NO",
+        "column_default": "'{}'::text[]",
+        "ordinal_position": 24
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "adult_confirmed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 25
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "eliminado_en",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 26
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "color_asignado_en",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 27
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "estado_identidad",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": "'huevo'::text",
+        "ordinal_position": 28
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "alias_animal",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 29
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "alias_color",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 30
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "alias_sufijo",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 31
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "alias_completo",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 32
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "enneagram_code",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 33
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "eclosionado_en",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 34
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "revelacion_vista",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 35
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "params_version",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 36
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "scored_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 37
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_answers",
+        "name": "persona_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_answers",
+        "name": "quiz_id",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_answers",
+        "name": "item_id",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_answers",
+        "name": "valor",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_attempts",
+        "name": "persona_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_attempts",
+        "name": "quiz_id",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_attempts",
+        "name": "revision",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_attempts",
+        "name": "completado_en",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "id",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "categoria",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "subcategoria",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "prompt",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "tipo_respuesta",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "opciones",
+        "data_type": "jsonb",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 6
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "polarity",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 7
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "weights",
+        "data_type": "jsonb",
+        "is_nullable": "NO",
+        "column_default": "'{}'::jsonb",
+        "ordinal_position": 8
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "track_romance",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "true",
+        "ordinal_position": 9
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "track_amistad",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "true",
+        "ordinal_position": 10
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "filtro_duro",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 11
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "campo_perfil",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 12
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "source_id",
+        "data_type": "text",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 13
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_picante_consent",
+        "name": "persona_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_picante_consent",
+        "name": "mayor_de_edad",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_picante_consent",
+        "name": "consentimiento_en",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_picante_consent",
+        "name": "track_romance_activo",
+        "data_type": "boolean",
+        "is_nullable": "NO",
+        "column_default": "false",
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "user_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "item_id",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "likert_value",
+        "data_type": "smallint",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "selected_options",
+        "data_type": "ARRAY",
+        "is_nullable": "YES",
+        "column_default": null,
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "answered_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 5
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_sharing",
+        "name": "persona_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_sharing",
+        "name": "quiz_id",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_sharing",
+        "name": "nivel_visibilidad",
+        "data_type": "text",
+        "is_nullable": "NO",
+        "column_default": "'privado'::text",
+        "ordinal_position": 3
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_sharing",
+        "name": "actualizado_en",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 4
+      },
+      {
+        "schema": "public",
+        "table_name": "user_roles",
+        "name": "user_id",
+        "data_type": "uuid",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 1
+      },
+      {
+        "schema": "public",
+        "table_name": "user_roles",
+        "name": "role",
+        "data_type": "USER-DEFINED",
+        "is_nullable": "NO",
+        "column_default": null,
+        "ordinal_position": 2
+      },
+      {
+        "schema": "public",
+        "table_name": "user_roles",
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO",
+        "column_default": "now()",
+        "ordinal_position": 3
+      }
+    ],
+    "primaryKeys": [
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "access_guard_pkey",
+        "definition": "PRIMARY KEY (kind, subject)"
+      },
+      {
+        "schema": "private",
+        "table_name": "pool_state",
+        "name": "pool_state_pkey",
+        "definition": "PRIMARY KEY (singleton)"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "admin_audit_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_counters",
+        "name": "admin_counters_pkey",
+        "definition": "PRIMARY KEY (key)"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "admin_credentials_pkey",
+        "definition": "PRIMARY KEY (user_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "animals_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_blocks",
+        "name": "chat_blocks_pkey",
+        "definition": "PRIMARY KEY (blocker, blocked)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "chat_closures_pkey",
+        "definition": "PRIMARY KEY (user_a, user_b, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_feedback_daily",
+        "name": "chat_feedback_daily_pkey",
+        "definition": "PRIMARY KEY (day, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "chat_interests_pkey",
+        "definition": "PRIMARY KEY (from_user, to_user, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_pkey",
+        "definition": "PRIMARY KEY (user_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "chat_report_audit_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "chat_reports_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_security_events",
+        "name": "chat_security_events_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "colors_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_answers_pkey",
+        "definition": "PRIMARY KEY (conversation_id, author, round)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_messages_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "conversation_reactions_pkey",
+        "definition": "PRIMARY KEY (conversation_id, idx, author)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_pkey",
+        "definition": "PRIMARY KEY (conversation_id, idx)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "conversations_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "matches_pkey",
+        "definition": "PRIMARY KEY (user_a, user_b, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "notifications_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_pkey",
+        "definition": "PRIMARY KEY (user_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_answers",
+        "name": "quiz_answers_pkey",
+        "definition": "PRIMARY KEY (persona_id, quiz_id, item_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_attempts",
+        "name": "quiz_attempts_pkey",
+        "definition": "PRIMARY KEY (persona_id, quiz_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "quiz_items_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_picante_consent",
+        "name": "quiz_picante_consent_pkey",
+        "definition": "PRIMARY KEY (persona_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "quiz_responses_pkey",
+        "definition": "PRIMARY KEY (user_id, item_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_sharing",
+        "name": "quiz_sharing_pkey",
+        "definition": "PRIMARY KEY (persona_id, quiz_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "user_roles",
+        "name": "user_roles_pkey",
+        "definition": "PRIMARY KEY (user_id)"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "admin_audit_admin_id_fkey",
+        "references_table": "users",
+        "definition": "FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE SET NULL"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_counters",
+        "name": "admin_counters_updated_by_fkey",
+        "references_table": "users",
+        "definition": "FOREIGN KEY (updated_by) REFERENCES auth.users(id) ON DELETE SET NULL"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "admin_credentials_user_id_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_id) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_blocks",
+        "name": "chat_blocks_blocked_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (blocked) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_blocks",
+        "name": "chat_blocks_blocker_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (blocker) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "chat_closures_user_a_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_a) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "chat_closures_user_b_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_b) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "chat_interests_from_user_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (from_user) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "chat_interests_to_user_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (to_user) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_user_id_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_id) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "chat_report_audit_admin_id_fkey",
+        "references_table": "users",
+        "definition": "FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "chat_report_audit_report_id_fkey",
+        "references_table": "chat_reports",
+        "definition": "FOREIGN KEY (report_id) REFERENCES chat_reports(id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "chat_reports_reported_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (reported) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "chat_reports_reporter_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (reporter) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_security_events",
+        "name": "chat_security_events_user_id_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_id) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_answers_author_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (author) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_answers_conversation_id_fkey",
+        "references_table": "conversations",
+        "definition": "FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_answers_round_fkey",
+        "references_table": "conversation_rounds",
+        "definition": "FOREIGN KEY (conversation_id, round) REFERENCES conversation_rounds(conversation_id, idx) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_messages_author_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (author) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_messages_conversation_id_fkey",
+        "references_table": "conversations",
+        "definition": "FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "conversation_reactions_author_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (author) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "conversation_reactions_conversation_id_fkey",
+        "references_table": "conversations",
+        "definition": "FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_asker_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (asker) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_conversation_id_fkey",
+        "references_table": "conversations",
+        "definition": "FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "conversations_user_a_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_a) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "conversations_user_b_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_b) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "matches_user_a_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_a) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "matches_user_b_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_b) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "notifications_user_id_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_id) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_animal_id_fkey",
+        "references_table": "animals",
+        "definition": "FOREIGN KEY (animal_id) REFERENCES animals(id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_color_id_fkey",
+        "references_table": "colors",
+        "definition": "FOREIGN KEY (color_id) REFERENCES colors(id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_user_id_fkey",
+        "references_table": "users",
+        "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_answers",
+        "name": "quiz_answers_persona_id_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (persona_id) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_attempts",
+        "name": "quiz_attempts_persona_id_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (persona_id) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_picante_consent",
+        "name": "quiz_picante_consent_persona_id_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (persona_id) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "quiz_responses_item_id_fkey",
+        "references_table": "quiz_items",
+        "definition": "FOREIGN KEY (item_id) REFERENCES quiz_items(id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "quiz_responses_user_id_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (user_id) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_sharing",
+        "name": "quiz_sharing_persona_id_fkey",
+        "references_table": "profiles",
+        "definition": "FOREIGN KEY (persona_id) REFERENCES profiles(user_id) ON DELETE CASCADE"
+      },
+      {
+        "schema": "public",
+        "table_name": "user_roles",
+        "name": "user_roles_user_id_fkey",
+        "references_table": "users",
+        "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      }
+    ],
+    "checks": [
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "access_guard_hits_check",
+        "definition": "CHECK ((hits >= 0))"
+      },
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "access_guard_kind_check",
+        "definition": "CHECK ((kind = ANY (ARRAY['address_attempt'::text, 'chat_pin_address'::text, 'admin_address'::text])))"
+      },
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "access_guard_subject_check",
+        "definition": "CHECK ((subject ~ '^[0-9a-f]{64}$'::text))"
+      },
+      {
+        "schema": "private",
+        "table_name": "pool_state",
+        "name": "pool_state_singleton_check",
+        "definition": "CHECK (singleton)"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "admin_audit_action_check",
+        "definition": "CHECK ((action = ANY (ARRAY['login'::text, 'login_failed'::text, 'logout'::text, 'delete_user'::text, 'reset_quiz'::text, 'pause_user'::text, 'resume_user'::text, 'reset_chat_pin'::text, 'recompute'::text, 'report_revisado'::text, 'report_cerrado'::text, 'counter_update'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "admin_audit_detail_check",
+        "definition": "CHECK ((jsonb_typeof(detail) = 'object'::text))"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_counters",
+        "name": "admin_counters_key_check",
+        "definition": "CHECK ((key ~ '^[a-z][a-z0-9_]{1,31}$'::text))"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_counters",
+        "name": "admin_counters_value_check",
+        "definition": "CHECK ((value >= 0))"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "admin_credentials_failed_attempts_check",
+        "definition": "CHECK ((failed_attempts >= 0))"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "admin_credentials_kdf_params_check",
+        "definition": "CHECK ((jsonb_typeof(kdf_params) = 'object'::text))"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "admin_credentials_pause_step_check",
+        "definition": "CHECK ((pause_step >= 0))"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "admin_credentials_pin_hash_check",
+        "definition": "CHECK (((char_length(pin_hash) >= 16) AND (char_length(pin_hash) <= 128)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "admin_credentials_salt_check",
+        "definition": "CHECK (((char_length(salt) >= 8) AND (char_length(salt) <= 64)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "animals_categoria_fauna_check",
+        "definition": "CHECK ((categoria_fauna = ANY (ARRAY['anfibio'::text, 'mamifero'::text, 'ave'::text, 'pez'::text, 'insecto'::text, 'reptil'::text, 'crustaceo'::text, 'molusco'::text, 'equinodermo'::text, 'cnidario'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_blocks",
+        "name": "chat_blocks_not_self",
+        "definition": "CHECK ((blocker <> blocked))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "chat_closures_ordered_pair",
+        "definition": "CHECK ((user_a < user_b))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "chat_closures_track_check",
+        "definition": "CHECK ((track = ANY (ARRAY['romance'::text, 'amistad'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_feedback_daily",
+        "name": "chat_feedback_daily_liked_check",
+        "definition": "CHECK ((liked >= 0))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_feedback_daily",
+        "name": "chat_feedback_daily_not_liked_check",
+        "definition": "CHECK ((not_liked >= 0))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_feedback_daily",
+        "name": "chat_feedback_daily_track_check",
+        "definition": "CHECK ((track = ANY (ARRAY['romance'::text, 'amistad'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "chat_interests_not_self",
+        "definition": "CHECK ((from_user <> to_user))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "chat_interests_track_check",
+        "definition": "CHECK ((track = ANY (ARRAY['romance'::text, 'amistad'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_failed_attempts_check",
+        "definition": "CHECK ((failed_attempts >= 0))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_kdf_params_check",
+        "definition": "CHECK ((jsonb_typeof(kdf_params) = 'object'::text))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_long_pauses_check",
+        "definition": "CHECK ((long_pauses >= 0))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_pause_step_check",
+        "definition": "CHECK ((pause_step >= 0))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_pin_hash_check",
+        "definition": "CHECK (((char_length(pin_hash) >= 16) AND (char_length(pin_hash) <= 128)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_recent_failures_check",
+        "definition": "CHECK ((recent_failures >= 0))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_salt_check",
+        "definition": "CHECK (((char_length(salt) >= 8) AND (char_length(salt) <= 64)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "chat_report_audit_action_check",
+        "definition": "CHECK ((action = ANY (ARRAY['viewed'::text, 'revisado'::text, 'cerrado'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "chat_reports_reason_check",
+        "definition": "CHECK ((reason = ANY (ARRAY['acoso'::text, 'ofensivo'::text, 'datos_personales'::text, 'spam'::text, 'menor_de_edad'::text, 'otro'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "chat_reports_snapshot_check",
+        "definition": "CHECK ((jsonb_typeof(snapshot) = 'array'::text))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "chat_reports_status_check",
+        "definition": "CHECK ((status = ANY (ARRAY['abierto'::text, 'revisado'::text, 'cerrado'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "chat_reports_track_check",
+        "definition": "CHECK ((track = ANY (ARRAY['romance'::text, 'amistad'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_security_events",
+        "name": "chat_security_events_kind_check",
+        "definition": "CHECK ((kind = ANY (ARRAY['created'::text, 'changed'::text, 'paused'::text, 'recovery_requested'::text, 'recovery_cancelled'::text, 'recovery_completed'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "colors_hex_check",
+        "definition": "CHECK ((hex ~ '^#[0-9A-Fa-f]{6}$'::text))"
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "colors_temperatura_check",
+        "definition": "CHECK ((temperatura = ANY (ARRAY['frio'::text, 'calido'::text, 'neutro'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "colors_textura_check",
+        "definition": "CHECK ((textura = ANY (ARRAY['cristalina'::text, 'mate'::text, 'sedosa'::text, 'metalica'::text, 'terrosa'::text, 'acuosa'::text, 'luminosa'::text, 'aterciopelada'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_answers_body_check",
+        "definition": "CHECK (((passed AND (body = ''::text)) OR ((NOT passed) AND ((char_length(body) >= 1) AND (char_length(body) <= 2400)))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_answers_round_check",
+        "definition": "CHECK (((round >= 0) AND (round <= 59)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_answers_three_questions_check",
+        "definition": "CHECK (((round >= 0) AND (round <= 2))) NOT VALID"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_messages_body_check",
+        "definition": "CHECK (((char_length(body) >= 1) AND (char_length(body) <= 2400)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "conversation_reactions_emoji_check",
+        "definition": "CHECK (((char_length(emoji) >= 1) AND (char_length(emoji) <= 16)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "conversation_reactions_idx_check",
+        "definition": "CHECK (((idx >= 0) AND (idx <= 59)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "conversation_reactions_three_questions_check",
+        "definition": "CHECK (((idx >= 0) AND (idx <= 2))) NOT VALID"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_custom_text_check",
+        "definition": "CHECK (((custom_text IS NULL) OR ((char_length(custom_text) >= 1) AND (char_length(custom_text) <= 1600))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_idx_check",
+        "definition": "CHECK (((idx >= 0) AND (idx <= 59)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_one_question",
+        "definition": "CHECK (((prompt_id IS NULL) <> (custom_text IS NULL)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_prompt_id_check",
+        "definition": "CHECK (((prompt_id IS NULL) OR (prompt_id ~ '^[par][0-9]{3}$'::text)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_three_questions_check",
+        "definition": "CHECK (((idx >= 0) AND (idx <= 2))) NOT VALID"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "conversations_ordered_pair",
+        "definition": "CHECK ((user_a < user_b))"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "conversations_track_check",
+        "definition": "CHECK ((track = ANY (ARRAY['romance'::text, 'amistad'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "matches_badges_check",
+        "definition": "CHECK ((jsonb_typeof(badges) = 'array'::text))"
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "matches_ordered_pair",
+        "definition": "CHECK ((user_a < user_b))"
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "matches_similarity_check",
+        "definition": "CHECK (((similarity > (0)::double precision) AND (similarity <= (1)::double precision)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "matches_track_check",
+        "definition": "CHECK ((track = ANY (ARRAY['romance'::text, 'amistad'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "notifications_type_check",
+        "definition": "CHECK ((type = ANY (ARRAY['match_romance'::text, 'match_amistad'::text, 'no_match'::text, 'welcome'::text, 'chat'::text, 'identity'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_alias_completo_format",
+        "definition": "CHECK (((eliminado_en IS NOT NULL) OR (estado_identidad = 'huevo'::text) OR (((char_length(alias_completo) >= 8) AND (char_length(alias_completo) <= 64)) AND (alias_completo ~ '^[a-záéíóúüñ]+( [a-záéíóúüñ]+)* · [BCDFGHJKLMNPQRSTVWXYZ]{4}$'::text) AND (alias_completo = ((((alias_animal || ' '::text) || alias_color) || ' · '::text) || alias_sufijo)) AND (alias_sufijo ~ '^[BCDFGHJKLMNPQRSTVWXYZ]{4}$'::text) AND (alias_animal ~ '^[a-záéíóúüñ]+( [a-záéíóúüñ]+)*$'::text) AND (alias_color ~ '^[a-záéíóúüñ]+( [a-záéíóúüñ]+)*$'::text))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_amistad_vector_shape",
+        "definition": "CHECK (((amistad_vector = '{}'::double precision[]) OR ((array_ndims(amistad_vector) = 1) AND (cardinality(amistad_vector) = 16))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_avatar_mark_check",
+        "definition": "CHECK (((avatar_mark IS NULL) OR (avatar_mark = ANY (ARRAY['sp'::text, 'so'::text, 'sx'::text]))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_completed_modules_check",
+        "definition": "CHECK ((completed_modules <@ ARRAY['hexaco_facetas'::text, 'puente_big_five'::text, 'valores'::text, 'actitudes'::text, 'intereses'::text, 'estilo_vida'::text, 'relacional'::text, 'mbti'::text, 'eneagrama'::text, 'subtipo'::text]))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_completed_vectors",
+        "definition": "CHECK (((quiz_completed_at IS NULL) OR ((cardinality(romance_vector) = 26) AND (cardinality(amistad_vector) = 16))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_enneagram_code_format",
+        "definition": "CHECK (((enneagram_code IS NULL) OR (enneagram_code ~ '^[1-9](w[1-9])?$'::text)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_estado_identidad_check",
+        "definition": "CHECK ((estado_identidad = ANY (ARRAY['huevo'::text, 'eclosionado'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_identity_shape",
+        "definition": "CHECK (((eliminado_en IS NOT NULL) OR\nCASE estado_identidad\n    WHEN 'huevo'::text THEN ((animal_id IS NULL) AND (color_id IS NULL) AND (alias_completo IS NULL) AND (alias_animal IS NULL) AND (alias_color IS NULL) AND (alias_sufijo IS NULL) AND (enneagram_code IS NULL) AND (eclosionado_en IS NULL))\n    ELSE ((animal_id IS NOT NULL) AND (color_id IS NOT NULL) AND (alias_completo IS NOT NULL) AND (alias_animal IS NOT NULL) AND (alias_color IS NOT NULL) AND (alias_sufijo IS NOT NULL) AND (eclosionado_en IS NOT NULL))\nEND))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_inclusive_mode_check",
+        "definition": "CHECK ((inclusive_mode = ANY (ARRAY['femenino'::text, 'masculino'::text, 'neutro_e'::text, 'neutro_universal'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_latent_profile_check",
+        "definition": "CHECK ((jsonb_typeof(latent_profile) = 'object'::text))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_matricula_hash_check",
+        "definition": "CHECK ((matricula_hash ~ '^[0-9a-f]{64}$'::text))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_mbti_code_check",
+        "definition": "CHECK (((mbti_code IS NULL) OR (mbti_code ~ '^[IE][NS][TF][JP]$'::text)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_romance_vector_shape",
+        "definition": "CHECK (((romance_vector = '{}'::double precision[]) OR ((array_ndims(romance_vector) = 1) AND (cardinality(romance_vector) = 26))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_shared_layers_known",
+        "definition": "CHECK ((shared_layers <@ ARRAY['hexaco'::text, 'big_five'::text, 'mbti'::text, 'eneagrama'::text, 'valores'::text, 'relacional'::text, 'afecto'::text, 'estilo'::text]))"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "quiz_items_campo_perfil_check",
+        "definition": "CHECK (((campo_perfil IS NULL) OR (campo_perfil = ANY (ARRAY['orientacion_sexual'::text, 'identidad_genero'::text, 'tipo_relacion_busca'::text]))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "quiz_items_categoria_check",
+        "definition": "CHECK ((categoria = ANY (ARRAY['personalidad_bigfive'::text, 'personalidad_mbti'::text, 'identidad_filtros'::text, 'afinidad_cultural'::text, 'intimidad_afecto'::text, 'valores_relacionales'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "quiz_items_polarity_check",
+        "definition": "CHECK (((polarity IS NULL) OR (polarity = ANY (ARRAY['positiva'::text, 'negativa'::text]))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "quiz_items_tipo_respuesta_check",
+        "definition": "CHECK ((tipo_respuesta = ANY (ARRAY['likert_5'::text, 'seleccion_multiple'::text])))"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "quiz_responses_likert_value_check",
+        "definition": "CHECK (((likert_value >= 1) AND (likert_value <= 5)))"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "quiz_responses_one_kind",
+        "definition": "CHECK ((((likert_value IS NOT NULL) AND (selected_options IS NULL)) OR ((likert_value IS NULL) AND (selected_options IS NOT NULL))))"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_sharing",
+        "name": "quiz_sharing_nivel_check",
+        "definition": "CHECK ((nivel_visibilidad = ANY (ARRAY['privado'::text, 'compartir_coincidencias_con_matches'::text])))"
+      }
+    ],
+    "views": [],
+    "functions": [
+      {
+        "schema": "private",
+        "name": "admin_credentials_bump_revision",
+        "args": "",
+        "returns": "trigger",
+        "security_definer": false,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "admin_iso_date",
+        "args": "p_value text",
+        "returns": "date",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "assert_service_role",
+        "args": "",
+        "returns": "void",
+        "security_definer": false,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "bump_pool_revision",
+        "args": "",
+        "returns": "trigger",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "chat_pins_bump_revision",
+        "args": "",
+        "returns": "trigger",
+        "security_definer": false,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "conversation_round_touch",
+        "args": "",
+        "returns": "trigger",
+        "security_definer": false,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "conversation_touch",
+        "args": "",
+        "returns": "trigger",
+        "security_definer": false,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "is_admin",
+        "args": "requested_user uuid",
+        "returns": "boolean",
+        "security_definer": true,
+        "language": "sql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "is_unit_vector",
+        "args": "p_values double precision[]",
+        "returns": "boolean",
+        "security_definer": false,
+        "language": "sql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "live_pairs",
+        "args": "p_track text",
+        "returns": "TABLE(a uuid, b uuid, sim double precision)",
+        "security_definer": true,
+        "language": "sql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "pool_version",
+        "args": "",
+        "returns": "text",
+        "security_definer": false,
+        "language": "sql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "reject_identity_mutation",
+        "args": "",
+        "returns": "trigger",
+        "security_definer": false,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "private",
+        "name": "touch_updated_at",
+        "args": "",
+        "returns": "trigger",
+        "security_definer": false,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "access_guard_hit",
+        "args": "p_kind text, p_subject text, p_limit integer, p_window_seconds integer, p_lock_seconds integer",
+        "returns": "integer",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "admin_bump_counter",
+        "args": "p_key text, p_admin uuid, p_delta integer, p_set integer",
+        "returns": "jsonb",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "admin_list_reports",
+        "args": "p_status text, p_limit integer, p_offset integer",
+        "returns": "jsonb",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "admin_list_users",
+        "args": "p_search text, p_user uuid, p_limit integer, p_offset integer",
+        "returns": "jsonb",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "admin_list_users",
+        "args": "p_search text, p_user uuid, p_limit integer, p_offset integer, p_filter jsonb",
+        "returns": "jsonb",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "admin_reset_quiz",
+        "args": "p_user uuid",
+        "returns": "boolean",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "admin_review_report",
+        "args": "p_admin uuid, p_report uuid, p_status text",
+        "returns": "boolean",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "apply_retention_policy",
+        "args": "p_abandoned_days integer, p_grace_days integer, p_read_notification_days integer, p_security_event_days integer, p_access_guard_hours integer",
+        "returns": "jsonb",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "block_chat_user",
+        "args": "p_blocker uuid, p_conversation uuid",
+        "returns": "boolean",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "express_chat_interest",
+        "args": "p_from uuid, p_to uuid, p_track text, p_expire_days integer, p_max_open integer, p_cooldown_days integer",
+        "returns": "jsonb",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "get_admin_dashboard",
+        "args": "p_romance_threshold double precision, p_amistad_threshold double precision",
+        "returns": "jsonb",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres | authenticated=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "get_admin_dashboard",
+        "args": "p_romance_threshold double precision, p_amistad_threshold double precision, p_romance_reference double precision, p_amistad_reference double precision, p_window_days integer",
+        "returns": "jsonb",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "get_my_notifications",
+        "args": "p_unread_only boolean",
+        "returns": "TABLE(id uuid, type text, title text, body text, metadata jsonb, read boolean, created_at timestamp with time zone)",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres | authenticated=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "get_pool_version",
+        "args": "",
+        "returns": "text",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "get_user_matches",
+        "args": "p_user_id uuid",
+        "returns": "TABLE(track text, other_user uuid, similarity double precision, badges jsonb)",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "hatch_profile_identity",
+        "args": "p_user_id uuid, p_animal_id text, p_color_id text, p_alias_animal text, p_alias_color text, p_alias_sufijo text, p_alias_completo text, p_enneagram_code text, p_narrative text, p_avatar_mark text",
+        "returns": "text",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "leave_conversation",
+        "args": "p_id uuid, p_user uuid",
+        "returns": "boolean",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "mark_identity_revealed",
+        "args": "p_user_id uuid",
+        "returns": "boolean",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "mark_notifications_read",
+        "args": "p_ids uuid[]",
+        "returns": "integer",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres | authenticated=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "notify_matches",
+        "args": "p_user_id uuid",
+        "returns": "integer",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "purge_chat",
+        "args": "p_message_days integer, p_inactive_days integer, p_signal_days integer, p_cooldown_days integer",
+        "returns": "integer",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_coincidencias",
+        "args": "p_yo uuid, p_otra_persona uuid, p_quiz_id text",
+        "returns": "TABLE(item_id text, valor text)",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_delete_answers",
+        "args": "p_persona_id uuid, p_quiz_id text",
+        "returns": "void",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_mark_completed",
+        "args": "p_persona_id uuid, p_quiz_id text, p_revision text",
+        "returns": "void",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_get_consent",
+        "args": "p_persona_id uuid",
+        "returns": "TABLE(mayor_de_edad boolean, consentimiento_en timestamp with time zone, track_romance_activo boolean)",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_save_consent",
+        "args": "p_persona_id uuid, p_mayor_de_edad boolean, p_track_romance_activo boolean",
+        "returns": "void",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_save_answer",
+        "args": "p_persona_id uuid, p_quiz_id text, p_item_id text, p_valor text",
+        "returns": "void",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_set_sharing",
+        "args": "p_persona_id uuid, p_quiz_id text, p_nivel text",
+        "returns": "void",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "record_round_feedback",
+        "args": "p_conversation uuid, p_user uuid, p_idx integer, p_liked boolean",
+        "returns": "boolean",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "replace_matches",
+        "args": "p_matches jsonb, p_pool_version text",
+        "returns": "integer",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "report_conversation",
+        "args": "p_reporter uuid, p_conversation uuid, p_reason text, p_snapshot integer",
+        "returns": "boolean",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      },
+      {
+        "schema": "public",
+        "name": "submit_quiz_result",
+        "args": "p_user_id uuid, p_answers jsonb, p_dimension_scores jsonb, p_romance_vector double precision[], p_amistad_vector double precision[], p_mbti_code text, p_hard_filters jsonb, p_animal_id text, p_color_id text, p_narrative text, p_latent_profile jsonb, p_avatar_mark text, p_completed_modules text[], p_alias_animal text, p_alias_color text, p_alias_sufijo text, p_enneagram_code text, p_params_version text",
+        "returns": "text",
+        "security_definer": true,
+        "language": "plpgsql",
+        "owner": "postgres",
+        "kind": "f",
+        "acl": "postgres=X/postgres | service_role=X/postgres"
+      }
+    ],
+    "functionGrants": [
+      {
+        "schema": "private",
+        "name": "admin_credentials_bump_revision",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "admin_iso_date",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "admin_iso_date",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "assert_service_role",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "bump_pool_revision",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "chat_pins_bump_revision",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "conversation_round_touch",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "conversation_touch",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "is_admin",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "is_unit_vector",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "live_pairs",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "live_pairs",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "pool_version",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "reject_identity_mutation",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "private",
+        "name": "touch_updated_at",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "access_guard_hit",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "access_guard_hit",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_bump_counter",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_bump_counter",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_list_reports",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_list_reports",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_list_users",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_list_users",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_list_users",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_list_users",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_reset_quiz",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_reset_quiz",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_review_report",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_review_report",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "apply_retention_policy",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "apply_retention_policy",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "block_chat_user",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "block_chat_user",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "express_chat_interest",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "express_chat_interest",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_admin_dashboard",
+        "grantee": "authenticated",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_admin_dashboard",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_admin_dashboard",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_admin_dashboard",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_admin_dashboard",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_my_notifications",
+        "grantee": "authenticated",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_my_notifications",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_my_notifications",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_pool_version",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_pool_version",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_user_matches",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "get_user_matches",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "hatch_profile_identity",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "hatch_profile_identity",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "leave_conversation",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "leave_conversation",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "mark_identity_revealed",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "mark_identity_revealed",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "mark_notifications_read",
+        "grantee": "authenticated",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "mark_notifications_read",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "mark_notifications_read",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "notify_matches",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "notify_matches",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "purge_chat",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "purge_chat",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_coincidencias",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_coincidencias",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_delete_answers",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_delete_answers",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_mark_completed",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_mark_completed",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_get_consent",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_get_consent",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_save_consent",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_save_consent",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_save_answer",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_save_answer",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_set_sharing",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_set_sharing",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "record_round_feedback",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "record_round_feedback",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "replace_matches",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "replace_matches",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "report_conversation",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "report_conversation",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "submit_quiz_result",
+        "grantee": "postgres",
+        "privilege_type": "EXECUTE"
+      },
+      {
+        "schema": "public",
+        "name": "submit_quiz_result",
+        "grantee": "service_role",
+        "privilege_type": "EXECUTE"
+      }
+    ],
+    "triggers": [
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "admin_credentials_bump_revision",
+        "definition": "CREATE TRIGGER admin_credentials_bump_revision BEFORE UPDATE ON public.admin_credentials FOR EACH ROW EXECUTE FUNCTION private.admin_credentials_bump_revision()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_bump_revision",
+        "definition": "CREATE TRIGGER chat_pins_bump_revision BEFORE UPDATE ON public.chat_pins FOR EACH ROW EXECUTE FUNCTION private.chat_pins_bump_revision()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_answers_touch",
+        "definition": "CREATE TRIGGER conversation_answers_touch AFTER INSERT ON public.conversation_answers FOR EACH ROW EXECUTE FUNCTION private.conversation_touch()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_messages_touch",
+        "definition": "CREATE TRIGGER conversation_messages_touch AFTER INSERT ON public.conversation_messages FOR EACH ROW EXECUTE FUNCTION private.conversation_touch()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_touch",
+        "definition": "CREATE TRIGGER conversation_rounds_touch AFTER INSERT ON public.conversation_rounds FOR EACH ROW EXECUTE FUNCTION private.conversation_round_touch()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_identity_immutable",
+        "definition": "CREATE TRIGGER profiles_identity_immutable BEFORE UPDATE OF animal_id, color_id, alias_animal, alias_color, alias_sufijo, alias_completo, enneagram_code, estado_identidad, eclosionado_en ON public.profiles FOR EACH ROW EXECUTE FUNCTION private.reject_identity_mutation()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_pool_completed",
+        "definition": "CREATE TRIGGER profiles_pool_completed AFTER UPDATE OF quiz_completed_at ON public.profiles FOR EACH ROW WHEN ((new.quiz_completed_at IS DISTINCT FROM old.quiz_completed_at)) EXECUTE FUNCTION private.bump_pool_revision()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_pool_deleted",
+        "definition": "CREATE TRIGGER profiles_pool_deleted AFTER DELETE ON public.profiles FOR EACH ROW WHEN ((old.quiz_completed_at IS NOT NULL)) EXECUTE FUNCTION private.bump_pool_revision()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_pool_identity",
+        "definition": "CREATE TRIGGER profiles_pool_identity AFTER UPDATE OF estado_identidad ON public.profiles FOR EACH ROW WHEN ((new.estado_identidad IS DISTINCT FROM old.estado_identidad)) EXECUTE FUNCTION private.bump_pool_revision()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_pool_paused",
+        "definition": "CREATE TRIGGER profiles_pool_paused AFTER UPDATE OF paused_at ON public.profiles FOR EACH ROW WHEN (((new.paused_at IS DISTINCT FROM old.paused_at) AND (new.quiz_completed_at IS NOT NULL))) EXECUTE FUNCTION private.bump_pool_revision()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_pool_soft_deleted",
+        "definition": "CREATE TRIGGER profiles_pool_soft_deleted AFTER UPDATE OF eliminado_en ON public.profiles FOR EACH ROW WHEN (((new.eliminado_en IS DISTINCT FROM old.eliminado_en) AND (new.quiz_completed_at IS NOT NULL))) EXECUTE FUNCTION private.bump_pool_revision()",
+        "enabled": "O"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_touch_updated_at",
+        "definition": "CREATE TRIGGER profiles_touch_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION private.touch_updated_at()",
+        "enabled": "O"
+      }
+    ],
+    "policies": [
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "animals_public_read",
+        "permissive": "PERMISSIVE",
+        "roles": "{anon,authenticated}",
+        "cmd": "SELECT",
+        "qual": "true",
+        "with_check": null
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "colors_public_read",
+        "permissive": "PERMISSIVE",
+        "roles": "{anon,authenticated}",
+        "cmd": "SELECT",
+        "qual": "true",
+        "with_check": null
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "quiz_items_public_read",
+        "permissive": "PERMISSIVE",
+        "roles": "{anon,authenticated}",
+        "cmd": "SELECT",
+        "qual": "true",
+        "with_check": null
+      },
+      {
+        "schema": "public",
+        "table_name": "user_roles",
+        "name": "user_roles_read_own",
+        "permissive": "PERMISSIVE",
+        "roles": "{authenticated}",
+        "cmd": "SELECT",
+        "qual": "(user_id = ( SELECT auth.uid() AS uid))",
+        "with_check": null
+      }
+    ],
+    "indexes": [
+      {
+        "schema": "private",
+        "table_name": "access_guard",
+        "name": "access_guard_pkey",
+        "definition": "CREATE UNIQUE INDEX access_guard_pkey ON private.access_guard USING btree (kind, subject)"
+      },
+      {
+        "schema": "private",
+        "table_name": "pool_state",
+        "name": "pool_state_pkey",
+        "definition": "CREATE UNIQUE INDEX pool_state_pkey ON private.pool_state USING btree (singleton)"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "admin_audit_created_idx",
+        "definition": "CREATE INDEX admin_audit_created_idx ON public.admin_audit USING btree (created_at DESC)"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_audit",
+        "name": "admin_audit_pkey",
+        "definition": "CREATE UNIQUE INDEX admin_audit_pkey ON public.admin_audit USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_counters",
+        "name": "admin_counters_pkey",
+        "definition": "CREATE UNIQUE INDEX admin_counters_pkey ON public.admin_counters USING btree (key)"
+      },
+      {
+        "schema": "public",
+        "table_name": "admin_credentials",
+        "name": "admin_credentials_pkey",
+        "definition": "CREATE UNIQUE INDEX admin_credentials_pkey ON public.admin_credentials USING btree (user_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "animals_diminutivo_es_key",
+        "definition": "CREATE UNIQUE INDEX animals_diminutivo_es_key ON public.animals USING btree (diminutivo_es)"
+      },
+      {
+        "schema": "public",
+        "table_name": "animals",
+        "name": "animals_pkey",
+        "definition": "CREATE UNIQUE INDEX animals_pkey ON public.animals USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_blocks",
+        "name": "chat_blocks_blocked_idx",
+        "definition": "CREATE INDEX chat_blocks_blocked_idx ON public.chat_blocks USING btree (blocked)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_blocks",
+        "name": "chat_blocks_pkey",
+        "definition": "CREATE UNIQUE INDEX chat_blocks_pkey ON public.chat_blocks USING btree (blocker, blocked)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_closures",
+        "name": "chat_closures_pkey",
+        "definition": "CREATE UNIQUE INDEX chat_closures_pkey ON public.chat_closures USING btree (user_a, user_b, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_feedback_daily",
+        "name": "chat_feedback_daily_pkey",
+        "definition": "CREATE UNIQUE INDEX chat_feedback_daily_pkey ON public.chat_feedback_daily USING btree (day, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "chat_interests_pkey",
+        "definition": "CREATE UNIQUE INDEX chat_interests_pkey ON public.chat_interests USING btree (from_user, to_user, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_interests",
+        "name": "chat_interests_to_idx",
+        "definition": "CREATE INDEX chat_interests_to_idx ON public.chat_interests USING btree (to_user, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_pins",
+        "name": "chat_pins_pkey",
+        "definition": "CREATE UNIQUE INDEX chat_pins_pkey ON public.chat_pins USING btree (user_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_report_audit",
+        "name": "chat_report_audit_pkey",
+        "definition": "CREATE UNIQUE INDEX chat_report_audit_pkey ON public.chat_report_audit USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "chat_reports_pkey",
+        "definition": "CREATE UNIQUE INDEX chat_reports_pkey ON public.chat_reports USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_reports",
+        "name": "chat_reports_status_idx",
+        "definition": "CREATE INDEX chat_reports_status_idx ON public.chat_reports USING btree (status, created_at DESC)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_security_events",
+        "name": "chat_security_events_pkey",
+        "definition": "CREATE UNIQUE INDEX chat_security_events_pkey ON public.chat_security_events USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "chat_security_events",
+        "name": "chat_security_events_user_idx",
+        "definition": "CREATE INDEX chat_security_events_user_idx ON public.chat_security_events USING btree (user_id, created_at DESC)"
+      },
+      {
+        "schema": "public",
+        "table_name": "colors",
+        "name": "colors_pkey",
+        "definition": "CREATE UNIQUE INDEX colors_pkey ON public.colors USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_answers",
+        "name": "conversation_answers_pkey",
+        "definition": "CREATE UNIQUE INDEX conversation_answers_pkey ON public.conversation_answers USING btree (conversation_id, author, round)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_messages_author_idx",
+        "definition": "CREATE INDEX conversation_messages_author_idx ON public.conversation_messages USING btree (author, created_at DESC)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_messages_client_key_idx",
+        "definition": "CREATE UNIQUE INDEX conversation_messages_client_key_idx ON public.conversation_messages USING btree (conversation_id, author, client_key)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_messages_conv_idx",
+        "definition": "CREATE INDEX conversation_messages_conv_idx ON public.conversation_messages USING btree (conversation_id, created_at DESC)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_messages",
+        "name": "conversation_messages_pkey",
+        "definition": "CREATE UNIQUE INDEX conversation_messages_pkey ON public.conversation_messages USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_reactions",
+        "name": "conversation_reactions_pkey",
+        "definition": "CREATE UNIQUE INDEX conversation_reactions_pkey ON public.conversation_reactions USING btree (conversation_id, idx, author)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversation_rounds",
+        "name": "conversation_rounds_pkey",
+        "definition": "CREATE UNIQUE INDEX conversation_rounds_pkey ON public.conversation_rounds USING btree (conversation_id, idx)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "conversations_pair_unique",
+        "definition": "CREATE UNIQUE INDEX conversations_pair_unique ON public.conversations USING btree (user_a, user_b, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "conversations_pkey",
+        "definition": "CREATE UNIQUE INDEX conversations_pkey ON public.conversations USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "conversations",
+        "name": "conversations_user_b_idx",
+        "definition": "CREATE INDEX conversations_user_b_idx ON public.conversations USING btree (user_b)"
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "matches_pkey",
+        "definition": "CREATE UNIQUE INDEX matches_pkey ON public.matches USING btree (user_a, user_b, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "matches",
+        "name": "matches_user_b_idx",
+        "definition": "CREATE INDEX matches_user_b_idx ON public.matches USING btree (user_b, track)"
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "notifications_identity_unique_idx",
+        "definition": "CREATE UNIQUE INDEX notifications_identity_unique_idx ON public.notifications USING btree (user_id) WHERE (type = 'identity'::text)"
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "notifications_pkey",
+        "definition": "CREATE UNIQUE INDEX notifications_pkey ON public.notifications USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "notifications_unread_idx",
+        "definition": "CREATE INDEX notifications_unread_idx ON public.notifications USING btree (user_id, created_at DESC) WHERE (read = false)"
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "notifications_user_idx",
+        "definition": "CREATE INDEX notifications_user_idx ON public.notifications USING btree (user_id, created_at DESC)"
+      },
+      {
+        "schema": "public",
+        "table_name": "notifications",
+        "name": "notifications_welcome_unique_idx",
+        "definition": "CREATE UNIQUE INDEX notifications_welcome_unique_idx ON public.notifications USING btree (user_id) WHERE (type = 'welcome'::text)"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_active_pool_idx",
+        "definition": "CREATE INDEX profiles_active_pool_idx ON public.profiles USING btree (user_id) WHERE ((quiz_completed_at IS NOT NULL) AND (paused_at IS NULL))"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_alias_completo_key",
+        "definition": "CREATE UNIQUE INDEX profiles_alias_completo_key ON public.profiles USING btree (alias_completo) WHERE (alias_completo IS NOT NULL)"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_estado_identidad_idx",
+        "definition": "CREATE INDEX profiles_estado_identidad_idx ON public.profiles USING btree (estado_identidad)"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_matricula_hash_key",
+        "definition": "CREATE UNIQUE INDEX profiles_matricula_hash_key ON public.profiles USING btree (matricula_hash)"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_params_version_idx",
+        "definition": "CREATE INDEX profiles_params_version_idx ON public.profiles USING btree (params_version) WHERE (quiz_completed_at IS NOT NULL)"
+      },
+      {
+        "schema": "public",
+        "table_name": "profiles",
+        "name": "profiles_pkey",
+        "definition": "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (user_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_answers",
+        "name": "idx_quiz_answers_persona_quiz",
+        "definition": "CREATE INDEX idx_quiz_answers_persona_quiz ON public.quiz_answers USING btree (persona_id, quiz_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_answers",
+        "name": "quiz_answers_pkey",
+        "definition": "CREATE UNIQUE INDEX quiz_answers_pkey ON public.quiz_answers USING btree (persona_id, quiz_id, item_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_attempts",
+        "name": "idx_quiz_attempts_persona",
+        "definition": "CREATE INDEX idx_quiz_attempts_persona ON public.quiz_attempts USING btree (persona_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_attempts",
+        "name": "quiz_attempts_pkey",
+        "definition": "CREATE UNIQUE INDEX quiz_attempts_pkey ON public.quiz_attempts USING btree (persona_id, quiz_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_items",
+        "name": "quiz_items_pkey",
+        "definition": "CREATE UNIQUE INDEX quiz_items_pkey ON public.quiz_items USING btree (id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_picante_consent",
+        "name": "quiz_picante_consent_pkey",
+        "definition": "CREATE UNIQUE INDEX quiz_picante_consent_pkey ON public.quiz_picante_consent USING btree (persona_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_responses",
+        "name": "quiz_responses_pkey",
+        "definition": "CREATE UNIQUE INDEX quiz_responses_pkey ON public.quiz_responses USING btree (user_id, item_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_sharing",
+        "name": "idx_quiz_sharing_persona",
+        "definition": "CREATE INDEX idx_quiz_sharing_persona ON public.quiz_sharing USING btree (persona_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "quiz_sharing",
+        "name": "quiz_sharing_pkey",
+        "definition": "CREATE UNIQUE INDEX quiz_sharing_pkey ON public.quiz_sharing USING btree (persona_id, quiz_id)"
+      },
+      {
+        "schema": "public",
+        "table_name": "user_roles",
+        "name": "user_roles_pkey",
+        "definition": "CREATE UNIQUE INDEX user_roles_pkey ON public.user_roles USING btree (user_id)"
+      }
+    ],
+    "tableGrants": [
+      {
+        "schema": "public",
+        "name": "admin_audit",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_audit",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "admin_audit",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "admin_audit",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "admin_audit",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "admin_audit",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_audit",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_counters",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_counters",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "admin_counters",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "admin_counters",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "admin_counters",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "admin_counters",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_counters",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_credentials",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_credentials",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "admin_credentials",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "admin_credentials",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "admin_credentials",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "admin_credentials",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "admin_credentials",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "grantee": "anon",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "grantee": "authenticated",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_blocks",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_blocks",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_blocks",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "chat_blocks",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_blocks",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "chat_blocks",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_blocks",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_closures",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_closures",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_closures",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "chat_closures",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_closures",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "chat_closures",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_closures",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_feedback_daily",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_feedback_daily",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_feedback_daily",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "chat_feedback_daily",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_feedback_daily",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "chat_feedback_daily",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_feedback_daily",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_interests",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_interests",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_interests",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "chat_interests",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_interests",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "chat_interests",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_interests",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_pins",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_pins",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_pins",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "chat_pins",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_pins",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "chat_pins",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_pins",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_report_audit",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_report_audit",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_report_audit",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "chat_report_audit",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_report_audit",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "chat_report_audit",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_report_audit",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_reports",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_reports",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_reports",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "chat_reports",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_reports",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "chat_reports",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_reports",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_security_events",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_security_events",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_security_events",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "chat_security_events",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "chat_security_events",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "chat_security_events",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "chat_security_events",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "grantee": "anon",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "grantee": "authenticated",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_answers",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_answers",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_answers",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_answers",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_answers",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_answers",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_answers",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_messages",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_messages",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_messages",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_messages",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_messages",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_messages",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_messages",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_reactions",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_reactions",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_reactions",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_reactions",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_reactions",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_reactions",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_reactions",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_rounds",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_rounds",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_rounds",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_rounds",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_rounds",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_rounds",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversation_rounds",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversations",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "conversations",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "conversations",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "conversations",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "conversations",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "conversations",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "conversations",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "matches",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "matches",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "matches",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "matches",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "matches",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "matches",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "matches",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "notifications",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "notifications",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "notifications",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "notifications",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "notifications",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "notifications",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "notifications",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "profiles",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "profiles",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "profiles",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "profiles",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "profiles",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "profiles",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "profiles",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_answers",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_answers",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_answers",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_answers",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_answers",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_answers",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_answers",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_attempts",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_attempts",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_attempts",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_attempts",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_attempts",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_attempts",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_attempts",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "grantee": "anon",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "grantee": "authenticated",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_consent",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_consent",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_consent",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_consent",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_consent",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_consent",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_consent",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_responses",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_responses",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_responses",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_responses",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_responses",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_responses",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_responses",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_sharing",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_sharing",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_sharing",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_sharing",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_sharing",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_sharing",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "quiz_sharing",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "grantee": "authenticated",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "grantee": "service_role",
+        "privilege_type": "DELETE"
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "grantee": "service_role",
+        "privilege_type": "INSERT"
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "grantee": "service_role",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "grantee": "service_role",
+        "privilege_type": "SELECT"
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "grantee": "service_role",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "grantee": "service_role",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "grantee": "service_role",
+        "privilege_type": "UPDATE"
+      }
+    ],
+    "extensions": [
+      {
+        "name": "pg_stat_statements",
+        "schema": "extensions",
+        "version": "1.11"
+      },
+      {
+        "name": "pgcrypto",
+        "schema": "extensions",
+        "version": "1.3"
+      },
+      {
+        "name": "plpgsql",
+        "schema": "pg_catalog",
+        "version": "1.0"
+      },
+      {
+        "name": "supabase_vault",
+        "schema": "vault",
+        "version": "0.3.1"
+      },
+      {
+        "name": "uuid-ossp",
+        "schema": "extensions",
+        "version": "1.1"
+      }
+    ],
+    "publications": [
+      {
+        "name": "supabase_realtime",
+        "all_tables": false,
+        "inserts": true,
+        "updates": true,
+        "deletes": true,
+        "tables": "{}"
+      }
+    ],
+    "rowCounts": [
+      {
+        "schema": "private",
+        "name": "access_guard",
+        "rows": 194
+      },
+      {
+        "schema": "private",
+        "name": "pool_state",
+        "rows": 1
+      },
+      {
+        "schema": "public",
+        "name": "admin_audit",
+        "rows": 35
+      },
+      {
+        "schema": "public",
+        "name": "admin_counters",
+        "rows": 2
+      },
+      {
+        "schema": "public",
+        "name": "admin_credentials",
+        "rows": 1
+      },
+      {
+        "schema": "public",
+        "name": "animals",
+        "rows": 103
+      },
+      {
+        "schema": "public",
+        "name": "chat_blocks",
+        "rows": 0
+      },
+      {
+        "schema": "public",
+        "name": "chat_closures",
+        "rows": 2
+      },
+      {
+        "schema": "public",
+        "name": "chat_feedback_daily",
+        "rows": 14
+      },
+      {
+        "schema": "public",
+        "name": "chat_interests",
+        "rows": 170
+      },
+      {
+        "schema": "public",
+        "name": "chat_pins",
+        "rows": 111
+      },
+      {
+        "schema": "public",
+        "name": "chat_report_audit",
+        "rows": 0
+      },
+      {
+        "schema": "public",
+        "name": "chat_reports",
+        "rows": 0
+      },
+      {
+        "schema": "public",
+        "name": "chat_security_events",
+        "rows": 118
+      },
+      {
+        "schema": "public",
+        "name": "colors",
+        "rows": 28
+      },
+      {
+        "schema": "public",
+        "name": "conversation_answers",
+        "rows": 922
+      },
+      {
+        "schema": "public",
+        "name": "conversation_messages",
+        "rows": 2427
+      },
+      {
+        "schema": "public",
+        "name": "conversation_reactions",
+        "rows": 268
+      },
+      {
+        "schema": "public",
+        "name": "conversation_rounds",
+        "rows": 504
+      },
+      {
+        "schema": "public",
+        "name": "conversations",
+        "rows": 191
+      },
+      {
+        "schema": "public",
+        "name": "matches",
+        "rows": 1056
+      },
+      {
+        "schema": "public",
+        "name": "notifications",
+        "rows": 1916
+      },
+      {
+        "schema": "public",
+        "name": "profiles",
+        "rows": 238
+      },
+      {
+        "schema": "public",
+        "name": "quiz_answers",
+        "rows": 3001
+      },
+      {
+        "schema": "public",
+        "name": "quiz_attempts",
+        "rows": 375
+      },
+      {
+        "schema": "public",
+        "name": "quiz_items",
+        "rows": 197
+      },
+      {
+        "schema": "public",
+        "name": "quiz_picante_consent",
+        "rows": 47
+      },
+      {
+        "schema": "public",
+        "name": "quiz_responses",
+        "rows": 20023
+      },
+      {
+        "schema": "public",
+        "name": "quiz_sharing",
+        "rows": 0
+      },
+      {
+        "schema": "public",
+        "name": "user_roles",
+        "rows": 1
+      }
+    ],
+    "cronJobs": [],
+    "buckets": []
+  }
+}

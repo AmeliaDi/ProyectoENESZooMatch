@@ -41,6 +41,21 @@ export function supabaseQuizRepository(admin: SupabaseClient): QuizRepository {
       }));
     },
 
+    async countAnswersByQuiz(personaId: string): Promise<Record<string, number>> {
+      const res = await attempt(() => admin
+        .from(TABLE.quizAnswers)
+        .select("quiz_id")
+        .eq("persona_id", personaId));
+
+      if (!res || res.error) throw new Error("quiz.count_answers failed");
+
+      const counts: Record<string, number> = {};
+      for (const row of (res.data ?? []) as Array<{ quiz_id: string }>) {
+        counts[row.quiz_id] = (counts[row.quiz_id] ?? 0) + 1;
+      }
+      return counts;
+    },
+
     async deleteAnswers(personaId: string, quizId: string | null): Promise<void> {
       const res = await attempt(() => admin.rpc("quiz_delete_answers", {
         p_persona_id: personaId,

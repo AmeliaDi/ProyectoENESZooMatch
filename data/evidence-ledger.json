@@ -1,0 +1,1628 @@
+{
+  "version": "evidence-ledger-1",
+  "nota": "Registro de procedencia generado por scripts/evidence/ledger.mjs --write. Una fila por cada número de data/matching-config.json y data/rollout-gates.json, con la etiqueta y la fuente que el propio archivo declara y los EV-xx que esa fuente cita (docs/EVIDENCIA.md). No se edita a mano: si cambia un parámetro sin regenerar este archivo, src/config/evidence-ledger.test.ts falla. Los ítems y parámetros de data/psychometric-params.json no llevan fila: son estimaciones reproducibles y entran en `sello` con su semilla, N y hash de entradas.",
+  "etiquetas": [
+    "prior_literatura",
+    "estimado_sintetico",
+    "supuesto_diseno",
+    "pendiente_verificacion"
+  ],
+  "archivos": {
+    "data/matching-config.json": {
+      "rol": "modelo por capas: pesos, ventanas, umbrales y top-K",
+      "entradas": 145
+    },
+    "data/rollout-gates.json": {
+      "rol": "compuertas de activación del motor",
+      "entradas": 13
+    }
+  },
+  "sello": {
+    "data/psychometric-params.json": {
+      "rol": "parámetros GRM/ω estimados sobre datos sintéticos",
+      "version": "psychometric-params-1",
+      "generado_por": "scripts/psychometrics/run.py",
+      "semilla": 20261101,
+      "n_sintetico": 6000,
+      "entrada_sha256": "8628270d7c66b0f2808c12ac7fc52d16ba36f27dcffb4b5f90bc8c8d1d82a7de",
+      "advertencia": "Parámetros estimados sobre datos SINTÉTICOS: validan el código, no el instrumento real.",
+      "etiquetas_internas": {
+        "estimado_sintetico": 175,
+        "pendiente_verificacion": 13,
+        "supuesto_diseno": 43
+      }
+    }
+  },
+  "entradas": [
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "badges.per_track.amistad",
+      "valor": 3,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Top 3 amistad",
+      "ev": [],
+      "id": "E-001"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "badges.per_track.romance",
+      "valor": 5,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Top 5 romance",
+      "ev": [],
+      "id": "E-002"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "calibration.null_pairs",
+      "valor": 60000,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pares nulos muestreados por track",
+      "ev": [],
+      "id": "E-003"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "calibration.population",
+      "valor": 600,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Perfiles sintéticos para la nula por permutación",
+      "ev": [],
+      "id": "E-004"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "calibration.seed",
+      "valor": 1515870810,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Semilla fija (0x5A5A5A5A)",
+      "ev": [],
+      "id": "E-005"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.factors.afecto_contacto",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-006"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.factors.afecto_detalles",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-007"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.factors.afecto_palabras",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-008"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.factors.afecto_servicio",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-009"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.factors.afecto_tiempo",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-010"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.scale",
+      "valor": 0.8,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Ventana amplia",
+      "ev": [],
+      "id": "E-011"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.tolerance.afecto_contacto",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-012"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.tolerance.afecto_detalles",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-013"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.tolerance.afecto_palabras",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-014"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.tolerance.afecto_servicio",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-015"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.afecto.tolerance.afecto_tiempo",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Lenguajes del afecto: evidencia débil; solo extra narrativo",
+      "ev": [],
+      "id": "E-016"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.apego.factors.apego_ansiedad",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-54, EV-107: efectos actor; la similitud no predice → solo extra mínimo",
+      "ev": [
+        "EV-54",
+        "EV-107"
+      ],
+      "id": "E-017"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.apego.factors.apego_evitacion",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-54, EV-107: efectos actor; la similitud no predice → solo extra mínimo",
+      "ev": [
+        "EV-54",
+        "EV-107"
+      ],
+      "id": "E-018"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.apego.scale",
+      "valor": 0.8,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Ventana amplia",
+      "ev": [],
+      "id": "E-019"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.apego.tolerance.apego_ansiedad",
+      "valor": 0.75,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-54, EV-107: efectos actor; la similitud no predice → solo extra mínimo",
+      "ev": [
+        "EV-54",
+        "EV-107"
+      ],
+      "id": "E-020"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.apego.tolerance.apego_evitacion",
+      "valor": 0.75,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-54, EV-107: efectos actor; la similitud no predice → solo extra mínimo",
+      "ev": [
+        "EV-54",
+        "EV-107"
+      ],
+      "id": "E-021"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.big_five.bandwidth_per_sqrt_dim",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Igual que personalidad",
+      "ev": [],
+      "id": "E-022"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.big_five.factors.bf_a",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Capa puente: derivada de HEXACO por la correlación latente; peso 0 para no contar dos veces",
+      "ev": [],
+      "id": "E-023"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.big_five.factors.bf_c",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Capa puente: derivada de HEXACO por la correlación latente; peso 0 para no contar dos veces",
+      "ev": [],
+      "id": "E-024"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.big_five.factors.bf_e",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Capa puente: derivada de HEXACO por la correlación latente; peso 0 para no contar dos veces",
+      "ev": [],
+      "id": "E-025"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.big_five.factors.bf_n",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Capa puente: derivada de HEXACO por la correlación latente; peso 0 para no contar dos veces",
+      "ev": [],
+      "id": "E-026"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.big_five.factors.bf_o",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Capa puente: derivada de HEXACO por la correlación latente; peso 0 para no contar dos veces",
+      "ev": [],
+      "id": "E-027"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.conflicto.factors.con_acuerdo",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-58: no hay un estilo de conflicto universal → ventana, nunca penalización",
+      "ev": [
+        "EV-58"
+      ],
+      "id": "E-028"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.conflicto.factors.con_inmediatez",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-58: no hay un estilo de conflicto universal → ventana, nunca penalización",
+      "ev": [
+        "EV-58"
+      ],
+      "id": "E-029"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.conflicto.factors.con_pausa",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-58: no hay un estilo de conflicto universal → ventana, nunca penalización",
+      "ev": [
+        "EV-58"
+      ],
+      "id": "E-030"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.conflicto.factors.con_reparacion",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-58: no hay un estilo de conflicto universal → ventana, nunca penalización",
+      "ev": [
+        "EV-58"
+      ],
+      "id": "E-031"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.conflicto.scale",
+      "valor": 0.8,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Ventana amplia",
+      "ev": [],
+      "id": "E-032"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.conflicto.tolerance.con_acuerdo",
+      "valor": 0.75,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-58: no hay un estilo de conflicto universal → ventana, nunca penalización",
+      "ev": [
+        "EV-58"
+      ],
+      "id": "E-033"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.conflicto.tolerance.con_inmediatez",
+      "valor": 0.75,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-58: no hay un estilo de conflicto universal → ventana, nunca penalización",
+      "ev": [
+        "EV-58"
+      ],
+      "id": "E-034"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.conflicto.tolerance.con_pausa",
+      "valor": 0.75,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-58: no hay un estilo de conflicto universal → ventana, nunca penalización",
+      "ev": [
+        "EV-58"
+      ],
+      "id": "E-035"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.conflicto.tolerance.con_reparacion",
+      "valor": 0.75,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-58: no hay un estilo de conflicto universal → ventana, nunca penalización",
+      "ev": [
+        "EV-58"
+      ],
+      "id": "E-036"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.dealbreakers.factors.meta_crianza",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas compartidas); forma no lineal: diferencias pequeñas toleradas, grandes hunden. Sin pisos: el veto que importa (exclusividad/tipo de relación) ya se declara en hard_filters, no se estima desde un latente ruidoso.",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-037"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.dealbreakers.scale",
+      "valor": 0.6,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Una brecha de 2 DE deja ≈ 0.1",
+      "ev": [],
+      "id": "E-038"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.dealbreakers.tolerance.meta_crianza",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas compartidas); forma no lineal: diferencias pequeñas toleradas, grandes hunden. Sin pisos: el veto que importa (exclusividad/tipo de relación) ya se declara en hard_filters, no se estima desde un latente ruidoso.",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-039"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.factors.ennea_1",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-40"
+      ],
+      "id": "E-040"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.factors.ennea_2",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-40"
+      ],
+      "id": "E-041"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.factors.ennea_3",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-40"
+      ],
+      "id": "E-042"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.factors.ennea_4",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-40"
+      ],
+      "id": "E-043"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.factors.ennea_5",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-40"
+      ],
+      "id": "E-044"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.factors.ennea_6",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-40"
+      ],
+      "id": "E-045"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.factors.ennea_7",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-40"
+      ],
+      "id": "E-046"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.factors.ennea_8",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-40"
+      ],
+      "id": "E-047"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.factors.ennea_9",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-40"
+      ],
+      "id": "E-048"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.neutral",
+      "valor": 0.5,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Valor al que se contrae una comparación sin información (entropía máxima)",
+      "ev": [],
+      "id": "E-049"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.eneagrama.temperature",
+      "valor": 0.5,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Softmax sobre θ̂ del eneagrama",
+      "ev": [],
+      "id": "E-050"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.bandwidth_per_sqrt_dim",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Igual que personalidad",
+      "ev": [],
+      "id": "E-051"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_actividad_fisica",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-052"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_animales",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-053"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_artistico",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-054"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_comida",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-055"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_convencional",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-056"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_cultura",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-057"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_emprendedor",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-058"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_fiesta",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-059"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_investigador",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-060"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_juegos",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-061"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_realista",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-062"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.int_vida_nocturna",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-063"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.soc_campus",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-064"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.soc_dinero",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-065"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.soc_familia",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-066"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.soc_redes",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-067"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.estilo.factors.soc_rutina",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Intereses y estilo de vida: similitud para planes compartidos (sin evidencia predictiva verificada). Sin soc_politica: creencias políticas son dato sensible enumerado (LFPDPPP art. 9) y el ítem SOC6 mide una preferencia de similitud, no una posición.",
+      "ev": [],
+      "id": "E-068"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.mbti.bandwidth_per_sqrt_dim",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Igual que personalidad",
+      "ev": [],
+      "id": "E-069"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.mbti.factors.mbti_ei",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-30, EV-32 (McCrae & Costa 1989; Pittenger 1993): validez limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-30",
+        "EV-32"
+      ],
+      "id": "E-070"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.mbti.factors.mbti_jp",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-30, EV-32 (McCrae & Costa 1989; Pittenger 1993): validez limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-30",
+        "EV-32"
+      ],
+      "id": "E-071"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.mbti.factors.mbti_sn",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-30, EV-32 (McCrae & Costa 1989; Pittenger 1993): validez limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-30",
+        "EV-32"
+      ],
+      "id": "E-072"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.mbti.factors.mbti_tf",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-30, EV-32 (McCrae & Costa 1989; Pittenger 1993): validez limitada → identidad visual y narrativa",
+      "ev": [
+        "EV-30",
+        "EV-32"
+      ],
+      "id": "E-073"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.personalidad.bandwidth_per_sqrt_dim",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "h = √d: un par típico al azar queda a mitad del núcleo",
+      "ev": [],
+      "id": "E-074"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.personalidad.factors.hex_a",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-101, EV-104 (Liu 2018: preferencia por similitud HEXACO, mayor en H y O; prior débil)",
+      "ev": [
+        "EV-101",
+        "EV-104"
+      ],
+      "id": "E-075"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.personalidad.factors.hex_c",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-101, EV-104 (Liu 2018: preferencia por similitud HEXACO, mayor en H y O; prior débil)",
+      "ev": [
+        "EV-101",
+        "EV-104"
+      ],
+      "id": "E-076"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.personalidad.factors.hex_e",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-101, EV-104 (Liu 2018: preferencia por similitud HEXACO, mayor en H y O; prior débil)",
+      "ev": [
+        "EV-101",
+        "EV-104"
+      ],
+      "id": "E-077"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.personalidad.factors.hex_h",
+      "valor": 1.3,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-101, EV-104 (Liu 2018: preferencia por similitud HEXACO, mayor en H y O; prior débil)",
+      "ev": [
+        "EV-101",
+        "EV-104"
+      ],
+      "id": "E-078"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.personalidad.factors.hex_o",
+      "valor": 1.2,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-101, EV-104 (Liu 2018: preferencia por similitud HEXACO, mayor en H y O; prior débil)",
+      "ev": [
+        "EV-101",
+        "EV-104"
+      ],
+      "id": "E-079"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.personalidad.factors.hex_x",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-101, EV-104 (Liu 2018: preferencia por similitud HEXACO, mayor en H y O; prior débil)",
+      "ev": [
+        "EV-101",
+        "EV-104"
+      ],
+      "id": "E-080"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.personalidad.low_side.valores.hex_h",
+      "valor": 0.5,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-104 (Liu 2018: se prefiere H-H alta en la pareja); magnitud η = 0.5 es supuesto de diseño",
+      "ev": [
+        "EV-104"
+      ],
+      "id": "E-081"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.factors.rel_autonomia",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-082"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.factors.rel_comunicacion",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-083"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.factors.rel_espacio",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-084"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.factors.rel_exclusividad",
+      "valor": 2,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-085"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.factors.rel_expresividad",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-086"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.factors.rel_frecuencia",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-087"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.factors.rel_metas",
+      "valor": 1.5,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-088"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.scale",
+      "valor": 0.8,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Ventana más amplia que dealbreakers",
+      "ev": [],
+      "id": "E-089"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.tolerance.rel_autonomia",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-090"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.tolerance.rel_comunicacion",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-091"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.tolerance.rel_espacio",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-092"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.tolerance.rel_exclusividad",
+      "valor": 0.5,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-093"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.tolerance.rel_expresividad",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-094"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.tolerance.rel_frecuencia",
+      "valor": 0.75,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-095"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.relacional.tolerance.rel_metas",
+      "valor": 0.5,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "EV-105 (metas de relación); ventana de tolerancia",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-096"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.valores.bandwidth_per_sqrt_dim",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Igual que personalidad",
+      "ev": [],
+      "id": "E-097"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.valores.factors.act_compromiso_social",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-105 (Arránz Becker: similitud en valores y metas, efecto pequeño)",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-098"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.valores.factors.meta_carrera",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-105 (Arránz Becker: similitud en valores y metas, efecto pequeño)",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-099"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.valores.factors.val_apertura_cambio",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-105 (Arránz Becker: similitud en valores y metas, efecto pequeño)",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-100"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.valores.factors.val_autopromocion",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-105 (Arránz Becker: similitud en valores y metas, efecto pequeño)",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-101"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.valores.factors.val_autotrascendencia",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-105 (Arránz Becker: similitud en valores y metas, efecto pequeño)",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-102"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.valores.factors.val_conservacion",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-105 (Arránz Becker: similitud en valores y metas, efecto pequeño)",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-103"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "categories.valores.factors.val_presente",
+      "valor": 1,
+      "etiqueta": "prior_literatura",
+      "fuente": "EV-105 (Arránz Becker: similitud en valores y metas, efecto pequeño)",
+      "ev": [
+        "EV-105"
+      ],
+      "id": "E-104"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "explainability.category_floor",
+      "valor": 36,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "≈ cuantil 0.10 de la similitud mínima entre categorías núcleo latentes de los pares sobre el umbral (docs/VALIDACION_RESULTADOS.md, H6b; ADR-021)",
+      "ev": [],
+      "id": "E-105"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "explainability.confidence_high_margin",
+      "valor": 0.25,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Posición relativa mínima sobre el umbral para confianza alta",
+      "ev": [],
+      "id": "E-106"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "explainability.confidence_max_uncertainty",
+      "valor": 0.6,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Varianza posterior media del par en los factores núcleo del track: solo núcleo ≈ 0.70, banco completo ≈ 0.47; alta exige que al menos una persona haya afinado (ADR-021)",
+      "ev": [],
+      "id": "E-107"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "group.beta",
+      "valor": 12,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Soft-min de pares: un grupo vale casi lo que su par más débil",
+      "ev": [],
+      "id": "E-108"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "quality.longstring_max",
+      "valor": 20,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Racha a partir de la cual la calidad llega al mínimo",
+      "ev": [],
+      "id": "E-109"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "quality.longstring_ok",
+      "valor": 8,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Racha de respuestas idénticas tolerada (Curran, 2016, recomienda umbral por instrumento) [VERIFICAR]",
+      "ev": [],
+      "id": "E-110"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "quality.lz_floor",
+      "valor": -4,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Rampa lineal hasta el mínimo",
+      "ev": [],
+      "id": "E-111"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "quality.lz_ok",
+      "valor": -2,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Drasgow, Levine & Williams (1985): lz ~ N(0,1) bajo el modelo; < −2 es atípico [VERIFICAR]",
+      "ev": [],
+      "id": "E-112"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "quality.minimum",
+      "valor": 0.35,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "La calidad nunca anula un perfil: solo templa su verosimilitud",
+      "ev": [],
+      "id": "E-113"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "quality.sd_ok",
+      "valor": 0.6,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Varianza intra-persona mínima sin penalización (escala 1–5)",
+      "ev": [],
+      "id": "E-114"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "scoring.enneagram_ambiguity_entropy",
+      "valor": 0.85,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Entropía normalizada H/log 9 sobre la que no se fuerza un tipo (ADR-017)",
+      "ev": [],
+      "id": "E-115"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "scoring.mbti_ambiguity_se",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Eje ambiguo si |θ| < 1·SE posterior (ADR-017)",
+      "ev": [],
+      "id": "E-116"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tail_groups.extras_max_total",
+      "valor": 0.05,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Aprobado: extras CON/APE/LAM ≤ 0.05, sin piso ni dealbreaker",
+      "ev": [],
+      "id": "E-117"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tail_groups.identity_max_total",
+      "valor": 0.02,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Capa 4: peso mínimo, papel de identidad y narrativa",
+      "ev": [],
+      "id": "E-118"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.beta",
+      "valor": 4,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Menos estricta que romance",
+      "ev": [],
+      "id": "E-119"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.core.estilo",
+      "valor": 0.35,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Amistad: más estilo e intereses, sin filtros duros ni dealbreakers de pareja",
+      "ev": [],
+      "id": "E-120"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.core.personalidad",
+      "valor": 0.4,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Amistad: más estilo e intereses, sin filtros duros ni dealbreakers de pareja",
+      "ev": [],
+      "id": "E-121"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.core.valores",
+      "valor": 0.25,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Amistad: más estilo e intereses, sin filtros duros ni dealbreakers de pareja",
+      "ev": [],
+      "id": "E-122"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.max_matches",
+      "valor": 5,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Top-K por persona",
+      "ev": [],
+      "id": "E-123"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.minimum_similarity_exclusive",
+      "valor": 0.4699,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Cuantil 0.85 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)",
+      "ev": [],
+      "id": "E-124"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.null_alpha",
+      "valor": 0.15,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Amistad menos estricta que romance",
+      "ev": [],
+      "id": "E-125"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.reference_high",
+      "valor": 0.5716,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)",
+      "ev": [],
+      "id": "E-126"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.tail.big_five",
+      "valor": 0,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Amistad: más estilo e intereses, sin filtros duros ni dealbreakers de pareja",
+      "ev": [],
+      "id": "E-127"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.tail.eneagrama",
+      "valor": 0.005,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Amistad: más estilo e intereses, sin filtros duros ni dealbreakers de pareja",
+      "ev": [],
+      "id": "E-128"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.amistad.tail.mbti",
+      "valor": 0.005,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Amistad: más estilo e intereses, sin filtros duros ni dealbreakers de pareja",
+      "ev": [],
+      "id": "E-129"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.beta",
+      "valor": 6,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Estrictez del soft-min (comparativa en docs/MATCHING.md)",
+      "ev": [],
+      "id": "E-130"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.core.dealbreakers",
+      "valor": 0.0625,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-131"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.core.estilo",
+      "valor": 0.125,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-132"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.core.personalidad",
+      "valor": 0.5,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-133"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.core.relacional",
+      "valor": 0,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-134"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.core.valores",
+      "valor": 0.3125,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-135"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.max_matches",
+      "valor": 3,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Top-K por persona",
+      "ev": [],
+      "id": "E-136"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.minimum_similarity_exclusive",
+      "valor": 0.5548,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Cuantil 0.97 de la nula por permutación (npm run data:matching, semilla 1515870810, N=600)",
+      "ev": [],
+      "id": "E-137"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.null_alpha",
+      "valor": 0.03,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Tasa de falso match por par bajo la nula; bajada de 0.05 a 0.03 para un romance más exigente (ADR-022)",
+      "ev": [],
+      "id": "E-138"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.reference_high",
+      "valor": 0.6163,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Cuantil 0.999 de puntajes reales elegibles (npm run data:matching, semilla 1515870810, N=600)",
+      "ev": [],
+      "id": "E-139"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.tail.afecto",
+      "valor": 0.01,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-140"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.tail.apego",
+      "valor": 0.02,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-141"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.tail.big_five",
+      "valor": 0,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-142"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.tail.conflicto",
+      "valor": 0.02,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-143"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.tail.eneagrama",
+      "valor": 0.005,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-144"
+    },
+    {
+      "archivo": "data/matching-config.json",
+      "ruta": "tracks.romance.tail.mbti",
+      "valor": 0.005,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pesos: prior débil desde EV-104/EV-105; sensibilidad en docs/MATCHING.md. dealbreakers 0.2 → 0.05 para no dar a un solo ítem (VAL6) más concentración de peso que el factor más pesado del modelo (hex_h ≈ 0.07). relacional 0.2 → 0 (B7-REL, ADR-050): su ficha quedó opcional_narrativa sin evidencia admisible, y la ablación midió ρ = 1.000, AUC sin cambio y Morris μ* = 0.000, así que el 0.20 no ordenaba nada; los demás pesos se renormalizaron en proporción (÷ 0.8), no se repartieron a mano.",
+      "ev": [
+        "EV-104",
+        "EV-105"
+      ],
+      "id": "E-145"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "cobertura.amistad.max",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Cota estructural: una cobertura no puede exceder 1.",
+      "ev": [],
+      "id": "E-146"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "cobertura.amistad.min",
+      "valor": 0.95,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Línea base medida: poolCoverage amistad 0.9983 (docs/MATCHING_RESULTADOS.md, N=600). Piso 0.95 = 5 % por debajo; amistad no tiene opt-out, así que nadie debe quedar fuera por diseño.",
+      "ev": [],
+      "id": "E-147"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "cobertura.romance.max",
+      "valor": 1,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Cota estructural: una cobertura no puede exceder 1.",
+      "ev": [],
+      "id": "E-148"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "cobertura.romance.min",
+      "valor": 0.65,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Línea base medida: poolCoverage romance 0.7371 (docs/MATCHING_RESULTADOS.md, N=600). Piso 0.65 = 12 % por debajo, holgura para el ruido de muestreo sin aceptar una caída real de cobertura.",
+      "ev": [],
+      "id": "E-149"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "conservacion.max_perdida",
+      "valor": 0,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Exigido por el prompt: 0 % de matches con conversación abierta que se perderían. Estructuralmente garantizado además porque public.conversations y public.chat_interests referencian solo public.profiles, nunca public.matches (supabase/migrations/00000000000000_base.sql).",
+      "ev": [],
+      "id": "E-150"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "correlacion_rangos.min_spearman",
+      "valor": 0.8,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Exigido por el prompt (cambio gradual, sin saltos abruptos de constelación). 0.80 deja reordenar el 20 % de los rangos; la auto-estabilidad medida del motor vigente es ρ=0.963 romance / 0.966 amistad bajo ruido, así que un candidato legítimo debería superar 0.80 con holgura.",
+      "ev": [],
+      "id": "E-151"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "equidad.min_ratio",
+      "valor": 0.7,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Exigido por el prompt de afinación (Fase 6): ninguna subpoblación por debajo de 0.7 × la mediana. Línea base medida: equityFloor romance 0.7544, amistad 0.9867 sobre el pool que cada track atiende por diseño (los opt-out de romance por declaración propia, ADR-016, salen del denominador).",
+      "ev": [],
+      "id": "E-152"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "estabilidad_ruido.min_jaccard",
+      "valor": 0.45,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Línea base medida bajo el mismo ruido: Jaccard del conjunto publicado 0.5142 romance / 0.5016 amistad. Piso 0.45 = 10 % por debajo del peor de los dos tracks.",
+      "ev": [],
+      "id": "E-153"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "estabilidad_ruido.min_spearman",
+      "valor": 0.9,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Línea base medida bajo ±1 Likert en 10 % de los ítems: ρ=0.9631 romance / 0.9662 amistad (docs/MATCHING_RESULTADOS.md). Piso 0.90 exige que el candidato no sea más sensible al ruido que el vigente.",
+      "ev": [],
+      "id": "E-154"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "exposicion.gini_max.amistad",
+      "valor": 0.4,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Línea base medida: Gini de exposición amistad 0.3132 (docs/MATCHING_RESULTADOS.md). Techo 0.40 = 28 % por encima, holgura porque amistad publica ~8 matches por persona y el Gini es más sensible al tamaño de K.",
+      "ev": [],
+      "id": "E-155"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "exposicion.gini_max.romance",
+      "valor": 0.65,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Línea base medida: Gini de exposición romance 0.5882 (docs/MATCHING_RESULTADOS.md). Techo 0.65 = 10 % por encima; no se permite concentrar la visibilidad más que el motor vigente.",
+      "ev": [],
+      "id": "E-156"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "invariantes.max_violaciones",
+      "valor": 0,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Exigido por el prompt: cero violaciones de simetría, orden canónico, duplicados, auto-emparejamiento o rango del puntaje. No es un umbral negociable.",
+      "ev": [],
+      "id": "E-157"
+    },
+    {
+      "archivo": "data/rollout-gates.json",
+      "ruta": "tiempo.max_ms_por_mil_pares",
+      "valor": 40.45,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Corrida sombra medida (scripts/matching/shadow.ts, semilla 1515870810, N=600, 207400 pares): el motor vigente capas tarda 26.965 ms por mil pares (5592.6 ms total). Presupuesto = 1.5 × el vigente, holgura para un candidato legítimo algo más caro sin aceptar un recalculo que se salga de la ventana del scheduler. El candidato coseno midió 2.940 ms por mil pares.",
+      "ev": [],
+      "id": "E-158"
+    }
+  ],
+  "resumen": {
+    "total": 158,
+    "porEtiqueta": {
+      "prior_literatura": 39,
+      "estimado_sintetico": 13,
+      "supuesto_diseno": 106,
+      "pendiente_verificacion": 0
+    },
+    "conEv": 66,
+    "sinEv": 92
+  }
+}

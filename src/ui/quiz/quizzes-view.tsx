@@ -1,9 +1,10 @@
 "use client";
 
 /**
- * `/quizzes`: the hub for icebreaker quizzes. Shows all three categories
- * (Gustos, Gaming, Picante) with quiz cards indicating status. Picante
- * requires consent before access. Quizzes don't affect psychometric matching.
+ * `/quizzes`: the hub for icebreaker quizzes. It renders every category the
+ * catalogue declares, in catalogue order, with quiz cards showing their status.
+ * Picante (18+) sits last and requires consent before access. No quiz affects
+ * psychometric matching.
  *
  * Design direction: tactile JRPG card anatomy with pixel-cut borders,
  * generous breathing room, and controlled hierarchy via scale/weight/opacity
@@ -12,7 +13,13 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { QUIZ_CATALOGUE, CATEGORY_META, type QuizCategory } from "@/config/quiz-catalogue";
+import {
+  CATEGORY_META,
+  QUIZ_CATALOGUE,
+  QUIZ_CATEGORIES,
+  ALL_QUIZZES,
+  type QuizCategory,
+} from "@/config/quiz-catalogue";
 import type { QuizDefinition } from "@/config/quizzes";
 import { AtlasShell } from "@/ui/kit/atlas-shell";
 import { Button } from "@/ui/kit/button";
@@ -32,37 +39,33 @@ type State =
   | { kind: "error"; message: string }
   | { kind: "ready"; statuses: Map<string, QuizStatus> };
 
+/**
+ * Una sola petición para todo el catálogo: 18 tarjetas pidiendo su propio estado
+ * agotaban el límite de peticiones y dejaban quizzes sin responder marcados como
+ * pendientes.
+ */
 function useQuizStatuses() {
   const [state, setState] = useState<State>({ kind: "loading" });
 
   const load = useCallback(async () => {
     try {
-      const allQuizIds = [
-        ...QUIZ_CATALOGUE.gustos.map((q) => q.quiz_id),
-        ...QUIZ_CATALOGUE.gaming.map((q) => q.quiz_id),
-        ...QUIZ_CATALOGUE.picante.map((q) => q.quiz_id),
-      ];
+      const res = await fetch("/api/quizzes/progreso", { cache: "no-store" });
+      if (!res.ok) throw new Error(String(res.status));
 
+      const body = await res.json();
+      if (!body.ok) throw new Error(body?.error?.codigo ?? "quiz.error");
+
+      const progreso = (body.data.progreso ?? {}) as Record<string, number>;
       const statuses = new Map<string, QuizStatus>();
 
-      for (const quizId of allQuizIds) {
-        const res = await fetch(`/api/quizzes?quiz_id=${encodeURIComponent(quizId)}`, { cache: "no-store" });
-        if (res.ok) {
-          const body = await res.json();
-          if (body.ok) {
-            const answers = body.data.answers ?? [];
-            const quiz = [...QUIZ_CATALOGUE.gustos, ...QUIZ_CATALOGUE.gaming, ...QUIZ_CATALOGUE.picante]
-              .find((q) => q.quiz_id === quizId);
-            statuses.set(quizId, {
-              quiz_id: quizId,
-              completed: answers.length === (quiz?.items.length ?? 0),
-              answerCount: answers.length,
-              totalItems: quiz?.items.length ?? 0,
-            });
-            continue;
-          }
-        }
-        statuses.set(quizId, { quiz_id: quizId, completed: false, answerCount: 0, totalItems: 0 });
+      for (const quiz of ALL_QUIZZES) {
+        const answerCount = progreso[quiz.quiz_id] ?? 0;
+        statuses.set(quiz.quiz_id, {
+          quiz_id: quiz.quiz_id,
+          completed: answerCount >= quiz.items.length,
+          answerCount: Math.min(answerCount, quiz.items.length),
+          totalItems: quiz.items.length,
+        });
       }
 
       setState({ kind: "ready", statuses });
@@ -155,7 +158,7 @@ function CategorySection({ category, statuses }: { category: QuizCategory; statu
           QZ · {category.toUpperCase()}
         </span>
         <h2 className="zm-quiz-section__title">
-          {meta.label} <span className="zm-quiz-section__icon">{meta.icon}</span>
+          {meta.label} <Icon name={meta.icon} scale={1} className="zm-quiz-section__icon" />
         </h2>
         <p className="zm-quiz-section__desc">{meta.description}</p>
       </header>
@@ -210,9 +213,7 @@ export function QuizzesView({ picanteEnabled = true }: { picanteEnabled?: boolea
   }
 
   const { statuses } = state;
-  const categories: QuizCategory[] = picanteEnabled
-    ? ["picante", "gustos", "gaming"]
-    : ["gustos", "gaming"];
+  const categorias = QUIZ_CATEGORIES.filter((category) => picanteEnabled || category !== "picante");
 
   return (
     <AtlasShell plate="Lámina 07 · quizzes" actions={<Actions />}>
@@ -225,7 +226,7 @@ export function QuizzesView({ picanteEnabled = true }: { picanteEnabled?: boolea
           </p>
         </header>
 
-        {categories.map((category) => (
+        {categorias.map((category) => (
           <CategorySection key={category} category={category} statuses={statuses} />
         ))}
 

@@ -1,7 +1,8 @@
 /**
  * QA harness for chat testing: creates N synthetic accounts with varied
  * profiles, known romance/amistad matches, and returns session credentials.
- * All accounts are tagged with event_id and bandera sintetico.
+ * The EVENT_ID is a local correlation tag for the printed credentials, not a
+ * database column: /api/enter takes only the matrícula (ADR-026).
  *
  * Usage:
  *   npm run qa:chat:setup
@@ -73,7 +74,7 @@ async function createAccount(index) {
   console.log(`\n[QA] Creating account ${index + 1}/${QA_N}: matrícula ${matricula}`);
 
   // Enter
-  const enter = await post("/api/enter", { matricula, eventId: EVENT_ID, sintetico: true });
+  const enter = await post("/api/enter", { matricula });
   if (enter.status !== 200) {
     throw new Error(`Failed to enter: ${enter.status} ${JSON.stringify(enter.json)}`);
   }

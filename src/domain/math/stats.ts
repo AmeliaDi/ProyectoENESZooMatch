@@ -153,6 +153,30 @@ export function auc(scores: readonly number[], labels: readonly boolean[]): numb
   return (rankSum - (positives * (positives + 1)) / 2) / (positives * negatives);
 }
 
+/**
+ * Gini coefficient of a non-negative exposure vector, G ∈ [0, (n−1)/n]:
+ * G = ΣᵢΣⱼ|xᵢ − xⱼ| / (2n²x̄), evaluated on the sorted values as
+ * G = (2·Σᵢ i·x₍ᵢ₎)/(n·Σx) − (n+1)/n with i 1-based ascending.
+ * No exposure at all is reported as 0 (there is nothing to distribute).
+ * @throws On negative or non-finite entries: counts cannot be either.
+ */
+export function gini(values: readonly number[]): number {
+  const n = values.length;
+  if (n === 0) return 0;
+  let sum = 0;
+  for (const v of values) {
+    if (!Number.isFinite(v) || v < 0) throw new Error("gini: values must be finite and non-negative");
+    sum += v;
+  }
+  if (sum === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  let weighted = 0;
+  sorted.forEach((v, k) => {
+    weighted += (k + 1) * v;
+  });
+  return (2 * weighted) / (n * sum) - (n + 1) / n;
+}
+
 /** Plain cosine similarity; used only as the naive baseline in validation. */
 export function cosine(a: readonly number[], b: readonly number[]): number {
   if (a.length !== b.length) throw new Error("cosine: length mismatch");

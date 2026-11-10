@@ -50,16 +50,21 @@ export const CAUSAL_EFFECT = /\bhace que\b|\bhacen que\b|\bhar[áa] que\b|\bhar[
  * says a broken word exactly where the sentence meant to include someone.
  *
  * `/[a-z]+xs?\b/` alone is unusable, because `Fénix`, `Relax` and `Xbox` end in
- * `x` and carry no marker. So the pattern starts at a word boundary and skips
- * the closed list of x-words this project legitimately writes; a word glued to
- * `_`, `{` or `-` is an identifier or a CSS class (`sub_sx`, `zm-box`), not
- * copy. A new x-word that is not the marker goes in the list, in the same
- * commit that adds it.
+ * `x` and carry no marker, so the pattern skips the closed list of x-words this
+ * project legitimately writes. A new x-word that is not the marker goes in the
+ * list, in the same commit that adds it.
+ *
+ * `X_EDGE` replaces `\b` on both sides. With the `u` flag `\b` counts only
+ * ASCII word characters, so it fires between the `x` and the `á` of `exámenes`
+ * and flags a perfectly good Spanish word — and on the right side it was the
+ * only thing saying that `hex_h` is an identifier and not copy.
  */
 const X_NOT_MARKER = "f[ée]nix|phoenix|fox|relax|netflix|xbox|box|max";
 
+const X_EDGE = String.raw`[\p{L}\p{N}_{}-]`;
+
 export const INCLUSIVE_X = new RegExp(
-  `(?<![\\p{L}\\p{N}_{}-])(?!(?:${X_NOT_MARKER})\\b)[\\p{L}]+xs?\\b`,
+  `(?<!${X_EDGE})(?!(?:${X_NOT_MARKER})(?!${X_EDGE}))[\\p{L}]+xs?(?!${X_EDGE})`,
   "iu",
 );
 

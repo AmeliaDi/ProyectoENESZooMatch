@@ -2552,3 +2552,330 @@ tocar nada, sobre `next start` propio en 390 × 844 con DPR 3 y CDP:
   `docs/CHAT.md` (§1, §10.0.3, §13.2) con `docs/PANTALLAS.md` §8c. Sin migración, sin RPC, sin columna,
   sin endpoint nuevo.
 
+## ADR-057 · El motor es intercambiable y se mide en sombra: nueve compuertas, todas obligatorias, y la decisión es NO ACTIVAR
+
+**Contexto.** Se pidió que cambiar el algoritmo de emparejamiento fuera una decisión con
+evidencia y no una preferencia: un motor candidato, medido contra el vigente sobre la misma
+población, con umbrales escritos antes de mirar el resultado y un solo interruptor para
+activar. Lo que no existía antes de este ADR: ninguna interfaz de motor (el puntaje por capas
+estaba llamado en duro desde `computeMatches`), ningún modo sombra, ningún archivo de
+compuertas y ninguna prueba de que un motor nuevo no rompiera una conversación abierta.
+
+**Decisión.**
+
+- **Interfaz, no if.** `src/domain/matching/engine.ts` define `MatchingEngine` (identificador +
+  `score` por par) y un registro con `capas` y `coseno`; `DEFAULT_ENGINE` es `capas` y
+  `resolveEngine()` **lanza** si el identificador no está en el registro. Eso es deliberado: un
+  typo en `MATCHING_ENGINE` es un fallo de deploy visible, no una activación silenciosa del
+  primer motor que aparece. La variable se lee en `src/infrastructure/env/env.server.ts` y se
+  inyecta en `src/application/recompute-matches.ts`; el dominio no lee entorno.
+- **Nueve compuertas en config, cada número con su estampa.** `data/rollout-gates.json`
+  (`version` 1.0.0) declara `cobertura.romance/amistad`, `equidad`, `exposicion`,
+  `correlacion_rangos`, `estabilidad_ruido`, `invariantes`, `tiempo` y `conservacion`. Cada
+  valor es `{valor, etiqueta, fuente}` y la `fuente` cita la línea base medida en
+  `docs/MATCHING_RESULTADOS.md` (semilla 1515870810, N=600). `src/config/rollout-gates.ts`
+  parsea con Zod `{etiqueta: enum, fuente: string.min(1)}`: un umbral sin justificación no
+  llega a evaluarse. **Relajar una compuerta para que un candidato pase está prohibido por
+  el propio archivo** (`nota`) y por `src/domain/matching/rollout.ts`, que no recibe
+  parámetros: lee la config y emite veredicto.
+- **El modo sombra no escribe.** `scripts/matching/run-shadow.mjs` → `scripts/matching/shadow.ts`
+  corre ambos motores sobre la misma población sintética sembrada, calcula las nueve
+  compuertas y deja `.qa/rollout.json` + `docs/COMPARATIVA_MODELOS.md`. La corrida de
+  referencia del 2026-11-10: 600 perfiles, 207 400 pares evaluados por motor, ≈26 s en total,
+  `inputHash` `a8ba53d64a88…`, `generatedAt` impreso en los dos artefactos.
+  `npm run verify:rollout` (`scripts/verify/rollout.mjs`) **rechaza la
+  decisión si el `inputHash` del archivo no coincide con la config actual**: un modelo
+  editado sin volver a medir no puede quedar verde.
+- **Conservación como compuerta dura, no como nota.** `conserveProtected` en
+  `src/domain/matching/rollout.ts` vuelve a publicar toda pareja con conversación abierta que
+  el candidato no produzca, y la compuerta `conservacion` exige `max_perdida = 0` antes de
+  activar. El conjunto protegido real se extrae con
+  `supabase/maintenance/protected-pairs.sql` (agregados + digest md5 del conjunto, nunca la
+  lista).
+- **Activación = variable del deploy + recálculo por consola.** `vercel env add MATCHING_ENGINE
+  production` y `POST /api/admin/recompute`. Queda escrito en `docs/RUNBOOK.md` §3 porque el
+  comando que uno diría que es —`npm run data:matching`— **no** activa nada: escribe umbrales
+  calibrados en `data/matching-config.json` y no toca la base.
+
+**Consecuencias.**
+
+- **El candidato `coseno` fue medido y rechazado.** Gana en todo lo que mide *reparto* y
+  *tiempo* —cobertura de pool 1.000 en ambos tracks, Gini de exposición 0.3843 romance /
+  0.2080 amistad contra 0.5882 / 0.3132 del vigente, piso de equidad 1.000, y unas nueve veces
+  más rápido por mil pares (la compuerta `tiempo` presupuesta 40.45 ms)— y pierde por goleada en
+  lo que mide *continuidad*: ρ de Spearman contra el vigente **0.2724** en romance y **0.3872**
+  en amistad (piso 0.80) y **578 de 664** parejas protegidas perdidas (piso 0). La decisión
+  impresa es **NO ACTIVAR: mantienen capas**, y el motivo completo queda en
+  `docs/COMPARATIVA_MODELOS.md` con la recomendación explícita de no bajar la vara. Que un motor
+  sea más rápido y más equitativo no lo vuelve activable: ρ = 0.27 en romance significa que el
+  orden del vigente explica poco más de un cuarto del orden nuevo, y ese es exactamente el cambio
+  abrupto de constelación que la compuerta existe para impedir.
+- **La garantía estructural tiene un hueco y está nombrado.** Las conversaciones no pueden
+  cascadear desde `matches` (ninguna FK apunta a `matches`; está medido en el catálogo), así que
+  un cambio de motor no borra un chat. Pero `recomputeMatches` llama `replaceAll` sin pasar por
+  `conserveProtected`: la protección existe **en la compuerta de activación**, no en el
+  recálculo ordinario. Medido en producción: 71 conversaciones sin par vigente y 5 abiertas
+  después del último recálculo (hallazgo DB-19, paso M-13). Este ADR no arregla eso porque
+  arreglarlo es una decisión de producto más un recálculo sobre producción con respaldo, y un
+  agente no escribe ahí.
+- **El conjunto protegido de la corrida es sintético.** Son 664 parejas sembradas al 20 % de lo
+  que publica el vigente, no las 122 reales (88 amistad / 34 romance, 58 con al menos un
+  mensaje, digest `bb5d73b21bc77494072e2ffd5cac1173`) que devuelve la consulta de producción.
+  La compuerta está verde-roja con el sintético y hay que volver a correrla con el real antes de
+  cualquier activación (M-02 paso 4).
+- **Puertas:** `npm run verify:rollout` verde sobre la evidencia fresca (9 compuertas, decisión
+  NO ACTIVAR); `src/domain/matching/engine.test.ts` fija que un identificador desconocido
+  lanza y que el registro resuelve `capas` sin variable; `src/domain/matching/rollout.test.ts`
+  fija que una compuerta sin `fuente` no se evalúa y que `conserveProtected` es idempotente.
+
+## ADR-058 · La auditoría de base corre contra producción y los renglones que no pueden aspirar a 0 miden
+
+**Contexto.** Se pidió QA experto de base de datos: consultas numeradas de solo lectura,
+presupuestos de latencia, paridad local/producción, simulacro de restauración y un runbook. Lo
+que apareció al correrlas es un problema de política: `scripts/db/audit.mjs` decide
+`valor === esperado` con comparación de texto, así que un renglón que aspira a 0 y mide 43
+pinta de rojo un sistema que está funcionando como fue diseñado. Tapar el renglón es mentira;
+dejarlo rojo es que nadie lea el reporte.
+
+**Decisión.**
+
+- **La auditoría corre contra producción por defecto.** `npm run db:audit` usa el proyecto
+  remoto cuando hay credenciales y lo declara en el archivo de evidencia
+  (`origen: "producción (proyecto uchrlfvhaiisoyndwprf, solo lectura aggregate y de
+  catálogo)"`); `--local` fuerza PGlite y `--strict` falla en vez de plegarse. Cada consulta
+  pasa por `assertReadOnly` de `scripts/db/lib.mjs` antes de salir por la red. Corrida medida
+  del 2026-11-10: **10 archivos, 228 renglones, 113 aserciones, 115 informativos, 0
+  violaciones, 8.3 s**.
+- **Siete renglones pasaron de aspirar a 0 a medir, con su número y su condición de regreso
+  escritos en el propio archivo SQL.** `07_chat.sql`: el histórico de `idx > 2` (67 rondas,
+  119 respuestas, 49 reacciones; máximo 18|18|17, 15 conversaciones) vive bajo CHECKs
+  `NOT VALID` que no pueden `VALIDATE` sin una escritura que rompa datos; `02_identidad.sql`:
+  43 `eclosionado_en < quiz_completed_at` porque el orden lo defiende `src/application/hatch.ts`
+  y `quiz_completed_at` es la *última* completitud; `04_conservacion.sql`: 71 y 5;
+  `05_versionado.sql`: 157 perfiles sin sello `params_version` de 179; `10_privacidad.sql`: 3
+  capas compartidas sin módulo que las respalde, 81 con `completed_modules` vacío y 4 en
+  «exploración» de eneagrama.
+- **Dos renglones eran defectos de la consulta, no del dato, y se corrigieron.** Las filas
+  «eclosionado sin …» contaban bajas lógicas mientras la vista de referencia
+  `profiles_identity_shape` está acotada a vivas, y una comparación usaba el campo de tiempo
+  equivocado. Un defecto de consulta se arregla en la consulta; solo un hecho de datos se
+  registra como hallazgo.
+- **La conservación tiene espejo.** `supabase/maintenance/protected-pairs.sql` vive
+  deliberadamente **fuera** del directorio numerado: `db:audit` exige una sentencia y una forma
+  fija por archivo, y este entrega conteos + digest de conjunto.
+- **Los tiempos del runbook son medidos, no estimados.** `docs/RUNBOOK.md` §4: `db:test` 4.0 s,
+  `db:migrate-test` 3.8 s, `db:audit` 8.3 s (producción), `db:drift` 13.2 s, `db:perf` 19.3 s,
+  `db:restore-drill` 17.2 s, como tiempo de pared de `npm run <paso>`.
+
+**Consecuencias.**
+
+- **Verde en los dos espejos y con la mentira eliminada.** `db:audit` pasa contra producción y
+  contra PGlite; `db:migrate-test` reporta 21 migraciones aplicadas de cero, 19 re-aplicadas y
+  paridad con 0 diferencias; `db:drift` no ve cambios contra la línea base
+  `2026-11-10T03:53:46.476Z` (17 secciones, 793 objetos). Para llegar ahí hubo que hacer
+  idempotentes dos migraciones ya aplicadas (`20261114000000_identity_single_source.sql`,
+  `20261116000000_identity_drop_legacy.sql`): una `CREATE FUNCTION` sin `OR REPLACE` y un
+  chequeo que leía una columna ya borrada abortaban la re-aplicación.
+- **Nueve violaciones se convirtieron en cinco hallazgos con nombre.** DB-19 (alta, conversación
+  sin par vigente), DB-20 (media, `completed_modules` vacío con el quiz hecho), DB-21 (media,
+  `quiz_save_answer` no valida contra el banco: 97 pares contestados contra 96 declarados),
+  DB-22 (media, el sello cubre 22 de 179 por diseño) y DB-23 (baja, el orden de eclosión), en
+  `docs/QA_DB.md`. Los 115 informativos no son ruido: cada uno tiene su número en la tabla de
+  hallazgos o su renuncia escrita.
+- **Lo que sigue siendo manual no se finge.** `docs/PENDIENTES_MANUALES.md` gana M-10
+  (`pg_cron` no existe en el proyecto: medido `relation "cron.job" does not exist`, así que
+  `apply_retention_policy` y `purge_chat` no corre nadie), M-11 (el respaldo es JSON en texto
+  plano con correos y hashes), M-12 (hace falta un proyecto desechable para ejercitar
+  PostgREST/GoTrue) y **M-13** (conectar `conserveProtected` al recálculo ordinario). El
+  `restore-drill` sigue sin autorizarse contra producción mientras DB-16 esté abierto, y está
+  dicho en el propio documento.
+- **Puertas:** `npm run db:audit`, `npm run db:migrate-test`, `npm run db:drift`,
+  `npm run db:perf`, `npm run db:restore-drill` y `npm run db:test` verdes en la misma sesión;
+  la paridad la fija `scripts/db/migrate-test.mjs` comparando el catálogo local reconstruido
+  contra el catálogo de producción, el drift se mide contra `supabase/schema-snapshot.json`, y
+  `supabase/tests/` es el contrato de esquema que corre con `db:test`.
+  `scripts/verify/run-all.mjs` cuenta un paso `skipped` como OMITIDO, no como verde.
+- Efecto secundario aceptado: un renglón informativo **no** puede fallar, así que la detección
+  de regresiones reales se movió de «todo 0» a los dos lugares que la sostienen: la tabla de
+  hallazgos de `docs/QA_DB.md` (con número y fecha) y las aserciones de
+  `src/domain/matching/rollout.test.ts` / `supabase/tests/`. Si un informativo sube de forma
+  inesperada, se lee el número, no el color.
+
+---
+
+## ADR-059 · Cada constante del modelo tiene una fila con origen, y la prosa que la explica se verifica contra el dato
+
+**Contexto.** La regla del trabajo era: cada parámetro, peso, ítem o función se vincula a su
+origen, y un test falla si se cambia un parámetro sin actualizar el ledger ni
+`docs/TRAZABILIDAD.md`.
+Al medirla, el `docs/` parecía completo y no lo estaba: `docs/TRAZABILIDAD.md` tiene una fila por
+decisión (T-01…T-36 al momento de escribirla) y `docs/EVIDENCIA.md` una ficha por hallazgo
+(EV-xx), pero entre las dos no
+existía ningún objeto que enumerate **las constantes**. `data/matching-config.json` tiene 145
+números y `data/rollout-gates.json` tiene 13; ninguno sabía si el 0,3125 de `valores` estaba
+allí por literatura o porque sí. Y la matriz por constructo que se pidió (rol, peso, fuerza de
+evidencia, riesgo ético, estado real en el código) tampoco existía: estaba repartida en prosa de
+cuatro documentos, con pesos escritos a mano y por tanto oxidables.
+
+**Decisión.**
+
+- **`data/evidence-ledger.json` es el inventario, no otra narración.** Una fila por constante,
+  generada desde el texto de los archivos (`src/config/evidence-ledger.ts`): 158 entradas, cada
+  una con `{valor, etiqueta, fuente}`. La `fuente` lleva los ids `EV-\d+` cuando hay ficha, y se
+  queda vacía cuando no. Medido hoy: **66 entradas con EV, 92 sin EV**. Las 92 sin ficha son
+  `supuesto_diseno` o `pendiente_verificacion` y así se lean; no se les inventa cita.
+- **`data/psychometric-params.json` entra como sello, no como filas.** Es salida de un script de
+  estimación (`scripts/psychometrics/`), no un archivo que se edite a mano: medido, tiene **7 075
+  valores numéricos** (7 935 hojas) y recorrerlo produciría esa cantidad de filas de un origen que
+  nadie revisa. Entra con su `version`, `semilla`, `n_sintetico`,
+  `entrada_sha256`, `advertencia` y el recuento de sus propias etiquetas
+  (`etiquetas_internas`), y cero filas.
+- **El guardia es una compuerta, no una opinión.** `npm run data:ledger` regenera; `npm run
+  ledger:check` compara y falla si un número apareció, desapareció o cambió de etiqueta sin que
+  cambie el ledger. `src/config/evidence-ledger.test.ts` (8 pruebas) añade lo que el diff no ve:
+  que toda entrada `prior_literatura` tenga al menos un `EV-` real, que todo `EV-` citado exista
+  en `docs/EVIDENCIA.md` y que las etiquetas estén dentro de `PARAM_LABELS`.
+- **La matriz por constructo vive en `docs/DECISIONES_MODELO.md` y sus números no se escriben a
+  mano.** 15 filas con el enumerado del pedido más los 4 constructos que el enumerado omitió. Los
+  pesos están escritos con el valor que deriva del config (`romance **0,3125** → 0,0446 por cada
+  uno de los 7 factores`), y `src/config/evidence-docs.test.ts` (10 pruebas) vuelve a derivar cada
+  uno desde `data/matching-config.json` y falla si la prosa se desincroniza. Las invariantes de
+  presupuesto (`Σ extras ≤ 0,05`, `Σ identidad ≤ 0,02`) se afirman en el test, no en el documento.
+- **`docs/LITERATURA_ASPECTOS.md` se declara síntesis local.** Las búsquedas del pedido se hacen
+  contra un servicio que en esta sesión no está conectado, y el documento lo dice en la primera
+  línea en lugar de fingir un barrido. Su única materia prima es `data/literature/` +
+  `docs/EVIDENCIA.md`, y sus tres cifras de cobertura se recalculan en el test desde los archivos.
+- **Las citas se comprueban donde se resuelven, no donde se leen.** `data/literature/doi-checks.json`
+  queda en **138 comprobaciones: 131 `resuelve`, 7 `no_resuelve`** (41 DOI comprobados por primera
+  vez; 0 créditos: el registro de handles es gratuito). Los 7 muertos aparecen solo en §5 del
+  documento, etiquetados como muertos, y el test prohibe que un DOI `no_resuelve` aparezca como
+  cita antes de esa sección.
+
+**Consecuencias.**
+
+- **Se midió la revisión humana y no da para apoyar un peso.** `review-queue.csv` tiene 210 filas
+  y todas dicen `aprobar` / `verificada_usuaria`; pero cubren **17 de los 131 registros**, **80
+  extracciones discrepan entre las dos pasadas** y **54 aprobaciones no tienen la cita literal en
+  la fuente**. Ese es el motivo escrito por el que ningún parámetro puede salir de
+  `records.csv`: el material aún es `pendiente_humana` de facto aunque la cola esté marcada.
+- **Cuatro constructos del pedido no existen y se nombran como deuda.** Autoexpansión, cronotipo,
+  familismo y empatía/regulación emocional no tienen ítems ni ficha (verificado contra
+  `data/microtest.json` y `data/seeds.json`); `docs/DECISIONES_MODELO.md` §4 los lista en orden de
+  costo y la ruta honesta para los tres primeros es un rompehielos sin entrada al puntaje, que es
+  el trabajo siguiente.
+- **La matriz del config quedó expuesta donde estaba rara, no donde convenía.** `relacional` y
+  `big_five` valen 0 en el puntaje y el documento lo dice con el 0, no con una frase sobre su
+  potencial; `dealbreakers` romance 0,0625 / amistad 0 sale de la misma tabla.
+- **Puertas:** `npm run ledger:check`, `src/config/evidence-ledger.test.ts` y
+  `src/config/evidence-docs.test.ts` en verde (18 pruebas); el hash registrado de
+  `data/matching-config.json` en `docs/TRAZABILIDAD.md` es `1e0e766605837528`, y
+  `docs/VALIDACION_RESULTADOS.md` se regenera con `npm run data:validate` para que no quede
+  citando el anterior.
+- Costo aceptado: el ledger es texto-derivado, así que reordenar el JSON sin cambiar valores
+  reordena filas. Se resuelve regenerando (`npm run data:ledger`), no con un hash de posición.
+
+## ADR-060 · El rompehielos pasa de tres sets a cinco, y el «prefiero no decir» deja de ser promesa
+
+**Contexto.** La Fase 2 pedía pulir los quizzes existentes y añadir seis sets nuevos de 8–10 ítems,
+menos de dos minutos, tocables y sin texto libre, con el motor de coincidencias explicado en
+lenguaje natural y convertido en preguntas para el chat y para las tres rondas. Estaban los tres
+sets de siempre (gustos, gaming, picante) con 12 quizzes y 96 ítems, y la regla de oro seguía en
+el aire: `docs/QUIZZES.md` §1.1 prometía «todo quiz tiene "prefiero no decir"» y «nunca se muestran
+los "no"», pero nada lo impedía. Al medir el código contra la promesa aparecieron tres fugas
+reales, no de estilo.
+
+**Decisión.**
+
+- **Cinco categorías, 18 quizzes, 150 ítems.** Se agregan `vida.json` (planes y dinero, campus,
+  humor) y `conexion.json` (autoexpansión, cuidado, valores en situaciones): 6 quizzes y 54 ítems,
+  todos de 9 ítems y 1,5 min. El orden del hub es el orden declarado en `QUIZ_CATEGORIES` —gustos,
+  gaming, vida, conexión, picante— con el 18+ hasta el final y fuera de la lista si la compuerta
+  está apagada.
+- **El opt-out lo exige el esquema, no la buena voluntad.** `src/config/quizzes.ts` lleva un
+  `.refine` que rechaza cualquier ítem cuya última opción no sea exactamente `OPT_OUT_LABEL`. Al
+  guardarse se convierte en `OPT_OUT_VALOR`, que es el centinela que `quiz_coincidencias` ya
+  filtraba en la base: **por eso no hizo falta ninguna migración**.
+- **Fuga 1, la más fea: el formulario hablaba por la gente.** `quiz-flow-view.tsx` guardaba
+  `prefiero_no_decir` en cada ítem que se quedó sin tocar. Un salto silencioso se registraba como
+  una decisión explícita de callar. Ahora un ítem vacío no escribe renglón; `valorGuardable`
+  devuelve `null` y el envío lo descarta.
+- **Fuga 2: dos quizzes preguntaban «plataforma» y el chat respondía del equivocado.** Los
+  `item_id` se repiten entre quizzes (`plataforma` está en `gustos_cine` y en `gaming_plataformas`;
+  `ritmo` en `gaming_estilo` y en `gustos_viajes`), y los seguimientos estaban indexados por
+  `item_id` a secas. Las **139** llaves de `SEGUIMIENTOS` pasan a ser `quiz_id/item_id`, con red de
+  seguridad por categoría para que ninguna coincidencia se quede sin pregunta. No se renombró
+  ningún `item_id` en producción: la migración hubiera reescrito respuestas reales.
+- **Fuga 3: `'No' !== 'no'`.** Los ítems de acuerdo de Picante guardan «No» con mayúscula y el
+  filtro SQL compara contra la minúscula, así que una negativa coincidía con otra negativa y se
+  mostraba como si fuera un gusto compartido — justo lo contrario de «sin exponer respuestas crudas
+  ni «no»». Se cierra por dos lados: `esOptOut` normaliza a minúsculas en el dominio y
+  `obtenerCoincidencias` filtra la salida de la RPC, que es el único camino de lectura.
+- **Respuesta múltiple sin tocar el esquema.** `quiz_answers` tiene una fila por
+  `(persona_id, quiz_id, item_id)` y un solo `valor TEXT`. `valorGuardable` canónica: valida contra
+  las opciones declaradas, deduplica, ordena y une con `"; "`. Medido: ninguna opción del catálogo
+  contiene `;` ni `|`, así que el separador no puede aparecer dentro de un valor. Con una sola
+  selección no se agrega separador, así que los renglones que ya existen siguen coincidiendo igual.
+- **El hub se estaba asfixiando solo.** 18 tarjetas significaban 18 peticiones `quiz-read` contra
+  un límite de 30 por minuto: al tercer refresh todo salía «Pendiente» sin estarlo. Se agregan dos
+  endpoints agrupados, `GET /api/quizzes/progreso` (una sola lectura para las 18 tarjetas) y
+  `quiz_ids` múltiples en `GET /api/quizzes/coincidencias` con `Promise.all` en el servidor. El panel
+  del chat pasa de 8 quizzes a los 14 no-18+ en una petición, y el par se resuelve en el servidor a
+  partir del id de la conversación (`findFor`), porque el contrato del chat no le reparte a nadie el
+  `user_id` de la otra persona.
+- **Nada llega a la base sin estar declarado.** `revisarRespuestas` corre antes de cualquier
+  escritura y devuelve `quiz.item_no_declarado` o `quiz.valor_no_valido` (400). Se valida el lote
+  completo primero: un rechazo no deja medio quiz guardado.
+- **Picante, tres apretones más.** `picante_dinamicas` calcula leyendo respuestas sueltas en
+  JavaScript y por eso esquivaba el filtro SQL; ahora exige `puedeCompartirPicante` en las dos
+  partes antes de leer una sola respuesta, y el rastro que se revisa es el sello que quedó al dar
+  el consentimiento, no el valor vivo del perfil. El panel de coincidencias del chat **no** incluye
+  Picante: la revelación 18+ sigue viviendo solo en su pantalla de resultado, por coincidencia
+  mutua y sin presión. Y `explicarCoincidencia` cambia de forma en los ítems de acuerdo: cita el
+  enunciado, porque su valor es un «sí» que no dice nada solo.
+- **Se retiran los emojis de las secciones.** Iban directo contra la regla de accesibilidad del
+  lector de pantalla y contra el sistema de diseño pixel; ahora son `Icon` del kit.
+
+**Consecuencias.**
+
+- **El catálogo se autoverifica.** `src/config/quiz-catalogue.test.ts` (14 pruebas) exige que todo
+  `quiz_id` empiece con su categoría, que las 150 ítems terminen en el opt-out, que los sets nuevos
+  tengan 8–10 ítems y ≤2 min, que ningún título pase de cinco palabras ni lleve punto final, que no
+  haya ni un carácter pictográfico en todo el catálogo ni en `CATEGORY_META`, y que la `fuente` de
+  cada JSON apunte a una sección de `docs/QUIZZES.md` que exista. Esta última ya cazó dos mentiras:
+  `gaming.json` citaba §6, que es Picante, y `vida`/`conexion` citaban un §13 que no estaba escrito.
+- **El aislamiento también es de código, no de buena intención.** `src/domain/quiz/isolation.test.ts`
+  (12 pruebas) recorre la capa rompehielos y falla si algún archivo importa el motor, la psicometría
+  o la identidad, si el dominio o la aplicación tocan infraestructura, o si algo escribe a consola.
+  `src/application/quiz/actions.test.ts` (20 pruebas) prueba el comportamiento: completar un quiz
+  solo invoca `saveAnswers` y `markCompleted`, el borrado por quiz no toca los demás, y ninguna
+  coincidencia sale sin visibilidad mutua, match vigente y —en Picante— consentimiento de las dos.
+- **El DDL se revisa en el texto.** `src/infrastructure/supabase/schema.test.ts` gana 4 pruebas:
+  las cuatro tablas sin privilegios para `anon`/`authenticated`, con RLS y sin políticas, la RPC
+  gateada por visibilidad de ambas, match y `track_romance`, y el registro explícito de que el
+  «No» mayúsculo lo atrapa la aplicación porque la base no lo hace.
+- **Cuenta de pruebas de la capa, medida:** 32 en `quizzes.test.ts`, 12 en `isolation.test.ts`, 20
+  en `actions.test.ts`, 14 en `quiz-catalogue.test.ts` y 6 en el linter de Picante, más las 4 del
+  esquema. El presupuesto de fatiga se mantiene: ningún set pasa de 9 ítems ni de 2 minutos.
+- **La guarda de copia leía mal el español.** `INCLUSIVE_X` (`src/testing/copy-guard.ts`) cortaba
+  con `\b`, y con la marca `u` `\b` solo conoce el ASCII: se abría entre la `x` y la `á` de
+  «exámenes» y marcaba una pregunta perfectamente buena de `vida.json`. Al quitar ese `\b` del
+  final apareció lo que el `\b` tapaba por accidente: `hex_h` en `data/self-reading.json` es un
+  identificador, no copia. Los dos cortes son ahora `[\p{L}\p{N}_{}-]`. Rojo/verde medido: con el
+  patrón viejo fallan 2 de 7 en `copy-guard.test.ts` (el barrido y la prueba nueva); con el nuevo,
+  7 de 7. La prueba nueva deja escritos los dos lados —marcan `chicxs`, `latinxs`, `amigxs`; no
+  marcan `exámenes`, `Fénix`, `Xbox`, `zm-box`, `hex_h`, `sub_sx`— y el barrido sigue probando que
+  el sí existe en `inclusive-text.ts`, para que el verde no sea un patrón muerto.
+- **Lo que NO se hizo, para que no se lea como hecho:** no hay badge nuevo por quiz. Medido en el
+  catálogo real (`src/domain/badges/badge-catalog.ts`, cinco insignias y ninguna de quizzes):
+  harían falta una condición `{ tipo: "quizzes_completados" }` en `BadgeCondition`, que el
+  evaluador cuente intentos por categoría y un `BadgeId` por set. `docs/QUIZZES.md` prometía el
+  catálogo en `data/badges.json`, un archivo que nunca existió; ya dice la ruta verdadera. Y hay
+  un hallazgo que no se tocó porque borra estado de producción: `semana_activa` es literalmente una
+  racha («siete días seguidos»), que choca con «sin rachas» del brief; quitar una insignia que
+  alguien ya ganó es borrarle un logro a una persona real, así que va a la fila de decisiones
+  humanas.
+  Tampoco hay microencuesta post-chat, y las explicaciones de coincidencia todavía no entran al
+  selector de preguntas de las tres rondas: hoy se leen en el panel de la conversación, que hasta
+  esta fase no estaba montado en ninguna pantalla. La comparación numérica antes/después del
+  puntaje con dos cuentas reales queda para el humo E2E; lo que hay es la garantía estructural y
+  la de llamadas, arriba.

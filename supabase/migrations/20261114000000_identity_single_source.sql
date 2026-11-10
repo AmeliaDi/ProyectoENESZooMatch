@@ -315,7 +315,7 @@ DROP FUNCTION IF EXISTS public.submit_quiz_result(
   UUID, JSONB, JSONB, DOUBLE PRECISION[], DOUBLE PRECISION[], TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT[], BOOLEAN
 );
 
-CREATE FUNCTION public.submit_quiz_result(
+CREATE OR REPLACE FUNCTION public.submit_quiz_result(
   p_user_id UUID,
   p_answers JSONB,
   p_dimension_scores JSONB,

@@ -1,0 +1,100 @@
+{
+  "version": "1.0.0",
+  "nota": "Compuertas de rollout del motor de matching (Fase 6). TODAS deben pasar para activar un motor distinto al vigente. Los valores se justifican contra la línea base medida en docs/MATCHING_RESULTADOS.md (semilla 1515870810, N=600, 179700 pares). Ninguna compuerta se relaja para que un candidato pase: si falla, se mantiene el motor actual y el motivo queda en docs/COMPARATIVA_MODELOS.md.",
+  "cobertura": {
+    "romance": {
+      "min": {
+        "valor": 0.65,
+        "etiqueta": "estimado_sintetico",
+        "fuente": "Línea base medida: poolCoverage romance 0.7371 (docs/MATCHING_RESULTADOS.md, N=600). Piso 0.65 = 12 % por debajo, holgura para el ruido de muestreo sin aceptar una caída real de cobertura."
+      },
+      "max": {
+        "valor": 1,
+        "etiqueta": "supuesto_diseno",
+        "fuente": "Cota estructural: una cobertura no puede exceder 1."
+      }
+    },
+    "amistad": {
+      "min": {
+        "valor": 0.95,
+        "etiqueta": "estimado_sintetico",
+        "fuente": "Línea base medida: poolCoverage amistad 0.9983 (docs/MATCHING_RESULTADOS.md, N=600). Piso 0.95 = 5 % por debajo; amistad no tiene opt-out, así que nadie debe quedar fuera por diseño."
+      },
+      "max": {
+        "valor": 1,
+        "etiqueta": "supuesto_diseno",
+        "fuente": "Cota estructural: una cobertura no puede exceder 1."
+      }
+    }
+  },
+  "equidad": {
+    "min_ratio": {
+      "valor": 0.7,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Exigido por el prompt de afinación (Fase 6): ninguna subpoblación por debajo de 0.7 × la mediana. Línea base medida: equityFloor romance 0.7544, amistad 0.9867 sobre el pool que cada track atiende por diseño (los opt-out de romance por declaración propia, ADR-016, salen del denominador)."
+    }
+  },
+  "exposicion": {
+    "gini_max": {
+      "romance": {
+        "valor": 0.65,
+        "etiqueta": "estimado_sintetico",
+        "fuente": "Línea base medida: Gini de exposición romance 0.5882 (docs/MATCHING_RESULTADOS.md). Techo 0.65 = 10 % por encima; no se permite concentrar la visibilidad más que el motor vigente."
+      },
+      "amistad": {
+        "valor": 0.4,
+        "etiqueta": "estimado_sintetico",
+        "fuente": "Línea base medida: Gini de exposición amistad 0.3132 (docs/MATCHING_RESULTADOS.md). Techo 0.40 = 28 % por encima, holgura porque amistad publica ~8 matches por persona y el Gini es más sensible al tamaño de K."
+      }
+    },
+    "no_peor_que_actual": true
+  },
+  "correlacion_rangos": {
+    "min_spearman": {
+      "valor": 0.8,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Exigido por el prompt (cambio gradual, sin saltos abruptos de constelación). 0.80 deja reordenar el 20 % de los rangos; la auto-estabilidad medida del motor vigente es ρ=0.963 romance / 0.966 amistad bajo ruido, así que un candidato legítimo debería superar 0.80 con holgura."
+    }
+  },
+  "estabilidad_ruido": {
+    "min_spearman": {
+      "valor": 0.9,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Línea base medida bajo ±1 Likert en 10 % de los ítems: ρ=0.9631 romance / 0.9662 amistad (docs/MATCHING_RESULTADOS.md). Piso 0.90 exige que el candidato no sea más sensible al ruido que el vigente."
+    },
+    "min_jaccard": {
+      "valor": 0.45,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Línea base medida bajo el mismo ruido: Jaccard del conjunto publicado 0.5142 romance / 0.5016 amistad. Piso 0.45 = 10 % por debajo del peor de los dos tracks."
+    }
+  },
+  "invariantes": {
+    "max_violaciones": {
+      "valor": 0,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Exigido por el prompt: cero violaciones de simetría, orden canónico, duplicados, auto-emparejamiento o rango del puntaje. No es un umbral negociable."
+    }
+  },
+  "tiempo": {
+    "max_ms_por_mil_pares": {
+      "valor": 40.45,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "Corrida sombra medida (scripts/matching/shadow.ts, semilla 1515870810, N=600, 207400 pares): el motor vigente capas tarda 26.965 ms por mil pares (5592.6 ms total). Presupuesto = 1.5 × el vigente, holgura para un candidato legítimo algo más caro sin aceptar un recalculo que se salga de la ventana del scheduler. El candidato coseno midió 2.940 ms por mil pares."
+    }
+  },
+  "conservacion": {
+    "max_perdida": {
+      "valor": 0,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Exigido por el prompt: 0 % de matches con conversación abierta que se perderían. Estructuralmente garantizado además porque public.conversations y public.chat_interests referencian solo public.profiles, nunca public.matches (supabase/migrations/00000000000000_base.sql)."
+    }
+  },
+  "activacion": {
+    "variable": "MATCHING_ENGINE",
+    "notificacion": {
+      "type": "afinidad_afinada",
+      "titulo": "Afinamos tu afinidad",
+      "cuerpo": "Revisa tus matches: actualizamos la matemática con la que los ordenamos. Tus conversaciones abiertas siguen intactas."
+    }
+  }
+}

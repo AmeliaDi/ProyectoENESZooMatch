@@ -103,7 +103,7 @@ async function createAccount(index: number): Promise<Account> {
     { itemId: "FIL3", selected: ["monogamia", "sin_definir"] },
   ];
 
-  const enter = await post("/api/enter", { matricula, eventId: EVENT_ID, sintetico: true });
+  const enter = await post("/api/enter", { matricula });
   expect(enter.status, `enter ${matricula}`).toBe(200);
 
   const quiz = await post("/api/quiz", { likert, filters }, enter.cookies);

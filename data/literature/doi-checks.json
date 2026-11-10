@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-09",
+  "version": "2026-11-10",
   "nota": "Resolución de cada DOI citado, contra https://doi.org/api/handles/<doi>. Lo producen scripts/literature/handles.mts (node --no-warnings scripts/literature/handles.mts) y lo lee el crawler para no almacenar filas con un handle inexistente (ADR-049).",
   "checks": {
     "10.1002/casp.70076": {
@@ -51,6 +51,13 @@
       "consultado": "2026-11-09T06:53:04.034Z",
       "via": "doi.org/api/handles"
     },
+    "10.1007/s10447-023-09503-6": {
+      "doi": "10.1007/s10447-023-09503-6",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:13.118Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1007/s10964-024-01964-9": {
       "doi": "10.1007/s10964-024-01964-9",
       "estado": "no_resuelve",
@@ -84,6 +91,20 @@
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:04.638Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1007/s12119-023-10183-y": {
+      "doi": "10.1007/s12119-023-10183-y",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:13.422Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1007/s12144-013-9199-9": {
+      "doi": "10.1007/s12144-013-9199-9",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:13.574Z",
       "via": "doi.org/api/handles"
     },
     "10.1007/s13171-019-00164-5": {
@@ -121,6 +142,27 @@
       "consultado": "2026-11-09T06:53:05.570Z",
       "via": "doi.org/api/handles"
     },
+    "10.1016/j.evolhumbehav.2013.08.008": {
+      "doi": "10.1016/j.evolhumbehav.2013.08.008",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:13.817Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1016/j.evolhumbehav.2016.04.001": {
+      "doi": "10.1016/j.evolhumbehav.2016.04.001",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:14.198Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1016/j.isci.2024.111419": {
+      "doi": "10.1016/j.isci.2024.111419",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:14.432Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1016/j.jrp.2005.08.007": {
       "doi": "10.1016/j.jrp.2005.08.007",
       "estado": "resuelve",
@@ -142,6 +184,20 @@
       "consultado": "2026-11-09T06:53:06.562Z",
       "via": "doi.org/api/handles"
     },
+    "10.1016/j.jrp.2022.104209": {
+      "doi": "10.1016/j.jrp.2022.104209",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:14.749Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1016/j.jrp.2022.104248": {
+      "doi": "10.1016/j.jrp.2022.104248",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:15.049Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1016/j.jrp.2023.104442": {
       "doi": "10.1016/j.jrp.2023.104442",
       "estado": "no_resuelve",
@@ -161,6 +217,13 @@
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:07.132Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1016/j.paid.2014.11.056": {
+      "doi": "10.1016/j.paid.2014.11.056",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:15.360Z",
       "via": "doi.org/api/handles"
     },
     "10.1016/j.paid.2015.11.051": {
@@ -191,6 +254,13 @@
       "consultado": "2026-11-09T06:53:07.450Z",
       "via": "doi.org/api/handles"
     },
+    "10.1016/s0092-6566(02)00534-2": {
+      "doi": "10.1016/s0092-6566(02)00534-2",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:15.676Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1017/s0022381611000016": {
       "doi": "10.1017/s0022381611000016",
       "estado": "resuelve",
@@ -205,11 +275,39 @@
       "consultado": "2026-11-09T06:53:07.763Z",
       "via": "doi.org/api/handles"
     },
+    "10.1027/1016-9040/a000261": {
+      "doi": "10.1027/1016-9040/a000261",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:15.993Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1037//0022-3514.44.1.113": {
+      "doi": "10.1037//0022-3514.44.1.113",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:16.291Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1037//0022-3514.70.3.491": {
+      "doi": "10.1037//0022-3514.70.3.491",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:16.587Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1037/0021-9010.88.5.879": {
       "doi": "10.1037/0021-9010.88.5.879",
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:08.062Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1037/0022-3514.44.1.113": {
+      "doi": "10.1037/0022-3514.44.1.113",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:16.919Z",
       "via": "doi.org/api/handles"
     },
     "10.1037/0022-3514.46.3.598": {
@@ -268,6 +366,13 @@
       "consultado": "2026-11-09T06:53:10.251Z",
       "via": "doi.org/api/handles"
     },
+    "10.1037/0022-3514.89.2.242": {
+      "doi": "10.1037/0022-3514.89.2.242",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:17.223Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1037/0022-3514.94.4.718": {
       "doi": "10.1037/0022-3514.94.4.718",
       "estado": "resuelve",
@@ -280,6 +385,20 @@
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:10.626Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1037/0882-7974.22.4.666": {
+      "doi": "10.1037/0882-7974.22.4.666",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:17.524Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1037/0893-3200.21.4.572": {
+      "doi": "10.1037/0893-3200.21.4.572",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:17.899Z",
       "via": "doi.org/api/handles"
     },
     "10.1037/1040-3590.18.2.192": {
@@ -301,6 +420,20 @@
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:11.196Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1037/a0020385": {
+      "doi": "10.1037/a0020385",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:18.159Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1037/a0022898": {
+      "doi": "10.1037/a0022898",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:18.506Z",
       "via": "doi.org/api/handles"
     },
     "10.1037/a0028085": {
@@ -352,6 +485,13 @@
       "consultado": "2026-11-09T06:53:13.380Z",
       "via": "doi.org/api/handles"
     },
+    "10.1037/pspp0000211": {
+      "doi": "10.1037/pspp0000211",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:18.752Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1073/pnas.1917036117": {
       "doi": "10.1073/pnas.1917036117",
       "estado": "resuelve",
@@ -364,6 +504,20 @@
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:13.385Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1080/00223890701268041": {
+      "doi": "10.1080/00223890701268041",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:19.075Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1080/00223890902935878": {
+      "doi": "10.1080/00223890902935878",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:19.383Z",
       "via": "doi.org/api/handles"
     },
     "10.1080/00401706.1991.10484804": {
@@ -380,6 +534,13 @@
       "consultado": "2026-11-09T06:53:14.000Z",
       "via": "doi.org/api/handles"
     },
+    "10.1080/10253890.2019.1600502": {
+      "doi": "10.1080/10253890.2019.1600502",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:19.743Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1080/10705519909540118": {
       "doi": "10.1080/10705519909540118",
       "estado": "resuelve",
@@ -392,6 +553,13 @@
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:14.621Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1108/ijshe-02-2023-0037": {
+      "doi": "10.1108/ijshe-02-2023-0037",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:20.052Z",
       "via": "doi.org/api/handles"
     },
     "10.1111/j.1467-6494.1989.tb00759.x": {
@@ -408,11 +576,25 @@
       "consultado": "2026-11-09T06:53:14.937Z",
       "via": "doi.org/api/handles"
     },
+    "10.1111/j.1467-6494.2008.00520.x": {
+      "doi": "10.1111/j.1467-6494.2008.00520.x",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:20.289Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1111/j.1467-6494.2010.00625.x": {
       "doi": "10.1111/j.1467-6494.2010.00625.x",
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:14.940Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1111/j.1475-6811.2009.01223.x": {
+      "doi": "10.1111/j.1475-6811.2009.01223.x",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:20.596Z",
       "via": "doi.org/api/handles"
     },
     "10.1111/j.1475-6811.2010.01309.x": {
@@ -541,6 +723,20 @@
       "consultado": "2026-11-09T06:53:18.342Z",
       "via": "doi.org/api/handles"
     },
+    "10.1177/08948453231213635": {
+      "doi": "10.1177/08948453231213635",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:20.899Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1177/0956797617714580": {
+      "doi": "10.1177/0956797617714580",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:21.213Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1177/09637214231217663": {
       "doi": "10.1177/09637214231217663",
       "estado": "resuelve",
@@ -583,6 +779,20 @@
       "consultado": "2026-11-09T06:53:19.346Z",
       "via": "doi.org/api/handles"
     },
+    "10.1186/s13104-026-07810-w": {
+      "doi": "10.1186/s13104-026-07810-w",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:21.524Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1186/s40359-026-04014-6": {
+      "doi": "10.1186/s40359-026-04014-6",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:21.829Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1186/s41155-020-00145-w": {
       "doi": "10.1186/s41155-020-00145-w",
       "estado": "resuelve",
@@ -604,11 +814,32 @@
       "consultado": "2026-11-09T06:53:19.587Z",
       "via": "doi.org/api/handles"
     },
+    "10.1371/journal.pbio.3000156": {
+      "doi": "10.1371/journal.pbio.3000156",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:22.199Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.1371/journal.pone.0246065": {
+      "doi": "10.1371/journal.pone.0246065",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:22.457Z",
+      "via": "doi.org/api/handles"
+    },
     "10.1515/humr.2011.001": {
       "doi": "10.1515/humr.2011.001",
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:19.902Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.2117/psysoc.2017.68": {
+      "doi": "10.2117/psysoc.2017.68",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:22.754Z",
       "via": "doi.org/api/handles"
     },
     "10.2307/255985": {
@@ -639,6 +870,48 @@
       "consultado": "2026-11-09T06:53:20.828Z",
       "via": "doi.org/api/handles"
     },
+    "10.31820/pt.26.1.10": {
+      "doi": "10.31820/pt.26.1.10",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:23.119Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.32996/jpbs.2024.1.5": {
+      "doi": "10.32996/jpbs.2024.1.5",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:23.359Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.3389/fpsyg.2020.00710": {
+      "doi": "10.3389/fpsyg.2020.00710",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:23.679Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.3389/fpsyg.2025.1683846": {
+      "doi": "10.3389/fpsyg.2025.1683846",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:24.046Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.3389/fpsyg.2026.1873567": {
+      "doi": "10.3389/fpsyg.2026.1873567",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:24.286Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.3390/bs16091468": {
+      "doi": "10.3390/bs16091468",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:24.579Z",
+      "via": "doi.org/api/handles"
+    },
     "10.3758/bf03193146": {
       "doi": "10.3758/bf03193146",
       "estado": "resuelve",
@@ -660,11 +933,25 @@
       "consultado": "2026-11-09T06:53:21.461Z",
       "via": "doi.org/api/handles"
     },
+    "10.5964/ijpr.v7i2.125": {
+      "doi": "10.5964/ijpr.v7i2.125",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:24.904Z",
+      "via": "doi.org/api/handles"
+    },
     "10.5964/ps.7551": {
       "doi": "10.5964/ps.7551",
       "estado": "resuelve",
       "http": 200,
       "consultado": "2026-11-09T06:53:21.464Z",
+      "via": "doi.org/api/handles"
+    },
+    "10.69671/socialprism.3.6.2026.140": {
+      "doi": "10.69671/socialprism.3.6.2026.140",
+      "estado": "resuelve",
+      "http": 200,
+      "consultado": "2026-11-10T07:14:25.220Z",
       "via": "doi.org/api/handles"
     },
     "10.7466/jkhma.2020.38.1.127": {

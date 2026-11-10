@@ -1,19 +1,23 @@
-# Quizzes rompehielos: Gustos, Gaming y Picante (18+)
+# Quizzes rompehielos: Gustos, Gaming, Vida, Conexión y Picante (18+)
 
-> **Estado (2026-11-06):** diseño aprobado, en implementación.
+> **Estado (2026-11-09):** los cinco sets están en el catálogo. §13 es lo que cambió
+> en el pulido: opt-out obligatorio, respuesta múltiple, peticiones agrupadas y la
+> validación antes de escribir.
 
 ## 1. Qué son y qué no son
 
-Los **quizzes rompehielos** son una sección opcional de ZooMatch con tres sets cortos y lindos
+Los **quizzes rompehielos** son una sección opcional de ZooMatch con sets cortos y lindos
 que sirven para **romper el hielo** en las conversaciones:
 
-1. **Gustos** — música, cine, anime, libros, comida, viajes, estilo.
+1. **Gustos** — música, cine, comida, viajes.
 2. **Gaming** — plataformas, géneros, estilo de juego, juegos de mesa.
-3. **Picante (18+)** — coqueteo, ritmo, límites, curiosidad adulta (voluntario, con candado).
+3. **Vida** — planes y dinero, campus, humor.
+4. **Conexión** — autoexpansión, cuidado y afecto, valores en situaciones.
+5. **Picante (18+)** — coqueteo, ritmo, límites, curiosidad adulta (voluntario, con candado).
 
 > No confundir con los **tres quizzes del cuestionario obligatorio** (ADR-045): esos son el
 > test psicométrico repartido en bloques de máximo 35 reactivos para no cansar, y se envían
-> juntos al terminar el último. Estos tres son opcionales, no puntúan y no entran en el perfil.
+> juntos al terminar el último. Estos son opcionales, no puntúan y no entran en el perfil.
 
 ### 1.1 Principios no negociables
 
@@ -42,8 +46,9 @@ que sirven para **romper el hielo** en las conversaciones:
 2. Una tarjeta por pantalla, opciones grandes tocables (≥ 44 px), gesto de avance suave.
 3. Barra de progreso en constelación (reutiliza el cielo).
 4. "Saltar" y "prefiero no decir" siempre a la vista.
-5. Al completar: ficha con resultado amable ("Tu vibra musical: ..."), badges motivacionales, y
-   opción de **compartir coincidencias con matches** (apagada por defecto, con explicación breve).
+5. Al completar: ficha con resultado amable ("Tu vibra musical: ..."), badges motivacionales
+   (pendiente: ver §5.3) y opción de **compartir coincidencias con matches** (apagada por defecto,
+   con explicación breve).
 
 ### 2.3 Coincidencias
 
@@ -59,26 +64,37 @@ que sirven para **romper el hielo** en las conversaciones:
 
 ### 3.1 Definiciones de quizzes
 
-Viven en `data/quizzes/*.json`, validados con esquemas Zod:
+Viven en `data/quizzes/*.json`, validados con esquemas Zod (18 quizzes, 150 ítems):
 
-- `gustos.json` — 4–6 mini-quizzes (música, cine, anime, libros, comida, viajes, estilo).
-- `gaming.json` — 3–4 mini-quizzes (plataformas, géneros, estilo, juegos de mesa).
-- `picante.json` — 2 niveles (coqueto, curiosidad adulta), cada uno con su confirmación.
+| Archivo | Quizzes | Ítems | Contenido |
+|---|---|---|---|
+| `gustos.json` | 4 | 32 | música, cine, comida, viajes (§5) |
+| `gaming.json` | 4 | 32 | plataformas, géneros, estilo, juegos de mesa (§13.1) |
+| `vida.json` | 3 | 27 | planes y dinero, campus, humor (§13.2) |
+| `conexion.json` | 3 | 27 | autoexpansión, cuidado, valores en situaciones (§13.3) |
+| `picante.json` | 4 | 32 | coqueteo, curiosidad adulta, vanilla/kink, dinámicas (§6) |
 
 Cada quiz tiene:
 - `quiz_id` — identificador único (ej: `gustos_musica`, `gaming_plataformas`, `picante_nivel1`).
+  Empieza con su categoría, y así lo revisa `src/config/quiz-catalogue.test.ts`.
 - `revision` — versión del contenido (ej: `1`). Si cambia el contenido, se incrementa.
-- `categoria` — agrupación (gustos, gaming, picante).
+- `categoria` — agrupación (gustos, gaming, vida, conexion, picante).
 - `nivel` — para Picante: 1 (coqueto) o 2 (curiosidad adulta).
-- `item_id` — identificador del ítem dentro del quiz.
+- `item_id` — identificador del ítem **dentro del quiz**. Se repiten entre quizzes
+  (`plataforma` está en `gustos_cine` y en `gaming_plataformas`), por eso los seguimientos
+  se buscan con la llave `quiz_id/item_id`.
 - `texto` — pregunta o enunciado.
-- `opciones` — lista curada de opciones (sin texto libre).
+- `opciones` — lista curada de opciones (sin texto libre). La última es siempre
+  `OPT_OUT_LABEL` («Prefiero no decir»): lo exige el `.refine` del esquema, así ningún quiz
+  nuevo puede nacer sin la salida.
 - `multiple` — booleano: selección única o múltiple.
-- `dimensiones_relacionadas` — para generar preguntas sugeridas en el chat.
+- `dimensiones_relacionadas` — etiquetas de conversación. Nunca son dimensiones
+  psicométricas (`src/domain/quiz/isolation.test.ts`).
 
 **Evitar duplicados con el banco de preguntas del chat:** los quizzes no repiten las preguntas de
 `chat-prompts.json`. Si un quiz toca un tema similar (ej: música), la pregunta sugerida derivada de
-la coincidencia es distinta a las del banco.
+la coincidencia es distinta a las del banco. `src/domain/quiz/quizzes.test.ts` compara las
+sugerencias de los 18 quizzes contra el banco, incluidas sus variantes.
 
 ### 3.2 Respuestas de usuario
 
@@ -212,9 +228,14 @@ JSON uniforme con errores específicos y amables.
 ### 5.3 Resultado
 
 - Ficha amable: "Tu vibra musical: conciertos gigantes y playlists de estudio".
-- Badges motivacionales nuevos (estándar del catálogo: nombre ≤ 3 palabras, frase ≤ 80 caracteres,
-  2 variantes, sin rankear ni juzgar).
-- Ejemplos: "Melómano/a de corazón", "Cinéfilo/a casual", "Viajero/a de fin de semana".
+- Badges motivacionales nuevos: **no implementado**. El catálogo real vive en
+  `src/domain/badges/badge-catalog.ts` (cinco insignias, ninguna de quizzes) y una por quiz pediría
+  tres cosas que hoy no existen: una condición `{ tipo: "quizzes_completados" }` en
+  `BadgeCondition`, que el evaluador sepa contar intentos por categoría y un `BadgeId` por set.
+  El estándar de copy sí está escrito y es duro: nombre ≤ 3 palabras, frase ≤ 80 caracteres,
+  2 variantes, sin rankear ni juzgar.
+- Ejemplos (de cómo se leerían, no de lo que hay): "Melómano/a de corazón", "Cinéfilo/a casual",
+  "Viajero/a de fin de semana".
 
 ### 5.4 Uso como rompehielos
 
@@ -343,13 +364,16 @@ cumplen los guardarraíles.
 ### 7.5 Copy y badges
 
 - Mensajes con el motor de mensajes (variantes, `src/ui/chat/conversation-copy.ts`).
-- Badges nuevos agregados al catálogo (`data/badges.json`) con lint de copy.
+- Insignias en `src/domain/badges/badge-catalog.ts` (no `data/badges.json`: ese archivo nunca
+  existió). Ninguna insignia habla de quizzes todavía, ver §5.3.
 
 ## 8. Pruebas
 
 ### 8.1 Unitarias (Vitest)
 
-- Esquemas Zod de los tres JSON (`data/quizzes/*.json`).
+Lo que ya está cubierto, archivo por archivo en §13.11. En corto:
+
+- Esquemas Zod de los cinco JSON (`data/quizzes/*.json`).
 - Linter de contenido del set picante (términos y temas prohibidos, nivel 2 requiere segunda
   confirmación).
 - **RLS:** nadie lee respuestas ajenas (test con `service_role` vs `anon`).
@@ -361,8 +385,10 @@ cumplen los guardarraíles.
 - La sección picante no aparece sin mayoría de edad declarada, sin consentimiento, sin track de
   romance o sin PIN.
 - Ningún DTO, notificación ni log incluye respuestas.
-- El modelo de matching, los puntajes y la identidad **no cambian** al completar quizzes (test de
-  regresión que compare resultados antes/después).
+- El modelo de matching, los puntajes y la identidad **no cambian** al completar quizzes. Hoy se
+  sostiene de dos lados: `isolation.test.ts` prueba que la capa rompehielos no importa el motor,
+  y `actions.test.ts` que completar solo invoca `saveAnswers` y `markCompleted`. La comparación
+  numérica antes/después con dos cuentas reales queda para el humo E2E (§12.1).
 
 ### 8.2 Humo E2E
 
@@ -389,40 +415,188 @@ Con usuarios sintéticos:
 - `20261120000000_quizzes.sql` — tablas `quiz_attempts`, `quiz_answers`, `quiz_sharing`,
   `quiz_picante_consent`, RPC `quiz_coincidencias`, RLS y permisos.
 
-### 10.2 Archivos de código nuevos
+### 10.2 Archivos de código
 
-- `data/quizzes/gustos.json`, `gaming.json`, `picante.json` — definiciones de quizzes.
-- `src/config/quizzes.ts` — carga y validación con Zod.
+Catálogo y carga:
+
+- `data/quizzes/gustos.json`, `gaming.json`, `vida.json`, `conexion.json`, `picante.json` — las
+  cinco definiciones (18 quizzes, 150 ítems).
+- `src/config/quizzes.ts` — carga y validación con Zod, incluido el `.refine` que exige
+  `OPT_OUT_LABEL` como última opción de cada ítem.
+- `src/config/quiz-catalogue.ts` — catálogo por categoría y el orden del hub.
 - `src/config/quiz-picante-linter.ts` — linter de contenido picante.
-- `src/domain/quiz/` — lógica de dominio (coincidencias, visibilidad).
-- `src/application/quiz/` — casos de uso (completar, borrar, compartir).
-- `src/infrastructure/quiz/` — repositorio y rutas.
-- `src/app/api/quiz/` — rutas API.
-- `src/ui/quiz/` — componentes de UI.
-- `src/app/quizzes/page.tsx` — pantalla principal.
-- `src/app/quizzes/[quiz_id]/page.tsx` — pantalla de un quiz.
+
+Lógica:
+
+- `src/domain/quiz/quizzes.ts` — opt-out, valor guardable, coincidencias, explicaciones,
+  preguntas sugeridas y el par de una conversación.
+- `src/application/quiz/actions.ts` — casos de uso (completar, borrar, compartir, progreso,
+  coincidencias) sobre `src/application/quiz/ports.ts`.
+- `src/infrastructure/quiz/quiz-repository.ts` — repositorio Supabase.
+
+API (`src/app/api/quizzes/`, separada del test psicométrico en `src/app/api/quiz/`):
+
+- `route.ts` — guardar respuestas de un quiz.
+- `progreso/route.ts` — cuántas respuestas hay por quiz, en una sola lectura para todo el hub.
+- `coincidencias/route.ts` — coincidencias de los 14 quizzes no-18+ de una conversación, en una
+  sola lectura; recibe `conversacion`, nunca el id de la otra persona.
+- `picante/access/route.ts` y `picante/consent/route.ts` — acceso y consentimiento de Picante.
+
+UI:
+
+- `src/ui/quiz/quizzes-view.tsx` — el hub.
+- `src/ui/quiz/quiz-flow-view.tsx`, `quiz-flow.ts`, `quiz-draft.ts`, `reveal.tsx`,
+  `reveal-order.ts`, `quiz-icon.tsx`, `picante-consent.tsx`, `public-quiz.tsx`.
+- `src/app/quizzes/page.tsx` y `src/app/quizzes/[quiz_id]/page.tsx` — pantallas.
+- `src/ui/chat/quiz-coincidencias.tsx` — el panel plegable dentro de la conversación.
 
 ### 10.3 Archivos modificados
 
 - `src/ui/result/result-view.tsx` — icono de quizzes en la navegación.
-- `src/ui/chat/conversation-copy.ts` — preguntas sugeridas derivadas de coincidencias.
-- `data/chat-prompts.json` — categoría opcional "rompehielos" con preguntas derivadas.
+- `src/ui/chat/conversation-view.tsx` — monta el panel de coincidencias.
+- `src/app/quiz.css` — estilos del panel y del hub.
 - `docs/PRIVACIDAD.md` — sección nueva sobre quizzes.
-- `docs/DECISIONES.md` — ADR-041 (quizzes rompehielos).
+- `docs/DECISIONES.md` — ADR-041 (quizzes rompehielos) y ADR-060 (los cinco sets y el opt-out).
 - `docs/ESTADO_ACTUAL.md` — changelog de quizzes.
 - `docs/QA.md` — checklist para probar con dos celulares reales.
 - `docs/PENDIENTES_MANUALES.md` — nota sobre aviso de privacidad y consentimiento picante.
 
 ## 11. Decisiones
 
-Ver `docs/DECISIONES.md` ADR-041.
+Ver `docs/DECISIONES.md` ADR-041 y ADR-060.
 
 ## 12. Próximos pasos
 
-1. Implementar Fase 1 (migración y servidor).
-2. Implementar Fase 2 (Gustos).
-3. Implementar Fase 3 (Gaming).
-4. Implementar Fase 4 (Picante, con feature flag apagado).
-5. Implementar Fase 5 (UI/UX).
-6. Implementar Fase 6 (pruebas).
-7. Implementar Fase 7 (docs y despliegue).
+Hecho queda todo el catálogo y su motor (Fases 1–7). Lo que sigue, en orden de valor:
+
+1. Playwright sobre el hub y el flujo de coincidencias (M-07 del plan de QA).
+2. Medir en dos celulares reales si las explicaciones de coincidencia caben sin scroll.
+3. Microencuesta post-chat de una pregunta (sin escala de atractivo, sin ranking).
+
+## 13. El catálogo completo y su pulido (2026-11-09)
+
+### 13.1 Gaming — `data/quizzes/gaming.json`
+
+Cuatro mini-quizzes, 32 ítems. Venía implementado desde la Fase 3 pero sin sección propia.
+
+| quiz_id | Título | Ítems | Min |
+|---|---|---|---|
+| `gaming_plataformas` | Tu setup gamer | 8 | 2 |
+| `gaming_generos` | Tus géneros favoritos | 8 | 2 |
+| `gaming_estilo` | Tu estilo de juego | 8 | 2 |
+| `gaming_mesa` | Juegos de mesa y rol | 8 | 1 |
+
+### 13.2 Vida — `data/quizzes/vida.json`
+
+Nueve ítems por quiz, 1.5 min. Cubre «estilo de vida y planes», «vida en el campus» y «humor».
+En campus se pregunta por rutinas y lugares, nunca por horarios exactos, carrera, ni grupo:
+cualquier dato que ubique a alguien en el tiempo y el espacio queda fuera.
+
+| quiz_id | Título | Ítems | Min |
+|---|---|---|---|
+| `vida_planes` | Tu fin de semana ideal | 9 | 1.5 |
+| `vida_campus` | Tu vida en el campus | 9 | 1.5 |
+| `vida_humor` | Tu humor | 9 | 1.5 |
+
+### 13.3 Conexión — `data/quizzes/conexion.json`
+
+Autoexpansión, cuidado/afecto y valores en situaciones. Los tres están redactados para servirle
+igual a una amistad que a una pareja, y ninguno entra al puntaje: `conexion_valores_situaciones`
+usa mini dilemas ligeros, sin trampa ni calificación, y sus ítems van etiquetados como
+`personalidad`/`estilo` para no chocar con la dimensión psicométrica «valores».
+
+| quiz_id | Título | Ítems | Min |
+|---|---|---|---|
+| `conexion_autoexpansion` | Algo nuevo por probar | 9 | 1.5 |
+| `conexion_cuidado` | Cómo cuidas y te cuidan | 9 | 1.5 |
+| `conexion_valores_situaciones` | Valores en situaciones | 9 | 1.5 |
+
+### 13.4 «Prefiero no decir» deja de ser una promesa
+
+El esquema Zod exige que la última opción de cada ítem sea exactamente `OPT_OUT_LABEL`
+(«Prefiero no decir»), así que ningún quiz nuevo puede nacer sin salida. Al guardarse se
+convierte en `OPT_OUT_VALOR` (`prefiero_no_decir`), que es el valor que `quiz_coincidencias`
+ya filtraba en la base: por eso **no hizo falta migración**.
+
+Dos reglas que sí cambiaron el comportamiento:
+
+- Un ítem sin respuesta **ya no se guarda como opt-out**. Antes el formulario rellenaba
+  `prefiero_no_decir` en todo lo vacío, o sea: le ponía en la boca a alguien una decisión que
+  no tomó. Ahora un ítem sin tocar no escribe renglón.
+- `esOptOut` compara en minúsculas. Los ítems de acuerdo guardan `"No"` con mayúscula, y
+  `'No' !== 'no'`, así que hasta ahora una negativa de Picante podía aparecer como coincidencia.
+
+### 13.5 Respuesta múltiple en una columna
+
+`quiz_answers` tiene una fila por `(persona_id, quiz_id, item_id)` y un solo `valor TEXT`. Los
+ítems `multiple` se guardan con `valorGuardable`: opciones válidas, deduplicadas y ordenadas
+unidas por `"; "`. Se verificó que ninguna opción del catálogo contenga `;` ni `|`, así que el
+separador no puede aparecer dentro de un valor. Con una sola selección no se agrega separador,
+así que los renglones que ya existen siguen coincidiendo igual.
+
+### 13.6 El hub y el chat hablan en una sola petición
+
+El hub muestra 18 tarjetas. Pedir el estado quiz por quiz eran 18 peticiones contra un límite de
+30 por minuto (`withApiSecurity`), así que al tercer refresh todo salía «Pendiente» sin estarlo.
+Ahora:
+
+- `GET /api/quizzes/progreso` — cuántas respuestas hay por quiz, en una lectura
+  (`countAnswersByQuiz` en `src/infrastructure/quiz/quiz-repository.ts`).
+- `GET /api/quizzes/coincidencias?conversacion&quiz_ids` — varias coincidencias con
+  `Promise.all` del lado del servidor. El panel del chat cubre los 14 quizzes no-18+ en una
+  petición, no en 8.
+  Viaja el id de la conversación y no el de la otra persona por dos razones: el contrato del chat
+  (`src/contracts/chat.ts`) nunca reparte `user_id` al cliente, y así la ruta resuelve el par con
+  `findFor(id, quien_pregunta)`, que ya es la compuerta que verifica que eres parte de esa
+  conversación. Nadie puede asomar la nariz a una pareja que no es la suya.
+
+### 13.7 Nada llega a la base sin estar declarado
+
+`revisarRespuestas` (`src/application/quiz/actions.ts`) corre antes de cualquier escritura y
+rechaza un `item_id` que el quiz no declara (`quiz.item_no_declarado`, 400) o un `valor` que no
+es opción del ítem (`quiz.valor_no_valido`, 400). Se valida todo el lote primero: un rechazo no
+deja medio quiz guardado.
+
+### 13.8 Picante: a quién le llega
+
+- El panel de coincidencias del chat **no incluye Picante**. La revelación 18+ sigue siendo solo
+  por coincidencia mutua y en su propia pantalla de resultado, sin presión en la bandeja.
+- `picante_dinamicas` calcula leyendo respuestas sueltas en JavaScript, así que esquivaba el
+  filtro SQL. Ahora `obtenerCoincidenciasDinamicas` exige `puedeCompartirPicante` en las dos
+  partes antes de leer una sola respuesta. El rastro que se revisa es el sello que quedó al dar
+  el consentimiento (`track_romance_activo` en `quiz_picante_consent`), no el valor vivo del
+  perfil.
+- Sigue en pie lo que ya hacía: mayoría de edad + consentimiento para *entrar*, y bandera de
+  seguridad en «No» apaga las dinámicas.
+
+### 13.9 Explicaciones y sugerencias
+
+`explicarCoincidencia` traduce una coincidencia a una línea en español («Coinciden en: PC»); en
+los ítems de acuerdo cita el enunciado, porque su valor es un «sí» que no dice nada solo.
+`generarPreguntasSugeridas` devuelve como máximo `MAX_PREGUNTAS_SUGERIDAS` (3) preguntas abiertas
+por quiz, sin repetir, buscadas con la llave `quiz_id/item_id`; si falta la llave cae en una red
+de seguridad por categoría. La llave larga no es decorado: `plataforma` y `ritmo` existen en dos
+quizzes distintos y sin ella el chat sugería la pregunta del quiz equivocado.
+
+Todo eso se ve: `src/ui/chat/quiz-coincidencias.tsx` está montado en la conversación, entre la guía
+de primera vez y las rondas (`src/ui/chat/conversation-view.tsx`), plegado por defecto para no
+cobrar altura en móvil. Sin coincidencias no pinta nada. Lo que aún no existe es meter las
+sugerencias dentro del selector de preguntas de las tres rondas: hoy el banco de `rounds` sale solo
+de `data/chat-prompts.json`.
+
+### 13.10 El hub perdió los emojis y ganó orden
+
+Los íconos de sección son `Icon` del kit (`src/ui/kit/icon.tsx`), no caracteres emoji: los
+lectores de pantalla los leen mal y reñían con el sistema de diseño pixel. El orden del hub es
+`QUIZ_CATEGORIES`: gustos, gaming, vida, conexión, picante — el 18+ hasta el final, y desaparece
+de la lista cuando la compuerta está apagada.
+
+### 13.11 Pruebas
+
+| Prueba | Qué sostiene |
+|---|---|
+| `src/config/quiz-catalogue.test.ts` | 18 quizzes y 150 ítems, opt-out en cada ítem, títulos de cinco palabras o menos, cero emojis, 8–10 ítems y ≤2 min en los sets nuevos |
+| `src/domain/quiz/quizzes.test.ts` | `esOptOut`, `valorGuardable`, `valorValido`, coincidencias, explicaciones, sugerencias sin duplicados con el banco de chat |
+| `src/domain/quiz/isolation.test.ts` | ninguna dimensión psicométrica en un quiz y ningún import del rompehielos hacia el motor, la psicometría o la identidad |
+| `src/application/quiz/actions.test.ts` | validación antes de escribir, borrado por quiz, compuertas de visibilidad, match y consentimiento mutuo |
+| `src/config/quiz-picante-linter.test.ts` | guardarraíles de contenido 18+ |

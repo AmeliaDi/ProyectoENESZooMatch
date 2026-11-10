@@ -6,13 +6,26 @@ import type { MatchCategoryId } from "@/types/matching-config";
 
 import type { Interval, MorrisRow } from "./metrics";
 
+export interface Exposure {
+  /** Gini of how many published matches each person appears in. */
+  readonly gini: number;
+  /** Largest single-person share of all appearances. */
+  readonly maxShare: number;
+  readonly zeroMatches: number;
+  readonly meanMatches: number;
+  readonly p90: number;
+}
+
 export interface TrackReport {
   track: string;
   alpha: number;
+  people: number;
   pairs: number;
   threshold: number;
   above: number;
   coverage: number;
+  /** Coverage over the pool the track is designed to serve (romance opt-outs excluded). */
+  poolCoverage: number;
   matches: number;
   quantiles: Array<{ q: number; real: number; null: number }>;
   coverageCurve: Array<{ q: number; threshold: number; above: number; coverage: number }>;
@@ -20,7 +33,10 @@ export interface TrackReport {
   recovery: Array<{ hypothesis: string; model: Interval; baseline: Interval }>;
   ablation: Array<{ label: string; rho: number; jaccard: number; coverage: number; auc: number }>;
   stability: { rho: number; jaccard: number };
-  equity: Array<{ group: string; n: number; eligiblePartners: number; coverage: number }>;
+  equity: Array<{ group: string; n: number; optedOut: number; eligiblePartners: number; coverage: number; poolCoverage: number }>;
+  exposure: Exposure;
+  /** Worst subpopulation coverage / median coverage; 1 means no gap. */
+  equityFloor: number;
   morris: MorrisRow[];
   identityShare: number;
   extrasShare: number;
@@ -50,7 +66,7 @@ function trackSection(r: TrackReport): string {
   return [
     `## Track: ${r.track}`,
     "",
-    `Pares elegibles: ${r.pairs}. Umbral = cuantil ${1 - r.alpha} de la nula: **${f(r.threshold, 4)}**. Pares reales sobre el umbral: ${pct(r.above)}. Matches publicados (top-K): ${r.matches}; cobertura de personas: **${pct(r.coverage)}**. Puntaje máximo observado: ${f(r.maxScore)}; techo de referencia (cuantil 0.999): ${f(r.referenceHigh, 4)}.`,
+    `Pares elegibles: ${r.pairs}. Umbral = cuantil ${1 - r.alpha} de la nula: **${f(r.threshold, 4)}**. Pares reales sobre el umbral: ${pct(r.above)}. Matches publicados (top-K): ${r.matches}; cobertura de personas: **${pct(r.coverage)}** (${pct(r.poolCoverage)} sobre el pool que el track atiende por diseño). Puntaje máximo observado: ${f(r.maxScore)}; techo de referencia (cuantil 0.999): ${f(r.referenceHigh, 4)}.`,
     "",
     "### Distribución de similitudes (real vs nula por permutación)",
     "",
@@ -88,7 +104,19 @@ function trackSection(r: TrackReport): string {
     "",
     "### Equidad por subpoblación",
     "",
-    table(["Subpoblación", "N", "Parejas elegibles (media)", "Cobertura"], r.equity.map((e) => [e.group, String(e.n), f(e.eligiblePartners, 1), pct(e.coverage)])),
+    "«Opt-out» = personas cuya propia declaración las saca de romance («prefiero no decir» en orientación o tipo de relación, ADR-016). Su cobertura de romance es 0 por consentimiento, no por un defecto del pipeline; la columna «Cobertura (pool)» las excluye del denominador y es la que alimenta la compuerta de equidad. En amistad nadie queda fuera por diseño.",
+    "",
+    table(["Subpoblación", "N", "Opt-out", "Parejas elegibles (media)", "Cobertura", "Cobertura (pool)"], r.equity.map((e) => [e.group, String(e.n), String(e.optedOut), f(e.eligiblePartners, 1), pct(e.coverage), e.n - e.optedOut === 0 ? "— (fuera por diseño)" : pct(e.poolCoverage)])),
+    "",
+    `Cobertura mínima (pool) / mediana: **${f(r.equityFloor)}** (la compuerta de rollout exige ≥ 0.70).`,
+    "",
+    "### Desigualdad de exposición",
+    "",
+    "Cada aparición cuenta una vez por persona y por match publicado (los dos extremos del par). No es un puntaje de deseabilidad: mide si el reparto de visibilidad se concentra en pocas personas.",
+    "",
+    table(["Gini", "Máxima proporción por persona", "Personas con 0 matches", "Matches por persona (media)", "P90"], [
+      [f(r.exposure.gini), pct(r.exposure.maxShare, 2), `${r.exposure.zeroMatches} de ${r.people}`, f(r.exposure.meanMatches, 2), f(r.exposure.p90, 1)],
+    ]),
   ].join("\n");
 }
 

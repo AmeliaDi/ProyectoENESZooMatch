@@ -1,0 +1,412 @@
+{
+  "version": "vida-1",
+  "etiqueta": "supuesto_diseno",
+  "fuente": "Quizzes rompehielos propios (docs/QUIZZES.md §13). No es un instrumento psicométrico ni alimenta el modelo de matching.",
+  "quizzes": [
+    {
+      "quiz_id": "vida_planes",
+      "revision": "1",
+      "categoria": "vida",
+      "titulo": "Tu fin de semana ideal",
+      "descripcion": "Ocio, dinero y ritmo de semana. Sirve para proponer un plan sin adivinar.",
+      "duracion_estimada_minutos": 1.5,
+      "items": [
+        {
+          "item_id": "fin_semana_ideal",
+          "texto": "¿Cómo se ve tu fin de semana perfecto?",
+          "opciones": [
+            "Salida con gente",
+            "Plan tranquilo en casa",
+            "Algo al aire libre",
+            "Dormir hasta tarde sin plan",
+            "Mezcla de todo un poco",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida", "estilo"]
+        },
+        {
+          "item_id": "ocio_preferido",
+          "texto": "¿Qué haces cuando tienes tiempo libre?",
+          "opciones": [
+            "Ver series o películas",
+            "Leer",
+            "Jugar videojuegos",
+            "Hacer ejercicio",
+            "Dibujar, escribir o crear algo",
+            "Escuchar música",
+            "Platicar con alguien",
+            "Salir sin destino",
+            "Prefiero no decir"
+          ],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo_de_vida", "gustos"]
+        },
+        {
+          "item_id": "ahorro_vs_gasto",
+          "texto": "¿Cómo te llevas con el dinero?",
+          "opciones": [
+            "Ahorro casi todo lo que me queda",
+            "Ahorro un poco y gasto con calma",
+            "Gasto según el ánimo",
+            "Vivo al día sin angustia",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida", "personalidad"]
+        },
+        {
+          "item_id": "vida_nocturna",
+          "texto": "¿Cada cuánto sales de noche?",
+          "opciones": [
+            "Casi nunca",
+            "Una vez al mes",
+            "Cada semana",
+            "Casi todos los días",
+            "Depende de la semana",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida", "estilo"]
+        },
+        {
+          "item_id": "plan_vs_improvisar",
+          "texto": "¿Cómo prefieres armar los planes?",
+          "opciones": [
+            "Todo agendado con días de anticipación",
+            "Una idea suelta y ya se ve",
+            "Improvisar al momento",
+            "Que alguien más proponga y yo me sumo",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo", "personalidad"]
+        },
+        {
+          "item_id": "ritmo_social",
+          "texto": "¿Cuánta gente te rodea en un sábado ideal?",
+          "opciones": [
+            "Nadie o solo una persona",
+            "Un grupo chico de tres o cuatro",
+            "Un grupo grande",
+            "Fiesta llena",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "hora_de_dormir",
+          "texto": "¿A qué hora te cae el sueño normalmente?",
+          "opciones": [
+            "Antes de las 22:00",
+            "Entre 22:00 y medianoche",
+            "Pasada la medianoche",
+            "De madrugada",
+            "Sin horario fijo",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "tareas_de_casa",
+          "texto": "¿Qué tan rápido resuelves las tareas de la casa?",
+          "opciones": [
+            "En cuanto las veo",
+            "En bloque el fin de semana",
+            "Hasta que ya no aguantan",
+            "Mejor si las hacemos juntos",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo_de_vida"]
+        },
+        {
+          "item_id": "meta_tres_meses",
+          "texto": "¿Qué quieres lograr en los próximos tres meses?",
+          "opciones": [
+            "Terminar algo que dejé pendiente",
+            "Aprender algo nuevo",
+            "Ver más a mi gente",
+            "Cuidar mi cuerpo",
+            "Nada concreto por ahora",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo_de_vida"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "vida_campus",
+      "revision": "1",
+      "categoria": "vida",
+      "titulo": "Tu vida en el campus",
+      "descripcion": "Rutinas y lugares, sin horarios exactos ni datos que te identifiquen.",
+      "duracion_estimada_minutos": 1.5,
+      "items": [
+        {
+          "item_id": "lugar_de_estudio",
+          "texto": "¿Dónde te concentras mejor?",
+          "opciones": [
+            "En la biblioteca",
+            "En una cafetería",
+            "En jardines o áreas verdes",
+            "En mi cuarto",
+            "En un salón vacío de la escuela",
+            "Donde haya silencio total",
+            "Prefiero no decir"
+          ],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo_de_vida", "gustos"]
+        },
+        {
+          "item_id": "estudio_solo_o_en_grupo",
+          "texto": "¿Cómo estudias más?",
+          "opciones": [
+            "Solo",
+            "Con una persona",
+            "En grupo grande",
+            "Primero solo y luego reviso con alguien",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "transporte_al_campus",
+          "texto": "¿Cómo llegas normalmente?",
+          "opciones": [
+            "Caminando",
+            "En bici",
+            "En transporte público",
+            "En auto",
+            "Me llevo con alguien",
+            "Mis clases son en línea",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "forma_del_dia",
+          "texto": "¿Cómo te cae el día normal?",
+          "opciones": [
+            "Clases en la mañana y tarde libre",
+            "Clases en la tarde y mañana libre",
+            "Día partido entre clases y trabajo",
+            "Casi todo el día dentro de la escuela",
+            "Sin rutina fija",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        },
+        {
+          "item_id": "rincon_del_campus",
+          "texto": "¿Qué lugar del campus es tu refugio?",
+          "opciones": [
+            "La biblioteca",
+            "Una cafetería",
+            "Los jardines",
+            "Las canchas",
+            "Un salón vacío",
+            "La tienda o el café pequeño",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["gustos", "estilo_de_vida"]
+        },
+        {
+          "item_id": "eventos_escolares",
+          "texto": "¿Vas a eventos del campus?",
+          "opciones": [
+            "A casi todos",
+            "A los que me interesan",
+            "Casi nunca",
+            "Solo si voy con alguien",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "comida_en_dias_intensos",
+          "texto": "¿Qué comes en un día intenso?",
+          "opciones": [
+            "En la cafetería",
+            "Traigo lonche",
+            "No como hasta que salgo",
+            "Comida corrida",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida", "gustos"]
+        },
+        {
+          "item_id": "semana_de_examenes",
+          "texto": "¿Cómo llevas la semana de exámenes?",
+          "opciones": [
+            "Con plan días antes",
+            "Estudio todo al final",
+            "Con un grupo de estudio",
+            "Sobrevivo con café",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "dia_siguiente_sin_dormir",
+          "texto": "¿Qué haces después de una noche sin dormir?",
+          "opciones": [
+            "Dormir en cuanto puedo",
+            "Aguanto hasta la noche",
+            "Actividad ligera y agua",
+            "Me quedo en cama sin culpa",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "vida_humor",
+      "revision": "1",
+      "categoria": "vida",
+      "titulo": "Tu humor",
+      "descripcion": "Estilos y referencias. Es lo más parecido a reírse en la misma dirección.",
+      "duracion_estimada_minutos": 1.5,
+      "items": [
+        {
+          "item_id": "estilo_de_humor",
+          "texto": "¿Qué tipo de humor te gana?",
+          "opciones": [
+            "Ironía y sarcasmo",
+            "Absurdo sin sentido",
+            "Referencias y memes",
+            "Chiste de palabra",
+            "Humor físico",
+            "Contar algo real y ridículo",
+            "Prefiero no decir"
+          ],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos", "personalidad"]
+        },
+        {
+          "item_id": "que_te_hace_reir",
+          "texto": "¿Qué te hizo reír por última vez?",
+          "opciones": [
+            "Un video corto a deshoras",
+            "Un chiste en el momento equivocado",
+            "Alguien contando una historia",
+            "Un meme demasiado exacto",
+            "Reírme con más gente",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["gustos", "estilo"]
+        },
+        {
+          "item_id": "tu_humor_contado",
+          "texto": "¿Cómo describirías tu propio humor?",
+          "opciones": [
+            "Se me da rápido y seguido",
+            "Tardo, pero aterrizo",
+            "Soy más de reaccionar que de decir",
+            "Me da pena reírme fuerte",
+            "Casi no hago chistes",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "referencias_que_usas",
+          "texto": "¿De qué son tus referencias?",
+          "opciones": [
+            "Series de los 90 o los 2000",
+            "Anime",
+            "Películas de la escuela",
+            "Memes actuales",
+            "Cantantes y música",
+            "Videojuegos",
+            "Noticias, con cuidado",
+            "Prefiero no decir"
+          ],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos"]
+        },
+        {
+          "item_id": "chiste_ya_contado",
+          "texto": "¿Qué haces cuando alguien repite un chiste?",
+          "opciones": [
+            "Me río igual",
+            "Lo corregido y lo mejoro",
+            "Lo dejo pasar",
+            "Se lo digo después",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "donde_ries_mas",
+          "texto": "¿Dónde te ríes más?",
+          "opciones": [
+            "En vivo, con micrófono de por medio",
+            "En el cine con gente",
+            "En una llamada grupal",
+            "Solo con audífonos",
+            "En persona, con una persona",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["gustos", "estilo"]
+        },
+        {
+          "item_id": "humor_cuando_estas_de_malas",
+          "texto": "¿Qué le pasa a tu humor cuando estás de malas?",
+          "opciones": [
+            "Se vuelve más seco",
+            "Me hace reír más",
+            "Desaparezco un rato",
+            "Hablo fuerte y luego se me pasa",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "reirte_de_tus_errores",
+          "texto": "¿Te ríes de tus propios errores?",
+          "opciones": [
+            "Sí, todo el tiempo",
+            "Sí, cuando ya pasó",
+            "Mejor no",
+            "Depende de quién lo vea",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "como_mandas_un_chiste",
+          "texto": "¿Cómo mandas un chiste?",
+          "opciones": [
+            "Como meme",
+            "Como audio largo",
+            "Como texto seco",
+            "Con un video",
+            "No los mando",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo", "gustos"]
+        }
+      ]
+    }
+  ]
+}

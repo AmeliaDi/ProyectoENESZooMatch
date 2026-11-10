@@ -28,7 +28,7 @@ import { createAccessGuard, guardSubject } from "./auth/access-guard.server";
 import { supabaseConversationRepository } from "./chat/conversation-repository";
 import { createPinHasher } from "./chat/pin-hasher.server";
 import { supabaseChatPinRepository, supabaseMatriculaVerifier } from "./chat/pin-repository";
-import { getChatPinPepper, getServerEnv } from "./env/env.server";
+import { getChatPinPepper, getMatchingEngine, getServerEnv } from "./env/env.server";
 
 import { serverLatentScorer } from "./latent-scorer.server";
 import { createAdminClient } from "./supabase/admin.server";
@@ -83,6 +83,7 @@ export async function refineContext(): Promise<Result<{ userId: string; deps: Re
       matches: supabaseMatchRepository(admin),
       notifications: supabaseNotificationRepository(admin, auth.value.session),
       scheduler: systemScheduler,
+      engine: getMatchingEngine(),
       latentScorer: serverLatentScorer,
       secret: env.MATRICULA_HMAC_SECRET,
     },
@@ -108,6 +109,7 @@ export async function retakeContext(): Promise<Result<{ userId: string; deps: Re
       matches: supabaseMatchRepository(admin),
       notifications: supabaseNotificationRepository(admin, auth.value.session),
       scheduler: systemScheduler,
+      engine: getMatchingEngine(),
       latentScorer: serverLatentScorer,
       secret: env.MATRICULA_HMAC_SECRET,
       plans: RETAKE_PLANS,
@@ -171,6 +173,7 @@ export async function privacyContext(): Promise<
       profiles: supabaseProfileRepository(admin),
       matches: supabaseMatchRepository(admin),
       scheduler: systemScheduler,
+      engine: getMatchingEngine(),
     },
     signOut: async () => {
       await session.auth.signOut().catch(() => undefined);
@@ -221,7 +224,7 @@ export async function adminConsoleContext(): Promise<Result<AdminConsoleContext,
   const guard = createAccessGuard(admin);
   return ok({
     console: consoleRepo,
-    deps: { console: consoleRepo, profiles: supabaseProfileRepository(admin), matches: supabaseMatchRepository(admin), scheduler: systemScheduler },
+    deps: { console: consoleRepo, profiles: supabaseProfileRepository(admin), matches: supabaseMatchRepository(admin), scheduler: systemScheduler, engine: getMatchingEngine() },
     login: { console: consoleRepo, hasher: adminHasher(pepper), clock: systemClock },
     metrics: supabaseAdminRepository(admin),
     clock: systemClock,
@@ -328,6 +331,7 @@ export function recomputeDeps(): Result<RecomputeDeps, Failure> {
     profiles: supabaseProfileRepository(admin),
     matches: supabaseMatchRepository(admin),
     scheduler: systemScheduler,
+    engine: getMatchingEngine(),
   });
 }
 
@@ -366,6 +370,7 @@ export async function runScheduledRetention(): Promise<Result<RetentionSummary, 
     profiles: supabaseProfileRepository(admin),
     matches: supabaseMatchRepository(admin),
     scheduler: systemScheduler,
+    engine: getMatchingEngine(),
   });
 
   const data = (retentionRes.data ?? {}) as Record<string, unknown>;
@@ -393,6 +398,7 @@ export async function runScheduledReconciliation(): Promise<
     matches: supabaseMatchRepository(admin),
     notifications: supabaseNotificationRepository(admin, admin),
     scheduler: systemScheduler,
+    engine: getMatchingEngine(),
     hatch: { profiles, secret: env.MATRICULA_HMAC_SECRET, scheduler: systemScheduler },
   };
   return reconcileEggs(deps);

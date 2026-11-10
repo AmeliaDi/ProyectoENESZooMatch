@@ -121,7 +121,7 @@ async function createAccount(index: number): Promise<Account> {
     { itemId: "FIL3", selected: ["monogamia", "sin_definir"] },
   ];
 
-  const enter = await call("/api/enter", "POST", { matricula, eventId: EVENT_ID, sintetico: true });
+  const enter = await call("/api/enter", "POST", { matricula });
   expect(enter.status, `enter ${matricula}`).toBe(200);
   const sessionCookie = enter.cookies.join("; ");
 

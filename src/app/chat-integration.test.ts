@@ -1,7 +1,8 @@
 /**
  * Integration tests for chat with 2-3 authenticated clients. Tests the full
  * flow: signals → mutual opening → PIN → 3 rounds → free chat → messages.
- * Uses synthetic accounts with event_id tagging.
+ * The EVENT_ID is a local correlation tag only: /api/enter accepts nothing but
+ * the matrícula (ADR-026), so nothing synthetic is written to the database.
  *
  * Skipped unless BASE points at a running deploy (local or preview):
  *   BASE=http://localhost:3124 vitest run src/app/chat-integration.test.ts
@@ -62,7 +63,7 @@ async function createAccount(index: number): Promise<Account> {
     { itemId: "FIL3", selected: ["monogamia", "sin_definir"] },
   ];
 
-  const enter = await post("/api/enter", { matricula, eventId: EVENT_ID, sintetico: true });
+  const enter = await post("/api/enter", { matricula });
   expect(enter.status, `enter ${matricula}`).toBe(200);
   const sessionCookie = enter.cookie ?? "";
 

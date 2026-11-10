@@ -85,7 +85,7 @@ async function createAccount(index) {
   const matricula = String(MATRICULA_BASE + index);
   const likert = generateLikert(index);
 
-  const enter = await post("/api/enter", { matricula, eventId: EVENT_ID, sintetico: true });
+  const enter = await post("/api/enter", { matricula });
   if (enter.status !== 200) throw new Error(`enter ${matricula}: ${enter.status}`);
   const cookie = enter.cookies;
 

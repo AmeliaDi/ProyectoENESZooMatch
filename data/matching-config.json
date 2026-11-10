@@ -91,14 +91,14 @@
     "mbti": {
       "kind": "kernel",
       "etiqueta": "prior_literatura",
-      "fuente": "Pittenger 1993; McCrae & Costa 1989: validez limitada → identidad visual y narrativa",
+      "fuente": "EV-30, EV-32 (McCrae & Costa 1989; Pittenger 1993): validez limitada → identidad visual y narrativa",
       "factors": { "mbti_ei": 1.0, "mbti_sn": 1.0, "mbti_tf": 1.0, "mbti_jp": 1.0 },
       "bandwidth_per_sqrt_dim": { "valor": 1.0, "etiqueta": "supuesto_diseno", "fuente": "Igual que personalidad" }
     },
     "eneagrama": {
       "kind": "distribution",
       "etiqueta": "prior_literatura",
-      "fuente": "Hook et al. 2021: evidencia psicométrica limitada → identidad visual y narrativa",
+      "fuente": "EV-40 (Hook et al. 2021): evidencia psicométrica limitada → identidad visual y narrativa",
       "factors": { "ennea_1": 1, "ennea_2": 1, "ennea_3": 1, "ennea_4": 1, "ennea_5": 1, "ennea_6": 1, "ennea_7": 1, "ennea_8": 1, "ennea_9": 1 },
       "temperature": { "valor": 0.5, "etiqueta": "supuesto_diseno", "fuente": "Softmax sobre θ̂ del eneagrama" },
       "neutral": { "valor": 0.5, "etiqueta": "supuesto_diseno", "fuente": "Valor al que se contrae una comparación sin información (entropía máxima)" }

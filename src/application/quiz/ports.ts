@@ -11,6 +11,8 @@ export interface QuizRepository {
   saveAnswers(personaId: string, quizId: string, answers: readonly QuizAnswer[]): Promise<void>;
   getAnswers(personaId: string, quizId: string): Promise<QuizAnswer[]>;
   deleteAnswers(personaId: string, quizId: string | null): Promise<void>;
+  /** Cuántas respuestas hay por quiz, de una sola vez: el hub son 18 quizzes. */
+  countAnswersByQuiz(personaId: string): Promise<Record<string, number>>;
 
   // Intentos
   markCompleted(personaId: string, quizId: string, revision: string): Promise<void>;

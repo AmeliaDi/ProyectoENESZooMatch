@@ -58,15 +58,20 @@ BEGIN
   END IF;
 
   -- Alias duplicados o con animal/color que no coinciden con el texto: el
-  -- backfill debió resolverlos antes de permitir este paso.
-  SELECT count(*) INTO v_huerfanos
-  FROM public.profiles
-  WHERE estado_identidad = 'eclosionado' AND eliminado_en IS NULL
-    AND (alias_completo IS DISTINCT FROM alias
-         OR alias_completo NOT LIKE alias_animal || ' ' || alias_color || ' %');
-  IF v_huerfanos > 0 THEN
-    RAISE EXCEPTION '% alias no coinciden con sus partes guardadas', v_huerfanos
-      USING ERRCODE = '22023';
+  -- backfill debió resolverlos antes de permitir este paso. La comparación con
+  -- `alias` solo existe antes del borrado; al re-aplicar, la columna ya no está
+  -- y este chequeo debe saltarse en vez de abortar la migración entera.
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'alias') THEN
+    SELECT count(*) INTO v_huerfanos
+    FROM public.profiles
+    WHERE estado_identidad = 'eclosionado' AND eliminado_en IS NULL
+      AND (alias_completo IS DISTINCT FROM alias
+           OR alias_completo NOT LIKE alias_animal || ' ' || alias_color || ' %');
+    IF v_huerfanos > 0 THEN
+      RAISE EXCEPTION '% alias no coinciden con sus partes guardadas', v_huerfanos
+        USING ERRCODE = '22023';
+    END IF;
   END IF;
 END;
 $$;

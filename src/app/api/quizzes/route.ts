@@ -35,6 +35,10 @@ function mapError(error: QuizError): { codigo: string; status: number } {
       return { codigo: "quiz.no_identidad", status: 403 };
     case "quiz.no_encontrado":
       return { codigo: "quiz.no_encontrado", status: 404 };
+    case "quiz.item_no_declarado":
+      return { codigo: "quiz.item_no_declarado", status: 400 };
+    case "quiz.valor_no_valido":
+      return { codigo: "quiz.valor_no_valido", status: 400 };
     case "quiz.sin_permiso":
       return { codigo: "quiz.sin_permiso", status: 403 };
     case "quiz.picante.requisitos":

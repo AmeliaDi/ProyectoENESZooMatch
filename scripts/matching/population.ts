@@ -89,12 +89,16 @@ export function makePopulation(size: number, random: Random, quality: QualityCon
   });
 }
 
-/** Re-scores a person after perturbing ±1 Likert in a share of items (clamped to 1..5). */
-export function perturbed(person: Person, share: number, random: Random, quality: QualityConfig): LatentProfile {
-  const responses = person.responses.map((r) =>
+/** ±1 Likert on a share of items, clamped to 1..5. Same random draw order as the latent re-score. */
+export function perturbedResponses(person: Person, share: number, random: Random): LatentResponse[] {
+  return person.responses.map((r) =>
     random() < share ? { ...r, value: Math.min(5, Math.max(1, r.value + (random() < 0.5 ? -1 : 1))) } : r,
   );
-  return scoreLatent(MODEL, responses, quality);
+}
+
+/** Re-scores a person after perturbing ±1 Likert in a share of items (clamped to 1..5). */
+export function perturbed(person: Person, share: number, random: Random, quality: QualityConfig): LatentProfile {
+  return scoreLatent(MODEL, perturbedResponses(person, share, random), quality);
 }
 
 /** The person's TRUE latent position as a zero-uncertainty profile (generator oracle). */

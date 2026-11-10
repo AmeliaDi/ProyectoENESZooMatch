@@ -1,0 +1,118 @@
+{
+  "version": "1.0.0",
+  "nota": "Presupuestos de tiempo de `npm run db:perf` (QA de base de datos, Fase 5 del prompt). Se miden sobre una base local desechable (PGlite, Postgres compilado a WASM) sembrada con la población declarada abajo. Regla de calibración de todo max_ms: ceil(max(3 × mediana, 2 × máximo observado)) de la última corrida, guardada en .qa/db-perf-medido.json. El factor 3 absorbe la primera ejecución fría de cada plan en WASM y el 2 es el suelo que pone el máximo visto, para que un presupuesto no se quede por debajo de su propia varianza. En un Postgres real de Supabase estas rutas son más rápidas, así que un fallo aquí señala algo estructural (plan de ejecución, índice ausente, escritura que crece con el pool) y no el hardware. La columna «medido en producción» de docs/QA_DB.md se llena con pg_stat_statements: es la única forma de verificar estos números contra la base viva, y `db:perf` la lee solo como referencia, nunca como criterio de aprobado.",
+  "poblacion": {
+    "semilla": {
+      "valor": 1515870810,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "La misma calibración de data/matching-config.json (0x5A5A5A5A): toda corrida determinista del repo arranca aquí, así un presupuesto fallido es reproducible."
+    },
+    "perfiles": {
+      "valor": 600,
+      "etiqueta": "estimado_sintetico",
+      "fuente": "calibration.population de data/matching-config.json, la carga con la que se calibró el motor. La población real es ~139 y cabe 4 veces, así que este es un esfuerzo mayor."
+    },
+    "ratio_eclosionados": {
+      "valor": 0.8,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Proporción de identidades eclosionadas: el pool de matches sólo incluye eclosionados, y un 20 % de huevos reproduce el estado de una corrida de re-toma."
+    },
+    "huevos_completos": {
+      "valor": 60,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Huevos con el test completo pero sin eclosionar: son los que I1 exige contar y los que mantienen vivo el camino de `hatch_profile_identity`."
+    },
+    "bajas": {
+      "valor": 30,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "5 % con baja lógica dentro de la ventana de retención: sin filas eliminadas no se ejercita el filtro `eliminado_en IS NULL` que está en cada lectura caliente."
+    },
+    "top_k": {
+      "valor": 12,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Matches por persona y track, del orden de lo que publica el motor sobre 600 perfiles."
+    },
+    "notificaciones_por_perfil": {
+      "valor": 20,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Bandeja de 20 por persona: `get_my_notifications` lee por índice (user_id, created_at DESC) y su costo sólo importa con historial real."
+    },
+    "conversaciones_por_perfil": {
+      "valor": 2,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Pares con chat abierto por persona, el caso que la compuerta de conservación protege."
+    },
+    "mensajes_por_conversacion": {
+      "valor": 10,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Ráfaga típica de un rompehielos: 10 mensajes ordenados por created_at, que es justo la ruta con empates dentro de una transacción."
+    },
+    "rondas_por_conversacion": {
+      "valor": 3,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Techo vigente del rompehielos: las tres conversation_*_three_questions_check están declaradas NOT VALID, así que la base no lo revisa y `db:audit` es la única medición. Sembrar las rondas con sus respuestas y reacciones es lo que hace que 07_chat.sql signifique algo: con la tabla vacía un verde solo diría «no hay violaciones porque no hay filas»."
+    },
+    "etiqueta_version": "qa-perf"
+  },
+  "medicion": {
+    "repeticiones": {
+      "valor": 5,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Cinco corridas y se reporta la mediana: en WASM la primera llamada de cada plan está fría y el promedio de una sola medición varía más que cualquier regresión que interese."
+    },
+    "muestra_hatch": {
+      "valor": 20,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "Eclosionar 20 huevos y promediar: la RPC bloquea la fila con FOR UPDATE, así que una sola medición diría más de la contención que del trabajo."
+    }
+  },
+  "entradas": {
+    "nota": "Parámetros concretos que se pasan a las RPC medidas. No son parámetros del modelo: son lo que el panel de administración manda al abrir el observatorio, y se declaran aquí para que la medición sea reproducible en vez de un número suelto dentro del script.",
+    "dashboard": {
+      "umbral_romance": { "valor": 0.6, "etiqueta": "supuesto_diseno", "fuente": "Umbral de corte típico del panel; el valor vigente se lee en data/matching-config.json y aquí solo importa que la agregación trabaje sobre un corte realista." },
+      "umbral_amistad": { "valor": 0.55, "etiqueta": "supuesto_diseno", "fuente": "Ídem para la pista de amistad." },
+      "referencia_romance": { "valor": 0.6, "etiqueta": "supuesto_diseno", "fuente": "Línea de referencia que el panel compara contra el corte elegido." },
+      "referencia_amistad": { "valor": 0.55, "etiqueta": "supuesto_diseno", "fuente": "Ídem amistad." },
+      "ventana_dias": { "valor": 30, "etiqueta": "supuesto_diseno", "fuente": "Ventana de tendencia del observatorio, el caso más ancho que acepta la UI." }
+    },
+    "marcas_de_muestra": {
+      "perfiles_por_matricula": { "valor": 42, "etiqueta": "supuesto_diseno", "fuente": "Índice de la población sembrada cuya matrícula se busca: cualquier fijo sirve mientras sea determinista." },
+      "get_user_matches": { "valor": 7, "etiqueta": "supuesto_diseno", "fuente": "Perfil eclosionado con top-k lleno, el peor caso normal." },
+      "notify_matches": { "valor": 7, "etiqueta": "supuesto_diseno", "fuente": "Ídem: la reescritura del resumen se mide sobre una persona con todos sus pares." },
+      "hatch_profile_identity": { "valor": 480, "etiqueta": "supuesto_diseno", "fuente": "Índice del primer huevo (0.8 × 600): se eclosionan `medicion.muestra_hatch` huevos DISTINTOS, uno por corrida, porque re-eclosionar el mismo devuelve el alias guardado sin hacer trabajo." }
+    }
+  },
+  "presupuestos": {
+    "perfiles_por_matricula": {
+      "max_ms": { "valor": 2, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × mediana, 2 × máximo)) de la corrida local del 2026-11-09: mediana 0.49 ms, máximo 0.64 ms sobre 600 perfiles (.qa/db-perf-medido.json). Búsqueda exacta por el índice único profiles_matricula_hash_key al entrar con la matrícula. Falta el número de producción." },
+      "debe_usar_indice": true
+    },
+    "get_user_matches": {
+      "max_ms": { "valor": 16, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × 2.61, 2 × 7.89)) ms medidos el 2026-11-09 sobre un perfil con top_k = 12 por pista. Es la pantalla de matches y se llama en cada sesión." }
+    },
+    "get_my_notifications": {
+      "max_ms": { "valor": 4, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × 1.01, 2 × 1.86)) ms medidos el 2026-11-09 con 20 avisos sembrados por bandeja. Lectura por el índice (user_id, created_at DESC)." }
+    },
+    "mark_notifications_read": {
+      "max_ms": { "valor": 4, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × 0.96, 2 × 1.57)) ms medidos el 2026-11-09 sobre un lote de 5 ids. El estado se rebota fuera del cronómetro para que cada corrida escriba de verdad y no mida un no-op idempotente." }
+    },
+    "replace_matches": {
+      "max_ms": { "valor": 1494, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × 497.87, 2 × 562.12)) ms medidos el 2026-11-09 reescribiendo 11 202 pares bajo advisory lock. Es la ruta más cara del sistema de datos y crece con el tamaño del pool: el techo local es un detector de regresión, no una meta de producción. Ver F-11 en docs/QA_DB.md." }
+    },
+    "notify_matches": {
+      "max_ms": { "valor": 14, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × 2.86, 2 × 6.59)) ms medidos el 2026-11-09 sobre una persona con sus 24 pares. Se llama por usuario en el recálculo, no por lote." }
+    },
+    "get_admin_dashboard": {
+      "max_ms": { "valor": 4348, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × 1449.23, 2 × 1580.3)) ms medidos el 2026-11-09 con ventana de 30 días. HALLAZGO F-12: 1.45 s para 600 perfiles es el peor número del repo y la causa es estructural (ocho EXISTS correlacionados contra private.live_pairs, que no se inlinea). Este techo es tolerancia provisional mientras se decide la reescritura; NO es un presupuesto aprobado." }
+    },
+    "hatch_profile_identity": {
+      "max_ms": { "valor": 10, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × 1.48, 2 × 4.89)) ms medidos el 2026-11-09 eclosionando 20 huevos DISTINTOS: la mediana sale de 20 muestras y no de 5, porque el SELECT ... FOR UPDATE bloquea la fila y re-eclosionar el mismo perfil no hace trabajo." }
+    },
+    "get_pool_version": {
+      "max_ms": { "valor": 1, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × 0.29, 2 × 0.41)) ms medidos el 2026-11-09. Una fila de control leída antes de cada recálculo: su presupuesto es de frecuencia, no de trabajo." }
+    },
+    "mensajes_de_conversacion": {
+      "max_ms": { "valor": 3, "etiqueta": "pendiente_verificacion", "fuente": "ceil(max(3 × 0.73, 2 × 0.87)) ms medidos el 2026-11-09 sobre la conversación más cargada (10 mensajes). Es el poll del chat: se paga cada pocos segundos en cada pestaña abierta, por eso su techo es el más ajustado del conjunto." }
+    }
+  }
+}

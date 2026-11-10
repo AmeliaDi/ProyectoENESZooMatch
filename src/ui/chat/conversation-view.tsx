@@ -17,6 +17,7 @@ import { ChatGuide } from "./chat-guide";
 import { EncounterStage } from "./encounter-stage";
 import { FreeChat } from "./free-chat";
 import { QuestionCards } from "./question-cards";
+import { QuizCoincidencias } from "./quiz-coincidencias";
 import { RoundsView } from "./rounds-view";
 import { SafetyMenu } from "./safety-menu";
 import { useConversation, type ConversationActions, type PendingMessage } from "./use-conversation";
@@ -31,11 +32,12 @@ function Turn({ convo, actions }: { convo: ConversationDto; actions: Conversatio
   return open ? null : <p className="zm-detail__muted">{CONVERSATION_COPY.waitingQuestion}</p>;
 }
 
-function Body({ convo, pending, actions }: { convo: ConversationDto; pending: readonly PendingMessage[]; actions: ConversationActions }) {
+function Body({ convo, conversationId, pending, actions }: { convo: ConversationDto; conversationId: string; pending: readonly PendingMessage[]; actions: ConversationActions }) {
   const free = convo.stage === "free" || (convo.stage === "paused" && convo.messages.length > 0);
   return (
     <>
       <ChatGuide />
+      <QuizCoincidencias conversationId={conversationId} />
       {free ? (
         <details className="zm-convo__past">
           <summary>{CONVERSATION_COPY.pastRounds}</summary>
@@ -93,7 +95,7 @@ export function ConversationView({ id, onBack, onLock, onLocked }: ConversationV
       {state.kind === "ready" ? (
         <>
           <EncounterStage convo={state.convo} actions={actions} onFocusComposer={focusComposer} />
-          <Body convo={state.convo} pending={pending} actions={actions} />
+          <Body convo={state.convo} conversationId={id} pending={pending} actions={actions} />
         </>
       ) : null}
     </div>

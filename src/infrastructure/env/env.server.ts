@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { DEFAULT_ENGINE, resolveEngine, type MatchingEngine } from "@/domain/matching";
 import { readEnv } from "@/infrastructure/env/env-aliases";
 
 const serverEnvSchema = z.object({
@@ -23,6 +24,18 @@ export function getServerEnv(source: EnvSource = process.env): ServerEnv | null 
 }
 
 const MIN_PEPPER_LENGTH = 32;
+
+/**
+ * `MATCHING_ENGINE` selects the scoring engine (Fase 6). Kept out of the
+ * required schema like the PIN pepper: absent or blank means the live engine,
+ * so a deploy without the flag is a working deploy. An unknown value is a
+ * deployment bug and throws rather than silently falling back; rollback is one
+ * command — unset the variable.
+ */
+export function getMatchingEngine(source: EnvSource = process.env): MatchingEngine {
+  const raw = source.MATCHING_ENGINE?.trim();
+  return raw ? resolveEngine(raw) : resolveEngine(DEFAULT_ENGINE);
+}
 
 /**
  * Optional server-only pepper of the chat PIN (ADR-029). Kept out of the

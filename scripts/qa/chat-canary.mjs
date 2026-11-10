@@ -93,7 +93,7 @@ async function createAccount(matricula, index) {
   ];
 
   const enter = await withRetry(
-    () => post("/api/enter", { matricula, eventId: EVENT_ID, sintetico: true }),
+    () => post("/api/enter", { matricula }),
     `enter(${matricula})`,
   );
   if (enter.status !== 200) throw new Error(`enter ${matricula}: ${enter.status}`);

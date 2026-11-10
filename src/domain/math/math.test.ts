@@ -8,6 +8,7 @@ import {
   choleskySolve,
   entropy,
   gaussHermiteNormal,
+  gini,
   inverseFromCholesky,
   jacobiEigen,
   logDetFromCholesky,
@@ -144,5 +145,43 @@ describe("scalar statistics", () => {
     expect(spearman([1, 2, 3], [10, 20, 30])).toBeCloseTo(1, 12);
     expect(auc([0.9, 0.8, 0.2, 0.1], [true, true, false, false])).toBe(1);
     expect(auc([0.5, 0.5], [true, false])).toBe(0.5);
+  });
+});
+
+describe("gini", () => {
+  it("matches the closed form on hand-computable exposure vectors", () => {
+    expect(gini([3, 3, 3, 3])).toBe(0);
+    expect(gini([0, 0, 0, 10])).toBeCloseTo(0.75, 12);
+    expect(gini([1, 2, 3, 4])).toBeCloseTo(0.25, 12);
+    expect(gini([7])).toBe(0);
+  });
+
+  it("reaches (n − 1)/n when one person takes every appearance", () => {
+    for (const n of [2, 5, 10, 139]) {
+      const all = new Array<number>(n).fill(0);
+      all[0] = 100;
+      expect(gini(all)).toBeCloseTo((n - 1) / n, 12);
+    }
+  });
+
+  it("is zero when nobody is exposed, and invariant to scale and order", () => {
+    expect(gini([])).toBe(0);
+    expect(gini([0, 0, 0])).toBe(0);
+    const counts = [4, 0, 9, 2, 7, 1];
+    expect(gini(counts.map((c) => c * 3))).toBeCloseTo(gini(counts), 12);
+    expect(gini([...counts].reverse())).toBeCloseTo(gini(counts), 12);
+  });
+
+  it("falls when exposure moves from a more exposed person to a less exposed one", () => {
+    const before = [0, 2, 4, 12];
+    const after = [1, 3, 5, 9];
+    expect(before.reduce((s, v) => s + v, 0)).toBe(after.reduce((s, v) => s + v, 0));
+    expect(gini(after)).toBeLessThan(gini(before));
+  });
+
+  it("rejects values that cannot be exposure counts", () => {
+    expect(() => gini([1, -1])).toThrow();
+    expect(() => gini([1, Number.NaN])).toThrow();
+    expect(() => gini([1, Number.POSITIVE_INFINITY])).toThrow();
   });
 });

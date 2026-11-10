@@ -1,0 +1,401 @@
+{
+  "version": "conexion-1",
+  "etiqueta": "supuesto_diseno",
+  "fuente": "Quizzes rompehielos propios (docs/QUIZZES.md §13). No es un instrumento psicométrico ni alimenta el modelo de matching.",
+  "quizzes": [
+    {
+      "quiz_id": "conexion_autoexpansion",
+      "revision": "1",
+      "categoria": "conexion",
+      "titulo": "Algo nuevo por probar",
+      "descripcion": "Qué quieres agregar a tu vida y cómo te lanzas. No mide nada: sirve para proponer.",
+      "duracion_estimada_minutos": 1.5,
+      "items": [
+        {
+          "item_id": "probar_este_ano",
+          "texto": "¿Qué te gustaría probar este año?",
+          "opciones": [
+            "Un deporte",
+            "Un instrumento",
+            "Un taller de escritura",
+            "Cocinar algo nuevo",
+            "Un idioma",
+            "Bailar",
+            "Algo de arte o fotografía",
+            "Prefiero no decir"
+          ],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos", "estilo_de_vida"]
+        },
+        {
+          "item_id": "ante_algo_que_no_sabes",
+          "texto": "¿Cómo te sientes ante algo que no sabes hacer?",
+          "opciones": [
+            "Me lanzo sin pensar",
+            "Pido que me enseñen",
+            "Miro primero y luego intento",
+            "Evito quedar en ridículo",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "que_te_presentaron",
+          "texto": "¿Qué te presentó alguien que no conocías?",
+          "opciones": [
+            "Comida",
+            "Música o un artista",
+            "Un deporte",
+            "Una serie o película",
+            "Un lugar",
+            "Una forma de pensar",
+            "Nada todavía",
+            "Prefiero no decir"
+          ],
+          "multiple": true,
+          "dimensiones_relacionadas": ["gustos"]
+        },
+        {
+          "item_id": "plan_de_ultima_hora",
+          "texto": "¿Aceptas un plan de última hora?",
+          "opciones": [
+            "Casi siempre",
+            "Si me avisan con algo de tiempo",
+            "Solo si ya conozco el plan",
+            "Nunca",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "primera_vez_con_alguien",
+          "texto": "¿Qué harías por primera vez si alguien te acompaña?",
+          "opciones": [
+            "Un sendero largo",
+            "Un concierto de algo que no conozco",
+            "Una clase de algo",
+            "Un museo de noche",
+            "Comer algo raro",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["gustos", "estilo_de_vida"]
+        },
+        {
+          "item_id": "aprender_de_otras",
+          "texto": "¿Qué esperas aprender de la gente cercana?",
+          "opciones": [
+            "Su forma de ver las cosas",
+            "Algo práctico",
+            "Su humor",
+            "Sus trucos para trabajar",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "cambio_reciente",
+          "texto": "¿Qué cambiaste en tu vida últimamente?",
+          "opciones": [
+            "Mi ruta o mi horario",
+            "Una amistad",
+            "Mi forma de estudiar",
+            "Un hábito de sueño",
+            "Nada grande",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo_de_vida", "personalidad"]
+        },
+        {
+          "item_id": "lugar_conocido_o_nuevo",
+          "texto": "¿Prefieres un lugar conocido o uno nuevo?",
+          "opciones": [
+            "Siempre nuevo",
+            "El mismo que ya amo",
+            "Nuevo, pero con base conocida",
+            "Depende del presupuesto",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo", "gustos"]
+        },
+        {
+          "item_id": "que_te_da_curiosidad",
+          "texto": "¿Qué te da más curiosidad?",
+          "opciones": [
+            "Cómo funcionan las cosas",
+            "Por qué la gente hace lo que hace",
+            "Los lugares",
+            "Las historias reales",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "gustos"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "conexion_cuidado",
+      "revision": "1",
+      "categoria": "conexion",
+      "titulo": "Cómo cuidas y te cuidan",
+      "descripcion": "Apoyo y cercanía, dicho para amistad y para romance. No entra al puntaje.",
+      "duracion_estimada_minutos": 1.5,
+      "items": [
+        {
+          "item_id": "cuando_alguien_esta_mal",
+          "texto": "Si alguien cercano está mal, ¿qué haces primero?",
+          "opciones": [
+            "Escuchar sin dar consejos",
+            "Llevar comida o resolver algo práctico",
+            "Proponer salir un rato",
+            "Dar espacio",
+            "Preguntar qué necesita",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "como_te_apoyan",
+          "texto": "¿Cómo te gusta que te apoyen?",
+          "opciones": [
+            "Que me escuchen",
+            "Un consejo concreto",
+            "Que se queden en silencio",
+            "Que me resuelvan algo práctico",
+            "Que me inviten a salir",
+            "Que me den espacio",
+            "Prefiero no decir"
+          ],
+          "multiple": true,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "pedir_ayuda",
+          "texto": "¿Qué tan fácil te resulta pedir ayuda?",
+          "opciones": [
+            "Pido sin vueltas",
+            "Pido cuando ya intenté todo",
+            "Tardo, pero pido",
+            "Casi nunca pido",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "cuando_te_enfermas",
+          "texto": "Cuando te enfermas, ¿qué esperas?",
+          "opciones": [
+            "Que me dejen en paz",
+            "Un caldo y compañía",
+            "Que organicen todo por mí",
+            "Medicamento y punto",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo", "personalidad"]
+        },
+        {
+          "item_id": "mensajes_de_como_estas",
+          "texto": "¿Qué significan para ti los mensajes de «¿cómo estás?»",
+          "opciones": [
+            "Me importan mucho",
+            "Los agradezco, pero me saturan",
+            "Depende de quién los mande",
+            "Prefiero los silencios largos",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["estilo", "personalidad"]
+        },
+        {
+          "item_id": "cuidado_propio",
+          "texto": "¿Qué haces por ti cuando puedes?",
+          "opciones": [
+            "Dormir bien",
+            "Mover el cuerpo",
+            "Comer algo hecho por mí",
+            "Un día sin pantalla",
+            "Ver a alguien",
+            "Terapia",
+            "Prefiero no decir"
+          ],
+          "multiple": true,
+          "dimensiones_relacionadas": ["estilo_de_vida", "personalidad"]
+        },
+        {
+          "item_id": "cuando_te_cuentan_algo_serio",
+          "texto": "Cuando alguien te cuenta algo serio, ¿qué haces?",
+          "opciones": [
+            "Dejo lo que estoy haciendo",
+            "Pregunto si quiere consejos o solo hablar",
+            "Respondo rápido con una solución",
+            "Lo pienso después y respondo entonces",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "espacio_o_compania",
+          "texto": "¿Qué necesitas cuando estás de malas?",
+          "opciones": [
+            "Espacio",
+            "Compañía sin hablar",
+            "Alguien que haga algo conmigo",
+            "Saber que están ahí aunque no vengan",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "balance_en_la_relacion",
+          "texto": "¿Cómo llevas el balance entre dar y recibir?",
+          "opciones": [
+            "No lo mido",
+            "Espero que se note sin pedirlo",
+            "Lo hablo directamente",
+            "Doy más de lo que pido",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        }
+      ]
+    },
+    {
+      "quiz_id": "conexion_valores_situaciones",
+      "revision": "1",
+      "categoria": "conexion",
+      "titulo": "Valores en situaciones",
+      "descripcion": "Mini dilemas ligeros, sin trampa ni calificación. Coincidir aquí es hablar, no puntuar.",
+      "duracion_estimada_minutos": 1.5,
+      "items": [
+        {
+          "item_id": "favor_grande",
+          "texto": "Un amigo te pide un favor que te cuesta mucho.",
+          "opciones": [
+            "Lo hago sin pensarlo",
+            "Negocio algo a cambio",
+            "Digo que no con honestidad",
+            "Lo hago y después me quejo con otra persona",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "cartera_encontrada",
+          "texto": "Encuentras una cartera con dinero y una identificación.",
+          "opciones": [
+            "La dejo con alguna autoridad",
+            "Busco el contacto y la devuelvo",
+            "Me quedo con el dinero y mando la identificación",
+            "Aviso a alguien y dejo que decidan",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "pagar_la_comida",
+          "texto": "En una comida, alguien gastó mucho menos que tú.",
+          "opciones": [
+            "Dividir en partes iguales",
+            "Cada quien paga lo suyo",
+            "Proponer repartir según lo que gana cada quien",
+            "No decir nada y pagar",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "llegar_tarde_otra_vez",
+          "texto": "Alguien llega 40 minutos tarde, otra vez.",
+          "opciones": [
+            "Se lo digo en el momento",
+            "Lo dejo pasar",
+            "Hago otro plan sin esperar",
+            "Saco el tema después, en calma",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "chisme_que_es_mentira",
+          "texto": "Te cuentan un chisme fuerte que sabes que es mentira.",
+          "opciones": [
+            "Lo desmiento",
+            "Cambio de tema",
+            "Me callo y no lo repito",
+            "Pregunto de dónde lo sacaron",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "plan_cancelado",
+          "texto": "Cancelas un plan dos horas antes por puro cansancio.",
+          "opciones": [
+            "Digo la verdad",
+            "Invento una excusa",
+            "Cancelo sin explicación",
+            "Ofrezco otro día de inmediato",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "equipo_sin_su_parte",
+          "texto": "En un trabajo en equipo, alguien no hace su parte.",
+          "opciones": [
+            "Hablo con la persona",
+            "Hablo con quien coordina",
+            "Termino yo su parte",
+            "Dejo que el resultado falle y se note",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad"]
+        },
+        {
+          "item_id": "deuda_pequena",
+          "texto": "Te deben una cantidad pequeña desde hace meses.",
+          "opciones": [
+            "Lo menciono con calma",
+            "Espero a que se acuerden",
+            "Lo doy por perdido",
+            "Lo cobro con otro favor",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        },
+        {
+          "item_id": "verdad_dolorosa",
+          "texto": "Alguien te pregunta qué te pareció algo que hizo, y no te gustó.",
+          "opciones": [
+            "Digo lo que pienso con cariño",
+            "Digo que sí",
+            "No respondo",
+            "Respondo con una pregunta",
+            "Prefiero no decir"
+          ],
+          "multiple": false,
+          "dimensiones_relacionadas": ["personalidad", "estilo"]
+        }
+      ]
+    }
+  ]
+}

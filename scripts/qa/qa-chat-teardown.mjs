@@ -85,10 +85,10 @@ async function main() {
 
   let matrículas = MATRICULAS;
 
-  // If EVENT_ID provided, we'd need to query the database for accounts with that event_id
-  // For now, we rely on QA_MATRICULAS being provided
+  // There is no event_id column: /api/enter only takes the matrícula, so the
+  // event tag lives in the printed credentials and nowhere in the database.
   if (EVENT_ID && matrículas.length === 0) {
-    console.log(`[QA] ⚠ EVENT_ID provided but no way to query accounts by event_id`);
+    console.log(`[QA] ⚠ QA_EVENT_ID alone cannot identify accounts (no such column)`);
     console.log(`[QA] Please provide QA_MATRICULAS=comma,separated,list`);
     return;
   }

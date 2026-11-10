@@ -19,6 +19,12 @@ describe("missingEnvNames", () => {
     expect(missingEnvNames({})).toHaveLength(4);
   });
 
+  it("keeps the engine flag out of the required variables", () => {
+    expect(missingEnvNames(VALID)).toEqual([]);
+    expect(missingEnvNames({ ...VALID, MATCHING_ENGINE: "coseno" })).toEqual([]);
+    expect(missingEnvNames({})).not.toContain("MATCHING_ENGINE");
+  });
+
   it("accepts the names Supabase's dashboard shows", () => {
     const source = {
       SUPABASE_URL: VALID.NEXT_PUBLIC_SUPABASE_URL,

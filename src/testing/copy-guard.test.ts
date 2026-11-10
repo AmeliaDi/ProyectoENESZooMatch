@@ -74,6 +74,27 @@ describe("copy guards cover every generated sentence", () => {
     expect(dictionary.some((word) => INCLUSIVE_X.test(word))).toBe(true);
   });
 
+  it("reads the x at the end of a word, not the x inside one", () => {
+    for (const marker of ["chicxs", "latinxs", "amigxs", "todes les chicxs"]) {
+      expect(marker, marker).toMatch(INCLUSIVE_X);
+    }
+    // Spanish keeps an honest x inside words, and the closed list keeps the
+    // borrowed ones; identifiers are glued to `_`, `{` or `-`, which is not copy.
+    const notMarkers = [
+      "¿Qué comes en un día de exámenes?",
+      "los exámenes finales",
+      "el Fénix",
+      "una Xbox",
+      "Relax",
+      "zm-box",
+      "hex_h",
+      "sub_sx",
+    ];
+    for (const text of notMarkers) {
+      expect(text, text).not.toMatch(INCLUSIVE_X);
+    }
+  });
+
   it("promises no relational outcome anywhere a person can read", () => {
     for (const path of [...PRODUCT_SURFACES, ...PARTICIPANT_SURFACES]) {
       for (const text of textsOf(path)) expect(text, `${path}: ${text}`).not.toMatch(OUTCOME_CLAIMS);

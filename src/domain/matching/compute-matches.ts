@@ -73,27 +73,56 @@ export function normalizeMatchPairs(pairs: readonly GlobalMatch[]): GlobalMatch[
 interface Candidate {
   index: number;
   similarity: number;
-  score: PairScore;
+  score?: PairScore;
 }
 
-function candidatesFor(users: readonly PoolEntry[], track: MatchTrack, config: MatchingConfig): Candidate[][] {
-  const trackConfig = config.tracks[track];
+/**
+ * Scores one eligible pair, or returns null when the pair cannot be scored at
+ * all (e.g. an empty descriptive vector). This is the seam the interchangeable
+ * engines plug into (see ./engine.ts); everything downstream — hard filters,
+ * the calibrated cut, top-K, canonical order, dedup — is shared, so a comparison
+ * isolates the scoring rule and nothing else.
+ */
+export interface PairEvaluation {
+  similarity: number;
+  /** Only the layered engine produces one; it drives the explanation badges. */
+  score?: PairScore;
+}
+
+export type PairEvaluator = (
+  a: ScoredProfile,
+  b: ScoredProfile,
+  track: MatchTrack,
+  config: MatchingConfig,
+) => PairEvaluation | null;
+
+function candidatesFor(
+  users: readonly PoolEntry[],
+  track: MatchTrack,
+  config: MatchingConfig,
+  evaluate: PairEvaluator,
+): Candidate[][] {
   const candidates = users.map((): Candidate[] => []);
+  const threshold = config.tracks[track].minimum_similarity_exclusive;
   for (let i = 0; i < users.length; i += 1) {
     const a = users[i]!;
     for (let j = i + 1; j < users.length; j += 1) {
       const b = users[j]!;
       if (track === "romance" && !checkHardFilters(a.profile.hardFilters, b.profile.hardFilters)) continue;
-      const score = pairScore(a.profile.latent, b.profile.latent, trackConfig, config.categories);
-      if (score.total <= trackConfig.minimum_similarity_exclusive) continue;
-      candidates[i]!.push({ index: j, similarity: score.total, score });
-      candidates[j]!.push({ index: i, similarity: score.total, score });
+      const evaluated = evaluate(a.profile, b.profile, track, config);
+      if (!evaluated || evaluated.similarity <= threshold) continue;
+      candidates[i]!.push({ index: j, ...evaluated });
+      candidates[j]!.push({ index: i, ...evaluated });
     }
   }
   return candidates;
 }
 
-export function computeAllMatches(pool: readonly PoolEntry[], config: MatchingConfig): GlobalMatch[] {
+export function computeWith(
+  pool: readonly PoolEntry[],
+  config: MatchingConfig,
+  evaluate: PairEvaluator,
+): GlobalMatch[] {
   const users = pool
     .map((entry) => ({ ...entry, userId: entry.userId.toLowerCase() }))
     .filter((entry, i, all) => all.findIndex((other) => other.userId === entry.userId) === i)
@@ -103,7 +132,7 @@ export function computeAllMatches(pool: readonly PoolEntry[], config: MatchingCo
   for (const track of TRACKS) {
     const { max_matches: limit } = config.tracks[track];
     const badgeLimit = config.badges.per_track[track];
-    candidatesFor(users, track, config).forEach((list, userIndex) => {
+    candidatesFor(users, track, config, evaluate).forEach((list, userIndex) => {
       const ranked = list
         .sort((a, b) => b.similarity - a.similarity || compareIds(users[a.index]!.userId, users[b.index]!.userId))
         .slice(0, limit);
@@ -116,7 +145,7 @@ export function computeAllMatches(pool: readonly PoolEntry[], config: MatchingCo
           userA,
           userB,
           similarity: candidate.similarity,
-          badges: badgesFromScore(candidate.score, badgeLimit),
+          badges: candidate.score ? badgesFromScore(candidate.score, badgeLimit) : [],
         });
       }
     });
@@ -125,4 +154,14 @@ export function computeAllMatches(pool: readonly PoolEntry[], config: MatchingCo
   return [...selected.values()].sort(
     (a, b) => compareIds(a.track, b.track) || compareIds(a.userA, b.userA) || compareIds(a.userB, b.userB),
   );
+}
+
+/** Production evaluator: layered soft-min score over the latent posteriors. */
+export const layeredEvaluator: PairEvaluator = (a, b, track, config) => {
+  const score = pairScore(a.latent, b.latent, config.tracks[track], config.categories);
+  return { similarity: score.total, score };
+};
+
+export function computeAllMatches(pool: readonly PoolEntry[], config: MatchingConfig): GlobalMatch[] {
+  return computeWith(pool, config, layeredEvaluator);
 }
