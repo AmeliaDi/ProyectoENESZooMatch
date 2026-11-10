@@ -107,4 +107,24 @@ describe("badge unlock conditions", () => {
     expect(checkBadgeUnlock(getBadgeDefinition("conversacion_completada")!, progress)).toBe(false);
     expect(checkBadgeUnlock(getBadgeDefinition("semana_activa")!, progress)).toBe(false);
   });
+
+  it("semana_activa cuenta dias, no consecucion: 7 activos repartidos equivalen a 7 seguidos", () => {
+    const badge = getBadgeDefinition("semana_activa")!;
+    expect(badge.condicion).toEqual({ tipo: "active_days", min: 7 });
+    expect(checkBadgeUnlock(badge, { ...baseProgress, activeDays: 7 })).toBe(true);
+    expect(checkBadgeUnlock(badge, { ...baseProgress, activeDays: 8 })).toBe(true);
+  });
+});
+
+describe("badge copy", () => {
+  const RACHA_WORDS = ["seguidos", "seguidas", "racha", "streak"];
+
+  it("no badge promises a streak", () => {
+    for (const badge of BADGE_CATALOG) {
+      const text = `${badge.nombre} ${badge.descripcion}`.toLowerCase();
+      for (const word of RACHA_WORDS) {
+        expect(text, `${badge.id} promete racha con "${word}"`).not.toContain(word);
+      }
+    }
+  });
 });

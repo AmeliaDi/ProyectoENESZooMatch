@@ -37,7 +37,7 @@ export const BADGE_CATALOG: readonly BadgeDefinition[] = [
   {
     id: "semana_activa",
     nombre: "Semana activa",
-    descripcion: "Entraste al cielo durante siete dias seguidos",
+    descripcion: "Siete dias activos en el cielo, no hace falta que sean uno tras otro",
     icono: "calendario",
     condicion: { tipo: "active_days", min: 7 },
   },

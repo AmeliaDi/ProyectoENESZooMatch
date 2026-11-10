@@ -145,6 +145,13 @@ el icono pixel-art del animo junto al nombre:
 Un sistema de logros que reconoce hitos en la experiencia de ZooMatch. Las
 insignias se muestran en una cuadricula en la pagina de perfil.
 
+> **Estado medido (2026-11-10):** esa frase describe el diseño, no lo que hay.
+> La cuadricula existe como componente (`src/ui/badges/badge-grid.tsx`) y esta
+> probada su logica (`src/domain/badges/badge-types.test.ts`), pero ninguna
+> pantalla lo monta, `ProfileDto` no trae insignias y no hay tabla de logros en la
+> base: nadie puede haber ganado una todavia. Montarla es la primera mitad de M-14
+> en `docs/PENDIENTES_MANUALES.md` (ADR-062).
+
 ### Insignias iniciales (5)
 
 | ID                       | Nombre                | Condicion                              |
@@ -153,7 +160,7 @@ insignias se muestran en una cuadricula en la pagina de perfil.
 | `conversacion_completada`| Primera conversacion  | Completar 1 ronda de preguntas         |
 | `tres_rondas`            | Tres rondas           | Llegar a 3 rondas en una conversacion  |
 | `chat_libre`             | Chat libre            | Desbloquear el chat libre              |
-| `semana_activa`          | Semana activa         | Entrar 7 dias seguidos                 |
+| `semana_activa`          | Semana activa         | Acumular 7 dias activos (no seguidos)  |
 
 ### Cuadricula de insignias
 
