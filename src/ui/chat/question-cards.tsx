@@ -7,7 +7,7 @@
  */
 import { useState } from "react";
 
-import type { ConversationDto } from "@/contracts/chat";
+import type { ConversationDto, PromptCardDto } from "@/contracts/chat";
 import { categoryIcon } from "@/ui/design/category-icons";
 import { Button } from "@/ui/kit/button";
 import { Icon } from "@/ui/kit/icon";
@@ -28,9 +28,9 @@ export function QuestionCards({ ask, limit, onAsk, onOthers }: QuestionCardsProp
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function choose(promptId: string) {
-    setBusy(promptId);
-    setError(await onAsk({ promptId }));
+  async function choose(card: PromptCardDto) {
+    setBusy(card.id);
+    setError(await onAsk(card.origin === "coincidence" ? { customText: card.text } : { promptId: card.id }));
     setBusy(null);
   }
 
@@ -41,7 +41,7 @@ export function QuestionCards({ ask, limit, onAsk, onOthers }: QuestionCardsProp
       <ul className="zm-ask__cards">
         {ask.suggestions.map((card) => (
           <li key={card.id}>
-            <button type="button" className="zm-box zm-ask__card" disabled={busy !== null} aria-busy={busy === card.id || undefined} onClick={() => void choose(card.id)}>
+            <button type="button" className="zm-box zm-ask__card" disabled={busy !== null} aria-busy={busy === card.id || undefined} onClick={() => void choose(card)}>
               <Icon name={categoryIcon(card.category)} />
               <span className="zm-ask__text">{card.text}</span>
             </button>

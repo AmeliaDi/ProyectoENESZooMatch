@@ -81,6 +81,11 @@ export const chatConfigSchema = z
         minForFree: positiveInt,
         /** Question cards offered per turn. */
         suggestions: positiveInt,
+        /**
+         * How many of them may come from what the pair shares in their quizzes.
+         * Zero is legal and means "bank only": the operator switch, no deploy.
+         */
+        coincidences: z.number().int().min(0),
         /** Sealed answers are revealed when both answered or after this wait. */
         revealHours: positiveInt,
         /** Round index from which level 1, 2 and 3 questions are offered. */
@@ -113,9 +118,13 @@ export const chatConfigSchema = z
   .refine(
     (c) => {
       const [, two, three] = c.conversation.rounds.levelFromRound;
-      return two < three && c.conversation.rounds.minForFree <= c.conversation.rounds.maxRounds;
+      return (
+        two < three &&
+        c.conversation.rounds.minForFree <= c.conversation.rounds.maxRounds &&
+        c.conversation.rounds.coincidences <= c.conversation.rounds.suggestions
+      );
     },
-    { message: "rounds.levelFromRound must increase and minForFree must fit maxRounds" },
+    { message: "rounds.levelFromRound must increase, minForFree must fit maxRounds and coincidences must fit suggestions" },
   )
   .refine((c) => c.conversation.pollSeconds <= c.conversation.pollMaxSeconds, {
     message: "pollSeconds must not exceed pollMaxSeconds",

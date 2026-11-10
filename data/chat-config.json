@@ -42,6 +42,7 @@
     "rounds": {
       "minForFree": 3,
       "suggestions": 3,
+      "coincidences": 1,
       "revealHours": 48,
       "levelFromRound": [0, 1, 2],
       "maxRounds": 3

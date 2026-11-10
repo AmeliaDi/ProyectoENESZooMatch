@@ -5,11 +5,11 @@
  * "exists but not yours").
  */
 import type { ConversationDto, InboxDto, InboxEntryDto } from "@/contracts/chat";
-import { completedRounds, isFree, isMyTurn, stageOf } from "@/domain/chat";
+import { canOpenRound, completedRounds, foldText, isFree, isMyTurn, stageOf } from "@/domain/chat";
 import { err, ok, type Clock, type Result } from "@/domain/shared";
 
 import type { AppError } from "../errors";
-import type { ChatPeer, ConversationRepository, ConversationRow, MessageRow, RoundRow } from "./conversation-ports";
+import type { ChatPeer, CoincidenceQuestions, ConversationRepository, ConversationRow, MessageRow, RoundRow } from "./conversation-ports";
 import { factsOf, otherOf, sideOf, toDto, type Loaded } from "./conversation-view";
 import { pendingInvitations, type InvitationDeps } from "./invitations";
 import { toPeerDto } from "./peer-view";
@@ -19,6 +19,11 @@ import { ROUND_POLICY, SETTINGS } from "./settings";
 export interface ConversationDeps {
   conversations: ConversationRepository;
   clock: Clock;
+  /**
+   * Quiz coincidences behind the extra question cards. Absent means the offer
+   * comes only from the bank: the conversation works, it is just less personal.
+   */
+  questions?: CoincidenceQuestions;
 }
 
 function inboxEntry(row: ConversationRow, viewer: string, loaded: Omit<Loaded, "row" | "facts" | "reactions">, peers: Map<string, ChatPeer>, now: Date): InboxEntryDto {
@@ -84,15 +89,24 @@ export async function load(id: string, viewer: string, deps: ConversationDeps): 
 
 const usedPrompts = (rounds: readonly RoundRow[]) => new Set(rounds.flatMap((r) => (r.promptId ? [r.promptId] : [])));
 
-async function suggestionsFor(loaded: Loaded, viewer: string, refresh: number, deps: ConversationDeps): Promise<PromptCard[]> {
+/** Folded texts of the questions already asked, from the bank or written by hand. */
+const usedTexts = (rounds: readonly RoundRow[]) => new Set(rounds.flatMap((r) => (r.customText ? [foldText(r.customText)] : [])));
+
+async function suggestionsFor(loaded: Loaded, viewer: string, refresh: number, now: Date, deps: ConversationDeps): Promise<PromptCard[]> {
   const other = otherOf(loaded.row, viewer);
-  const latents = await deps.conversations.latents([viewer, other]);
+  const asking = canOpenRound(loaded.facts, sideOf(loaded.row, viewer), now, ROUND_POLICY);
+  const [latents, coincidences] = await Promise.all([
+    deps.conversations.latents([viewer, other]),
+    asking && deps.questions ? deps.questions.of(viewer, other) : Promise.resolve([]),
+  ]);
   const weights = latents.ok ? layerWeights(loaded.row.track, latents.value.get(viewer), latents.value.get(other)) : {};
   return cardsFor({
     conversationId: loaded.row.id,
     track: loaded.row.track,
     roundIndex: loaded.rounds.length,
     used: usedPrompts(loaded.rounds),
+    usedTexts: usedTexts(loaded.rounds),
+    coincidences,
     weights,
     refresh,
   });
@@ -123,7 +137,7 @@ export async function getConversation(id: string, viewer: string, deps: Conversa
   const [messages, peers, suggestions] = await Promise.all([
     messagesFor(loaded.value, now, options, deps),
     peerMap([viewer, otherOf(row, viewer)], deps.conversations),
-    suggestionsFor(loaded.value, viewer, refresh, deps),
+    suggestionsFor(loaded.value, viewer, refresh, now, deps),
   ]);
   if (!messages.ok) return messages;
   if (!peers.ok) return peers;

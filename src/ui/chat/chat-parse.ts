@@ -141,7 +141,8 @@ function parseCard(value: unknown): PromptCardDto | null {
   if (!isRecord(value)) return null;
   const id = text(value.id);
   const cardText = text(value.text);
-  return id === null || cardText === null ? null : { id, text: cardText, category: maybeText(value.category) ?? "" };
+  const origin: PromptCardDto["origin"] = value.origin === "coincidence" ? "coincidence" : "bank";
+  return id === null || cardText === null ? null : { id, text: cardText, category: maybeText(value.category) ?? "", origin };
 }
 
 function parseAsk(value: unknown): ConversationDto["ask"] {

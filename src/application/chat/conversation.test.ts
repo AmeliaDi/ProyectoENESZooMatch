@@ -231,3 +231,62 @@ describe("privacy", () => {
     expect(`${CHAT_NOTICE.title} ${CHAT_NOTICE.body}`).not.toMatch(/Nutria|Zorro|alias|mensaje:/);
   });
 });
+
+describe("coincidence cards", () => {
+  const PLAYLIST = "¿Qué playlist o álbum te sabes de memoria?";
+  const CONCIERTO = "¿Qué concierto te urge tener en la lista?";
+  const pool = [
+    { text: PLAYLIST, category: "gustos" },
+    { text: CONCIERTO, category: "gustos" },
+  ];
+  const deps = () => ({ ...w.deps(), questions: { of: async () => pool } });
+
+  it("leads the offer with what the two share and asks it by its text", async () => {
+    const id = await open(w);
+    const asker = await askerOf(w, id);
+    const view = await getConversation(id, asker, deps());
+    const cards = view.ok ? view.value.ask?.suggestions : undefined;
+    expect(cards).toHaveLength(SETTINGS.rounds.suggestions);
+    expect(cards?.[0]).toMatchObject({ text: PLAYLIST, category: "gustos", origin: "coincidence" });
+    const asked = await askQuestion(id, asker, { customText: PLAYLIST }, deps());
+    expect(asked.ok && asked.value.rounds[0]?.question).toBe(PLAYLIST);
+  });
+
+  it("asks its own text, not whatever arrived", async () => {
+    const id = await open(w);
+    const asker = await askerOf(w, id);
+    const asked = await askQuestion(id, asker, { customText: PLAYLIST.toLowerCase() }, deps());
+    expect(asked.ok && asked.value.rounds[0]?.question).toBe(PLAYLIST);
+  });
+
+  it("does not offer an answered coincidence again, to either side", async () => {
+    const id = await open(w);
+    const asker = await askerOf(w, id);
+    const other = asker === ANA ? BEA : ANA;
+    await askQuestion(id, asker, { customText: PLAYLIST }, deps());
+    await answerRound(id, asker, { round: 0, body: "la de siempre" }, deps());
+    await answerRound(id, other, { round: 0, body: "la misma" }, deps());
+    const next = await getConversation(id, other, deps());
+    const cards = next.ok ? next.value.ask?.suggestions : [];
+    expect(cards?.some((card) => card.text === PLAYLIST)).toBe(false);
+    expect(cards?.[0]).toMatchObject({ text: CONCIERTO, origin: "coincidence" });
+  });
+
+  it("still refuses a question nobody shares during the guided rounds", async () => {
+    const id = await open(w);
+    const asker = await askerOf(w, id);
+    expect(await askQuestion(id, asker, { customText: "¿Cuál es tu nombre real?" }, deps())).toEqual({ ok: false, error: "chat.conflict" });
+  });
+
+  it("never asks the same coincidence twice in one conversation", async () => {
+    const id = await open(w);
+    const asker = await askerOf(w, id);
+    const other = asker === ANA ? BEA : ANA;
+    await askQuestion(id, asker, { customText: PLAYLIST }, deps());
+    await answerRound(id, asker, { round: 0, body: "a" }, deps());
+    await answerRound(id, other, { round: 0, body: "b" }, deps());
+    await playRounds(w, id, 1);
+    expect(await askerOf(w, id)).toBe(asker);
+    expect(await askQuestion(id, asker, { customText: PLAYLIST }, deps())).toEqual({ ok: false, error: "request.invalid" });
+  });
+});

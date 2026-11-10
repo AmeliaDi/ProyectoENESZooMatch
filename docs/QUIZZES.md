@@ -228,10 +228,16 @@ JSON uniforme con errores específicos y amables.
 ### 5.3 Resultado
 
 - Ficha amable: "Tu vibra musical: conciertos gigantes y playlists de estudio".
-- Badges motivacionales nuevos: **no implementado**. El catálogo real vive en
-  `src/domain/badges/badge-catalog.ts` (cinco insignias, ninguna de quizzes) y una por quiz pediría
-  tres cosas que hoy no existen: una condición `{ tipo: "quizzes_completados" }` en
+- Badges motivacionales nuevos: **no implementado**, y ahora se sabe por qué es más
+  grande que una condición nueva. El catálogo real vive en
+  `src/domain/badges/badge-catalog.ts` (cinco insignias, ninguna de quizzes) y una por quiz
+  pediría tres cosas que hoy no existen: una condición `{ tipo: "quizzes_completados" }` en
   `BadgeCondition`, que el evaluador sepa contar intentos por categoría y un `BadgeId` por set.
+  Y debajo de eso está el hueco de verdad: **ninguna pantalla monta la cuadrícula** —
+  `BadgeGrid` no lo importa nadie, `ProfileDto` no trae insignias y no hay tabla de logros,
+  así que hoy ninguna persona puede haber ganado ninguna. Medido y explicado en ADR-062,
+  registrado como M-14 en `docs/PENDIENTES_MANUALES.md`: primero la superficie, después las
+  insignias nuevas.
   El estándar de copy sí está escrito y es duro: nombre ≤ 3 palabras, frase ≤ 80 caracteres,
   2 variantes, sin rankear ni juzgar.
 - Ejemplos (de cómo se leerían, no de lo que hay): "Melómano/a de corazón", "Cinéfilo/a casual",
@@ -583,9 +589,16 @@ quizzes distintos y sin ella el chat sugería la pregunta del quiz equivocado.
 
 Todo eso se ve: `src/ui/chat/quiz-coincidencias.tsx` está montado en la conversación, entre la guía
 de primera vez y las rondas (`src/ui/chat/conversation-view.tsx`), plegado por defecto para no
-cobrar altura en móvil. Sin coincidencias no pinta nada. Lo que aún no existe es meter las
-sugerencias dentro del selector de preguntas de las tres rondas: hoy el banco de `rounds` sale solo
-de `data/chat-prompts.json`.
+cobrar altura en móvil. Sin coincidencias no pinta nada.
+
+Y sí, desde ADR-063 las sugerencias **también** entran en la tanda de las tres rondas, que era lo
+que faltaba: `src/infrastructure/chat/coincidence-questions.ts` reusa la misma RPC
+`quiz_coincidencias` (el candado no se duplica) y `mixCards` (`src/domain/chat/question-cards.ts`)
+pone una de esas preguntas al frente de las tres tarjetas que ofrece `rounds.coincidences` = 1.
+Rige la misma exclusión de Picante y del `resultado_personal` que acabamos de describir, y del chat
+solo viaja el texto de la pregunta, nunca el valor contestado. Se apaga desde config escribiendo
+`rounds.coincidences = 0`; la otra mitad del camino (`docs/CHAT.md` §11.2) dice cómo se pide y cómo
+se guarda.
 
 ### 13.10 El hub perdió los emojis y ganó orden
 

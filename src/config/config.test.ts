@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import rawChat from "../../data/chat-config.json";
 import rawMatching from "../../data/matching-config.json";
 import rawQuiz from "../../data/microtest.json";
 import rawRetention from "../../data/retention-config.json";
+import { chatConfigSchema } from "./chat";
 import {
   CATALOG,
   CATALOG_ANIMALS,
@@ -38,6 +40,16 @@ describe("config loading", () => {
     expect(() => loadConfig("retention-config", retentionConfigSchema, bad)).toThrow(
       /soft_delete_grace_days must be >= abandoned_incomplete_days/,
     );
+  });
+
+  it("lets the coincidence card be switched off in config, and only within the offer", () => {
+    const off = clone(rawChat);
+    off.conversation.rounds.coincidences = 0;
+    expect(loadConfig("chat-config", chatConfigSchema, off).conversation.rounds.coincidences).toBe(0);
+
+    const tooMany = clone(rawChat);
+    tooMany.conversation.rounds.coincidences = tooMany.conversation.rounds.suggestions + 1;
+    expect(() => loadConfig("chat-config", chatConfigSchema, tooMany)).toThrow(/coincidences must fit suggestions/);
   });
 
   it("freezes loaded objects deeply", () => {

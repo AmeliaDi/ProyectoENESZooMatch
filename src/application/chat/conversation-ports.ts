@@ -5,6 +5,7 @@
  */
 import type { ReportReason } from "@/contracts/chat";
 import type { IdentityDto } from "@/contracts/identity";
+import type { CoincidenceQuestion } from "@/domain/chat";
 import type { Result } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
 import type { MatchTrack } from "@/types/microtest";
@@ -120,6 +121,16 @@ export interface ReadPorts {
   recentMessagesBy(author: string, since: Date, limit: number): Promise<Result<MessageRow[], StorageError>>;
   peers(userIds: readonly string[]): Promise<Result<ChatPeer[], StorageError>>;
   latents(userIds: readonly string[]): Promise<Result<Map<string, LatentProfile>, StorageError>>;
+}
+
+/**
+ * What the two share in their quizzes, already turned into questions and
+ * already gated (docs/CHAT.md §11.2). It never returns an answer: only the
+ * derived question text crosses into the chat. Adapters fail closed — a source
+ * that cannot answer means no extra cards, never a failed conversation.
+ */
+export interface CoincidenceQuestions {
+  of(yo: string, otra: string): Promise<CoincidenceQuestion[]>;
 }
 
 export interface WritePorts {

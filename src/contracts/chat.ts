@@ -80,6 +80,8 @@ export interface PromptCardDto {
   id: string;
   text: string;
   category: string;
+  /** `bank` is asked by id; `coincidence` carries its text back at ask time. */
+  origin: "bank" | "coincidence";
 }
 
 export interface ChatMessageDto {

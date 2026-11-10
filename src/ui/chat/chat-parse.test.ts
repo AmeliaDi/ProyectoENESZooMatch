@@ -124,7 +124,7 @@ describe("parseConversation", () => {
       ...convo,
       limits: { answerChars: -1 },
       rounds: [round, { index: 1 }, { ...round, index: 2, mine: 3 }],
-      ask: { suggestions: [{ id: "p001", text: "¿Hola?" }, { id: 4 }], refresh: "x" },
+      ask: { suggestions: [{ id: "p001", text: "¿Hola?" }, { id: "c1", text: "¿Qué playlist te sabes?", origin: "coincidence" }, { id: 4 }], refresh: "x" },
       messages: [{ id: "m1", mine: true, body: "hola", at: "2026" }, { id: "m2", body: 5, at: "2026" }],
       free: "both",
       reactions: [],
@@ -132,7 +132,7 @@ describe("parseConversation", () => {
     expect(parsed?.limits).toEqual({ answerChars: SETTINGS.answerChars, messageChars: SETTINGS.messageChars, customQuestionChars: SETTINGS.customQuestionChars });
     expect(parsed?.rounds.map((r) => r.index)).toEqual([0, 2]);
     expect(parsed?.rounds[1]?.mine).toBeNull();
-    expect(parsed?.ask).toEqual({ suggestions: [{ id: "p001", text: "¿Hola?", category: "" }], refresh: 0, canWriteOwn: false });
+    expect(parsed?.ask).toEqual({ suggestions: [{ id: "p001", text: "¿Hola?", category: "", origin: "bank" }, { id: "c1", text: "¿Qué playlist te sabes?", category: "", origin: "coincidence" }], refresh: 0, canWriteOwn: false });
     expect(parsed?.messages).toHaveLength(1);
     expect(parsed?.free).toEqual({ canAccept: false, mine: false, theirs: false });
     expect(parsed?.reactions).toEqual([...SETTINGS.reactions]);

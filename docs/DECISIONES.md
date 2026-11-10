@@ -2888,3 +2888,217 @@ reales, no de estilo.
   esta fase no estaba montado en ninguna pantalla. La comparación numérica antes/después del
   puntaje con dos cuentas reales queda para el humo E2E; lo que hay es la garantía estructural y
   la de llamadas, arriba.
+
+---
+
+## ADR-061 · La conservación de conversaciones abiertas se mueve a la escritura: `replace_matches` ya no puede dejar un chat sin tarjeta
+
+**Contexto.** DB-19 y M-13 son el mismo hecho medido dos veces: 71 conversaciones
+producidas el 2026-11-10 apuntan a un par que ya no está en `public.matches`, 41 con
+mensajes escritos, y 5 de esas conversaciones se abrieron **después** del último
+recálculo registrado (`admin_audit`, 2026-11-08 22:49 UTC), así que no es residuo
+histórico: sigue ocurriendo. La conversación sobrevive porque ninguna FK apunta a
+`matches`, pero la tarjeta del par desaparece y quien escribe ya no ve con quién está
+hablando. El camino que proponía la documentación era conectar `conserveProtected`
+dentro de `recomputeMatches` antes de `replaceAll`. Medido contra el código, ese camino
+es el equivocado, y por una razón que solo se ve contando quién llama a qué.
+
+**Decisión.**
+
+- **El recálculo no es un job de consola: está en el camino caliente.**
+  `recomputeMatches` se llama desde `src/application/submit-quiz.ts:209` (cada envío de
+  quiz), `src/application/privacy.ts:63,74`, `src/application/reconcile-eggs.ts:102` y
+  `src/application/admin/users.ts:105,110`. Leer las parejas protegidas desde Node
+  costaría entre una y cinco peticiones HTTP **por submission**: `matches` y
+  `conversations` no tienen FK entre sí, así que PostgREST no puede empotrar la
+  consulta y no existe un RPC que la resuelva en el esquema vigente. Hacer el
+  `NOT EXISTS` dentro de la misma sentencia cuesta un escaneo chico y cero viajes.
+- **La protección vive entonces en la escritura, no en la capa de aplicación.** El
+  conjunto publicado pasa a ser `payload del motor ∪ {parejas con conversación abierta
+  que el motor no produce}`, y esas parejas se re-publican **tal cuales estaban**:
+  similitud, badges y `computed_at` del renglón previo. Restituir no es inventar un
+  score. Cubre todos los caminos de golpe, incluidos los que no pasan por
+  `recomputeMatches`, y deja de depender de que algún llamado acuerde pasar la lista.
+- **Primera versión fallida, y está dicho porque es la parte útil.** Se escribió como
+  una sola sentencia con CTEs de modificación de datos (`deleted AS (DELETE … RETURNING
+  *)` → `conserved` → `INSERT`). La primera corrida pasó; la segunda reventó con
+  `duplicate key value violates unique constraint "matches_pkey"`. En Postgres los CTEs
+  que modifican la misma tabla corren concurrentes y el chequeo de unicidad va contra el
+  índice vivo: reinserar una llave que la propia sentencia está borrando choca. La
+  versión final son cuatro sentencias en plpgsql (snapshot → `DELETE` → insertar payload
+  → insertar conservadas), donde el orden es garantía del lenguaje y no esperanza.
+- **Conservar protege la existencia del par, no su número.** Si el motor sí produce la
+  pareja, manda el score nuevo del motor; la restitución solo aplica a la que el motor
+  ya no produce. Prueba explícita: payload sucio con `romance A·B` a 0.80 y 0.60 deja
+  0.80 publicado, no el 0.77 conservado.
+- **La compuerta de rollout no se reemplaza.** `conserveProtected` y la compuerta
+  `conservacion` siguen midiendo en TypeScript; lo que cambia es que ahora el número que
+  declaran es cierto también para el recálculo ordinario, no solo para la activación.
+- **Prueba con la migración aplicada dentro de la transacción.**
+  `supabase/tests/05_conservacion.sql` (15 aserciones) declara
+  `-- @aplicar: supabase/maintenance/pending/20261127000000_conservar_conversaciones.sql`
+  y `withPending` en `scripts/db/test.mjs` inyecta ese DDL justo después de su `BEGIN`;
+  el `ROLLBACK` final se lo lleva. Así el verde no depende de que producción ya tenga la
+  migración, y el rojo está medido: con la directiva desactivada, `npm run db:test`
+  reporta `8 fallos, plan 15, corrieron 15, declaradas 15` —fallan las aserciones de
+  conservación, no el armazón— y con la directiva activa pasa 15/15. La ruta real del
+  archivo, no una copia, es lo que se ejecuta: si la migración se rompe, la prueba se
+  rompe.
+- **Sigue siendo decisión humana aplicarla.** El archivo vive en
+  `supabase/maintenance/pending/` por las dos razones de siempre: cambiar el conjunto
+  publicado contra producción es decisión de producto, y `npm run db:migrate-test` exige
+  que el repo replique producción sin diferencias. No se corrió nada remoto: la
+  verificación es PGlite en memoria.
+
+**Consecuencias.** La migración no reescribe el pasado: los 71 pares ya huérfanos no
+tienen un score almacenado que restituir, así que reconstruir esas tarjetas es otro paso
+humano y sigue abierto en M-13. Los renglones `conversaciones sin par vigente en matches`
+de `supabase/maintenance/readonly-audit/04_conservacion.sql` vuelven a esperar `'0'`
+**después** de aplicarla y de un recálculo real, no antes. Y con la protección dentro de
+la sentencia, `POST /api/admin/recompute` deja de ser una acción que pueda borrarle la
+tarjeta a un chat abierto.
+
+**Lo que NO se hizo.** No se aplicó la migración, no se recalculó producción, no se tocó
+un renglón real. No se borró el `DELETE FROM public.matches WHERE true`: sigue siendo el
+que borra todo, con la diferencia de que ahora lo borra después de apartar lo protegido.
+Y la guarda de versión de pool no se movió de sitio ni de orden: con versión ajena
+devuelve `-1` sin escribir, y eso está asertado en la misma prueba. Tampoco se tocó
+`admin_reset_quiz` (`20261116000000_identity_drop_legacy.sql:250`): ahí borrar las
+tarjetas de una persona es la acción pedida, así que conservaría justo lo que esa
+persona pidió que se fuera. Queda dicho porque es la otra escritura que borra de
+`matches` y la migración no la toca.
+
+---
+
+## ADR-062 · «Semana activa» deja de prometer una racha, y queda medido que el sistema de insignias no tiene superficie
+
+**Contexto.** El brief dice «sin rachas» y el catálogo decía lo contrario:
+`src/domain/badges/badge-catalog.ts:40` prometía «Entraste al cielo durante siete
+dias seguidos». ADR-060 dejó el cambio sin hacer con una razón concreta: «quitar
+una insignia que alguien ya ganó es borrarle un logro a una persona real». Medida
+esa premisa, es falsa, y la corrección del copy dependía de medirla.
+
+**Decisión.**
+
+- **La premisa de ADR-060 no se sostiene, y esto es lo útil del renglón.** Cuatro
+  hechos, todos comprobados con búsqueda sobre el árbol:
+  `BadgeGrid` (`src/ui/badges/badge-grid.tsx:30`) no lo importa nadie fuera de su
+  propio archivo; `src/app/perfil/page.tsx:8` renderiza `<ProfileView />` sin
+  ninguna prop de insignias, y `ProfileDto` (`src/contracts/profile.ts:40-59`) no
+  tiene campo de insignias; `checkBadgeUnlock` (`src/domain/badges/badge-types.ts:75`)
+  se llama solo desde `src/domain/badges/badge-types.test.ts`; y no existe tabla de
+  logros en `supabase/migrations` — la única columna `badges` es
+  `public.matches.badges` (`00000000000000_base.sql:166`), que son los chips de
+  compatibilidad del match, un concepto distinto. `BadgeProgress.activeDays`
+  (`src/domain/badges/badge-types.ts:99`) no se computa en ninguna parte.
+  O sea: nadie ganó una insignia, así que re-enfocar `semana_activa` no borra
+  estado de nadie. El riesgo que frenaba el cambio no existía.
+- **El copy nuevo describe lo que la condición realmente hace.**
+  `condicion: { tipo: "active_days", min: 7 }` compara un **contador de días**, no
+  una consecución; `checkBadgeUnlock` lee `progress.activeDays >= 7`. La frase nueva
+  es «Siete dias activos en el cielo, no hace falta que sean uno tras otro»
+  (68 caracteres, dentro del estándar de ≤ 80 de `docs/QUIZZES.md` §5.3) y
+  `docs/MOVIL.md:156` dice ahora «Acumular 7 dias activos (no seguidos)».
+- **La palabra queda vedada con prueba, no con intención.** `describe("badge copy")`
+  en `src/domain/badges/badge-types.test.ts` recorre el catálogo y rechaza
+  `seguidos`, `seguidas`, `racha` y `streak` en nombre más descripción; y otra
+  aserción fija que `semana_activa` es `{ tipo: "active_days", min: 7 }` y que 7 y 8
+  días valen lo mismo que 7 consecutivos. Rojo/verde: con la frase vieja la prueba
+  nueva falla por la palabra, con la nueva pasan 13 de 13 en el archivo (eran 11).
+- **No se renombró el identificador.** `semana_activa` sigue llamándose así en
+  `BadgeId`. Nada lo persiste, así que renombrar no tendría efecto; el costo de
+  tocar el tipo y sus pruebas sin ganar nada es real y el beneficio cero.
+
+**Consecuencias.** Lo que había debajo de la pregunta es más grande que la pregunta:
+el sistema de insignias es andamiaje sin superficie —cinco definiciones puras, un
+componente probado y una cuadrícula que ninguna pantalla monta— mientras
+`docs/MOVIL.md:146` afirma que «las insignias se muestran en una cuadricula en la
+pagina de perfil». Esa frase es una promesa, no un hecho, y ahora está dicho. Por eso
+las insignias de quizzes (Fase 2) no se pueden cerrar agregando una condición al
+catálogo: sería escribir en código muerto. Registrado como **M-14** en
+`docs/PENDIENTES_MANUALES.md`, con lo que hace falta para cerrarlo.
+
+**Lo que NO se hizo.** No se montó la cuadrícula en el perfil. No se agregó la
+condición `{ tipo: "quizzes_completados" }` ni los `BadgeId` por set. No se tocó
+`desbloqueadoEn`, que hoy no tiene respaldo donde vivir. No se cambió ninguna
+regla de visibilidad ni ningún umbral.
+
+## ADR-063 · La tanda de tres recibe una tarjeta escrita con lo que la pareja ya contestó igual
+
+**Contexto.** Desde ADR-060 el chat muestra el panel «Gustos en común» dentro de la
+conversación, o sea: la pareja **ve** que coincide en algo y, al abrir la ronda
+siguiente, recibe tres preguntas del banco que no tienen nada que ver con eso. El
+pendiente era usar esa coincidencia en el momento en que cuesta caro —la primera
+ronda, cuando todavía nadie escribió nada— sin tocar el núcleo del modelo ni
+regalar datos. La restricción dura del esquema es que una ronda guarda **o** un
+`prompt_id` del banco (`^[par][0-9]{3}$`, `supabase/migrations/20261106000000_chat_safety.sql:36`)
+**o** un `custom_text` (`:42`, XOR), y una pregunta derivada del par no es una
+fila del banco.
+
+**Decisión.**
+
+- **La pregunta derivada se guarda como `custom_text`, y no hay migración.** La
+  alternativa (fabricar un id) está medida y es peor: `promptText` (`src/application/chat/prompts.ts:22`)
+  cae en `MISSING_PROMPT` (`:19`) para cualquier id ajeno al banco, así que la
+  tarjeta quedaría mal escrita **para siempre** en cada lectura posterior, porque
+  la vista arma la pregunta con `round.customText ?? promptText(round.promptId)`
+  (`src/application/chat/conversation-view.ts:83`). El techo del campo es 1 600
+  code points en SQL y 200 grafemas en config; la pregunta derivada más larga que
+  produce el generador mide **55** caracteres, así que ninguna tarjeta puede
+  quedar inpregunable.
+- **La regla «en las rondas guiadas nadie escribe preguntas» sigue en pie, con
+  prueba.** El `origin` de la tarjeta (`src/contracts/chat.ts:84`) decide cómo se
+  pide: el banco por `promptId`, la coincidencia por texto. En el camino de
+  escritura (`src/application/chat/actions.ts:67-71`) el servidor **no** guarda lo
+  que llegó: re-mide el texto contra el pozo gateado de la pareja y persiste su
+  propia cadena canónica. Medido en `src/application/chat/conversation.test.ts`:
+  enviar la pregunta en minúsculas guarda la versión acentuada original, y una
+  pregunta escrita a mano («¿Cuál es tu nombre real?») devuelve `chat.conflict`
+  sin explicar por qué. La UI no decide privacidad: `chat-parse.ts:144` ante un
+  `origin` desconocido elige `"bank"`, que es el lado en que el servidor rechaza.
+- **El candado no se reimplementa: se re-usa.** `src/infrastructure/chat/coincidence-questions.ts`
+  hace **una** lectura indexada a `quiz_sharing` (`idx_quiz_sharing_persona`,
+  `20261120000000_quizzes.sql:51`) para saber con qué quizzes llamar a la RPC
+  `quiz_coincidencias` (`:80`), que es la misma que ya decide el panel: exige que
+  **ambas** partes estén en `compartir_coincidencias_con_matches`, que el match
+  siga vigente y descarta `no` / `prefiero_no_decir`. Del quiz al chat solo viaja
+  el **texto** de la pregunta, nunca el valor contestado, y el cliente nunca manda
+  un id de persona. Si la tabla de visibilidad no se puede leer, el pozo es `[]`.
+- **Picante queda fuera por escrito y por catálogo.** Los cuatro `picante_*` no
+  entran al alcance del `.in("quiz_id", …)` ni a la RPC (medido en
+  `src/infrastructure/chat/coincidence-questions.test.ts`), y `picante_vanilla_kink`
+  además está marcado `resultado_personal`. La razón no es de gusto: el banco
+  rompehielos se valida con `sensible: z.literal(false)` (`src/config/chat-prompts.ts:34`)
+  y una ronda guiada no puede ser la puerta de atrás del +18. Elegibles: **14** de
+  **18** quizzes, exactamente los 14 no-18+; techo de 3 preguntas por quiz
+  (`MAX_PREGUNTAS_SUGERIDAS`) y **118** textos distintos en todo el cruce de
+  opciones.
+- **El costo está en el camino que no se repite.** `getConversation` contestea
+  cada 8 s, así que el pozo solo se pide cuando `canOpenRound` es verdadero: como
+  mucho una vez por turno, 1 lectura + k llamadas RPC (k = quizzes que ambos
+  comparten, ≤ 14), en paralelo con los latentes. Sin `deps.questions` el caso de
+  uso ofrece el banco, igual que antes de este cambio.
+- **El interruptor vive en config, y eso costó cambiar el tipo.** `rounds.coincidences`
+  vale **1** dentro de `rounds.suggestions` = **3** y puede escribirse en **0**
+  para apagar la tarjeta sin desplegar. Medido antes de decidirlo: con `0` el
+  load fallaba `conversation.rounds.coincidences: Too small: expected number to
+  be >0` y dos archivos de test se caían entero (14 pruebas alcanzadas, 2 suites
+  rotas), así que la llave pasó de `positiveInt` a `z.number().int().min(0)` y el
+  refine sigue exigiendo `coincidences ≤ suggestions`. Verde medido: el mixer con
+  `take: 0` devuelve el banco intacto y `src/config/config.test.ts` pasa 14/14.
+
+**Consecuencias.** El panel «Gustos en común» y la tarjeta de la ronda ahora
+mueren y viven juntos: cualquier cambio en la regla de visibilidad cambia las dos
+superficies, y eso es lo querido. Como el techo es de 3 preguntas por quiz, una
+pareja que comparte los 14 ve siempre el mismo puñado hasta que lo conteste; el
+`refresh` de «Otras tres» pagina el pozo, así que la rotación existe pero es
+lenta a propósito. La etiqueta del renglón **T-40** es `supuesto_diseno`: que una
+pregunta nacida de una coincidencia abra más conversación que una genérica es
+diseño, no medición; nadie lo ha medido con personas.
+
+**Lo que NO se hizo.** Ninguna migración, ningún RPC nuevo, ninguna columna nueva.
+No se tocó el motor de puntaje, los umbrales ni el banco de 96 preguntas. No se
+incluyó Picante ni ningún quiz `resultado_personal`. No se agregó un cuarto
+candidato a la tanda: la coincidencia **reemplaza** una de las tres, no se suma.
+No se envió el valor contestado a ninguna capa, y no se dejó que el cliente
+eligiera a la otra persona.

@@ -4,18 +4,15 @@
  * The bank stays on the server; clients only receive the offered cards.
  */
 import { CHAT_PROMPTS } from "@/config/chat-prompts";
-import { selectPrompts } from "@/domain/chat";
+import { mixCards, selectPrompts, type CoincidenceQuestion, type QuestionCard } from "@/domain/chat";
 import { MATCHING_CONFIG, pairScore } from "@/domain/matching";
 import type { LatentProfile } from "@/types/latent";
 import type { MatchTrack } from "@/types/microtest";
 
 import { SETTINGS } from "./settings";
 
-export interface PromptCard {
-  id: string;
-  text: string;
-  category: string;
-}
+/** A card of the turn: from the bank (asked by id) or from a coincidence (asked by text). */
+export type PromptCard = QuestionCard;
 
 const BY_ID = new Map(CHAT_PROMPTS.preguntas.map((p) => [p.id, p]));
 /** Shown if a stored prompt id ever leaves the bank (should not happen). */
@@ -47,12 +44,17 @@ export interface CardsInput {
   track: MatchTrack;
   roundIndex: number;
   used: ReadonlySet<string>;
+  /** Folded texts already asked, including the questions typed at ask time. */
+  usedTexts: ReadonlySet<string>;
+  /** Questions the pair shares in their quizzes; empty when nothing is shared. */
+  coincidences: readonly CoincidenceQuestion[];
   weights: Readonly<Record<string, number>>;
   refresh: number;
 }
 
 export function cardsFor(input: CardsInput): PromptCard[] {
-  return selectPrompts({
+  const count = SETTINGS.rounds.suggestions;
+  const bank = selectPrompts({
     bank: CHAT_PROMPTS.preguntas,
     track: input.track,
     roundIndex: input.roundIndex,
@@ -60,7 +62,15 @@ export function cardsFor(input: CardsInput): PromptCard[] {
     layerWeights: input.weights,
     seed: input.conversationId,
     refresh: input.refresh,
-    count: SETTINGS.rounds.suggestions,
+    count,
     levelFromRound: SETTINGS.rounds.levelFromRound,
-  }).map((p) => ({ id: p.id, text: p.texto, category: p.categoria }));
+  }).map((p) => ({ id: p.id, text: p.texto, category: p.categoria, origin: "bank" as const }));
+  return mixCards({
+    bank,
+    coincidences: input.coincidences,
+    usedTexts: input.usedTexts,
+    count,
+    take: SETTINGS.rounds.coincidences,
+    refresh: input.refresh,
+  });
 }

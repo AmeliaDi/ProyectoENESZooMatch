@@ -4,6 +4,7 @@ export * from "./guard";
 export * from "./lock-session";
 export * from "./pin-rules";
 export * from "./prompt-selection";
+export * from "./question-cards";
 export * from "./recovery";
 export * from "./signals";
 export * from "./text";

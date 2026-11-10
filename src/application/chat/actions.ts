@@ -11,6 +11,7 @@ import {
   canReact,
   canSendMessage,
   canTogglePause,
+  foldText,
   isRoundRevealed,
   stageOf,
   type ConversationSide,
@@ -46,7 +47,7 @@ async function act(id: string, viewer: string, deps: ConversationDeps, action: A
 
 export type AskInput = { promptId: string } | { customText: string };
 
-/** Opens the next round: a suggested card, or (only in free chat) an own question. */
+/** Opens the next round: a bank card, a coincidence card, or (in free chat) an own question. */
 export function askQuestion(id: string, viewer: string, input: AskInput, deps: ConversationDeps) {
   return act(id, viewer, deps, async (loaded, side, now) => {
     if (!canOpenRound(loaded.facts, side, now, ROUND_POLICY)) return err("chat.conflict");
@@ -55,10 +56,19 @@ export function askQuestion(id: string, viewer: string, input: AskInput, deps: C
       if (!isKnownPrompt(input.promptId, loaded.row.track) || loaded.rounds.some((r) => r.promptId === input.promptId)) return err("request.invalid");
       return deps.conversations.openRound(id, index, viewer, { promptId: input.promptId }, now);
     }
-    if (stageOf(loaded.facts, now, ROUND_POLICY) !== "free") return err("chat.conflict");
     const text = guardText(input.customText, SETTINGS.customQuestionChars);
     if (!text.ok) return text;
-    return deps.conversations.openRound(id, index, viewer, { customText: text.value }, now);
+    if (stageOf(loaded.facts, now, ROUND_POLICY) === "free") {
+      return deps.conversations.openRound(id, index, viewer, { customText: text.value }, now);
+    }
+    // Guided rounds keep their rule: nobody types a question. The only text
+    // accepted here is a coincidence card offered to this pair, and what gets
+    // stored is our text, not whatever arrived.
+    const folded = foldText(text.value);
+    if (folded.length === 0 || loaded.rounds.some((r) => foldText(r.customText ?? "") === folded)) return err("request.invalid");
+    const offered = deps.questions ? (await deps.questions.of(viewer, otherOf(loaded.row, viewer))).find((q) => foldText(q.text) === folded) : undefined;
+    if (!offered) return err("chat.conflict");
+    return deps.conversations.openRound(id, index, viewer, { customText: offered.text }, now);
   });
 }
 

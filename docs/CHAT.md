@@ -287,7 +287,8 @@ del PIN.
 
 1. Los turnos de preguntar se **alternan**. Quién empieza se decide por un *hash* del id de la
    conversación, así que no siempre es la misma persona.
-2. A quien le toca se le ofrecen **3 tarjetas** (§11.2). Puede elegir una, pedir «Otras tres»
+2. A quien le toca se le ofrecen **3 tarjetas** (§11.2), una de las cuales puede salir de lo que
+   ambos contestaron en los quizzes. Puede elegir una, pedir «Otras tres»
    o, **solo en chat libre**, escribir su propia pregunta (máximo 200 grafemas).
 3. **Las dos personas responden** (máximo 300 grafemas, se aceptan emojis) o tocan **«Pasar»**
    sin dar explicaciones. Mientras tanto, las respuestas quedan **selladas**: el servidor no
@@ -373,6 +374,40 @@ Ejemplos por nivel (el banco completo está en el JSON):
 4. **Variedad:** elección voraz con categorías distintas.
 5. **«Otras tres»:** pasa a la siguiente página del ranking y vuelve al principio al llegar al
    final.
+6. **Una de las tres puede venir de los quizzes** (ADR-063). Si le toca abrir ronda a quien
+   comparte coincidencias con su par, la **primera** tarjeta es una pregunta derivada de un ítem
+   que ambos contestaron igual, y las otras dos salen del banco:
+   `rounds.coincidences` = **1** dentro de `rounds.suggestions` = **3**. Si no hay nada
+   compartible, la oferta es exactamente la del banco: el mecanismo degrada a cero, nunca a error.
+   `rounds.coincidences` también puede escribirse en **0** para apagar la tarjeta desde config, sin
+   desplegar; el esquema del config lo permite y exige que nunca exceda a `suggestions`.
+
+La mezcla la hace `mixCards` (`src/domain/chat/question-cards.ts`, función pura) sobre la lista
+que ya produjo `selectPrompts`, con tres reglas:
+
+- **Dedupe por `foldText`** (mayúsculas y acentos da igual): se cae una coincidencia si su texto
+  ya está en el banco de la misma tanda o si la pareja ya la respondió en una ronda anterior;
+  el hueco lo rellena el banco, así que la oferta siempre mide 3 mientras el banco alcance.
+- **`refresh` también pagina las coincidencias**: «Otras tres» recorre el pozo de a 1 y vuelve al
+  principio, igual que en el banco.
+- La tarjeta sale con `origin: "bank" | "coincidence"`. Las de banco se piden por `promptId`;
+  las de coincidencia se piden por texto (`customText`), y el servidor **no** guarda lo que llegó:
+  re-mide el texto contra el pozo gateado de la pareja y persiste su propia cadena canónica. Por
+  eso la regla «en las rondas guiadas nadie escribe preguntas» sigue en pie: quien manda la
+  pregunta en minúsculas obtiene la versión acentuada original, y quien manda una pregunta que no
+  está en ese pozo recibe `chat.conflict` (medido en `src/application/chat/conversation.test.ts`).
+
+Lo que cruza desde la capa de quizzes es **solo el texto de la pregunta**, jamás el valor
+contestado. El candado no se reimplementa: `src/infrastructure/chat/coincidence-questions.ts`
+pregunta por la tabla de visibilidad para saber *con cuáles* quizzes llamar a la misma RPC
+`quiz_coincidencias` que usa el panel «Gustos en común», y esa función exige que **ambas** personas
+estén en `compartir_coincidencias_con_matches`, que el match siga vigente y descarta
+`no` / `prefiero_no_decir`. Los cuatro `picante_*` nunca entran al pozo: el banco rompehielos se
+valida con `sensible: false` (`src/config/chat-prompts.ts`) y una ronda guiada no puede volverse
+la puerta de atrás del +18. Quedan **14** quizzes elegibles, es decir los 14 no-18+, con techo de
+3 preguntas por quiz y **118** textos distintos en todo el cruce de opciones; la pregunta más
+larga que puede generarse mide **55** caracteres, dentro de los 200 de `customQuestionChars`, así
+que ninguna tarjeta puede quedar inpregunable.
 
 El banco nunca sale del servidor; el cliente solo recibe las 3 tarjetas.
 
@@ -585,7 +620,10 @@ Códigos nuevos: `chat.adult_required` (403), `chat.cooldown` (409), `chat.too_m
   5. las rondas en tarjetas de marco: pregunta, «Tu respuesta» (o composer con «Pasar») y «Su
      respuesta» (sellada, revelada con reacciones, o «Prefirió pasar esta pregunta»);
   6. **«Te toca elegir la pregunta»**, con 3 tarjetas que llevan el icono de su categoría,
-     «Otras tres» y, en chat libre, «O escribe tu propia pregunta»;
+     «Otras tres» y, en chat libre, «O escribe tu propia pregunta». La tarjeta nacida de una
+     coincidencia (§11.2) se ve igual que las del banco: el icono sale de su categoría y no hay
+     marca de «esto lo sacamos de tus quizzes». El campo `origin` existe en el DTO solo para
+     decidir cómo se pide; si algún día se quiere diferenciar, ahí está.
   7. la invitación al chat libre;
   8. el chat libre: burbujas en la fuente de lectura con el sprite como avatar, «Tú» marcado
      también con texto, `role="log"` y `aria-live="polite"`.
@@ -620,10 +658,12 @@ Códigos nuevos: `chat.adult_required` (403), `chat.cooldown` (409), `chat.too_m
 | `domain/chat/guard.test.ts` | Enlaces, teléfono, correo, @usuario, falsos positivos, acentos y ñ |
 | `domain/chat/conversation.test.ts` | Turnos, sellado, revelado a 48 h, «Pasar», reacciones, chat libre tras 3 rondas, pausa |
 | `domain/chat/prompt-selection.test.ts` | Determinismo, niveles, sin repetir, variedad, peso por capa, «otras tres» |
+| `domain/chat/question-cards.test.ts` | Mezcla banco + coincidencia: tope de 3, dedupe acento-insensible, gemelo del banco, página por `refresh` y vuelta al principio, determinismo |
 | `domain/chat/signals.test.ts` | Caducidad, 18+ solo de quien envía, tope, cooldown, bloqueo |
 | `config/chat-prompts.test.ts` | Linter del banco |
-| `application/chat/conversation.test.ts` | Invitación, «ahora no» silencioso, señales simultáneas, 18+, sellado, revelado, preguntas propias, privacidad de los DTO |
+| `application/chat/conversation.test.ts` | Invitación, «ahora no» silencioso, señales simultáneas, 18+, sellado, revelado, preguntas propias, privacidad de los DTO; la tarjeta de coincidencia abre ronda, no se repite tras contestarla y rechaza una pregunta escrita a mano |
 | `application/chat/chat-safety.test.ts` | Idempotencia, enlaces, lenguaje ofensivo, límites por grafemas y por minuto, repeticiones, borrar lo mío, reacciones, opinión agregada, pausa, silencio, cerrar con cooldown, bloquear, reportar |
-| `app/api/chat/chat-routes.test.ts` | Candado: nada se lee ni escribe sin él; tarjetas, ids ajenos, cuerpos estrictos |
+| `app/api/chat/chat-routes.test.ts` | Candado: nada se lee ni escribe sin él; tarjetas, ids ajenos, cuerpos estrictos; la coincidencia viaja con `origin` y solo se acepta su texto |
+| `infrastructure/chat/coincidence-questions.test.ts` | El pozo respeta el candado: Picante y `resultado_personal` nunca entran en el alcance, nada se pregunta si una sola parte comparte, solo sale texto y no valor, y una lectura ilegible degrada a vacío |
 | `infrastructure/supabase/schema.test.ts` | Migración idempotente, base igual a la incremental, RLS, cascada, RPC protegidas, límites de texto |
 | `ui/chat/chat-parse.test.ts`, `ui/screens.test.ts` | Parsers defensivos; copy sin presión, sin emojis y sin «x» en lo que leen los lectores de pantalla |

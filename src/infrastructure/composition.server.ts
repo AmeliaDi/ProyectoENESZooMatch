@@ -5,7 +5,7 @@
 import { createHash } from "node:crypto";
 
 import type { AdminConsoleRepository, AdminDeps, AdminLoginDeps } from "@/application/admin";
-import type { ChatRecoveryDeps, ConversationRepository, InterestDeps, InvitationDeps } from "@/application/chat";
+import type { ChatRecoveryDeps, CoincidenceQuestions, ConversationRepository, InterestDeps, InvitationDeps } from "@/application/chat";
 import type { AppError } from "@/application/errors";
 import type { GetResultDeps } from "@/application/get-result";
 import type { HatchDeps } from "@/application/hatch";
@@ -25,6 +25,7 @@ import { err, ok, type Clock, type Result } from "@/domain/shared";
 
 import { supabaseAdminConsoleRepository } from "./admin/console-repository";
 import { createAccessGuard, guardSubject } from "./auth/access-guard.server";
+import { supabaseCoincidenceQuestions } from "./chat/coincidence-questions";
 import { supabaseConversationRepository } from "./chat/conversation-repository";
 import { createPinHasher } from "./chat/pin-hasher.server";
 import { supabaseChatPinRepository, supabaseMatriculaVerifier } from "./chat/pin-repository";
@@ -239,6 +240,8 @@ export interface ChatContext {
   deps: ChatRecoveryDeps;
   /** Conversations between matches; only reachable behind `requireChatLock`. */
   conversations: ConversationRepository;
+  /** Quiz coincidences behind the extra question cards of a turn. */
+  coincidences: CoincidenceQuestions;
   /** Current matches (invitations are only shown for a current match). */
   matches: InvitationDeps["matches"];
   digest(input: string): string;
@@ -265,6 +268,7 @@ export async function chatContext(): Promise<Result<ChatContext, Failure>> {
     userId: auth.value.userId,
     pepper,
     conversations: supabaseConversationRepository(admin),
+    coincidences: supabaseCoincidenceQuestions(admin),
     matches: supabaseMatchRepository(admin),
     digest: sha256Hex,
     deps: {

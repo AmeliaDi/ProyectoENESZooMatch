@@ -25,7 +25,11 @@ export function conversationIdOf(request: Request): string | null {
 }
 
 export function conversationDeps(open: OpenChat): ConversationDeps {
-  return { conversations: open.context.conversations, clock: open.context.deps.clock };
+  return {
+    conversations: open.context.conversations,
+    clock: open.context.deps.clock,
+    questions: open.context.coincidences,
+  };
 }
 
 /**
