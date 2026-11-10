@@ -4,6 +4,7 @@
 import { readFileSync } from "node:fs";
 
 import { chatChecks } from "./qa-chat.mjs";
+import { readData, readError } from "./qa-envelope.mjs";
 
 const BASE = process.env.BASE ?? "http://localhost:3124";
 const bank = JSON.parse(readFileSync("data/microtest.json", "utf8"));
@@ -106,7 +107,7 @@ row("GET /api/notifications", notif.status, notif.status === 200);
 // PIN del chat (ADR-029): candado por persona, sin datos sin candado.
 const withLock = (s, lock) => ({ cookie: [s.cookie, lock].filter(Boolean).join("; ") });
 const lockCookie = (r) => r.headers.getSetCookie().map((c) => c.split(";")[0]).find((c) => /lock/i.test(c) && !/=$/.test(c)) ?? "";
-const st0 = await (await get("/api/chat/status", a)).json();
+const st0 = await readData(get("/api/chat/status", a));
 row("chat status sin PIN", `hasPin=${st0.hasPin}`, st0.hasPin === false && st0.unlocked === false);
 const inbox0 = await get("/api/chat/inbox", a);
 const inbox0Body = await inbox0.text();
@@ -119,6 +120,8 @@ const created = await post("/api/chat/pin", { pin: "4817", confirm: "4817" }, a.
 const createdRaw = await created.text();
 row("crear PIN", created.status, created.status === 200 && !createdRaw.includes("4817") && !/hash|salt/i.test(createdRaw));
 const lock1 = lockCookie(created);
+const stPin = await readData(get("/api/chat/status", withLock(a, lock1)));
+row("el estado refleja un PIN creado", `hasPin=${stPin.hasPin}/unlocked=${stPin.unlocked}`, stPin.hasPin === true && stPin.unlocked === true);
 const inbox1 = await get("/api/chat/inbox", withLock(a, lock1));
 row("inbox con candado abierto", inbox1.status, inbox1.status === 200);
 const stolen = await get("/api/chat/inbox", withLock(b, lock1));
@@ -126,8 +129,8 @@ row("cookie de candado de otra cuenta", stolen.status, stolen.status === 423);
 const tampered = await get("/api/chat/inbox", withLock(a, lock1.replace(/.$/, (ch) => (ch === "A" ? "B" : "A"))));
 row("cookie de candado manipulada", tampered.status, tampered.status === 423);
 const wrong = await post("/api/chat/unlock", { pin: "9051" }, a.cookie);
-const wrongBody = await wrong.json();
-row("PIN incorrecto: error genérico", `${wrong.status} ${wrongBody.code}`, wrong.status >= 400 && !JSON.stringify(wrongBody).includes("9051"));
+const wrongBody = await readError(wrong);
+row("PIN incorrecto: error genérico", `${wrong.status} ${wrongBody.codigo}`, wrong.status >= 400 && !JSON.stringify(wrongBody).includes("9051"));
 const unlocked = await post("/api/chat/unlock", { pin: "4817" }, a.cookie);
 row("desbloquear con PIN correcto", unlocked.status, unlocked.status === 200 && Boolean(lockCookie(unlocked)));
 const activity = await (await get("/api/chat/activity", a)).text();
@@ -162,15 +165,57 @@ if (aSeesB && bSeesA && aSeesB.track === bSeesA.track) {
     row("chat QA sin excepciones", `excepción: ${error?.message ?? error}`, false);
   }
 }
-for (const s of [a, b]) {
+
+// «Tus logros» derivado (M-14, ADR-066): la carta viaja con ids del catálogo y nada más.
+const badgeBook = JSON.parse(readFileSync("data/badges.json", "utf8"));
+const badgeIds = new Set(badgeBook.insignias.map((i) => i.id));
+const badgeNames = badgeBook.insignias.map((i) => i.nombre);
+const quizIds = new Set(
+  ["conexion", "gaming", "gustos", "picante", "vida"].flatMap((file) =>
+    JSON.parse(readFileSync(`data/quizzes/${file}.json`, "utf8")).quizzes.map((q) => q.quiz_id),
+  ),
+);
+const profDone = await get("/api/profile", a);
+const profDoneJson = await profDone.json();
+const profDoneRaw = JSON.stringify(profDoneJson);
+const earned = profDoneJson.unlockedBadges;
+const leakedNames = badgeNames.filter((n) => profDoneRaw.includes(n));
+const leakedQuizzes = [...quizIds].filter((q) => profDoneRaw.includes(q));
+row("GET /api/profile con historia: insignias llegan", `${profDone.status}/${Array.isArray(earned) ? earned.length : typeof earned}`, profDone.status === 200 && Array.isArray(earned));
+row("insignias: solo ids del catálogo", `${(earned ?? []).filter((id) => !badgeIds.has(id)).join(",") || "todas conocidas"}`, Array.isArray(earned) && earned.every((id) => badgeIds.has(id)));
+row("insignia derivada: con match ya existe «primer_match»", JSON.stringify(earned), Boolean(aSeesB) && Array.isArray(earned) && earned.includes("primer_match"));
+row("insignias: ningún nombre de logro viaja", leakedNames.join(",") || "ninguno", leakedNames.length === 0);
+row("insignias: ningún quiz_id viaja (+18 no se delata)", leakedQuizzes.join(",") || "ninguno", leakedQuizzes.length === 0);
+row("insignias: sin fecha de desbloqueo en el contrato", profDoneRaw.includes("desbloqueadoEn") || profDoneRaw.includes("justUnlocked") ? "viaja" : "no viaja", !profDoneRaw.includes("desbloqueadoEn") && !profDoneRaw.includes("justUnlocked"));
+
+// «Usuario viejo»: la misma matrícula, ya eclosionada, vuelve a entrar y su
+// camino responde sin pedirle el test otra vez ni cambiarle el alias.
+const oldA = await enter("426144891");
+const oldB = await enter("426144892");
+row("usuario viejo: reentrar sin repetir el test", `${oldA.status}/${oldB.status}`, oldA.status === 200 && oldB.status === 200);
+const oldRes = await get("/api/result", oldA);
+const oldJson = await oldRes.json();
+row("usuario viejo: resultado con bandas de match", `${oldRes.status}/${oldJson.matches?.amistad?.length ?? "?"}`, oldRes.status === 200 && Array.isArray(oldJson.matches?.amistad));
+const oldAlias = aliasOf(await (await get("/api/profile", oldA)).json());
+row("usuario viejo: el alias sigue fijo (ADR-024)", oldAlias === firstAlias ? "igual" : "cambió", oldAlias === firstAlias);
+const oldNotes = await get("/api/notifications", oldB);
+row("usuario viejo: notificaciones disponibles", oldNotes.status, oldNotes.status === 200);
+
+// La sesión más reciente de cada matrícula es la que borra: si reentrar revocó
+// la anterior, la limpieza no puede quedar colgada de una cookie muerta.
+for (const s of [oldA.status === 200 ? oldA : a, oldB.status === 200 ? oldB : b]) {
   const d = await fetch(BASE + "/api/privacy", { method: "DELETE", headers: { origin: BASE, cookie: s.cookie } });
   row("DELETE borrar mis datos", d.status, d.status === 200);
 }
 const gone = await get("/api/profile", a);
 row("perfil tras borrar", gone.status, gone.status === 401 || gone.status === 404);
 const pinAfter = await (await enter("426144891")).cookie;
-const stAfter = await (await fetch(BASE + "/api/chat/status", { headers: { cookie: pinAfter } })).json();
-row("borrar datos elimina el PIN", `hasPin=${stAfter.hasPin}`, stAfter.hasPin === false);
+const stAfterRes = await fetch(BASE + "/api/chat/status", { headers: { cookie: pinAfter } });
+const stAfter = await readData(stAfterRes);
+// La matrícula borrada vuelve a entrar y la API dice que no hay candado: es lo que
+// se puede ver desde fuera. El borrado en sí lo hace ON DELETE CASCADE de
+// public.chat_pins (migrations/00000000000000_base.sql:861).
+row("reentrar tras borrar: cuenta nueva sin PIN", `${stAfterRes.status}/hasPin=${stAfter.hasPin}`, stAfterRes.status === 200 && stAfter.hasPin === false);
 await fetch(BASE + "/api/privacy", { method: "DELETE", headers: { origin: BASE, cookie: pinAfter } });
 
 console.log("| Comprobación | Resultado | Estado |\n|---|---|---|\n" + rows.join("\n"));

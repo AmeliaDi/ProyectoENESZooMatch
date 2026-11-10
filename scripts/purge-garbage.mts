@@ -95,7 +95,6 @@ function buildSyntheticCandidateHashes(secret: string): Map<string, string> {
 interface ProfileCandidateRow {
   user_id: string;
   matricula_hash: string;
-  alias: string | null;
   quiz_completed_at: string | null;
   created_at: string;
   is_admin: boolean;
@@ -138,7 +137,6 @@ async function main(): Promise<void> {
     SELECT
       p.user_id::text AS user_id,
       p.matricula_hash,
-      p.alias,
       p.quiz_completed_at::text AS quiz_completed_at,
       p.created_at::text AS created_at,
       (
