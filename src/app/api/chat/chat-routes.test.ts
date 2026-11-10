@@ -8,7 +8,7 @@ import {
 } from "@/application/testing/in-memory";
 import { ConversationStore, memoryConversations } from "@/application/testing/memory-conversations";
 import { CHAT_CONFIG } from "@/config";
-import { MS_PER_MINUTE, openLockSession } from "@/domain/chat";
+import { MS_PER_MINUTE, openLockSession, type CoincidenceQuestion } from "@/domain/chat";
 import { err, ok } from "@/domain/shared";
 import type { ChatContext } from "@/infrastructure/composition.server";
 import { LOCK_COOKIE, encodeLockSession } from "@/infrastructure/chat/lock-cookie.server";
@@ -42,12 +42,14 @@ let store: MemoryStore;
 let conversations: ConversationStore;
 let now: number;
 let guard: number | null;
+let shared: CoincidenceQuestion[];
 
 function context(userId = USER): ChatContext {
   return {
     userId,
     pepper: PEPPER,
     conversations: memoryConversations(conversations),
+    coincidences: { of: async () => shared },
     matches: { listFor: async () => ok([]) },
     digest: (s) => s,
     deps: {
@@ -102,6 +104,7 @@ beforeEach(() => {
   store.matriculas.set(USER, "000000001");
   now = T0;
   guard = 0;
+  shared = [];
   mocks.chatContext.mockImplementation(async () => ok(context()));
 });
 
@@ -205,6 +208,28 @@ describe("conversation routes", () => {
     expect(bad.status).toBe(400);
     const good = await ask(request(`conversations/${id}/ask`, { method: "POST", cookie, body: { promptId: (view.ask as { suggestions: { id: string }[] }).suggestions[0]!.id } }));
     expect(good.status).toBe(200);
+  });
+
+  it("answers a coincidence card by its text and refuses a question typed by hand", async () => {
+    const SHARED = "¿Qué playlist o álbum te sabes de memoria?";
+    shared = [{ text: SHARED, category: "gustos" }];
+    const id = await seeded();
+    const cookie = await createAndOpen();
+    let view = await dataOf(conversation(request(`conversations/${id}`, { cookie })));
+    if (!view.ask) {
+      const repo = memoryConversations(conversations);
+      await repo.openRound(id, 0, OTHER, { promptId: "p001" }, new Date(now));
+      await repo.saveAnswer(id, OTHER, 0, { body: "x" }, new Date(now));
+      await repo.saveAnswer(id, USER, 0, { body: "y" }, new Date(now));
+      view = await dataOf(conversation(request(`conversations/${id}`, { cookie })));
+    }
+    const cards = (view.ask as { suggestions: Record<string, unknown>[] }).suggestions;
+    expect(cards[0]).toMatchObject({ text: SHARED, origin: "coincidence" });
+    const typed = await errorOf(ask(request(`conversations/${id}/ask`, { method: "POST", cookie, body: { customText: "¿Cuál es tu nombre real?" } })));
+    expect(typed.codigo).toBe("chat.conflict");
+    const asked = await ask(request(`conversations/${id}/ask`, { method: "POST", cookie, body: { customText: SHARED } }));
+    expect(asked.status).toBe(200);
+    expect(((await dataOf(asked)).rounds as Record<string, unknown>[])[0]).toMatchObject({ question: SHARED });
   });
 
   it("answer not found for malformed or foreign ids", async () => {
