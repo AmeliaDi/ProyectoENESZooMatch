@@ -19,6 +19,10 @@ que sirven para **romper el hielo** en las conversaciones:
 > test psicométrico repartido en bloques de máximo 35 reactivos para no cansar, y se envían
 > juntos al terminar el último. Estos son opcionales, no puntúan y no entran en el perfil.
 
+> Cómo se revisa el texto de estos 150 ítems con personas está protocolizado en
+> `docs/PRETEST_COGNITIVO.md` (todavía sin sesiones: M-15). Lo que cada quiz **sí** puede afirmar hoy, y lo
+> que no, está indexado en `docs/BANCO_RESULTADOS.md`.
+
 ### 1.1 Principios no negociables
 
 | # | Principio | Cómo se aplica |

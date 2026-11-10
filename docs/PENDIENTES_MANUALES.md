@@ -373,6 +373,29 @@ pruebas de copy que ya existen.
 
 ---
 
+## M-15 · Ejecutar el pretest cognitivo de los quizzes y del cuestionario
+
+**Estado: protocolo escrito, cero sesiones.** `docs/PRETEST_COGNITIVO.md` ya dice qué preguntar, con
+quiénes, con qué siete sondas por ítem y con qué criterio de corte; lo que falta es el trabajo de campo,
+que no se puede hacer desde este entorno.
+
+- Lo verificado sin personas: el catálogo (18 quizzes / 150 ítems, opt-out exigido por el esquema en
+  150/150), los bloques de 35 reactivos como tope (`data/experience.json:17`), y que **nada** de la
+  medición actual proviene de estudiantes reales de la UNAM (`docs/MEDICION.md` §8, línea 277).
+- Lo que no se puede sustituir con código: si un ítem se lee como el constructo pretende leerse, si una
+  opción deja fuera a alguien, si el aviso del set +18 se entiende y si un bloque cansa.
+- Lo que **no** hace este pendiente: no estima parámetros, no fija normas, no cambia pesos ni umbrales y
+  no produce un puntaje de deseabilidad por persona. Con n = 12 no se estima nada; eso es el piloto
+  (`docs/VALIDACION.md` §6).
+
+**Desbloqueo:** dos decisiones humanas antes de la primera sesión —(a) techo de minutos por bloque que
+activa la regla de fatiga (§8 del protocolo, hoy sin valor) y (b) reclutamiento y compensación, con el
+consentimiento del set +18 visto en M-08—. Con eso, la tanda de 10–12 se corre y se llena §9 del
+protocolo con conteos agregados. Hasta entonces el estado de esa tabla es `pendiente_humana`, y dejarla
+así es el punto: un resultado inventado sería peor que ninguno.
+
+---
+
 ## Cómo se usa esta lista
 
 `npm run verify:invariants` falla si M-01 deja de estar documentado aquí. El

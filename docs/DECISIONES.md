@@ -3178,3 +3178,80 @@ tocó el sheet de «Opciones de seguridad» ni sus botones «Mejor no» / «Sí,
 diálogo. No se agregó `aria-label` a ningún botón. Las alturas son de un fixture con las combinaciones
 de estado, no de datos reales: sirven para comparar antes/después sobre el mismo DOM. Y no se tocó el
 servidor de desarrollo de otra persona en `:3000`; la sonda corrió en un puerto aparte.
+
+## ADR-065 · El banco de resultados es un índice, el pretest es un protocolo, y ninguno de los dos publica normas
+
+**Contexto.** Dos huecos quedaron abiertos después de ADR-059 y ADR-060, y son de naturaleza distinta.
+El primero: los resultados psicométricos del proyecto viven en **siete artefactos generados**
+(`data/psychometric-params.json`, `docs/MEDICION.md`, `docs/ITEMS_PROPUESTA.md`,
+`docs/VALIDACION_RESULTADOS.md`, `docs/MATCHING_RESULTADOS.md`, `docs/BALANCE.md`,
+`docs/DIVERGENCIA_RESULTADOS.md`, más los `.qa/*.json`), cada uno con su comando, y no había **dónde
+preguntar qué afirma cada uno y qué no**. Sin esa página, la tentación es leer `docs/MEDICION.md` como si
+fuera un manual del instrumento, cuando su propia primera línea dice que es una corrida **sintética**. El
+segundo: la auditoría de investigación pidió un pretest cognitivo de los quizzes, y en el repo no había ni
+protocolo ni muestras, y tampoco una fila que dijera «esto falta y lo desbloquea una persona». La
+restricción que gobierna los dos: **prohibido inventar resultados**, y en particular prohibido construir un
+puntaje de deseabilidad social por persona.
+
+**Decisión.**
+
+- **`docs/BANCO_RESULTADOS.md` no tiene números propios.** Es un índice: §1 mapea artefacto → comando → qué
+  afirma → qué **no** afirma; §2 lista encabezados que se recalculan del artefacto (74 factores, 194 ítems
+  con parámetro GRM, 55 escalas de las que 29 tienen ω y 26 quedan en `null` por ser de `k = 2`, 37 priors,
+  7 075 valores numéricos, CFI 0.9383 / TLI 0.9281 / RMSEA 0.0352 / SRMR 0.0279, `N = 6000`, semilla
+  `20261101`); §3 separa los **tres sellos** que el proyecto cita sin distinguirlos (el hash del artefacto
+  de medición, `profiles.params_version` del puntaje y el ledger de procedencia); §6 escribe las tres
+  condiciones necesarias para publicar una norma y dice que no se cumple la primera.
+- **La página está casada con el artefacto por una prueba, no por disciplina.** `src/config/results-bank.test.ts`
+  lee `data/psychometric-params.json` con `PSYCHOMETRIC_PARAMS`, recalcula cada conteo y cada índice, y
+  exige que el renglón correspondiente de §2 lo diga; el sello lo compara contra el hash que registra
+  `docs/TRAZABILIDAD.md`, así que una de las dos páginas desactualizadas se cae. También verifica que la
+  frase que niega el puntaje de deseabilidad exista en `docs/MATCHING_RESULTADOS.md`, que es de donde se
+  cita. Rojo medido: cambiando `**7 075**` a `**7 074**` en el documento, la suite falla; verde 12/12.
+- **`docs/PRETEST_COGNITIVO.md` es protocolo con estado «cero sesiones».** §1 delimita qué pregunta
+  (comprensión, presunciones, cobertura del opt-out, fatiga, aviso +18) y qué **no** pregunta (nada
+  numérico: «con 12 personas no se estiman cargas, ni umbrales GRM, ni ω, ni invariancia»), §2 cubre las
+  superficies con las magnitudes reales del catálogo, §4 fija las siete sondas por ítem, §5 los cortes, §6
+  el guion y el tratamiento de datos, §8 una tabla de parámetros que faltan y §9 una tabla de resultados
+  **llena de ceros y marcada `pendiente_humana`**.
+- **El tamaño de la tanda se etiqueta como lo que es.** 10–12 por tanda, dos tandas, es `supuesto_diseno`:
+  **no hay ninguna fuente en `docs/EVIDENCIA.md`** que lo respalde, y la página lo dice en vez de citar una
+  regla práctica como si fuera medición. Lo defendible no es el número sino el criterio: enumerar defectos
+  hasta que cuatro participantes seguidos no agreguen tipos nuevos.
+- **Los umbrales de corte son asimétricos a propósito.** Dos de doce para un defecto de comprensión
+  ordinario; **uno** de doce si el defecto es una presunción que excluye (modelo de pareja, género, lengua,
+  cuerpo, dinero, salud) o si no se entiende el opt-out o el aviso del set +18. Un costo de exclusión no se
+  paga con mayoría. Y si la reescritura cambia **qué mide** el ítem, deja de ser redacción: se va por el
+  ledger y por un sello nuevo (ADR-052), no por `data/quizzes`.
+- **La tanda tiene que poder detectar lo que la simulación no pudo.** Se exigen participantes no binaries
+  y hablantes bilingües porque el DIF inyectado fue `A3 genero=hombre` y `X2 lengua=bilingue`, el no
+  uniforme **no se detectó por poder insuficiente**, y la invariancia por género se estimó en
+  2 738 / 2 561 / 442 con Δλ máximo 0.124 (`docs/MEDICION.md` §1 y §7). En la simulación eso es un control
+  positivo; en personas es la pregunta.
+- **El pretest entra a la lista de pendientes como M-15**, con dos decisiones humanas como bloqueo (el
+  techo de minutos que activa la regla de fatiga, y reclutamiento + compensación con el consentimiento
+  +18 de M-08). Sin ellas no hay fecha, y por eso el protocolo no inventa ni el techo ni la fecha.
+- **La deseabilidad se usa como sonda de texto, nunca como puntaje.** La pregunta «¿qué respondería alguien
+  como tú?» existe para detectar presión de norma en la redacción; su producto es una observación sobre un
+  ítem. El repo ya se negaba a la otra lectura: «No es un puntaje de deseabilidad: mide si el reparto de
+  visibilidad se concentra en pocas personas» (`docs/MATCHING_RESULTADOS.md:108`, generado por
+  `scripts/matching/report.ts:115`). La interfaz tampoco ayuda a la tentación: no se muestran percentiles
+  de rasgo (`src/domain/psychometrics/self-reading.ts:5`, `src/ui/result/parse-result.test.ts:157`).
+
+**Consecuencias.** Ahora hay un lugar donde se puede preguntar «¿este número existe y qué sostiene?» sin
+abrir siete artefactos, y ese lugar se rompe solo cuando la realidad cambia, que es exactamente el diseño.
+El costo es que `docs/BANCO_RESULTADOS.md` quedó casado con el JSON: regenerar la estimación sin actualizar
+la página rompe el build, y hay que acordarse al correr `npm run data:psychometrics`. La segunda
+consecuencia es de agenda: M-15 es el primer pendiente que **no** se puede destrabar con código ni con
+credenciales, así que la lista de pendientes dejó de ser una lista de tareas técnicas y tiene una tarea de
+campo. Y la tercera: al escribir «qué no afirma» cada artefacto, quedó dicho que la palabra que falta en
+este proyecto es **baremo** — no existe ninguna tabla de baremos, y la única tabla de percentiles es la
+línea base aleatoria de eigenvalores.
+
+**Lo que NO se hizo.** No se publicó ninguna norma, ni percentiles, ni baremos, ni puntos de corte. No se
+escribió ningún resultado del pretest: §9 está en ceros y así debe quedarse hasta que alguien llene la
+tanda. No se tocaron el banco de ítems, `data/quizzes/*.json`, los pesos, los umbrales ni la matemática del
+puntaje. No se añadió un puntaje de deseabilidad en ninguna capa, ni siquiera como columna de la simulación.
+No se re-estimó nada con 12 personas, y la página remite el poder estadístico al piloto ya preregistrado
+(`docs/VALIDACION.md` §6: 194 / 347 / 783 díadas). No se exportó ninguna fila individual, respuesta,
+matrícula, hash ni PIN —la regla que ya rige la auditoría de base (`docs/PENDIENTES_MANUALES.md` §M-03)—.
