@@ -549,6 +549,9 @@ Ahora:
   (`src/contracts/chat.ts`) nunca reparte `user_id` al cliente, y así la ruta resuelve el par con
   `findFor(id, quien_pregunta)`, que ya es la compuerta que verifica que eres parte de esa
   conversación. Nadie puede asomar la nariz a una pareja que no es la suya.
+  Eso se mide en la ruta misma (`src/app/api/quizzes/coincidencias/route.test.ts`, 9 pruebas): un
+  tercero recibe 403 **antes** de que se llame a leer una sola coincidencia, y un `otra_persona`
+  pegado en la URL no cambia quién es el par.
 
 ### 13.7 Nada llega a la base sin estar declarado
 

@@ -2854,8 +2854,17 @@ reales, no de estilo.
   gateada por visibilidad de ambas, match y `track_romance`, y el registro explícito de que el
   «No» mayúsculo lo atrapa la aplicación porque la base no lo hace.
 - **Cuenta de pruebas de la capa, medida:** 32 en `quizzes.test.ts`, 12 en `isolation.test.ts`, 20
-  en `actions.test.ts`, 14 en `quiz-catalogue.test.ts` y 6 en el linter de Picante, más las 4 del
+  en `actions.test.ts`, 14 en `quiz-catalogue.test.ts`, 9 en `src/app/api/quizzes/coincidencias/route.test.ts`,
+  7 en `copy-guard.test.ts` y 6 en el linter de Picante, más las 4 del
   esquema. El presupuesto de fatiga se mantiene: ningún set pasa de 9 ítems ni de 2 minutos.
+- **El candado del par se prueba por la ruta, no solo por el texto.** `route.test.ts` levanta la
+  ruta real con el repositorio de chats y el de quizzes de mentirita, y mide cuatro cosas: que el
+  par sale de `findFor(conversacion, yo)`; que un `otra_persona` en la URL se ignora; que quien no
+  es parte recibe 403 **sin que se haya llamado a `getCoincidencias`**; y que una fila donde nadie
+  es quien pregunta tampoco entrega nada. Rojo/verde medido: si la ruta deja de consultar la
+  conversación y toma `userB` a secas, fallan 2 de las 9 y también la guarda de aislamiento. El
+  repositorio falso además estalla si la ruta toca cualquier método de escritura, así que leer
+  coincidencias no puede volverse guardar algo por accidente.
 - **La guarda de copia leía mal el español.** `INCLUSIVE_X` (`src/testing/copy-guard.ts`) cortaba
   con `\b`, y con la marca `u` `\b` solo conoce el ASCII: se abría entre la `x` y la `á` de
   «exámenes» y marcaba una pregunta perfectamente buena de `vida.json`. Al quitar ese `\b` del
