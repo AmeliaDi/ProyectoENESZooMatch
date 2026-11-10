@@ -3,29 +3,47 @@
 > Fase 0 del prompt de afinado (2026-11-01). Si el contexto se reinicia, se
 > retoma desde aquí.
 
-## Estado vigente (2026-11-06)
+## Estado vigente (2026-11-10)
 
-Todas las fases de todos los prompts están cerradas (tabla «Avance» en §6).
-Las secciones §1–§4 son la **foto histórica** de la auditoría inicial del
-2026-11-01 y se conservan para la trazabilidad; ya no describen el código.
+Todas las fases del plan están cerradas (tabla «Avance» en §6). Después de ellas
+vinieron dos tandas más, también cerradas: el afinado B1–B10 y la del banco de
+resultados con su pretest. La foto verificable de la última es
+`docs/RELEASE_CANDIDATE.md`. Las secciones §1–§4 siguen siendo la **foto histórica**
+de la auditoría inicial del 2026-11-01 y se conservan para la trazabilidad; ya no
+describen el código.
 
 | Comprobación | Hoy |
 |---|---|
-| Tests | 1071 en 94 archivos, en verde (`npm run check`) |
-| Lint, typecheck, secretos y build | En verde |
-| Auditoría QA de la identidad fija (hallazgos A–I) | Cerrada (2026-11-06): `docs/QA.md` §4.7; la migración `20261117000000_filter_soft_deleted_matches.sql` ya está aplicada en producción |
-| Identidad única y fija (huevo → eclosión) | Cerrada (2026-11-06): código en `main` (ADR-038, §10), las dos migraciones y el backfill **ya aplicados** en producción |
-| QA de API contra producción | 88/88 (`docs/QA.md` §4.4) |
-| Chat completo (señales, rondas guiadas selladas, seguridad, emojis) | Implementado y en producción (ADR-035, `docs/CHAT.md` §10–14) |
-| Quizzes rompehielos (Gustos, Gaming, Picante 18+) | Implementado (ADR-041, `docs/QUIZZES.md`); Picante detrás de feature flag `QUIZ_PICANTE_ENABLED` |
-| HEXACO, MBTI continuo, Eneagrama con softmax y entropía | Implementados (Fases 3–5) |
-| `QA.md`, `VALIDACION.md`, `MEDICION.md`, `TRAZABILIDAD.md`, `PREREGISTRO.md` | Existen |
-| Números mágicos de §1 | Cerrados (ADR-034): el operador Φ se eliminó, `selectColor` ya no existe y las bandas 0.45/0.65 de la etiqueta de apego viven en `data/enneagram.json` → `attachment_label` |
-| Rate limit | Fail-open mientras no haya Upstash (`DESPLIEGUE.md`) |
+| Pruebas | 1 812 pasando y 23 saltadas, en 151 archivos (4 archivos saltados), con `npm run check` — medido 2026-11-10 |
+| Lint, typecheck, secretos y build | 0 errores de lint y 20 avisos. `npm run check` corre secretos → lint → typecheck → pruebas → `db:test`, y sus cinco pasos están en verde; `npm run build` compila y sirve la tabla de rutas — todo medido 2026-11-10 |
+| SQL | `npm run db:test` 105/105 — medido 2026-11-10 |
+| Núcleo psicométrico | HEXACO como núcleo con puente Big Five, MBTI continuo y Eneagrama (Fases 3–5, ADR-016, `docs/DECISION_MODELO_RASGOS.md`). El cuestionario obligatorio se parte en bloques de máximo 35 reactivos y se envían juntos al cerrar el último (ADR-045) |
+| Motor en producción | Sigue siendo `capas`. El candidato `coseno` se midió en sombra y **falla dos de las nueve compuertas**: ρ de rangos 0.2724 (pide ≥ 0.80) y 578 matches con conversación abierta que se perderían (piden 0). ADR-057, `docs/COMPARATIVA_MODELOS.md`, `.qa/rollout.json` |
+| Trazabilidad | ADR-001…ADR-065 y matriz T-01…T-42 en `docs/TRAZABILIDAD.md` (ADR-059). Ningún número publicado se escribe a mano: `src/config/results-bank.test.ts` los recalcula contra el artefacto; el índice de lo que cada uno puede afirmar es `docs/BANCO_RESULTADOS.md` |
+| Quizzes | 5 categorías, 18 quizzes, 150 ítems (ADR-060). Picante (18+) **sí está habilitado en producción**: `QUIZ_PICANTE_ENABLED` vale `true` en producción, preview y development, leído con `vercel env ls` sobre el proyecto `zooenes` el 2026-11-10 |
+| Identidad y sellos | Cerrado (ADR-038, ADR-052): cada perfil carga su sello `params_version`, la re-toma mínima vuelve solo sobre lo contestado (ADR-054) y existen los dos avisos —«se actualizó la matemática» para el perfil (ADR-052) y el de los quizzes para quien no tiene sello (ADR-055) |
+| Chat en el teléfono | Cerrado (ADR-056, ADR-064): la barra pasa de 148 a 44 px —44 es `--zm-touch`— y las frases se van al nombre accesible en lugar de borrarse |
+| Migraciones sin aplicar | Dos, y siguen fuera del esquema: `20261126000000_afinidad_notification.sql` y `20261127000000_conservar_conversaciones.sql`, ambas en `supabase/maintenance/pending/`. La segunda ya se prueba dentro de la transacción de `supabase/tests/05_conservacion.sql`, así que su verde no depende de producción |
+| Migraciones ya aplicadas | Aplicadas en producción están la identidad única y fija con su backfill (ADR-038), el filtro de matches borrados (`20261117000000`) y los sellos y copias de notificación (`20261123000000`, `20261124000000`). De `20261125000000_rpc_public_y_permisos.sql` este repo solo documenta su prueba contra una base de cero, con paridad de 0 diferencias contra la línea base: si ya se corrió en producción es una laguna, y cerrarla es M-12 |
+| Deploy | `zooenes.vercel.app` en producción corre sobre `67a73ab` con 11 variables. `main` local está por delante de `origin/main`: nada de lo de arriba está publicado, y el push lo decide la usuaria |
 
-Pendiente solo manual: teléfono real de gama media, TalkBack/VoiceOver,
-panel admin con sesión y el chat con dos teléfonos reales (`docs/QA.md` §5).
-Pendiente operativo: Upstash para el rate limit (sigue en fail-open).
+Y una nota que no cabía en la tabla, sobre los respaldos que antecedieron cada
+migración: son un JSON en texto plano fuera de git y **no están cifrados** (M-11
+abierto), con correos, matrículas hasheadas con su sal, respuestas y sales de PIN
+dentro. La restauración remota, además, sigue sin ser ejecutable tal como está
+(M-04). La auditoría vigente sobre la base real es `docs/QA_DB.md`, corrida en
+producción (M-03).
+
+Pendiente solo manual: `docs/PENDIENTES_MANUALES.md` enumera 15 entradas (M-01…M-15).
+Las que ninguna prueba de este repo puede cerrar siguen siendo las mismas: dos
+teléfonos reales con TalkBack/VoiceOver (M-07), la revisión legal del aviso de
+privacidad y del consentimiento +18 (M-08), Upstash mientras el rate limit sigue en
+fail-open (M-05) y **ejecutar el pretest cognitivo**, cuyo protocolo ya está escrito
+con cero sesiones (M-15, `docs/PRETEST_COGNITIVO.md`).
+
+Tampoco hay Playwright ni regresión visual: `npm run check` cubre rutas con
+`src/app/e2e-smoke.test.ts` y el contrato de copia con `src/testing/copy-guard.ts`,
+que no es un screenshot test.
 
 ## 1. Salud del repositorio (foto del 2026-11-01)
 
