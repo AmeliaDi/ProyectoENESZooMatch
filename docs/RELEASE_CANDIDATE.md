@@ -22,10 +22,10 @@
 | Conversaciones protegidas | el conjunto real no se sabía extraer | `supabase/maintenance/protected-pairs.sql` (agregados + digest); medido en producción: **122 parejas** (88 amistad / 34 romance), 58 con mensajes, digest `bb5d73b21bc77494072e2ffd5cac1173` | correr el archivo en el SQL Editor | `docs/COMPARATIVA_MODELOS.md`, `docs/PENDIENTES_MANUALES.md` M-02 |
 | Hallazgos de base | sin registro | 23 filas `DB-*` en `docs/QA_DB.md`, cinco descubiertas en esta corrida (DB-19…DB-23) | leer la tabla | `docs/QA_DB.md` §3 |
 | Pendientes manuales | sin índice único | 15 entradas M-01…M-15, cada una con estado, qué falta y quién desbloquea | `npm run verify:invariants` falla si M-01 deja de estar documentado | `docs/PENDIENTES_MANUALES.md` |
-| Decisiones registradas | ADR-001…ADR-056, matriz T-01…T-33 | **ADR-057** (compuertas y sombra), **ADR-058** (auditoría que mide), **ADR-059** (ledger de evidencia), **ADR-060** (rompehielos de cinco categorías), **ADR-061** (la conservación vive en la escritura), **ADR-062** (la insignia que no prometía racha), **ADR-063** (la tarjeta nacida de una coincidencia), **ADR-064** (la barra que se colapsa a iconos en el teléfono) y **ADR-065** (el banco que no posee números y el pretest que no posee resultados), matriz T-01…**T-42** | `npx vitest run src/config/traceability.test.ts` | `docs/DECISIONES.md`, `docs/TRAZABILIDAD.md` |
+| Decisiones registradas | ADR-001…ADR-056, matriz T-01…T-33 | **ADR-057** (compuertas y sombra), **ADR-058** (auditoría que mide), **ADR-059** (ledger de evidencia), **ADR-060** (rompehielos de cinco categorías), **ADR-061** (la conservación vive en la escritura), **ADR-062** (la insignia que no prometía racha), **ADR-063** (la tarjeta nacida de una coincidencia), **ADR-064** (la barra que se colapsa a iconos en el teléfono) y **ADR-065** (el banco que no posee números y el pretest que no posee resultados) y **ADR-066** (la insignia que se deriva y no se guarda), matriz T-01…**T-43** | `npx vitest run src/config/traceability.test.ts` | `docs/DECISIONES.md`, `docs/TRAZABILIDAD.md` |
 | Capa rompehielos | 3 sets, 12 quizzes, 96 ítems; «prefiero no decir» era promesa de documento y el panel de coincidencias estaba escrito pero montado en ninguna pantalla | 5 categorías, 18 quizzes, 150 ítems con el opt-out exigido por el esquema (`0` migraciones), hub de 18 lecturas en 1 petición, panel «Gustos en común» dentro de la conversación con el par resuelto en el servidor | `npx vitest run src/domain/quiz/quizzes.test.ts src/domain/quiz/isolation.test.ts src/config/quiz-catalogue.test.ts src/app/api/quizzes/coincidencias/route.test.ts` | `docs/QUIZZES.md` §13, ADR-060, T-38 |
 | Conservación de conversaciones abiertas | el recálculo ordinario no protegía nada: `replace_matches` borraba `public.matches` completo y las parejas con chat se perdían (DB-19, medido: 71 conversaciones sin par vigente) | `supabase/maintenance/pending/20261127000000_conservar_conversaciones.sql`: snapshot antes del `DELETE`, payload normalizado, y las protegidas de vuelta con su similitud, badges y `computed_at`. **Preparada y probada, NO aplicada** | `npm run db:test` (15 aserciones en `supabase/tests/05_conservacion.sql`, rojo medido 8/15 sin el mecanismo) | ADR-061, T-39, `docs/PENDIENTES_MANUALES.md` M-13 |
-| Insignias | el catálogo prometía «siete dias seguidos» cuando la condición cuenta días **no** consecutivos, y `docs/MOVIL.md` afirmaba una cuadrícula en el perfil que ninguna pantalla monta | copy corregido y la palabra vedada con prueba; medido que el sistema es andamiaje sin superficie (ningún `BadgeGrid` importado, ninguna tabla de logros, `checkBadgeUnlock` solo llamado por su test). **Fase 2 bloqueada**, registrada como M-14 | `npx vitest run src/domain/badges/badge-types.test.ts` (13 pruebas; rojo medido con la frase vieja) | ADR-062, `docs/PENDIENTES_MANUALES.md` M-14, `docs/QUIZZES.md` §5.3 |
+| Insignias | el catálogo prometía «siete dias seguidos» cuando la condición cuenta días **no** consecutivos, y `docs/MOVIL.md` afirmaba una cuadrícula en el perfil que ninguna pantalla monta | copy corregido y la palabra vedada con prueba (ADR-062) y, en esta tanda, la cuadrícula **montada** en «Tu carta» con el estado **derivado**: catálogo movido de TypeScript a `data/badges.json` y validado por Zod al cargar (ids e iconos únicos, nombre ≤ 3 palabras, frase ≤ 80 caracteres), 6 insignias con `tres_rompehielos` como número agregado, cinco lecturas delegadas y **cero** escrituras, **cero** migraciones y **cero** `quiz_id` en el payload, sin fecha de desbloqueo y sin «cero» (`null` si la lectura falla), y el CSS de animación de desbloqueo borrado por no tener emisor | `npx vitest run src/config/badges.test.ts src/domain/badges src/application/profile-badges.test.ts src/ui/badges src/ui/profile` (rojo medido dos veces: permutar `answeredRounds` por `completedRounds` en `badge-progress.ts` tira 1 prueba, y duplicar el icono `estrella` en el JSON tira 3 suites con un `throw` en `loadConfig`) | ADR-062, ADR-066, T-43, `docs/INSIGNIAS.md`, `docs/MOVIL.md` Fase 5, `docs/PENDIENTES_MANUALES.md` M-14, `docs/QUIZZES.md` §5.3 |
 | Coincidencias dentro de la ronda guiada | la pareja veía «Gustos en común» y aun así recibía tres preguntas genéricas; el panel y la ronda no compartían nada | una de las tres tarjetas puede ser una pregunta derivada de un ítem que ambos contestaron igual (`rounds.coincidences` = 1 de 3), guardada como `custom_text` sin migración y pedida por texto que el servidor re-mide contra el pozo gateado; Picante fuera; interruptor en config | `npx vitest run src/domain/chat/question-cards.test.ts src/infrastructure/chat/coincidence-questions.test.ts src/application/chat/conversation.test.ts src/app/api/chat/chat-routes.test.ts` | ADR-063, T-40, `docs/CHAT.md` §11.2 |
 | Barra de la conversación en el teléfono | ADR-056 dejó por escrito que `.zm-convo__bar` (tres botones con etiqueta larga) era el siguiente candidato de espacio en móvil y no se tocó | en `@media (max-width: 640px)` las tres etiquetas se van al nombre accesible con `clip-path` y queda el icono; el disparador de seguridad cambia `privacy` → `list` para no dejar dos candados pegados. Medido 390 × 844: **148 → 44 px** de alto (−104 px, −70,3 %), 3 renglones → 1, botones 56 × 44 px; escritorio 672 × 96 px sin cambio | `npx vitest run src/ui/screens.test.ts` (`describe("conversation bar on a phone")`; rojo medido 1 de 22 al sacar la regla del `@media`) | ADR-064, T-41, `docs/CHAT.md` §13.2, `docs/PANTALLAS.md` §8c |
 | Qué afirman los resultados, y qué falta por medir | los siete artefactos generados estaban regados por el repo sin decir cuál es medición y cuál es simulación; el pretest cognitivo no existía ni como protocolo | `docs/BANCO_RESULTADOS.md` (índice artefacto → comando → qué afirma → qué **no** afirma, con §6 diciendo por qué no hay normas) y `docs/PRETEST_COGNITIVO.md` (protocolo con las siete sondas, cortes asimétricos y §9 en ceros, `pendiente_humana`); registrado como M-15 | `npx vitest run src/config/results-bank.test.ts` (12 pruebas; recalcula 74 / 194 / 55 con 29 ω / 37 / 7 075 / CFI-TLI-RMSEA-SRMR contra `data/psychometric-params.json`; rojo medido 2 fallos al cambiar un conteo y al llenar §9) | ADR-065, T-42, `docs/PENDIENTES_MANUALES.md` M-15 |
@@ -76,8 +76,8 @@
 
 | Puerta | Resultado | Detalle |
 |---|---|---|
-| `npm run check` | ✓ | secrets + lint + typecheck + pruebas + `db:test`: 1 812 pruebas pasando, 0 errores de `eslint` (20 avisos `no-unused-vars`, los mismos de antes), `db:test` 105/105 (ver §4) |
-| `npm run verify:invariants` | ✓ | 14/14 invariantes, 382 pruebas en 23 archivos |
+| `npm run check` | ✓ | secrets + lint + typecheck + pruebas + `db:test`: 1 850 pruebas pasando, 0 errores de `eslint` (20 avisos `no-unused-vars`, los mismos de antes), `db:test` 105/105 (ver §4) |
+| `npm run verify:invariants` | ✓ | 14/14 invariantes, 383 pruebas |
 | `npm run verify:rollout` | ✓ | 9 compuertas, decisión NO ACTIVAR, `inputHash` vigente |
 | `npm run verify:all` | ✓ | diez pasos, `failed: []` y `omitted: []` (ver §4) |
 
@@ -85,7 +85,10 @@
 
 Transcrita de la salida, no de memoria. Corrida 2026-11-10 a las 09:40:41Z
 sobre este árbol de trabajo; `.qa/verify-all.json` guarda `generatedAt` con la
-hora exacta.
+hora exacta. Después de la tanda de insignias se volvieron a correr `check` e
+`invariants` a las 13:53:44Z (`.qa/db-test.json` es de esa segunda corrida) y los
+números de abajo son los de esa reinspección; `verify:all` en su conjunto sigue
+con el sello de las 09:40:41Z.
 
 **`npm run verify:all` → `ok: true`, `failed: []`, `omitted: []`:**
 
@@ -104,8 +107,8 @@ hora exacta.
 
 **Dentro de `check`** (`secrets:check` → `lint` → `typecheck` → `test` → `db:test`):
 
-- `vitest run`: `Test Files 151 passed | 4 skipped (155)`,
-  `Tests 1812 passed | 23 skipped (1835)`.
+- `vitest run`: `Test Files 155 passed | 4 skipped (159)`,
+  `Tests 1850 passed | 23 skipped (1873)`.
 - `eslint .`: `✖ 20 problems (0 errors, 20 warnings)`. Cero errores: los 20
   avisos son todos `no-unused-vars` y ninguno bloquea. El único
   `eslint-disable` del árbol está en `ConstellationCanvas.tsx` desde `eced72a`,
@@ -118,11 +121,16 @@ hora exacta.
   TypeScript. La tanda de coincidencias no tocó SQL: sigue 105/105. La barra de
   la conversación tampoco: es CSS, tres `span` y dos pruebas, sin una línea de
   SQL. El banco de resultados y el pretest tampoco: son dos páginas y doce
-  pruebas, sin SQL y sin una corrida nueva de `data:psychometrics`.
+  pruebas, sin SQL y sin una corrida nueva de `data:psychometrics`. Las insignias
+  tampoco: son cinco archivos nuevos de TypeScript (`src/config/badges.test.ts`,
+  `src/domain/badges/badge-progress.test.ts`, `src/application/profile-badges.test.ts`,
+  `src/ui/badges/badge-grid.test.ts` y el caso extra de `badge-types.test.ts`) y
+  **cero** migraciones, porque la vía acordada fue derivar y no persistir;
+  `.qa/db-test.json` vuelve a `files: 5`, `assertions: 105`, `passed: 105`.
 
 **Antes / después en la misma métrica.** En `67a73ab` el registro de ADR-056 era
-**1 574 pruebas pasando, 23 saltadas, 138 archivos**; ahora son **1 812 pasando,
-23 saltadas, 155 archivos**: +238 pruebas y +17 archivos de test, y las 23
+**1 574 pruebas pasando, 23 saltadas, 138 archivos**; ahora son **1 850 pasando,
+23 saltadas, 159 archivos**: +276 pruebas y +21 archivos de test, y las 23
 saltadas son las mismas de antes (no se convirtió ninguna prueba en salto).
 
 **Los otros pasos, en números:**
@@ -175,5 +183,11 @@ en el semáforo. El E2E móvil del prompt (Fase 9) sigue sin hacerse: es M-07.
 5. **M-06 / M-07 / M-09 / M-10 / M-11 / M-12** — credencial de consola, dos
    teléfonos reales, cierre del evento, `pg_cron`, cifrado del artefacto de
    respaldo y proyecto desechable para PostgREST/GoTrue.
+6. **La mitad que queda de M-14** — si «Tus logros» debe decir *cuándo* se ganó
+   cada insignia. Hoy no lo dice a propósito: el estado se deriva al servir la
+   carta (ADR-066), así que no hay fecha que mostrar. Mostrar una exigiría la
+   tabla `profile_badges`, su backfill con respaldo previo y la decisión de qué
+   pasa con los perfiles existentes. **No bloquea publicar**, y por eso está aquí
+   y no en las puertas de §3.
 
-Ninguna de estas cinco casillas se puede marcar con una prueba de este repo.
+Ninguna de estas seis casillas se puede marcar con una prueba de este repo.

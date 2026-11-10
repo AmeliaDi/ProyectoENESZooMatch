@@ -7,6 +7,9 @@ import { SELF_READING } from "@/config/self-reading";
 import { getProfile, type GetProfileDeps } from "./get-profile";
 import type { CounterpartProfile, OwnProfile, StoredMatch } from "./ports";
 import { MemoryStore, memoryMatches, memoryProfiles } from "./testing/in-memory";
+import { ConversationStore, memoryConversations } from "./testing/memory-conversations";
+import { badgeAttempts, memoryBadges } from "./testing/memory-badges";
+import type { BadgeDeps } from "./profile-badges";
 
 const VIEWER = "00000000-0000-4000-8000-00000000000a";
 const FACTORS = SELF_READING.sections.flatMap((s) => s.scales.map((x) => x.factor));
@@ -65,8 +68,12 @@ const counterpart = (i: number): CounterpartProfile => ({
   sharedLayers: [],
 });
 
-function wire(store: MemoryStore): GetProfileDeps {
-  return { profiles: memoryProfiles(store), matches: memoryMatches(store) };
+function wire(store: MemoryStore, badges?: BadgeDeps): GetProfileDeps {
+  return {
+    profiles: memoryProfiles(store),
+    matches: memoryMatches(store),
+    badges: badges ?? memoryBadges(memoryConversations(new ConversationStore())),
+  };
 }
 
 describe("getProfile", () => {
@@ -108,6 +115,33 @@ describe("getProfile", () => {
     if (!result.ok) throw new Error("expected ok");
     expect(result.value.openScales.open).toBe(result.value.openScales.total);
     expect(result.value.virtues).toEqual([]);
+  });
+
+  it("carries the derived grid as ids only, with the match counted from the same read", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    store.stored = [match(0.8, 1)];
+    store.counterparts = [counterpart(1)];
+    const day = 86_400_000;
+    const now = new Date("2026-11-10T12:00:00-06:00");
+    const badges = memoryBadges(
+      memoryConversations(new ConversationStore()),
+      ["gustos", "gaming", "vida"].map((quiz, i) => badgeAttempts(quiz, new Date(now.getTime() - i * day))),
+      () => now,
+    );
+    const result = await getProfile(VIEWER, wire(store, badges));
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.unlockedBadges).toEqual(["primer_match", "tres_rompehielos"]);
+    expect(JSON.stringify(result.value.unlockedBadges)).not.toContain("00000000");
+  });
+
+  it("says nothing about logros when the badge read fails, instead of counting zero", async () => {
+    const store = new MemoryStore();
+    store.own = OWN;
+    const broken = memoryBadges(memoryConversations(new ConversationStore()), [], () => new Date(), true);
+    const result = await getProfile(VIEWER, wire(store, broken));
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.unlockedBadges).toBeNull();
   });
 
 });

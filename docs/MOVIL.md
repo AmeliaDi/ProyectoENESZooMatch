@@ -145,51 +145,65 @@ el icono pixel-art del animo junto al nombre:
 Un sistema de logros que reconoce hitos en la experiencia de ZooMatch. Las
 insignias se muestran en una cuadricula en la pagina de perfil.
 
-> **Estado medido (2026-11-10):** esa frase describe el diseño, no lo que hay.
-> La cuadricula existe como componente (`src/ui/badges/badge-grid.tsx`) y esta
-> probada su logica (`src/domain/badges/badge-types.test.ts`), pero ninguna
-> pantalla lo monta, `ProfileDto` no trae insignias y no hay tabla de logros en la
-> base: nadie puede haber ganado una todavia. Montarla es la primera mitad de M-14
-> en `docs/PENDIENTES_MANUALES.md` (ADR-062).
+> **Estado medido (2026-11-10):** la cuadricula **ya se monta**. vive en «Tu carta»
+> (`src/ui/profile/profile-view.tsx` renderiza `src/ui/badges/badge-grid.tsx` despues de
+> las afinidades) y su estado se **deriva en la lectura**: `src/application/profile-badges.ts`
+> cuenta renglones que la app ya guarda (`matches`, `conversation_rounds`,
+> `conversation_answers`, `conversation_messages`, `conversations.seen_*`/`last_actor`,
+> `quiz_attempts`) y `ProfileDto` trae solo **ids** (`unlockedBadges: string[] | null`).
+> No hay tabla de logros y no hace falta: no hubo migracion ni escritura de datos de
+> personas. Dos cosas que el disenio de esta fase prometia y que **hoy no existen**,
+> escritas a proposito en `docs/INSIGNIAS.md` §5: la **fecha** de desbloqueo (ninguna
+> columna guarda el dia de un logro) y la **animacion** de "acabas de ganar" (viviria de
+> esa misma fecha). Si la lectura de insignias falla, la seccion no aparece: `null`, no
+> un cero. Montado y medido en ADR-066 (T-43); la mitad persistida sigue abierta en M-14.
 
-### Insignias iniciales (5)
+### Insignias iniciales (6)
 
 | ID                       | Nombre                | Condicion                              |
 |--------------------------|-----------------------|----------------------------------------|
 | `primer_match`           | Primer match          | Al menos 1 match en el cielo           |
-| `conversacion_completada`| Primera conversacion  | Completar 1 ronda de preguntas         |
+| `conversacion_completada`| Primera conversacion  | 1 ronda contestada por las dos personas (o pasando) |
 | `tres_rondas`            | Tres rondas           | Llegar a 3 rondas en una conversacion  |
 | `chat_libre`             | Chat libre            | Desbloquear el chat libre              |
 | `semana_activa`          | Semana activa         | Acumular 7 dias activos (no seguidos)  |
+| `tres_rompehielos`       | Tres rompehielos      | Completar 3 quizzes (agregado, sin categoria) |
+
+El catalogo vive en `data/badges.json` (antes estaba escrito en TypeScript) y su copy se
+barre con el resto de la interfaz. `conversacion_completada` y `tres_rondas` miden cosas
+distintas a proposito: la primera exige las dos marcas; la segunda cuenta la conversacion
+que mas lejos llego, incluido lo que se revelo por el reloj de 48 h.
 
 ### Cuadricula de insignias
 
 Las insignias se muestran en una cuadricula responsiva:
 
 ```css
-grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+grid-template-columns: repeat(auto-fill, minmax(calc(var(--zm-px) * 28), 1fr));
 ```
 
 - **Desbloqueadas**: borde dorado (`--zm-gold`), icono visible.
 - **Bloqueadas**: borde gris (`--zm-grid`), opacidad 0.5, icono atenuado.
+- Cada celda es un `listitem` con nombre accesible "Nombre: Desbloqueado/Bloqueado": el
+  estado no se comunica solo por color, y seis celdas estaticas no son seis regiones vivas.
 
 ### Animacion de desbloqueo
 
-Cuando una insignia se desbloquea, se reproduce una animacion CSS:
+**No existe, y no puede existir mientras el estado sea derivado.** La animacion que pidio
+el disenio (`@keyframes zm-badge-unlock`, 360 ms con `steps()`) necesitaba saber **el
+momento** del desbloqueo, y ninguna columna guarda el dia de un logro. El CSS que lo
+definia (`.zm-badge--unlocking`, `.zm-badge__flash` y sus dos `keyframes`, mas sus dos
+lineas en `prefers-reduced-motion`) no lo emitia nadie y se borro en este cambio: dejar
+reglas muertas es dejar en pie una promesa que la app no puede cumplir. Lo unico que se
+mueve hoy en una celda es la transicion de `transform` al tocarla (`--zm-dur-tap`).
 
-```css
-@keyframes zm-badge-unlock {
-  0%   { transform: scale(0.8); opacity: 0; }
-  25%  { transform: scale(1.1); opacity: 1; }
-  50%  { transform: scale(0.95); }
-  75%  { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
-}
-```
+La mitad persistida de M-14 —un catalogo con su fecha— es lo unico que podria convertir
+esta seccion en producto; hasta entonces, `docs/INSIGNIAS.md` §5 explica el silencio.
 
-Duracion: 360ms (`--zm-dur-emphasis`), con `steps()` para el efecto pixel.
-
-**Dominio**: `src/domain/badges/badge-types.ts`, `src/domain/badges/badge-catalog.ts`
+**Dominio**: `src/domain/badges/badge-types.ts`, `src/domain/badges/badge-catalog.ts`,
+`src/domain/badges/badge-progress.ts`
+**Config**: `data/badges.json`, `src/config/badges.ts`
+**Lectura**: `src/application/profile-badges.ts`
 **UI**: `src/ui/badges/badge-grid.tsx`
 
 ---
@@ -198,10 +212,18 @@ Duracion: 360ms (`--zm-dur-emphasis`), con `steps()` para el efecto pixel.
 
 ### Cobertura de pruebas
 
-- **Badge system**: `src/domain/badges/badge-types.test.ts`
-  - Catalogo tiene 5 insignias con IDs unicos.
-  - Copy sin palabras prohibidas ni emojis.
-  - Condiciones de desbloqueo funcionan correctamente.
+- **Badge system**: `src/domain/badges/badge-types.test.ts`,
+  `src/domain/badges/badge-progress.test.ts`, `src/config/badges.test.ts`,
+  `src/application/profile-badges.test.ts`
+  - Catalogo tiene 6 insignias con IDs unicos **y con iconos unicos** (la cuadricula se lee
+    por forma, no por posicion).
+  - Copy sin palabras prohibidas, sin emojis y sin prometer racha; presupuesto de
+    `docs/QUIZZES.md` §5.3 vigilado tambien por Zod al cargar el config.
+  - Condiciones de desbloqueo, y la aritmetica que las alimenta: `max` de rondas (no suma),
+    dias distintos en la zona de la persona, ventana inclusiva por un milisegundo y
+    monotonicidad del conjunto de ids.
+  - Camino de lectura: `null` con la lectura rota, respuestas sin cuerpos, mensajes solo por
+    su sello, y el tope de 200 que solo puede subestimar los dias activos.
 
 - **Status/Animo integration**: `src/domain/status/status-types.test.ts`
   - Copy sin palabras prohibidas ni emojis.
@@ -283,13 +305,14 @@ Todos los elementos interactivos tienen un minimo de 44x44px (`--zm-touch`).
 
 - Los selectores de estado usan `role="radiogroup"` y `role="radio"`.
 - El toggle de privacidad usa `role="switch"`.
-- Las insignias usan `role="status"` con `aria-label` descriptivo.
+- Las insignias son una `list` de `listitem` con `aria-label` "Nombre: Desbloqueado" o
+  "Nombre: Bloqueado". Antes cada celda llevaba `role="status"`, que es una region viva:
+  seis celdas estaticas habrian sido seis regiones anunciandose solas.
 - Los gestos de deslizamiento tienen botones alternativos para teclado.
 
 ### Movimiento reducido
 
 Todas las animaciones respetan `@media (prefers-reduced-motion: reduce)`:
-- Las animaciones de desbloqueo de insignias se desactivan.
 - Las transiciones de pagina se desactivan.
 - El spinner de pull-to-refresh usa `border-style: dotted` estatico.
 
@@ -420,19 +443,18 @@ function ProfilePage() {
 
 ### Mostrar insignias en el perfil
 
+Asi esta montado de verdad (`src/ui/profile/profile-view.tsx`, despues de las afinidades):
+
 ```tsx
 import { BadgeGrid } from "@/ui/badges/badge-grid";
-import type { BadgeDisplay } from "@/domain/badges/badge-types";
 
-function ProfilePage({ badges }: { badges: BadgeDisplay[] }) {
-  return (
-    <BadgeGrid
-      badges={badges}
-      justUnlocked={null}
-    />
-  );
-}
+{profile.unlockedBadges ? <BadgeGrid unlocked={profile.unlockedBadges} /> : null}
 ```
+
+El prop es una lista de **ids**, no de objetos: la pantalla pone los nombres, las lineas y
+los iconos desde `data/badges.json`. `null` (lectura fallada) no pinta la seccion; `[]` si
+la pinta con su pista vacia. Ya no existen `BadgeDisplay`, `justUnlocked` ni el prop
+`badges` del boceto original de esta fase.
 
 ### Mostrar estado en una tarjeta de match
 

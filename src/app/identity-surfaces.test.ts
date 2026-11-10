@@ -42,6 +42,7 @@ import {
   memoryProfiles,
 } from "@/application/testing/in-memory";
 import { ConversationStore, memoryConversations } from "@/application/testing/memory-conversations";
+import { memoryBadges } from "@/application/testing/memory-badges";
 
 const MODEL = buildMeasurementModel(PSYCHOMETRIC_PARAMS);
 const SECRET = "zm-test-secret";
@@ -122,7 +123,7 @@ describe("identity across every surface — 20 synthetic people", () => {
     const world = await twentyPeopleArrive();
     const { store, profiles, matches, quizDeps, revealed } = world;
     const resultDeps = { profiles, matches, digest };
-    const cardDeps = { profiles, matches };
+    const cardDeps = { profiles, matches, badges: memoryBadges(memoryConversations(new ConversationStore())) };
 
     for (const userId of USERS) {
       const expected = revealed.get(userId)!;

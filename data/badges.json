@@ -1,0 +1,110 @@
+{
+  "version": "1",
+  "copy": {
+    "titulo": "Tus logros",
+    "pista_vacia": "Aún no tienes logros desbloqueados. Cada conexión en el cielo te acerca a uno.",
+    "etiqueta_bloqueada": "Bloqueado",
+    "etiqueta_desbloqueada": "Desbloqueado",
+    "nota_derivada": "Se calculan con lo que ya hiciste; no guardamos un registro de tus logros."
+  },
+  "politica": {
+    "zona_horaria": {
+      "valor": "America/Mexico_City",
+      "etiqueta": "supuesto_diseno",
+      "fuente": "docs/INSIGNIAS.md §3"
+    },
+    "ventana_actividad_dias": {
+      "valor": 30,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "docs/INSIGNIAS.md §3"
+    },
+    "tope_mensajes_ventana": {
+      "valor": 200,
+      "etiqueta": "supuesto_diseno",
+      "fuente": "docs/INSIGNIAS.md §3"
+    },
+    "fuentes_actividad": [
+      "quiz_completado",
+      "ronda_abierta",
+      "mensaje_enviado",
+      "chat_visto",
+      "ultima_accion_propia"
+    ]
+  },
+  "insignias": [
+    {
+      "id": "primer_match",
+      "nombre": "Primer match",
+      "descripcion": "Conseguiste tu primera conexión en el cielo",
+      "icono": "estrella",
+      "condicion": {
+        "tipo": "match_count",
+        "min": {
+          "valor": 1,
+          "etiqueta": "supuesto_diseno",
+          "fuente": "docs/INSIGNIAS.md §2"
+        }
+      }
+    },
+    {
+      "id": "conversacion_completada",
+      "nombre": "Primera conversación",
+      "descripcion": "Completaste una ronda de preguntas con alguien",
+      "icono": "chat",
+      "condicion": {
+        "tipo": "conversation_complete"
+      }
+    },
+    {
+      "id": "tres_rondas",
+      "nombre": "Tres rondas",
+      "descripcion": "Llegaste a tres rondas de preguntas en una conversación",
+      "icono": "preguntas",
+      "condicion": {
+        "tipo": "round_count",
+        "min": {
+          "valor": 3,
+          "etiqueta": "supuesto_diseno",
+          "fuente": "docs/INSIGNIAS.md §2"
+        }
+      }
+    },
+    {
+      "id": "chat_libre",
+      "nombre": "Chat libre",
+      "descripcion": "Desbloqueaste el chat libre con alguien",
+      "icono": "libertad",
+      "condicion": {
+        "tipo": "chat_free_unlock"
+      }
+    },
+    {
+      "id": "semana_activa",
+      "nombre": "Semana activa",
+      "descripcion": "Siete días activos en el cielo, no hace falta que sean uno tras otro",
+      "icono": "calendario",
+      "condicion": {
+        "tipo": "active_days",
+        "min": {
+          "valor": 7,
+          "etiqueta": "supuesto_diseno",
+          "fuente": "docs/INSIGNIAS.md §2"
+        }
+      }
+    },
+    {
+      "id": "tres_rompehielos",
+      "nombre": "Tres rompehielos",
+      "descripcion": "Contestaste completos tres quizzes para hablar con alguien",
+      "icono": "rompehielos",
+      "condicion": {
+        "tipo": "quizzes_completados",
+        "min": {
+          "valor": 3,
+          "etiqueta": "supuesto_diseno",
+          "fuente": "docs/INSIGNIAS.md §4"
+        }
+      }
+    }
+  ]
+}

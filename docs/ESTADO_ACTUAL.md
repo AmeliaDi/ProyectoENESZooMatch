@@ -14,15 +14,16 @@ describen el código.
 
 | Comprobación | Hoy |
 |---|---|
-| Pruebas | 1 812 pasando y 23 saltadas, en 151 archivos (4 archivos saltados), con `npm run check` — medido 2026-11-10 |
+| Pruebas | 1 850 pasando y 23 saltadas, en 159 archivos (4 archivos saltados), con `npm run check` — medido 2026-11-10 |
 | Lint, typecheck, secretos y build | 0 errores de lint y 20 avisos. `npm run check` corre secretos → lint → typecheck → pruebas → `db:test`, y sus cinco pasos están en verde; `npm run build` compila y sirve la tabla de rutas — todo medido 2026-11-10 |
 | SQL | `npm run db:test` 105/105 — medido 2026-11-10 |
 | Núcleo psicométrico | HEXACO como núcleo con puente Big Five, MBTI continuo y Eneagrama (Fases 3–5, ADR-016, `docs/DECISION_MODELO_RASGOS.md`). El cuestionario obligatorio se parte en bloques de máximo 35 reactivos y se envían juntos al cerrar el último (ADR-045) |
 | Motor en producción | Sigue siendo `capas`. El candidato `coseno` se midió en sombra y **falla dos de las nueve compuertas**: ρ de rangos 0.2724 (pide ≥ 0.80) y 578 matches con conversación abierta que se perderían (piden 0). ADR-057, `docs/COMPARATIVA_MODELOS.md`, `.qa/rollout.json` |
-| Trazabilidad | ADR-001…ADR-065 y matriz T-01…T-42 en `docs/TRAZABILIDAD.md` (ADR-059). Ningún número publicado se escribe a mano: `src/config/results-bank.test.ts` los recalcula contra el artefacto; el índice de lo que cada uno puede afirmar es `docs/BANCO_RESULTADOS.md` |
+| Trazabilidad | ADR-001…ADR-066 y matriz T-01…T-43 en `docs/TRAZABILIDAD.md` (ADR-059). Ningún número publicado se escribe a mano: `src/config/results-bank.test.ts` los recalcula contra el artefacto; el índice de lo que cada uno puede afirmar es `docs/BANCO_RESULTADOS.md` |
 | Quizzes | 5 categorías, 18 quizzes, 150 ítems (ADR-060). Picante (18+) **sí está habilitado en producción**: `QUIZ_PICANTE_ENABLED` vale `true` en producción, preview y development, leído con `vercel env ls` sobre el proyecto `zooenes` el 2026-11-10 |
 | Identidad y sellos | Cerrado (ADR-038, ADR-052): cada perfil carga su sello `params_version`, la re-toma mínima vuelve solo sobre lo contestado (ADR-054) y existen los dos avisos —«se actualizó la matemática» para el perfil (ADR-052) y el de los quizzes para quien no tiene sello (ADR-055) |
 | Chat en el teléfono | Cerrado (ADR-056, ADR-064): la barra pasa de 148 a 44 px —44 es `--zm-touch`— y las frases se van al nombre accesible en lugar de borrarse |
+| Insignias | Cerrado por dentro, abierto por fuera (ADR-066, T-43): la cuadrícula de «Tus logros» ya se monta en «Tu carta» y su estado se **deriva** de lo que la persona ya hizo —cinco lecturas delegadas, ninguna escritura, ninguna migración, ningún `quiz_id` en el payload—. Las 6 insignias viven como dato en `data/badges.json` y Zod las valida al cargar. Lo que sigue siendo humano es el otro medio de M-14: una fecha real de desbloqueo exigiría tabla, backfill y ventana con respaldo |
 | Migraciones sin aplicar | Dos, y siguen fuera del esquema: `20261126000000_afinidad_notification.sql` y `20261127000000_conservar_conversaciones.sql`, ambas en `supabase/maintenance/pending/`. La segunda ya se prueba dentro de la transacción de `supabase/tests/05_conservacion.sql`, así que su verde no depende de producción |
 | Migraciones ya aplicadas | Aplicadas en producción están la identidad única y fija con su backfill (ADR-038), el filtro de matches borrados (`20261117000000`) y los sellos y copias de notificación (`20261123000000`, `20261124000000`). De `20261125000000_rpc_public_y_permisos.sql` este repo solo documenta su prueba contra una base de cero, con paridad de 0 diferencias contra la línea base: si ya se corrió en producción es una laguna, y cerrarla es M-12 |
 | Deploy | `zooenes.vercel.app` en producción corre sobre `67a73ab` con 11 variables. `main` local está por delante de `origin/main`: nada de lo de arriba está publicado, y el push lo decide la usuaria |
@@ -39,7 +40,10 @@ Las que ninguna prueba de este repo puede cerrar siguen siendo las mismas: dos
 teléfonos reales con TalkBack/VoiceOver (M-07), la revisión legal del aviso de
 privacidad y del consentimiento +18 (M-08), Upstash mientras el rate limit sigue en
 fail-open (M-05) y **ejecutar el pretest cognitivo**, cuyo protocolo ya está escrito
-con cero sesiones (M-15, `docs/PRETEST_COGNITIVO.md`).
+con cero sesiones (M-15, `docs/PRETEST_COGNITIVO.md`). A esas cuatro se suma la mitad
+que queda de M-14: la cuadrícula ya está montada y derivada, pero ponerle **fecha** de
+desbloqueo a una insignia exigiría una tabla nueva, su backfill y su respaldo previo, y
+eso lo decide una persona, no un test.
 
 Tampoco hay Playwright ni regresión visual: `npm run check` cubre rutas con
 `src/app/e2e-smoke.test.ts` y el contrato de copia con `src/testing/copy-guard.ts`,

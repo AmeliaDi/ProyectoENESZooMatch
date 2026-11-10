@@ -66,6 +66,7 @@ const PROFILE: ProfileDto = {
     romance: { count: 0, top: [] },
     amistad: { count: 1, top: [{ identity: PEER_IDENTITY, percent: 87 }] },
   },
+  unlockedBadges: ["primer_match"],
 };
 
 describe("parseProfile", () => {
@@ -83,6 +84,20 @@ describe("parseProfile", () => {
   it("clamps positions and orders the range", () => {
     const wild = { ...PROFILE, sections: [{ ...PROFILE.sections[0], scales: [{ ...SCALE, position: 7, range: [0.9, -1] }] }] };
     expect(parseProfile(wild)?.sections[0]?.scales[0]).toMatchObject({ position: 1, range: [0, 0.9] });
+  });
+
+  it("carries the badge grid as ids only", () => {
+    const raw = { ...PROFILE, unlockedBadges: ["primer_match", { id: "chat_libre", nombre: "impuesto" }, 7] };
+    expect(parseProfile(raw)?.unlockedBadges).toEqual(["primer_match"]);
+  });
+
+  it("says nothing about logros when the field is missing or not a list", () => {
+    const { unlockedBadges, ...without } = PROFILE;
+    expect(unlockedBadges).toBeDefined();
+    expect(parseProfile(without)?.unlockedBadges).toBeNull();
+    expect(parseProfile({ ...PROFILE, unlockedBadges: "todos" })?.unlockedBadges).toBeNull();
+    // A failed read is null too: the grid hides itself instead of showing "cero".
+    expect(parseProfile({ ...PROFILE, unlockedBadges: null })?.unlockedBadges).toBeNull();
   });
 });
 

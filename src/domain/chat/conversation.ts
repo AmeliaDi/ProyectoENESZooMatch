@@ -43,9 +43,14 @@ export function otherSide(side: ConversationSide): ConversationSide {
   return side === "a" ? "b" : "a";
 }
 
+/** Both sides left a mark (answer or "Pasar"): the round was done by people, not by the clock. */
+export function isRoundAnswered(round: RoundFacts): boolean {
+  return round.answered.a !== null && round.answered.b !== null;
+}
+
 /** Revealed when both answered (or passed), or once the wait is over. */
 export function isRoundRevealed(round: RoundFacts, now: Date, policy: Pick<RoundPolicy, "revealHours">): boolean {
-  if (round.answered.a !== null && round.answered.b !== null) return true;
+  if (isRoundAnswered(round)) return true;
   return now.getTime() - round.createdAt.getTime() >= policy.revealHours * MS_PER_HOUR;
 }
 
@@ -57,6 +62,11 @@ export function openRound(facts: ConversationFacts, now: Date, policy: RoundPoli
 
 export function completedRounds(facts: ConversationFacts, now: Date = new Date(), policy: RoundPolicy = DEFAULT_ROUND_POLICY): number {
   return facts.rounds.filter((round) => isRoundRevealed(round, now, policy)).length;
+}
+
+/** Rounds both participants actually did — a timeout reveal does not count here. */
+export function answeredRounds(facts: ConversationFacts): number {
+  return facts.rounds.filter(isRoundAnswered).length;
 }
 
 /** Turns alternate: whoever did not ask the last question asks the next one. */

@@ -4,18 +4,15 @@
  * Pure types and logic, no framework dependencies.
  */
 
-/** The five initial badge identifiers. */
-export type BadgeId =
-  | "primer_match"
-  | "conversacion_completada"
-  | "tres_rondas"
-  | "chat_libre"
-  | "semana_activa";
+/**
+ * Badge identifiers live in `data/badges.json`, so the catalogue is the only
+ * list and the code never keeps a second one that can fall behind.
+ */
 
 /** Badge definition: what it is and how to unlock it. */
 export interface BadgeDefinition {
   /** Unique identifier. */
-  id: BadgeId;
+  id: string;
   /** Human-readable name in Spanish (es-MX). */
   nombre: string;
   /** Short description of how to earn it. */
@@ -32,7 +29,8 @@ export type BadgeIcon =
   | "chat"
   | "preguntas"
   | "libertad"
-  | "calendario";
+  | "calendario"
+  | "rompehielos";
 
 /** Conditions that trigger badge unlocking. */
 export type BadgeCondition =
@@ -40,32 +38,18 @@ export type BadgeCondition =
   | { tipo: "conversation_complete" }
   | { tipo: "round_count"; min: number }
   | { tipo: "chat_free_unlock" }
-  | { tipo: "active_days"; min: number };
+  | { tipo: "active_days"; min: number }
+  | { tipo: "quizzes_completados"; min: number };
 
-/** A badge that a person has earned. */
-export interface EarnedBadge {
-  /** Badge identifier. */
-  id: BadgeId;
-  /** When it was unlocked (ISO date string). */
-  desbloqueadoEn: string;
-}
-
-/** Badge state for a person. */
-export interface BadgeState {
-  /** All badges the person has earned. */
-  earned: readonly EarnedBadge[];
-  /** Whether any badge was just unlocked (for animation). */
-  justUnlocked: BadgeId | null;
-}
-
-/** Badge display metadata for the UI. */
-export interface BadgeDisplay {
-  id: BadgeId;
-  nombre: string;
-  descripcion: string;
-  icono: BadgeIcon;
-  unlocked: boolean;
-  desbloqueadoEn: string | null;
+/** Progress counters used to evaluate badge conditions. */
+export interface BadgeProgress {
+  totalMatches: number;
+  completedConversations: number;
+  /** Rounds fully answered in the conversation that got furthest, not a sum. */
+  completedRounds: number;
+  hasFreeChat: boolean;
+  activeDays: number;
+  quizzesCompleted: number;
 }
 
 /**
@@ -87,23 +71,8 @@ export function checkBadgeUnlock(
       return progress.hasFreeChat;
     case "active_days":
       return progress.activeDays >= badge.condicion.min;
+    case "quizzes_completados":
+      return progress.quizzesCompleted >= badge.condicion.min;
   }
 }
 
-/** Progress counters used to evaluate badge conditions. */
-export interface BadgeProgress {
-  totalMatches: number;
-  completedConversations: number;
-  completedRounds: number;
-  hasFreeChat: boolean;
-  activeDays: number;
-}
-
-/** Map from BadgeIcon to the closest existing icon name in the icon system. */
-export const BADGE_ICON_TO_ICON_NAME: Record<BadgeIcon, string> = {
-  estrella: "check",
-  chat: "chat",
-  preguntas: "quiz",
-  libertad: "amistad",
-  calendario: "notification",
-};

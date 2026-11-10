@@ -12,16 +12,27 @@ import { err, ok, type Result } from "@/domain/shared";
 import type { LatentProfile } from "@/types/latent";
 import type { MatchTrack } from "@/types/microtest";
 
+import type { GetResultDeps } from "./get-result";
 import type { AppError } from "./errors";
 import { EXPLORING_ENNEAGRAM } from "./identity-readout";
 import { counterpartIdentity, enneagramWords, toIdentityDto } from "./identity-dto";
 import type { IdentityDto } from "@/contracts/identity";
 import type { CounterpartProfile, MatchRepository, ProfileRepository, StoredMatch } from "./ports";
+import { deriveBadges, type BadgeDeps } from "./profile-badges";
 
 export interface GetProfileDeps {
   profiles: Pick<ProfileRepository, "findOwn" | "findCounterparts">;
   matches: Pick<MatchRepository, "listFor">;
+  /** Read path of the derived badge grid (M-14). */
+  badges: BadgeDeps;
 }
+
+/**
+ * What `resultContext()` builds for `/api/result` and `/api/profile`: the
+ * result reads, plus the badge path only the carta uses. The result view is
+ * structurally allowed to ignore the extra key.
+ */
+export type ProfileContextDeps = GetResultDeps & { badges: BadgeDeps };
 
 /** Population prior: every scale reads as "abierta" until it is answered. */
 const PRIOR_LATENT: LatentProfile = { theta: {}, se: {}, quality: 1, answered: 0 };
@@ -84,6 +95,7 @@ export async function getProfile(viewerId: string, deps: GetProfileDeps): Promis
   const latent = profile.latent ?? PRIOR_LATENT;
   const sections = readSections(latent);
   const { mbti, enneagram } = identityReadout(identity, profile.latent);
+  const unlockedBadges = await deriveBadges(viewerId, matches.value.length, deps.badges);
   return ok({
     identity,
     narrative: profile.narrative,
@@ -97,5 +109,6 @@ export async function getProfile(viewerId: string, deps: GetProfileDeps): Promis
     // must not nag anyone on the strength of an absent column.
     measurement: profile.measurement ?? { stamped: true, current: true, seal: "" },
     affinities: { romance: affinities(matches.value, byId, "romance"), amistad: affinities(matches.value, byId, "amistad") },
+    unlockedBadges,
   });
 }

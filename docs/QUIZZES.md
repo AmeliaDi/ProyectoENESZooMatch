@@ -232,20 +232,26 @@ JSON uniforme con errores específicos y amables.
 ### 5.3 Resultado
 
 - Ficha amable: "Tu vibra musical: conciertos gigantes y playlists de estudio".
-- Badges motivacionales nuevos: **no implementado**, y ahora se sabe por qué es más
-  grande que una condición nueva. El catálogo real vive en
-  `src/domain/badges/badge-catalog.ts` (cinco insignias, ninguna de quizzes) y una por quiz
-  pediría tres cosas que hoy no existen: una condición `{ tipo: "quizzes_completados" }` en
-  `BadgeCondition`, que el evaluador sepa contar intentos por categoría y un `BadgeId` por set.
-  Y debajo de eso está el hueco de verdad: **ninguna pantalla monta la cuadrícula** —
-  `BadgeGrid` no lo importa nadie, `ProfileDto` no trae insignias y no hay tabla de logros,
-  así que hoy ninguna persona puede haber ganado ninguna. Medido y explicado en ADR-062,
-  registrado como M-14 en `docs/PENDIENTES_MANUALES.md`: primero la superficie, después las
-  insignias nuevas.
-  El estándar de copy sí está escrito y es duro: nombre ≤ 3 palabras, frase ≤ 80 caracteres,
-  2 variantes, sin rankear ni juzgar.
-- Ejemplos (de cómo se leerían, no de lo que hay): "Melómano/a de corazón", "Cinéfilo/a casual",
-  "Viajero/a de fin de semana".
+- Badges motivacionales nuevos: **una existe, y es agregada a propósito.** Desde ADR-066 la
+  cuadrícula se monta en «Tu carta» y su estado se deriva de renglones que ya se guardan, así
+  que la Fase 2 dejó de estar bloqueada por la superficie. La insignia nueva es
+  `tres_rompehielos` (tres quizzes completos, `quiz_attempts`), **no** una por quiz ni por
+  categoría: «terminaste el quiz picante» revelaría participación +18 en una pantalla que
+  puede estar abierta delante de alguien, y el payload lleva solo ids —ningún `quiz_id` viaja
+  al cliente (`src/application/profile-badges.ts`, probado en `src/application/profile-badges.test.ts`).
+  Lo que se pidió en el boceto —«Melómano/a de corazón», «Cinéfilo/a casual»,
+  «Viajero/a de fin de semana»— queda sin hacer por eso y por la regla de la propia sección:
+  convertir el gusto de alguien en un rango, o en una medalla por tener "buen" gusto, es juzgar.
+  El barrido de copy no lo deja pasar ni en las insignias (`src/testing/copy-guard.ts` y las
+  palabras prohibidas de `src/domain/badges/badge-types.test.ts`, que además prohíben prometer
+  racha). El catálogo vive en `data/badges.json` (antes estaba escrito en TypeScript) y su copy
+  se barre con el de toda la interfaz.
+- El estándar de copy sigue escrito y duro: nombre ≤ 3 palabras, frase ≤ 80 caracteres,
+  2 variantes, sin rankear ni juzgar. Ahora **también lo valida Zod al cargar el config**
+  (`src/config/badges.ts`), junto con ids e iconos únicos: la cuadrícula se lee por forma, y
+  dos insignias con el mismo icono serían la misma celda en dos posiciones.
+- Cómo se lee la diferencia: «Melómano/a de corazón» nombraría el gusto de una persona y lo
+  volvería rango; «Tres rompehielos» nombra un hecho que esa persona hizo sobre sí misma.
 
 ### 5.4 Uso como rompehielos
 

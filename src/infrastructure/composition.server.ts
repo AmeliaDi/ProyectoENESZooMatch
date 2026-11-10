@@ -7,7 +7,7 @@ import { createHash } from "node:crypto";
 import type { AdminConsoleRepository, AdminDeps, AdminLoginDeps } from "@/application/admin";
 import type { ChatRecoveryDeps, CoincidenceQuestions, ConversationRepository, InterestDeps, InvitationDeps } from "@/application/chat";
 import type { AppError } from "@/application/errors";
-import type { GetResultDeps } from "@/application/get-result";
+import type { ProfileContextDeps } from "@/application/get-profile";
 import type { HatchDeps } from "@/application/hatch";
 import type { PrivacyDeps } from "@/application/privacy";
 import type { ReconcileDeps } from "@/application/reconcile-eggs";
@@ -32,6 +32,7 @@ import { supabaseChatPinRepository, supabaseMatriculaVerifier } from "./chat/pin
 import { getChatPinPepper, getMatchingEngine, getServerEnv } from "./env/env.server";
 
 import { serverLatentScorer } from "./latent-scorer.server";
+import { supabaseQuizRepository } from "./quiz/quiz-repository";
 import { createAdminClient } from "./supabase/admin.server";
 import {
   RPC,
@@ -125,7 +126,7 @@ export async function retakeContext(): Promise<Result<{ userId: string; deps: Re
  * the deploy window self-heals here, once, and never again).
  */
 export async function resultContext(): Promise<
-  Result<{ userId: string; deps: GetResultDeps; hatch: HatchDeps }, Failure>
+  Result<{ userId: string; deps: ProfileContextDeps; hatch: HatchDeps }, Failure>
 > {
   const auth = await authenticated();
   if (!auth.ok) return auth;
@@ -134,12 +135,16 @@ export async function resultContext(): Promise<
   const env = getServerEnv();
   if (!env) return err("service.unavailable");
   const profiles = supabaseProfileRepository(admin);
+  const conversations = supabaseConversationRepository(admin);
   return ok({
     userId: auth.value.userId,
     deps: {
       profiles,
       matches: supabaseMatchRepository(admin),
       digest: sha256Hex,
+      // Read side of the derived badge grid: the chat repository, used only
+      // through the four reads `BadgeDeps` asks for, and the quiz attempts.
+      badges: { conversations, quizzes: supabaseQuizRepository(admin), clock: systemClock },
     },
     hatch: { profiles, secret: env.MATRICULA_HMAC_SECRET, scheduler: systemScheduler },
   });

@@ -332,44 +332,56 @@ con ella activa, 15/15. Verde de la suite completa: 105 aserciones en 5 archivos
 
 ## M-14 · Montar la cuadrícula de insignias antes de hablar de insignias nuevas
 
-**Estado: hallazgo medido, sin superficie.** `docs/MOVIL.md:146` dice «las insignias
-se muestran en una cuadricula en la pagina de perfil». Medido en este árbol, esa
-frase es una promesa y no un hecho:
+**Estado: montada por la vía derivada (2026-11-10, ADR-066, T-43). Queda abierta la mitad
+persistida, y esa sí es una decisión humana.** Lo que estaba medido en este documento era:
 
-- `BadgeGrid` (`src/ui/badges/badge-grid.tsx:30`) no lo importa nadie fuera de su
-  propio archivo; `src/app/perfil/page.tsx:8` renderiza `<ProfileView />` y
-  `ProfileDto` (`src/contracts/profile.ts:40-59`) no tiene campo de insignias.
-- `checkBadgeUnlock` (`src/domain/badges/badge-types.ts:75`) solo se llama desde
-  `src/domain/badges/badge-types.test.ts`. Ningún camino productivo evalúa condiciones.
-- No hay tabla de logros: la única columna `badges` de la base es
-  `public.matches.badges` (`supabase/migrations/00000000000000_base.sql:166`), que son
-  los chips de compatibilidad del match, otro concepto. `desbloqueadoEn`
-  (`src/domain/badges/badge-types.ts:49`) no tiene dónde vivir.
-- `BadgeProgress.activeDays` (`src/domain/badges/badge-types.ts:99`) no se computa en
-  ninguna parte; no hay columna de actividad diaria.
+- `BadgeGrid` no lo importaba nadie fuera de su propio archivo; `src/app/perfil/page.tsx`
+  renderizaba `<ProfileView />` y `ProfileDto` no tenía campo de insignias.
+- `checkBadgeUnlock` solo se llamaba desde su propio test: ningún camino productivo evaluaba
+  condiciones.
+- No había tabla de logros: la única columna `badges` de la base es `public.matches.badges`
+  (`supabase/migrations/00000000000000_base.sql:166`), que son los chips de compatibilidad
+  del match, otro concepto, y `desbloqueadoEn` no tenía dónde vivir.
+- `BadgeProgress.activeDays` no se computaba en ninguna parte.
 
-Por eso se pudo re-enfocar `semana_activa` sin borrarle un logro a nadie (ADR-062):
-no había estado que borrar. Y por eso las dos cosas que siguen **no** se hacen
-agregando renglones al catálogo:
+**Ya no es así.** Lo que se hizo, con la vía barata que este documento proponía:
 
-1. **Insignias de quizzes (Fase 2, sin ranking).** Harían falta la condición
-   `{ tipo: "quizzes_completados" }` en `BadgeCondition`, un contador de quizzes
-   completados por categoría y un `BadgeId` por set. Todo eso es código muerto hasta
-   que exista la superficie del punto 2. El estándar de copy ya está escrito y es
-   duro: nombre ≤ 3 palabras, frase ≤ 80 caracteres, sin rankear ni juzgar
-   (`docs/QUIZZES.md` §5.3).
-2. **Montar la cuadrícula.** Decisión de producto: una sección nueva en el perfil.
-   La vía barata es **derivada, no persistida** —contar desde
-   `quiz_responses.answered_at`, `conversation_rounds.created_at` y
-   `conversations.seen_a/seen_b` en vez de crear tabla de logros—, así que no escribe
-   datos de personas y no necesita migración. La vía persistida (tabla
-   `profile_badges` con `desbloqueado_en`) es la única que permite «desbloqueado el
-   12 de octubre» y es la que exige una decisión humana.
+1. **La superficie.** `src/ui/profile/profile-view.tsx` monta `BadgeGrid` en «Tu carta»
+   después de las afinidades; el contrato es `ProfileDto.unlockedBadges: string[] | null`
+   (solo ids: la pantalla compone los textos desde `data/badges.json`, nunca desde la
+   respuesta). Read path en `src/application/profile-badges.ts`, cableado en
+   `src/infrastructure/composition.server.ts`. Sin tabla, sin migración, sin escribir una
+   fila de nadie.
+2. **La insignia de quizzes** (el punto 1 de la lista anterior) existe: `tres_rompehielos`
+   con la condición `{ tipo: "quizzes_completados", min: 3 }`. Se resolvió en contra de lo que
+   pedía el boceto —**un número agregado, no uno por categoría**— porque «terminaste el quiz
+   picante» revela participación +18 en una pantalla que puede estar abierta delante de otra
+   persona. Ningún `quiz_id` sale hacia el cliente.
+3. **`activeDays`** se deriva de los cinco sellos que ya existen (ver `docs/INSIGNIAS.md` §3),
+   con la zona horaria de la persona y un tope de lectura de 200 mensajes que hace el número
+   un **piso**, no un techo.
 
-**Desbloqueo:** decidir (a) si la sección va en el perfil y con qué copia, y (b) si
-el estado es derivado o persistido. Con esas dos respuestas, el trabajo de código es
-pequeño: un read path, el prop en `ProfileDto`, el montaje de `BadgeGrid` y las
-pruebas de copy que ya existen.
+**Lo que sigue siendo decisión humana** (y por qué la mitad persistida no se hizo sola):
+
+- **Fecha de desbloqueo.** Ninguna columna guarda el día en que alguien ganó un logro, así que
+  la cuadrícula no muestra fechas y no hay animación de «acabas de ganar» (el CSS muerto que
+  lo insinuaba se borró). Para eso hace falta la tabla `profile_badges` con `desbloqueado_en`,
+  su escritura en cada hito, su backfill (¿desde cuándo se cuenta? ¿desde hoy?) y su ventana de
+  mantenimiento con respaldo previo. Escribirla es **crear un dato nuevo sobre las personas**,
+  y eso no se decide desde el código.
+- **Qué se promete en el copy.** Si llega la fecha, hay que retirar la nota actual
+  (`copy.nota_derivada`: «no guardamos un registro de tus logros») y revisar `docs/PRIVACIDAD.md`
+  y el aviso de datos. Mientras tanto la promesa técnica y la promesa visible son la misma frase.
+- **La decisión (a) de este documento —dónde va la sección y con qué copia— se tomó con la
+  opción conservadora** (perfil de la persona, copy del catálogo revisado por las pruebas que ya
+  existían). Si el producto la quiere también en el inbox o en el resultado del quiz, es un
+  montaje nuevo, no un flag.
+
+**Pruebas que sujetan lo hecho:** `src/config/badges.test.ts` (10), `src/domain/badges/badge-types.test.ts`
+(14), `src/domain/badges/badge-progress.test.ts` (11), `src/application/profile-badges.test.ts` (7),
+`src/ui/badges/badge-grid.test.ts` (5) y dos casos más en `src/application/get-profile.test.ts` y
+`src/ui/profile/profile.test.ts`. Rojo medido: contando `completed` donde va `answered` cae la prueba
+del reloj de 48 h; dando el mismo icono a dos insignias el config se cae al cargar (3 suites).
 
 ---
 

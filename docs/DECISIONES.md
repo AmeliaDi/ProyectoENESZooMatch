@@ -3255,3 +3255,81 @@ puntaje. No se añadió un puntaje de deseabilidad en ninguna capa, ni siquiera 
 No se re-estimó nada con 12 personas, y la página remite el poder estadístico al piloto ya preregistrado
 (`docs/VALIDACION.md` §6: 194 / 347 / 783 díadas). No se exportó ninguna fila individual, respuesta,
 matrícula, hash ni PIN —la regla que ya rige la auditoría de base (`docs/PENDIENTES_MANUALES.md` §M-03)—.
+
+## ADR-066 · La cuadrícula de insignias se monta por la vía derivada: solo ids, solo lecturas que ya existen, y dos silencios escritos
+
+**Contexto.** ADR-062 dejó medido el hueco: `BadgeGrid` existía, su lógica estaba probada, y
+**ninguna pantalla lo importaba** — así que ninguna persona podía haber ganado una insignia,
+y el sistema de logros de `docs/MOVIL.md` Fase 5 era diseño, no producto. M-14 ofrecía dos
+caminos: persistir (tabla nueva, escritura en cada hito, backfill, fecha real por logro) o
+derivar (calcular el estado leyendo renglones que la app **ya** guarda). Elegir persistir
+pedía una migración, y una migración pide ventana de mantenimiento, respaldo y una decisión
+que todavía no corresponde: el producto no tiene ni un mes de tráfico y el único documento
+que justificaría guardar historia de logros sería el propio logro. El segundo problema era
+de semántica, no de camino: ya existía `matches.badges`, que son chips de compatibilidad de
+un par calculados por el motor, y el nombre en inglés de las dos cosas es el mismo. Y el
+terero: la insignia de quizzes (Fase 2 de `docs/QUIZZES.md` §5.3, tarea #40) pedía contar
+`quiz_attempts` por categoría, que es exactamente la columna que revela contenido +18.
+
+**Decisión.**
+
+- **Vía derivada, sin escritura.** `src/application/profile-badges.ts` lee y reduce; no hay
+  tabla nueva, no hay migración, no hay columna que respaldar. El cable entra por
+  `composition.server.ts` con los puertos ya existentes (`listFor`, `roundsOf`,
+  `answersOf(…, false)`, `recentMessagesBy`, `getAttempts`) y un reloj inyectado.
+- **El catálogo se vuelve dato y deja de ser código.** `data/badges.json` (nuevo) trae las
+  seis insignias, el copy de la sección y la política anotada; `src/config/badges.ts` la
+  valida con Zod y `src/domain/badges/badge-catalog.ts` la lee. Antes los cinco objetos
+  estaban escritos en TypeScript, por lo que el copy de una insignia no pasaba por ninguno de
+  los barridos de `src/ui/screens.test.ts`; ahora sí. Zod exige ids únicos **e iconos
+  únicos**: la cuadrícula se lee por forma, y dos insignias con el mismo icono serían la
+  misma celda en dos posiciones.
+- **El contrato lleva ids, no frases.** `ProfileDto.unlockedBadges: string[] | null`
+  (`src/contracts/profile.ts`). La pantalla compone nombre, línea e icono desde el catálogo
+  revisado, así que una respuesta no puede poner en pantalla una frase que nadie escribió.
+  El campo no se llama `badges` por la colisión con `matches.badges`; el comentario del
+  contrato lo dice para que nadie "lo corrija" después.
+- **La semántica de rondas no se duplica: se reutiliza el dominio del chat.** `answeredRounds`
+  (nuevo, con `isRoundAnswered`) y `completedRounds`/`isFree` salen de
+  `src/domain/chat/conversation.ts`, y la proyección la hace `factsOf` del chat. Dos
+  conteos distintos a propósito: una ronda la "completaron las personas" si ambas dejaron
+  marca (respuesta **o** «Pasar»), y una ronda "está completada" también cuando la revelaron
+  las 48 h. Por eso `conversacion_completada` mira el primero y `tres_rondas` el segundo, que
+  es el número con el que el chat abre el chat libre.
+- **`semana_activa` cuenta días, en la zona de la persona, y puede quedarse corta.**
+  `activeDays = |{ dia_z(t) : t ≥ now − 29 d }|` con `zona_horaria = America/Mexico_City`,
+  sobre los cinco sellos que ya existen. El tope de lectura (`tope_mensajes_ventana = 200`)
+  hace el conteo **un piso, no un techo**: con más de 200 mensajes en la ventana los días
+  viejos no se ven y la insignia puede seguir bloqueada. Está probado en los dos sentidos.
+- **La insignia de quizzes existe, pero es un número agregado.** `tres_rompehielos` con la
+  condición `{ tipo: "quizzes_completados", min: 3 }` cierra la Fase 2 de §5.3 sin una
+  insignia por quiz ni por categoría: ninguna de las dos viajaría al cliente, porque "ya
+  terminaste el quiz picante" es una revelación de participación +18 en una pantalla que
+  puede estar abierta delante de otra persona.
+- **Dos silencios, escritos y probados.** Sin fecha: ninguna columna guarda el día de un
+  logro, así que `BadgeDisplay.desbloqueadoEn`, `EarnedBadge`, `BadgeId`, `BadgeState` y
+  `buildDefaultBadges` se borraron en lugar de rellenarse con una derivada. Sin "cero":
+  cualquier lectura que falla (o lanza, como hace el adaptador de quizzes) produce `null`, la
+  sección no se monta, y decir "no has hecho nada" se reserva para cuando sí sea cierto. La
+  nota que ve la persona (`copy.nota_derivada`) dice lo mismo en su idioma.
+
+**Consecuencias.** El sistema de logros existe como producto: se ve, se deriva y se puede
+retirar sin tocar datos. El costo es que todo se recalcula en cada lectura del perfil —
+cinco lecturas delegadas en los puertos del chat, que ya usan las pantallas de chat — y que
+la cuadrícula no puede prometer historia: un logro que dependa de un hecho ya pasado
+("una conversación de 30 días") seguirá sin poder existir hasta que haya catálogo persistido.
+Segundo costo, y es el que M-14 deja abierto: al derivar, **la ausencia de una fecha es una
+promesa**, no un detalle; si mañana se persiste, hay que decidir al mismo tiempo qué se muestra
+y retirar la nota de "no guardamos un registro". Y el tercero: el conteo de días es ahora un
+piso documentado, así que la insignia puede negarse ante una persona que sí cumplió — la
+alternativa (leer todos los mensajes de 30 días) sería un query sin tope sobre el chat.
+
+**Lo que NO se hizo.** No se creó tabla, migración, índice ni RPC; no se escribió una fila de
+ninguna persona; no se tocó `data/matching-config.json`, los pesos, los ítems ni la
+matriz de la matemática. No se expuso ninguna respuesta, ningún cuerpo de mensaje, ningún
+`quiz_id`, ningún `user_id` en el payload del perfil (los cuerpos se piden con
+`withBodies = false` y de los mensajes solo se guarda `.at`). No se puso fecha de desbloqueo
+ni animación de "acabas de ganar". No se montó la cuadrícula en el inbox ni en el resultado
+del quiz: vive en «Tu carta», que es la pantalla de la persona sobre sí misma. No se cerró
+M-14: queda la mitad persistida, etiquetada como tal en `docs/PENDIENTES_MANUALES.md`.
+Documentación: `docs/INSIGNIAS.md` (nuevo), ADR-062, T-43 en `docs/TRAZABILIDAD.md`.

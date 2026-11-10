@@ -58,4 +58,14 @@ export interface ProfileDto {
     romance: { count: number; top: AffinitySummaryDto[] };
     amistad: { count: number; top: AffinitySummaryDto[] };
   };
+  /**
+   * Ids de `data/badges.json` ya desbloqueados, derivados de filas que la app
+   * guarda (M-14). `null` = la lectura falló hoy y la sección no se muestra;
+   * contaría cero como si la persona no hubiera hecho nada, y eso no se afirma.
+   *
+   * Solo viajan ids: los nombres y las frases los pone el catálogo en el
+   * cliente, que es el texto revisado por las pruebas de copy. `badges` no es
+   * nombre posible: en `matches` esa columna son los chips de compatibilidad.
+   */
+  unlockedBadges: string[] | null;
 }

@@ -113,6 +113,11 @@ export function parseProfile(raw: unknown): ProfileDto | null {
     completedModules: Array.isArray(raw.completedModules)
       ? raw.completedModules.filter((m): m is string => typeof m === "string")
       : [],
+    // `null` and `[]` mean different things: nothing read today versus read and
+    // nothing unlocked. Only the first one hides the section.
+    unlockedBadges: Array.isArray(raw.unlockedBadges)
+      ? raw.unlockedBadges.filter((id): id is string => typeof id === "string")
+      : null,
     affinities: { romance: parseTrack(affinities.romance), amistad: parseTrack(affinities.amistad) },
   };
 }

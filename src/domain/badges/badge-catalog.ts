@@ -1,54 +1,28 @@
 /**
- * Badge catalog: the five initial badges with their definitions.
- * Pure data, no runtime dependencies.
+ * Badge catalogue: the definitions and the section copy, read from
+ * `data/badges.json`. The thresholds are design assumptions with their provenance
+ * stated in the file and in `docs/INSIGNIAS.md`; this module owns no numbers.
  */
+
+import { BADGES } from "@/config/badges";
 
 import type { BadgeDefinition } from "./badge-types";
 
-export const BADGE_CATALOG: readonly BadgeDefinition[] = [
-  {
-    id: "primer_match",
-    nombre: "Primer match",
-    descripcion: "Conseguiste tu primera conexion en el cielo",
-    icono: "estrella",
-    condicion: { tipo: "match_count", min: 1 },
-  },
-  {
-    id: "conversacion_completada",
-    nombre: "Primera conversacion",
-    descripcion: "Completaste una ronda de preguntas con alguien",
-    icono: "chat",
-    condicion: { tipo: "conversation_complete" },
-  },
-  {
-    id: "tres_rondas",
-    nombre: "Tres rondas",
-    descripcion: "Llegaste a tres rondas de preguntas en una conversacion",
-    icono: "preguntas",
-    condicion: { tipo: "round_count", min: 3 },
-  },
-  {
-    id: "chat_libre",
-    nombre: "Chat libre",
-    descripcion: "Desbloqueaste el chat libre con alguien",
-    icono: "libertad",
-    condicion: { tipo: "chat_free_unlock" },
-  },
-  {
-    id: "semana_activa",
-    nombre: "Semana activa",
-    descripcion: "Siete dias activos en el cielo, no hace falta que sean uno tras otro",
-    icono: "calendario",
-    condicion: { tipo: "active_days", min: 7 },
-  },
-] as const;
+export const BADGE_CATALOG: readonly BadgeDefinition[] = BADGES.insignias.map((badge) => ({
+  id: badge.id,
+  nombre: badge.nombre,
+  descripcion: badge.descripcion,
+  icono: badge.icono,
+  condicion: badge.condicion,
+}));
 
 /** Copy for the badge section on the profile page. */
 export const BADGE_SECTION_COPY = {
-  title: "Tus logros",
-  emptyHint: "Aun no tienes logros desbloqueados. Cada conexion en el cielo te acerca a uno.",
-  lockedLabel: "Bloqueado",
-  unlockedLabel: "Desbloqueado",
+  title: BADGES.copy.titulo,
+  emptyHint: BADGES.copy.pista_vacia,
+  lockedLabel: BADGES.copy.etiqueta_bloqueada,
+  unlockedLabel: BADGES.copy.etiqueta_desbloqueada,
+  derivedNote: BADGES.copy.nota_derivada,
 } as const;
 
 /** Lookup a badge definition by id. */

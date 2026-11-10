@@ -182,8 +182,8 @@ flowchart TD
 
 - **Objetivo:** ver tus resultados cuando quieras, no solo en la revelación.
 - **Contenido:** sprite, alias, MBTI (con ejes en equilibrio) y Eneagrama;
-  hasta 4 virtudes; afinidades (conteo y top 3 por track); lecturas por
-  sección (HEXACO abierta; Big Five, MBTI, valores, relacional, afecto y
+  hasta 4 virtudes; afinidades (conteo y top 3 por track); «Tus logros»; lecturas
+  por sección (HEXACO abierta; Big Five, MBTI, valores, relacional, afecto y
   estilo plegadas en `<details>`).
 - **Cada escala:** una pista pixel de 24 celdas. La banda tenue es la duda, la
   celda dorada es la estimación y la marca central es la mitad. El texto dice
@@ -206,6 +206,18 @@ flowchart TD
   (`3-quizzes-2.3.0`), así que cambia el corte o el banco y el aviso vuelve a salir una vez.
   Es opcional y lo dice dos veces: serían los tres quizzes otra vez, y mientras tanto el perfil se
   sigue calculando con lo que esa persona contestó.
+- **Tus logros** (`src/ui/badges/badge-grid.tsx`, ADR-066): seis insignias en una
+  cuadrícula de 56 px (`minmax(calc(var(--zm-px)*28),1fr)`), en el orden de
+  `data/badges.json`. Nada de esto es nuevo en pantalla: el estado se **deriva** al
+  servir la carta, así que no hay tabla de logros, no hay fecha de desbloqueo y no hay
+  animación (el CSS muerto de `zm-badge--unlocking` se borró). La celda dice
+  «Desbloqueado» o «Bloqueado» en texto para lectores de pantalla dentro de una
+  `role="list"`, nunca solo por color ni por opacidad. Si la lectura delegada falla, la
+  sección entera se vuelve `null`: la carta sale sin decir nada de logros antes que
+  decir «tienes cero». El contrato lleva solo ids —ningún `quiz_id`, ninguna respuesta,
+  ningún mensaje— y `tres_rompehielos` es un número agregado a propósito: una insignia
+  por categoría revelaría participación +18 delante de alguien más. Copias y umbrales:
+  `docs/INSIGNIAS.md`.
 - **Estados:** carga («Desplegando tu carta…»); sin sesión → entrada; sin test
   → cuestionario; error → reintentar.
 - **Anti-plantilla:** marcos de atlas con coordenadas AR, pistas de celdas en

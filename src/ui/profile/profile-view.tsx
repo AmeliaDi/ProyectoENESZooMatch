@@ -24,6 +24,7 @@ import { ErrorState, LoadingState } from "@/ui/kit/states";
 import { Chip, Frame } from "@/ui/kit/surfaces";
 
 import { RefineInvite } from "@/ui/refine/refine-invite";
+import { BadgeGrid } from "@/ui/badges/badge-grid";
 
 import { parseProfile } from "./parse-profile";
 import { MathUpdateNotice } from "./math-update-notice";
@@ -238,6 +239,7 @@ export function ProfileView() {
         <QuizChangesNotice measurement={profile.measurement} />
         <Virtues profile={profile} />
         <Affinities profile={profile} />
+        {profile.unlockedBadges ? <BadgeGrid unlocked={profile.unlockedBadges} /> : null}
         <MathUpdateNotice measurement={profile.measurement} />
         <RefineInvite
           track={profile.affinities.romance.count > 0 ? "romance" : "amistad"}

@@ -24,8 +24,9 @@ const FORBIDDEN_WORDS = [
 ];
 
 describe("badge catalog", () => {
-  it("has exactly 5 initial badges", () => {
-    expect(BADGE_CATALOG).toHaveLength(5);
+  it("has exactly 6 badges, each with its own icon", () => {
+    expect(BADGE_CATALOG).toHaveLength(6);
+    expect(new Set(BADGE_CATALOG.map((b) => b.icono)).size).toBe(BADGE_CATALOG.length);
   });
 
   it("every badge has a unique id", () => {
@@ -63,6 +64,7 @@ describe("badge unlock conditions", () => {
     completedRounds: 0,
     hasFreeChat: false,
     activeDays: 0,
+    quizzesCompleted: 0,
   };
 
   it("primer_match unlocks at 1 match", () => {
@@ -96,6 +98,14 @@ describe("badge unlock conditions", () => {
     expect(checkBadgeUnlock(badge, { ...baseProgress, activeDays: 6 })).toBe(false);
     expect(checkBadgeUnlock(badge, { ...baseProgress, activeDays: 7 })).toBe(true);
     expect(checkBadgeUnlock(badge, { ...baseProgress, activeDays: 30 })).toBe(true);
+  });
+
+  it("tres_rompehielos unlocks at 3 completed quizzes, counted as one number", () => {
+    const badge = getBadgeDefinition("tres_rompehielos")!;
+    expect(badge.condicion).toEqual({ tipo: "quizzes_completados", min: 3 });
+    expect(checkBadgeUnlock(badge, { ...baseProgress, quizzesCompleted: 2 })).toBe(false);
+    expect(checkBadgeUnlock(badge, { ...baseProgress, quizzesCompleted: 3 })).toBe(true);
+    expect(checkBadgeUnlock(badge, { ...baseProgress, quizzesCompleted: 18 })).toBe(true);
   });
 
   it("conditions are independent: one progress change only affects its badge", () => {

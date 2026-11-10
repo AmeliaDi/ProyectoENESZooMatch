@@ -156,7 +156,7 @@ Detalle en [`docs/PRIVACIDAD.md`](./docs/PRIVACIDAD.md).
 | Documento | Para qué |
 |---|---|
 | [`docs/ESTADO_ACTUAL.md`](./docs/ESTADO_ACTUAL.md) | Estado del proyecto, fases y pendientes (empieza aquí) |
-| [`docs/ARQUITECTURA.md`](./docs/ARQUITECTURA.md) · [`docs/DECISIONES.md`](./docs/DECISIONES.md) | Capas y ADRs (ADR-001 … ADR-065) |
+| [`docs/ARQUITECTURA.md`](./docs/ARQUITECTURA.md) · [`docs/DECISIONES.md`](./docs/DECISIONES.md) | Capas y ADRs (ADR-001 … ADR-066) |
 | [`docs/DECISION_MODELO_RASGOS.md`](./docs/DECISION_MODELO_RASGOS.md) · [`docs/CAPAS_EVIDENCIA.md`](./docs/CAPAS_EVIDENCIA.md) | HEXACO como núcleo y evidencia por capa |
 | [`docs/MATCHING.md`](./docs/MATCHING.md) · [`docs/SCORING.md`](./docs/SCORING.md) · [`docs/MEDICION.md`](./docs/MEDICION.md) | Modelo de afinidad, scoring y medición |
 | [`docs/EVIDENCIA.md`](./docs/EVIDENCIA.md) · [`docs/LITERATURA.md`](./docs/LITERATURA.md) · [`docs/META_ANALISIS.md`](./docs/META_ANALISIS.md) | Matriz de evidencia y pipeline de literatura |
@@ -164,6 +164,7 @@ Detalle en [`docs/PRIVACIDAD.md`](./docs/PRIVACIDAD.md).
 | [`docs/BANCO_RESULTADOS.md`](./docs/BANCO_RESULTADOS.md) | Qué resultado psicométrico existe, en qué artefacto, y qué **no** afirma (todavía no hay normas) |
 | [`docs/PRETEST_COGNITIVO.md`](./docs/PRETEST_COGNITIVO.md) | Protocolo de pretest cognitivo de los quizzes: tareas y cortes, con **cero sesiones ejecutadas** |
 | [`docs/CHAT.md`](./docs/CHAT.md) | Candado de PIN y chat (flujo, banco de preguntas, seguridad) |
+| [`docs/INSIGNIAS.md`](./docs/INSIGNIAS.md) | «Tus logros»: la cuadrícula **derivada** de renglones que ya existen, sus umbrales, y los dos silencios (sin fecha, sin "cero" cuando falla la lectura) |
 | [`docs/DISENO.md`](./docs/DISENO.md) · [`docs/AVATARES.md`](./docs/AVATARES.md) · [`docs/AUDITORIA_VISUAL.md`](./docs/AUDITORIA_VISUAL.md) · [`docs/GUIA_DE_TONO.md`](./docs/GUIA_DE_TONO.md) | Sistema de diseño pixel + dorado, avatares, contraste y tono |
 | [`docs/PRIVACIDAD.md`](./docs/PRIVACIDAD.md) · [`docs/QA.md`](./docs/QA.md) | Privacidad y QA |
 | [`DESPLIEGUE.md`](./DESPLIEGUE.md) · [`MANUAL_ADMINISTRADOR.md`](./MANUAL_ADMINISTRADOR.md) | Operación |
@@ -177,6 +178,9 @@ Detalle en [`docs/PRIVACIDAD.md`](./docs/PRIVACIDAD.md).
   - guía móvil;
   - candado de PIN;
   - chat con señales, rondas guiadas y seguridad;
+  - «Tus logros» en el perfil, **derivado** de lo que la app ya guarda: sin tabla nueva
+    y sin fecha de desbloqueo; ponerle fecha es decisión humana —pediría tabla, backfill
+    y respaldo (`docs/INSIGNIAS.md`, M-14);
   - QA de API en producción (85/85).
 - **Pendiente:**
   - activar Upstash para un rate limit distribuido;
