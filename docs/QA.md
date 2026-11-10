@@ -285,6 +285,25 @@ RLS estricto (sin políticas para clientes, solo `service_role`). Idempotente co
 - Verificar que las coincidencias aparecen en el chat cuando ambas personas optaron por compartir.
 - Revisar el aviso de privacidad antes de habilitar Picante en producción.
 
+## 4.9 QA express del deploy (2026-11-10, `5efe4a0`, ADR-040)
+
+Corrida contra la producción: `BASE=https://zooenes.vercel.app node scripts/qa/qa-api.mjs`.
+La tabla completa queda en `.qa/qa-api-prod-20261110c.md`.
+
+| Comprobación | Resultado |
+|---|---|
+| QA de API contra producción | **101/101 OK** (la corrida anterior cerró con 9 filas en FALLA) |
+| De dónde salieron las 9 | del *harness*, no de la app: desde ADR-040 todo lo que cuelga de `/api/chat/*` y `/api/interest` responde `{ok:true,data}` o `{ok:false,error:{codigo,…}}`, y `scripts/qa/qa-chat.mjs` leía los campos en la raíz del JSON. Como `opened.conversation` salía `undefined`, «pregunta propia antes del chat libre» llegaba a `/api/chat/conversations/undefined` y el bloque entero reventaba en `Cannot read properties of undefined (reading 'id')` |
+| Arreglo | `scripts/qa/qa-envelope.mjs` (nuevo): `readData`, `readError` y `unwrap` desembragan cuando hay envoltorio y dejan pasar un DTO desnudo si alguna ruta migrada retrocede. `/api/notifications` se sigue leyendo desnudo porque no está migrado |
+| Fila nueva: el estado refleja un PIN creado | `hasPin=true/unlocked=true`. Antes la única lectura de `chat/status` era con el PIN ausente, así que «borrar datos elimina el PIN» no podía distinguir «se borró» de «nunca hubo» |
+| Filas nuevas de usuario viejo | reentrar con la matrícula ya eclosionada (200/200), resultado con 5 tarjetas de amistad, `identity.aliasCompleto` idéntico al de la eclosión (ADR-024) y notificaciones disponibles (200) |
+| Fila renombrada: reentrar tras borrar | `200/hasPin=false`. Dice lo que mide: la matrícula borrada vuelve como cuenta nueva. El borrado de `chat_pins` lo hace `ON DELETE CASCADE` (`supabase/migrations/00000000000000_base.sql:861`), que no es una afirmación de esta fila |
+| Contrato de error | «PIN incorrecto: error genérico» ahora muestra `403 chat.pin_invalid` (leía `code`; el campo se llama `codigo`) y el cuerpo sigue sin llevar el PIN intentado |
+| Base después de la corrida | `node --no-warnings scripts/purge-garbage.mts --dry-run`: ninguna fila sintética de hoy (el candidato sintético más nuevo es del 2026-11-09 16:17 UTC) y 0 huérfanos en `auth`, `quiz_responses`, `matches`, `notifications` ni `conversations` |
+| Hallazgo colateral | `purge-garbage.mts` estaba roto contra el esquema vigente: seleccionaba `p.alias`, la columna que eliminó la Fase 5 de ADR-038, así que el `--dry-run` moría en `42703`. Se quita de la consulta y de la interfaz; el reporte nunca la usaba |
+| Conteo de pruebas que toca | `scripts/verify/synthetic-isolation.test.ts` recorre `scripts/` y emite casos por archivo: con `qa-envelope.mjs` son 36, sin él 34. De ahí sale el +2 de 1 850 a 1 852 en `npm run check` |
+| Costo real de correrlo en producción | las dos matrículas falsas `426144891`/`426144892` entran, eclosionan, chatean y se borran por cascada, pero el *churn* del *top-k* deja avisos `match_amistad`/`match_romance` en personas reales (M-01) |
+
 ## 5. Pendiente (fuera de lo que se puede automatizar aquí)
 
 - **Chat en dos teléfonos reales:** el flujo se probó por API (88/88), con tests de casos de

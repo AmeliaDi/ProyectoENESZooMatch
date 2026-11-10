@@ -76,7 +76,7 @@
 
 | Puerta | Resultado | Detalle |
 |---|---|---|
-| `npm run check` | ✓ | secrets + lint + typecheck + pruebas + `db:test`: 1 850 pruebas pasando, 0 errores de `eslint` (20 avisos `no-unused-vars`, los mismos de antes), `db:test` 105/105 (ver §4) |
+| `npm run check` | ✓ | secrets + lint + typecheck + pruebas + `db:test`: 1 852 pruebas pasando, 0 errores de `eslint` (20 avisos `no-unused-vars`, los mismos de antes), `db:test` 105/105 (ver §4) |
 | `npm run verify:invariants` | ✓ | 14/14 invariantes, 383 pruebas |
 | `npm run verify:rollout` | ✓ | 9 compuertas, decisión NO ACTIVAR, `inputHash` vigente |
 | `npm run verify:all` | ✓ | diez pasos, `failed: []` y `omitted: []` (ver §4) |
@@ -130,13 +130,15 @@ ni parámetros psicométricos ni esquema.
   `.qa/db-test.json` vuelve a `files: 5`, `assertions: 105`, `passed: 105`.
 
 **Antes / después en la misma métrica.** En `67a73ab` el registro de ADR-056 era
-**1 574 pruebas pasando, 23 saltadas, 138 archivos**; ahora son **1 850 pasando,
-23 saltadas, 159 archivos**: +276 pruebas y +21 archivos de test, y las 23
-saltadas son las mismas de antes (no se convirtió ninguna prueba en salto).
+**1 574 pruebas pasando, 23 saltadas, 138 archivos**; ahora son **1 852 pasando,
+23 saltadas, 159 archivos**: +278 pruebas y +21 archivos de test, y las 23
+saltadas son las mismas de antes (no se convirtió ninguna prueba en salto). Las
+últimas 2 vienen de `scripts/verify/synthetic-isolation.test.ts`, que emite casos
+por archivo recorrido y ahora cubre también `scripts/qa/qa-envelope.mjs`.
 
 **Los otros pasos, en números:**
 
-- `data:validate`: 214 pruebas en 17 archivos + la validación de datos.
+- `data:validate`: 237 pruebas en 19 archivos + la validación de datos.
 - `verify:invariants`: 382 pruebas en 23 archivos, I1–I10 y S1–S4, más las
   pruebas de los propios invariantes.
 - `verify:rollout`: 9 compuertas, decisión NO ACTIVAR (sigue `capas`); fallan

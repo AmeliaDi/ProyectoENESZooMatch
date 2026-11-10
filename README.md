@@ -181,7 +181,7 @@ Detalle en [`docs/PRIVACIDAD.md`](./docs/PRIVACIDAD.md).
   - «Tus logros» en el perfil, **derivado** de lo que la app ya guarda: sin tabla nueva
     y sin fecha de desbloqueo; ponerle fecha es decisión humana —pediría tabla, backfill
     y respaldo (`docs/INSIGNIAS.md`, M-14);
-  - QA de API en producción (85/85).
+  - QA de API en producción (101/101, `docs/QA.md` §4.9).
 - **Pendiente:**
   - activar Upstash para un rate limit distribuido;
   - pruebas en dos teléfonos con TalkBack o VoiceOver;
